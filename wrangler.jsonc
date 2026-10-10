@@ -9,6 +9,9 @@
     "directory": "./public",
     "binding": "ASSETS"
   },
+  // Adresse publique en .workers.dev ; pas d'adresses de prévisualisation par version.
+  "workers_dev": true,
+  "preview_urls": false,
   // Garde les variables ajoutées dans le tableau de bord lors des déploiements.
   "keep_vars": true,
   "observability": { "enabled": true }
