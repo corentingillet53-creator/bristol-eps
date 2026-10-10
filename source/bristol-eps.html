@@ -373,6 +373,23 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .sj-ctx dt{font-weight:700;color:var(--accent-text);white-space:nowrap}
 .sj-ctx dd{margin:0 0 6px;color:var(--ink)}
 @media (max-width:520px){ .sj-ctx{grid-template-columns:1fr} .sj-ctx dd{margin-bottom:10px} }
+/* ---------- Favoris, notes, recherche, premier lancement ---------- */
+.star{appearance:none;border:0;background:none;color:var(--muted);width:40px;height:40px;margin:-8px -8px -8px 0;display:grid;place-items:center;border-radius:50%;cursor:pointer}
+.star svg.ic{width:20px;height:20px}
+.star[aria-pressed="true"]{color:var(--gold)}
+.star[aria-pressed="true"] svg.ic{fill:currentColor}
+.star:hover{background:var(--chip)}
+.item .is .star{margin:-8px -8px 0 0}
+.cn-edit{display:grid;gap:6px;max-width:560px}
+.cn-edit textarea{min-height:70px;font-size:14px}
+.cn-txt{color:var(--ink);white-space:pre-line}
+.deck-search{margin:0 0 14px}
+.deck-search input{max-width:560px}
+.w-onb{margin:0 0 18px}
+.w-conc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:0 0 10px}
+.w-conc .btn{flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px}
+.w-conc .btn span{font-weight:400;font-size:13px;color:var(--muted)}
+.w-mine{margin:0 0 16px;font-size:15px}
 /* ---------- Méthode ---------- */
 .steps{list-style:none;counter-reset:st;margin:0 0 28px;padding:0;display:grid;gap:10px}
 .step{counter-increment:st;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px 14px 64px}
@@ -580,6 +597,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
         <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Fiches</button>
 
       </div>
+      <div class="deck-search" id="deck-search-wrap" hidden><label class="sr-only" for="deck-search">Chercher dans toutes les fiches</label><input id="deck-search" type="search" placeholder="Chercher dans toutes les fiches : un nom, une date, une notion…" autocomplete="off"></div>
       <div class="fbar" id="filters-deck" hidden></div>
       <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils"></section>
       <section id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden></section>
@@ -1033,6 +1051,16 @@ function mergeAch(a, b){
   const un = (x, y) => { const out = Object.assign({}, x); for (const [k, v] of Object.entries(y)) out[k] = out[k] ? Math.min(out[k], v) : v; return out; };
   return { u: un(a.u, b.u), w: un(a.w, b.w), g: un(a.g, b.g), f: Math.max(a.f, b.f), r: Math.max(a.r, b.r) };
 }
+/* Favoris et notes personnelles par fiche : { id: { v, t } }, la version la plus récente l'emporte. */
+let mine = { fav: {}, cn: {} }, cnEdit = null, dq = "";
+function normMine(x){ x = x || {}; const o = v => (v && typeof v === "object" && !Array.isArray(v)) ? Object.assign({}, v) : {}; return { fav: o(x.fav), cn: o(x.cn) }; }
+function mergeMine(a, b){
+  a = normMine(a); b = normMine(b);
+  const m = (x, y) => { const out = Object.assign({}, x); for (const [k, v] of Object.entries(y)) if (!out[k] || (v && (v.t || 0) > (out[k].t || 0))) out[k] = v; return out; };
+  return { fav: m(a.fav, b.fav), cn: m(a.cn, b.cn) };
+}
+const isFav = id => !!(mine.fav[id] && mine.fav[id].v);
+const cnGet = id => (mine.cn[id] && mine.cn[id].v) || "";
 let refs = {}, refEdit = null;
 const SOURCES = {
   TS: { l: "Chronologie des textes officiels de l'EPS (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/textes-officiels-concernant-l-education-physique-et-sportive-en-france" },
@@ -1092,7 +1120,11 @@ function srcHTML(c){
   const ref = refEdit === c.id
     ? `<span class="ref-edit"><label class="sr-only" for="ref-input">Ma référence</label><input id="ref-input" data-rid="${esc(c.id)}" value="${esc(mine)}" placeholder="Ex. : Attali, chap. 2, p. 45"><button class="btn small" data-refsave="${esc(c.id)}">Enregistrer</button><button class="btn small" data-refcancel="1">Annuler</button></span>`
     : `<span>Ma référence : ${mine ? esc(mine) : "aucune"} <button class="linkbtn" data-refedit="${esc(c.id)}">${mine ? "Modifier" : "Ajouter"}</button></span>`;
-  return `<div class="src">${src}${ref}</div>`;
+  const cn = cnGet(c.id);
+  const note = cnEdit === c.id
+    ? `<span class="cn-edit"><label class="sr-only" for="cn-input">Ma note sur cette fiche</label><textarea id="cn-input" data-cid="${esc(c.id)}" rows="3" placeholder="Un lien avec un autre fait, un moyen mnémotechnique, une nuance…">${esc(cn)}</textarea><span class="row-btns"><button class="btn small" data-cnsave="${esc(c.id)}">Enregistrer</button><button class="btn small" data-cncancel="1">Annuler</button></span></span>`
+    : `<span>Ma note : ${cn ? `<span class="cn-txt">${esc(cn)}</span>` : "aucune"} <button class="linkbtn" data-cnedit="${esc(c.id)}">${cn ? "Modifier" : "Ajouter"}</button></span>`;
+  return `<div class="src">${src}${ref}${note}</div>`;
 }
 function saveRef(id, v){
   v = String(v || "").trim().slice(0, 300);
@@ -1123,8 +1155,8 @@ function setGrp(g){
   grp = g; try { localStorage.setItem(GRP_KEY, g); } catch (e) {}
   if (theme !== "Tous" && theme !== "Mes cartes" && GROUP_OF[theme] !== g) theme = "Tous";
 }
-function themeOk(c){ if (grpOf(c) !== grp) return false; return theme === "Tous" || theme.startsWith("g:") ? true : theme === "Mes cartes" ? !!c.custom : c.th === theme; }
-function themeLabel(v){ return v === "Tous" || v.startsWith("g:") ? "Tous les thèmes" : v === "Mes cartes" ? "Mes cartes" : v.startsWith("g:") ? (eprOf(v.slice(2)) || {}).t || v : THEMES[v] || v; }
+function themeOk(c){ if (grpOf(c) !== grp) return false; return theme === "Tous" || theme.startsWith("g:") ? true : theme === "Mes cartes" ? !!c.custom : theme === "Favoris" ? isFav(c.id) : c.th === theme; }
+function themeLabel(v){ return v === "Favoris" ? "Mes favoris" : v === "Tous" || v.startsWith("g:") ? "Tous les thèmes" : v === "Mes cartes" ? "Mes cartes" : v.startsWith("g:") ? (eprOf(v.slice(2)) || {}).t || v : THEMES[v] || v; }
 function inFilter(c){ return themeOk(c) && (period === "Toutes" || grp !== "e1" || c.p === period); }
 
 function fmtIn(ms){
@@ -1139,9 +1171,9 @@ function nextLabel(b){ const nb = b ? Math.min(5, b + 1) : 2; const d = IVL[nb];
 
 /* ---------- Stockage ---------- */
 function localLoad(){
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; log = d.log || {}; prefs = normPrefs(d.prefs); ach = normAch(d.ach); } } catch (e) {}
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; log = d.log || {}; prefs = normPrefs(d.prefs); ach = normAch(d.ach); mine = normMine(d.mine); } } catch (e) {}
 }
-function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs, log, prefs, ach})); } catch (e) {} }
+function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs, log, prefs, ach, mine})); } catch (e) {} }
 function setStatus(mode){
   const t = { local: "Sur cet appareil", cloud: "Synchronisé", saving: "Enregistrement…", offline: "Hors ligne, gardé ici" }[mode];
   $("#status").dataset.mode = mode; $("#status-txt").textContent = t;
@@ -1158,7 +1190,7 @@ async function flush(){
   if (store.saving || !store.dirty || !store.ref) return;
   store.saving = true; store.dirty = false;
   try {
-    await store.ref.set({ progress, custom, gone, games, refs, log, prefs, ach, v: 1 });
+    await store.ref.set({ progress, custom, gone, games, refs, log, prefs, ach, mine, v: 1 });
     store.fails = 0; setStatus("cloud");
   } catch (e) {
     const code = e && e.code;
@@ -1181,7 +1213,7 @@ function merge(remote){
   for (const [id, v] of Object.entries(refs)) if (!rf[id] || (v.t || 0) > (rf[id].t || 0)) rf[id] = v;
   g.forEach(id => delete rf[id]);
   const rp = normPrefs(remote.prefs), lp = normPrefs(prefs);
-  return { progress: out, custom: cu, gone: g, games: gm, refs: rf, log: mergeLog(remote.log, log), prefs: lp.t > rp.t ? lp : rp, ach: mergeAch(remote.ach, ach) };
+  return { progress: out, custom: cu, gone: g, games: gm, refs: rf, log: mergeLog(remote.log, log), prefs: lp.t > rp.t ? lp : rp, ach: mergeAch(remote.ach, ach), mine: mergeMine(remote.mine, mine) };
 }
 async function connect(){
   if (!window.claude || !window.claude.use) return;
@@ -1193,8 +1225,8 @@ async function connect(){
   const snap = await ref.get();
   const remote = snap.exists ? clone(snap.data()) : { progress: {}, custom: [], gone: [] };
   const m = merge(remote);
-  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs, l: m.log, f: m.prefs, a: m.ach}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}, l: mergeLog(remote.log, {}), f: normPrefs(remote.prefs), a: normAch(remote.ach)});
-  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach;
+  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs, l: m.log, f: m.prefs, a: m.ach}) + JSON.stringify(m.mine) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}, l: mergeLog(remote.log, {}), f: normPrefs(remote.prefs), a: normAch(remote.ach)}) + JSON.stringify(normMine(remote.mine));
+  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach; mine = m.mine;
   const fresh = checkAch(true).length > 0;
   store.ref = ref; localSave(); setStatus("cloud");
   if (fresh) { store.dirty = true; flush(); }
@@ -1228,7 +1260,7 @@ function grpGoal(g){
 }
 function goalInfo(){
   const ex = examDays(); if (!ex) return null;
-  const gs = EPR.map(e => grpGoal(e.id));
+  const gs = EPR.filter(e => relGroups().includes(e.id)).map(e => grpGoal(e.id));
   const today = log[dayKey()] || { a: 0, n: 0 };
   const newPerDay = gs.reduce((t, x) => t + x.target, 0);
   return { daysLeft: ex.daysLeft, unseen: gs.reduce((t, x) => t + x.unseen, 0), newPerDay, today: Object.assign({}, today, { n: gs.reduce((t, x) => t + Math.min(x.n, x.target), 0) }), newLeft: gs.reduce((t, x) => t + x.left, 0), groups: gs };
@@ -1357,7 +1389,9 @@ const ICON = {
   pen: '<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/>',
   line: '<path d="M3 12h18"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/>',
   flame: '<path d="M12 3c.6 3.2 5 5.3 5 10.2A5 5 0 0 1 7 13.5c0-2 1-3.6 2.2-4.6.2 1.6.9 2.6 1.9 3.1-.2-3.2.1-6.3.9-9z"/>',
-  medal: '<circle cx="12" cy="14.5" r="6"/><path d="M8.5 3h7l-2 5.5h-3z"/>'
+  medal: '<circle cx="12" cy="14.5" r="6"/><path d="M8.5 3h7l-2 5.5h-3z"/>',
+  star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'
 };
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
@@ -1404,7 +1438,7 @@ function heroHTML(){
 function homeTasks(){
   const now = Date.now(), cards = allCards();
   const today = log[dayKey()] || { a: 0, n: 0 };
-  const gs = EPR.map(e => [e, grpGoal(e.id)]);
+  const gs = EPR.filter(e => relGroups().includes(e.id)).map(e => [e, grpGoal(e.id)]);
   const sDone = gs.every(([, x]) => !x.todo);
   const rows = gs.map(([e, x]) => {
     const parts = [x.due ? plural(x.due, "carte") + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean);
@@ -1499,7 +1533,8 @@ function grade(r){
 /* ---------- Rendu ---------- */
 function renderFilters(){
   const target = view === "revise" ? "#filters-revise" : view === "deck" ? "#filters-deck" : null;
-  $("#filters-deck").hidden = view !== "deck";
+  $("#filters-deck").hidden = view !== "deck" || !!dq;
+  const dsw = $("#deck-search-wrap"); if (dsw) dsw.hidden = view !== "deck";
   if (!target) return;
   const p = target === "#filters-revise" ? "r" : "d";
   const fs = $("#fsum-revise");
@@ -1509,7 +1544,8 @@ function renderFilters(){
   const inG = cards.filter(c => grpOf(c) === grp);
   const tHTML = opt("Tous", "Tous les thèmes", inG.length)
     + eprOf(grp).th.map(k => opt(k, THEMES[k], inG.filter(c => c.th === k).length)).join("")
-    + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "");
+    + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "")
+    + (inG.some(c => isFav(c.id)) || theme === "Favoris" ? opt("Favoris", "Mes favoris", inG.filter(c => isFav(c.id)).length) : "");
   const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
   const pOpts = [["Toutes", "Toutes les périodes"]].concat(PERIODS.map(x => [x, x]));
   $(target).innerHTML =
@@ -1549,7 +1585,7 @@ function renderRevise(){
     <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
-      <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></span></div>
+      <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
       <p class="q">${esc(c.q)}</p>
       ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
     </article>
@@ -1565,6 +1601,7 @@ function renderRevise(){
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
     </div>`;
 }
+function starBtn(c){ const on = isFav(c.id); return `<button class="star" data-fav="${esc(c.id)}" aria-pressed="${on}" aria-label="${on ? "Retirer des favoris" : "Ajouter aux favoris"}" title="${on ? "Retirer des favoris" : "Ajouter aux favoris"}">${icon("star")}</button>`; }
 function renderReviseSide(){
   const el = $("#revise-side"); if (!el) return;
   const today = log[dayKey()] || { a: 0 }, x = grpGoal(grp);
@@ -1580,13 +1617,17 @@ function renderReviseSide(){
       <li><span class="k">3</span>Su : elle monte d'une boîte</li></ul></div>
     <div class="side-card"><h3>Les boîtes</h3><p class="goal-sub">Une carte sue revient après 1, 3, 7 puis 15 jours. Elle est maîtrisée en boîte 5.</p></div>`;
 }
+function deckMatch(c){
+  const h = normTxt([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)].join(" "));
+  return normTxt(dq).split(/\s+/).filter(Boolean).every(w => h.includes(w));
+}
 function renderDeck(){
   const now = Date.now();
-  const cards = allCards().filter(inFilter);
+  const cards = dq ? allCards().filter(deckMatch) : allCards().filter(inFilter);
   const keys = TH_ORDER.concat([""]);
   const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
-  if (!groups.length) { $("#panel-deck").innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes dans l'onglet « Ajouter ».</p></div>`; return; }
-  $("#panel-deck").innerHTML = `<div class="row-btns deck-actions"><button class="btn" data-tab="add">Ajouter une carte</button></div>` + groups.map(([k, list]) => {
+  if (!groups.length) { $("#panel-deck").innerHTML = dq ? `<div class="empty"><h2>Aucune fiche trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>` : `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes avec « Ajouter une carte ».</p></div>`; return; }
+  $("#panel-deck").innerHTML = `<div class="row-btns deck-actions">${dq ? `<p class="rf-count" aria-live="polite">${plural(cards.length, "fiche")} pour « ${esc(dq)} », toutes épreuves confondues</p>` : `<button class="btn" data-tab="add">Ajouter une carte</button>`}</div>` + groups.map(([k, list]) => {
     const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
     return `<div class="group"><h3>${esc(THEMES[k] || NONE_T)}</h3><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
       const pr = progress[c.id];
@@ -1594,7 +1635,7 @@ function renderDeck(){
       const del = !c.custom ? "" : pendingDel === c.id
         ? `<span class="confirm"><button class="btn small" data-confirm="${esc(c.id)}">Supprimer</button><button class="btn small" data-cancel="1">Annuler</button></span>`
         : `<button class="linkbtn" data-del="${esc(c.id)}">Supprimer</button>`;
-      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is"><span class="boxes" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
+      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is">${starBtn(c)}<span class="boxes" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
     }).join("")}</ul></div>`;
   }).join("");
 }
@@ -4582,7 +4623,7 @@ const INTROS = {
 };
 function setView(v, focus){
   const moved = SEC_OF[v] !== SEC_OF[view];
-  view = v; pendingDel = null; refEdit = null;
+  view = v; pendingDel = null; refEdit = null; cnEdit = null;
   if (moved) { try { window.scrollTo({ top: 0 }); } catch (e) {} }
   lastSub[SEC_OF[v]] = v;
   if (v === "revise" && !queue.length) buildQueue();
@@ -4626,6 +4667,14 @@ document.addEventListener("click", e => {
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.onb) {
+    const c = concById(d.onb);
+    prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d && !prefs.examDate ? { examDate: c.d } : {});
+    setGrp(relGroups()[0]); an.f = null; me.f = null; persist(); done = 0; buildQueue(); renderWelcome(); render();
+    toast(c ? `C'est noté : ${c.t}${c.d ? ", compte à rebours réglé sur les écrits" : ""}.` : "Tout le contenu reste affiché.");
+    const b = $(".w-onb .btn, [data-act=welcome-start]"); if (b) b.focus({ preventScroll: true }); return;
+  }
+  if (d.onbChange) { conc.cur = null; setView("concours"); return; }
   if (d.metab) { me.tab = d.metab; renderMethode(); const b = document.querySelector(`[data-metab="${d.metab}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.mef) { me.f = d.mef; renderMethode(); const b = document.querySelector(`[data-mef="${d.mef}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "me-jury") { me.tab = "jury"; renderMethode(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
@@ -4672,6 +4721,10 @@ document.addEventListener("click", e => {
   if (d.sjaxe) { sj.axe = d.sjaxe; if (sj.cur && sj.axe !== "Tous" && sj.cur.th !== sj.axe) sj.cur = null; render(); return; }
   if (d.act === "sj-draw") { drawSubject(); render(); return; }
   if (d.act === "sj-show") { sj.shown = true; render(); return; }
+  if (d.fav) { const on = !isFav(d.fav); mine.fav[d.fav] = { v: on ? 1 : 0, t: Date.now() }; persist(); render(); const b = document.querySelector(`[data-fav="${d.fav}"]`); if (b) b.focus({ preventScroll: true }); toast(on ? "Ajoutée à tes favoris." : "Retirée de tes favoris."); return; }
+  if (d.cnedit) { cnEdit = d.cnedit; render(); const i = $("#cn-input"); if (i) i.focus(); return; }
+  if (d.cnsave) { const i = $("#cn-input"); const v = String(i ? i.value : "").trim().slice(0, 600); mine.cn[d.cnsave] = { v, t: Date.now() }; cnEdit = null; persist(); render(); toast(v ? "Note enregistrée." : "Note effacée."); const b = document.querySelector(`[data-cnedit="${d.cnsave}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.cncancel) { const id = cnEdit; cnEdit = null; render(); const b = id && document.querySelector(`[data-cnedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.refedit) { refEdit = d.refedit; render(); const i = $("#ref-input"); if (i) i.focus(); return; }
   if (d.refsave) { const i = $("#ref-input"); saveRef(d.refsave, i ? i.value : ""); return; }
   if (d.refcancel) { const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
@@ -4696,6 +4749,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("input", e => {
   if (e.target.id === "rf-search") { rf.q = e.target.value; renderRefs(); return; }
+  if (e.target.id === "deck-search") { dq = e.target.value.trim(); renderFilters(); renderDeck(); return; }
   if (e.target.id === "an-search") { an.q = e.target.value; renderAnnales(); return; }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
@@ -4771,10 +4825,10 @@ const GOOGLE_ERR = {
 };
 const acctErr = (r) => ACCT_ERR[r.data && r.data.error] || "Une erreur est survenue. Réessaie dans un instant.";
 
-function syncPayload(){ return { progress, custom, gone, games, refs, log, prefs, ach }; }
-function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach; checkAch(true); localSave(); }
+function syncPayload(){ return { progress, custom, gone, games, refs, log, prefs, ach, mine }; }
+function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach; mine = m.mine; checkAch(true); localSave(); }
 function sameData(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
-function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {}, log: mergeLog(d.log, {}), prefs: normPrefs(d.prefs), ach: normAch(d.ach) }; }
+function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {}, log: mergeLog(d.log, {}), prefs: normPrefs(d.prefs), ach: normAch(d.ach), mine: normMine(d.mine) }; }
 
 async function pullAndMerge(){
   const r = await api("GET", "/api/progress");
@@ -4919,7 +4973,7 @@ async function logoutAccount(){
   await api("POST", "/api/auth/logout", {});
   acct.busy = false;
   /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */
-  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); ach = normAch(); localSave();
+  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); ach = normAch(); mine = normMine(); localSave();
   signedOut(); done = 0; buildQueue(); render();
   acct.view = "login"; acctSetMsg("Déconnecté. Ta progression reste enregistrée dans ton compte.", "ok"); renderAccount();
 }
@@ -4955,10 +5009,20 @@ async function initAccount(){
 const WELCOME_KEY = "bristol-eps-welcome";
 function welcomeSeen(){ try { return localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { return false; } }
 function welcomeSetSeen(){ try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
+const REL_GRP = { "capeps-int": ["tx", "e2"] };
+const relGroups = () => REL_GRP[prefs.concours] || ["e1", "e2", "tx"];
+function onbHTML(){
+  const c = concById(prefs.concours);
+  if (c) return `<p class="w-mine">Ton concours : <b>${esc(c.t)}</b>${c.d ? `, écrits le ${esc(fmtDay(c.d))}` : ""}. <button class="linkbtn" data-onb-change="1">Changer</button></p>`;
+  return `<div class="w-onb"><p class="w-sub">Pour commencer, quel concours prépares-tu ?</p>
+    <div class="w-conc">${CONCOURS.map(x => `<button class="btn" data-onb="${x.id}"><b>${esc(x.t)}</b><span>${esc(x.tag)}</span></button>`).join("")}<button class="btn" data-onb="none"><b>Je ne sais pas encore</b><span>Tout afficher</span></button></div>
+    <p class="w-note">Le site règle ensuite le compte à rebours sur la date de tes écrits et met en avant les annales, la méthode et les épreuves de ton concours. Tu pourras changer à tout moment.</p></div>`;
+}
 function renderWelcome(){
   const el = $("#welcome");
   const n = allCards().length;
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
+    ${onbHTML()}
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
     <p class="w-sub">Cinq espaces</p>
     <ul class="w-spaces">
