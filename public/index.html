@@ -1697,7 +1697,7 @@ async function initAccount(){
   renderAccountBtn();
   let ret = null;
   try {
-    const u = new URL(location.href); ret = { c: u.searchParams.get("connexion"), r: u.searchParams.get("raison"), lie: u.searchParams.get("lie") };
+    const u = new URL(location.href); ret = { c: u.searchParams.get("connexion"), r: u.searchParams.get("raison"), lie: u.searchParams.get("lie"), detail: u.searchParams.get("detail") };
     if (ret.c) history.replaceState(null, "", u.pathname + u.hash);
   } catch (e) {}
   const cfg = await api("GET", "/api/auth/config");
@@ -1710,7 +1710,14 @@ async function initAccount(){
     if (ret.lie) { openAccount("profile"); acctSetMsg("Ton compte est maintenant relié à Google. Pour ta sécurité, l'ancien mot de passe est désactivé : connecte-toi désormais avec Google.", "ok"); renderAccount(); }
     else toast("Connecté avec Google. Ta progression est synchronisée.");
   }
-  else if (ret && ret.c === "erreur") { openAccount("login"); acctSetMsg(GOOGLE_ERR[ret.r] || "La connexion avec Google a échoué. Réessaie."); renderAccount(); }
+  else if (ret && ret.c === "erreur") {
+    const D = { invalid_client: "Google refuse le secret client : vérifie GOOGLE_CLIENT_SECRET dans Cloudflare.",
+      redirect_uri_mismatch: "L'adresse de retour n'est pas déclarée dans la console Google.",
+      invalid_grant: "Le code de connexion a expiré ou a déjà servi. Réessaie.",
+      unauthorized_client: "Ce client Google n'est pas autorisé pour ce type de connexion." };
+    const base = GOOGLE_ERR[ret.r] || D[ret.detail] || "La connexion avec Google a échoué. Réessaie.";
+    openAccount("login"); acctSetMsg(base + (ret.detail && !D[ret.detail] ? ` (code : ${ret.r}${ret.detail ? " / " + ret.detail : ""})` : ret.detail ? ` (code : ${ret.detail})` : ""), "bad"); renderAccount();
+  }
 }
 
 /* Accueil et prise en main */
