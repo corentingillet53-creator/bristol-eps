@@ -32,7 +32,7 @@ img{max-width:100%}
 :root{
   --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#5a6861; --line:#dde4df; --chip:#e8ede9;
   --accent:#0b7a53; --bar:#0b7a53; --accent-ink:#ffffff; --soft:#e1f2e9; --accent-text:#09694a;
-  --hero:#0b7a53; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.8); --hero-tint:rgba(255,255,255,.14); --hero-lane:rgba(255,255,255,.25); --hero-fill:#ffffff;
+  --hero:#0b7a53; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.93); --hero-tint:rgba(0,0,0,.18); --hero-lane:rgba(255,255,255,.25); --hero-fill:#ffffff;
   --gold:#e5a00d; --gold-ink:#3b2900; --gold-text:#8a5c00;
   --ok:#0b7a53; --ok-soft:#e1f2e9; --mid:#955900; --mid-soft:#fcecd2; --bad:#b53a2d; --bad-soft:#fbe4e0;
   --warn:#955900;
@@ -71,6 +71,8 @@ html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 button,select,input,textarea{font:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hero :focus-visible{outline-color:var(--hero-fill)}
+@media (forced-colors: active){.fc-bar,.bar span,.hm-cell,.boxes i,.sess-bar span,.rd-bar,.rd-bar span,.ach-bar,.ach-bar span{forced-color-adjust:none}.btn.primary,.nav-btn[aria-selected="true"]{border:2px solid ButtonText}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 svg.ic{width:22px;height:22px;flex:none}
 
@@ -118,7 +120,7 @@ svg.ic{width:22px;height:22px;flex:none}
 .home-grid,.rev-grid,.stats-grid{display:grid;gap:0 32px}
 .rev-side{display:none}
 .side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:18px 18px 16px;margin:0 0 20px}
-.side-card h3{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 12px}
+.side-card h2{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 12px}
 .rd .kpi{background:var(--paper);border:0;padding:12px 14px}
 .rd .kpi b{font-size:26px}
 .stats-grid .rd-row{grid-template-columns:minmax(0,1.3fr) minmax(60px,1.2fr) 3em}
@@ -143,7 +145,7 @@ svg.ic{width:22px;height:22px;flex:none}
 .page-h{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.05;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
 .page-sub{color:var(--muted);margin:-14px 0 22px}
 .sect{margin:0 0 36px}
-.sect h3,.group h3{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px}
+.sect h2,.group h2{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px}
 .lead,.intro{color:var(--muted);margin:0 0 16px;max-width:62ch}
 .lead strong{color:var(--ink)}
 .hint{color:var(--muted);font-size:14px;margin:12px 0 0}
@@ -160,9 +162,10 @@ svg.ic{width:22px;height:22px;flex:none}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
 .k{font-family:var(--f-body);font-weight:700;font-size:11px;line-height:1;padding:3px 6px;border-radius:6px;background:color-mix(in srgb,currentColor 15%,transparent)}
+.btn.primary .k{background:rgba(0,0,0,.22)}
 .row-btns{display:flex;flex-wrap:wrap;gap:8px}
 .actions{margin-top:16px}
-.linkbtn{appearance:none;background:none;border:0;padding:4px 0;color:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:.85}
+.linkbtn{appearance:none;background:none;border:0;padding:4px 0;color:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .back{appearance:none;background:none;border:0;padding:8px 0;color:var(--accent-text);font-weight:700;cursor:pointer;min-height:44px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;padding:6px 14px;min-height:40px;border-radius:999px;cursor:pointer}
@@ -241,7 +244,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .medal svg.ic{width:18px;height:18px}
 .medal.off{background:none;border:2px dashed var(--line);color:var(--muted)}
 .more{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 12px}
-.more h3{margin:0}
+.more h2{margin:0}
 .more .linkbtn{color:var(--accent-text);font-weight:700;opacity:1}
 
 /* ---------- Réviser ---------- */
@@ -265,7 +268,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .q{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.28;letter-spacing:-.015em;margin:0;text-wrap:pretty}
 .reveal{margin-top:24px;padding-top:22px;border-top:2px dashed var(--line);animation:rise .25s ease-out}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion: reduce){.reveal{animation:none}.sess-bar span{transition:none}}
+@media (prefers-reduced-motion: reduce){.reveal{animation:none}.sess-bar span{transition:none}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .a{font-family:var(--f-display);font-size:22px;font-weight:700;line-height:1.3;color:var(--accent-text);margin:0}
 .x{color:var(--muted);margin:10px 0 0;max-width:62ch}
 .boxes{display:inline-flex;gap:4px;align-items:center;flex:none}
@@ -339,8 +342,8 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fb-out{margin-top:14px;max-width:65ch}
 .fb-label{color:var(--muted);font-size:14px;font-weight:700;margin:0 0 8px}
 .fb-body{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
-.fb-body h4{font-family:var(--f-display);font-weight:700;font-size:18px;margin:14px 0 4px}
-.fb-body h4:first-child{margin-top:0}
+.fb-body h3{font-family:var(--f-display);font-weight:700;font-size:18px;margin:14px 0 4px}
+.fb-body h3:first-child{margin-top:0}
 .fb-body ul{margin:0;padding-left:20px}
 .fb-body li{margin:3px 0}
 .fb-body p{margin:4px 0}
@@ -350,10 +353,10 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .fil-card{appearance:none;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-l);padding:18px;cursor:pointer;display:grid;gap:8px;align-content:start}
 .fil-card:hover{border-color:var(--accent)}
-.fil-card h3{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.015em;line-height:1.2;margin:0}
+.fil-card h2{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.015em;line-height:1.2;margin:0}
 .fil-card p{margin:0;color:var(--muted);font-size:15px}
 .fil-card .num{font-size:13px;color:var(--accent-text);font-weight:700}
-.fil-head h3{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-.025em;margin:4px 0 8px;text-wrap:balance}
+.fil-head h2{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-.025em;margin:4px 0 8px;text-wrap:balance}
 .fil-q{font-family:var(--f-display);font-weight:600;font-size:20px;line-height:1.3;color:var(--accent-text);margin:0 0 12px;max-width:60ch}
 .fil-intro{margin:0 0 24px;max-width:65ch}
 .tl{list-style:none;margin:0 0 28px;padding:0;position:relative}
@@ -363,7 +366,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .tl .yr{grid-row:auto;font-size:16px;padding-top:2px}
 .tl .tx{padding-left:6px}
 .fil-sect{margin:0 0 24px;max-width:65ch}
-.fil-sect h4{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0 0 8px}
+.fil-sect h3{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0 0 8px}
 .fil-sect ul{margin:0;padding-left:20px}
 .fil-sect li{margin:4px 0}
 
@@ -464,7 +467,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .ep p{margin:2px 0 6px;color:var(--muted);max-width:70ch}
 .prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
 .prog{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
-.prog h4{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.3;margin:0 0 8px}
+.prog h3{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.3;margin:0 0 8px}
 .prog ol{margin:0;padding-left:22px}
 .prog li{margin:3px 0}
 .apsa{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:12px 16px}
@@ -1407,7 +1410,7 @@ function readinessHTML(){
   const all = allCards(), pct = readiness(all), rk = rankOf(pct);
   const next = RANKS[rk + 1];
   const rows = axisRows();
-  return `<div class="sect rd"><h3>Niveau de préparation</h3>
+  return `<div class="sect rd"><h2>Niveau de préparation</h2>
     <div class="rd-top"><div class="rd-pct"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
       <div class="rd-main"><div class="goal-bar" role="progressbar" aria-label="Niveau de préparation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
       <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes jusqu'au concours."} Une carte compte pleinement en boîte 5, partiellement avant.</p></div></div>
@@ -1427,9 +1430,9 @@ function achHTML(){
         : `<span class="ach-st">À obtenir</span>`;
       return `<li class="ach${on ? " on" : ""}"><span class="ach-ic" aria-hidden="true">${on ? "✓" : ""}</span><div><b>${esc(a.t)}</b><span class="sr-only">${on ? " (obtenu)" : " (pas encore obtenu)"}</span><p>${esc(a.d)}</p>${prog}</div></li>`;
     }).join("");
-    return `<h4 class="ach-h">${esc(label)}</h4><ul class="ach-list">${items}</ul>`;
+    return `<h3 class="ach-h">${esc(label)}</h3><ul class="ach-list">${items}</ul>`;
   }).join("");
-  return `<div class="sect"><h3>Succès <span class="ach-n">${got} / ${ACHS.length}</span></h3>${groups}</div>`;
+  return `<div class="sect"><h2>Succès <span class="ach-n">${got} / ${ACHS.length}</span></h2>${groups}</div>`;
 }
 
 /* ---------- Aujourd'hui ---------- */
@@ -1516,7 +1519,7 @@ function homeAchHTML(){
     const r = Math.min(1, v / max); if (r > bestR) { bestR = r; best = { a, v: Math.min(v, max), max }; }
   }
   const nxt = best ? `<div class="next-ach"><span class="medal off">${icon("medal")}</span><div><b>Prochain succès : ${esc(best.a.t)}</b><p>${esc(best.a.d)}</p>${best.max > 1 ? `<span class="ach-bar" aria-hidden="true"><span style="width:${Math.round(100 * best.v / best.max)}%"></span></span><p>${best.a.pct ? best.v + " %" : best.v + " / " + best.max}</p>` : ""}</div></div>` : "";
-  return `<div class="more"><h3>Succès</h3><button class="linkbtn" data-sec="suivi">Voir mes progrès</button></div>
+  return `<div class="more"><h2>Succès</h2><button class="linkbtn" data-sec="suivi">Voir mes progrès</button></div>
     ${nxt}
     ${recent.length ? `<ul class="recent" aria-label="Derniers succès obtenus">${recent.map(a => `<li><span class="medal">${icon("check")}</span>${esc(a.t)}</li>`).join("")}</ul>` : ""}`;
 }
@@ -1531,11 +1534,11 @@ function renderHome(){
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${heroHTML()}
     <div class="home-grid">
-      <div class="home-main"><div class="more"><h3>Au programme</h3><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
+      <div class="home-main"><div class="more"><h2>Au programme</h2><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
         <ul class="today">${t.html}</ul></div>
       <div class="home-side"><div class="sect">${homeAchHTML()}</div>
-        ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><div class="more"><h3>À citer aujourd'hui</h3><button class="linkbtn" data-act="home-refs">Toutes les références</button></div><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
-        <div class="side-card"><div class="more"><h3>Niveau par épreuve</h3><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows(true)}</div></div></div>
+        ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><div class="more"><h2>À citer aujourd'hui</h2><button class="linkbtn" data-act="home-refs">Toutes les références</button></div><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
+        <div class="side-card"><div class="more"><h2>Niveau par épreuve</h2><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows(true)}</div></div></div>
     </div>`;
 }
 
@@ -1635,7 +1638,7 @@ function renderRevise(){
     <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
-      <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
+      <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" role="img" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
       <p class="q">${esc(c.q)}</p>
       ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
     </article>
@@ -1655,17 +1658,17 @@ function starBtn(c){ const on = isFav(c.id); return `<button class="star" data-f
 function renderReviseSide(){
   const el = $("#revise-side"); if (!el) return;
   const today = log[dayKey()] || { a: 0 }, x = grpGoal(grp);
-  el.innerHTML = `<div class="side-card"><h3>${esc(eprOf(grp).t)}</h3><div class="side-stats">
+  el.innerHTML = `<div class="side-card"><h2>${esc(eprOf(grp).t)}</h2><div class="side-stats">
       <div><b>${x.due}</b><span>à revoir</span></div>
       <div><b>${x.left}</b><span>nouvelles</span></div>
       <div><b>${x.n}</b><span>découvertes</span></div></div>
       <p class="goal-sub" style="margin-top:10px">${today.a || 0} réponse${(today.a || 0) > 1 ? "s" : ""} aujourd'hui, toutes épreuves confondues.</p></div>
-    <div class="side-card"><h3>Raccourcis</h3><ul class="keys">
+    <div class="side-card"><h2>Raccourcis</h2><ul class="keys">
       <li><span class="k">Espace</span>Retourner la carte</li>
       <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
       <li><span class="k">2</span>Hésité : elle reste dans sa boîte</li>
       <li><span class="k">3</span>Su : elle monte d'une boîte</li></ul></div>
-    <div class="side-card"><h3>Les boîtes</h3><p class="goal-sub">Une carte sue revient après 1, 3, 7 puis 15 jours. Elle est maîtrisée en boîte 5.</p></div>`;
+    <div class="side-card"><h2>Les boîtes</h2><p class="goal-sub">Une carte sue revient après 1, 3, 7 puis 15 jours. Elle est maîtrisée en boîte 5.</p></div>`;
 }
 function deckMatch(c){
   const h = normTxt([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)].join(" "));
@@ -1679,13 +1682,13 @@ function renderDeck(){
   if (!groups.length) { $("#panel-deck").innerHTML = dq ? `<div class="empty"><h2>Aucune fiche trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>` : `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes avec « Ajouter une carte ».</p></div>`; return; }
   $("#panel-deck").innerHTML = `<div class="row-btns deck-actions">${dq ? `<p class="rf-count" aria-live="polite">${plural(cards.length, "fiche")} pour « ${esc(dq)} », toutes épreuves confondues</p>` : `<button class="btn" data-tab="add">Ajouter une carte</button>`}</div>` + groups.map(([k, list]) => {
     const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
-    return `<div class="group"><h3>${esc(THEMES[k] || NONE_T)}</h3><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
+    return `<div class="group"><h2>${esc(THEMES[k] || NONE_T)}</h2><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
       const pr = progress[c.id];
       const due = !pr ? `<span class="due">Jamais vue</span>` : pr.d <= now ? `<span class="due now">À revoir</span>` : `<span class="due">Dans ${fmtIn(pr.d - now)}</span>`;
       const del = !c.custom ? "" : pendingDel === c.id
         ? `<span class="confirm"><button class="btn small" data-confirm="${esc(c.id)}">Supprimer</button><button class="btn small" data-cancel="1">Annuler</button></span>`
         : `<button class="linkbtn" data-del="${esc(c.id)}">Supprimer</button>`;
-      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is">${starBtn(c)}<span class="boxes" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
+      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is">${starBtn(c)}<span class="boxes" role="img" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
     }).join("")}</ul></div>`;
   }).join("");
 }
@@ -2015,6 +2018,7 @@ function noteSet(id, v){ try { const o = JSON.parse(localStorage.getItem(NOTES_K
 /* Deux modes : dans Claude (la page appelle Claude avec le compte de la personne)
    ou sur ton propre site (la page appelle /api/feedback, qui utilise ta clé d'API). */
 const STANDALONE = !(window.claude && window.claude.use);
+if (!document.documentElement.lang) document.documentElement.lang = "fr";
 let sampleFn = null;
 if (!STANDALONE) { (async () => { try { sampleFn = await window.claude.use("sample"); if (sampleFn) render(); } catch (e) {} })(); }
 else { sampleFn = (_prompt, opts) => serverSample(opts.payload, opts); }
@@ -2062,7 +2066,7 @@ function mdLite(t){
     l = l.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     if (/^\s*[-•*]\s+/.test(l)) { if (!inList) { out += "<ul>"; inList = true; } out += "<li>" + l.replace(/^\s*[-•*]\s+/, "") + "</li>"; continue; }
     if (inList) { out += "</ul>"; inList = false; }
-    if (/^#{1,4}\s+/.test(l)) out += "<h4>" + l.replace(/^#{1,4}\s+/, "") + "</h4>";
+    if (/^#{1,4}\s+/.test(l)) out += "<h3>" + l.replace(/^#{1,4}\s+/, "") + "</h3>";
     else if (l.trim()) out += "<p>" + l + "</p>";
   }
   if (inList) out += "</ul>";
@@ -2274,7 +2278,7 @@ function renderSujets(){
     body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p>${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : isE2(s) && s.annale ? `<p class="sj-help">Le contexte d'établissement et les épisodes sont dans le sujet officiel : ouvre-le depuis l'onglet Annales.</p>` : ""}</article>
       ${work}
       ${sj.shown
-        ? `<div class="sect" style="margin-top:20px"><h3>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h3><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
+        ? `<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">Afficher les cartes utiles</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
@@ -2495,14 +2499,14 @@ function renderConcours(){
   if (!conc.cur) {
     el.innerHTML = `<p class="lead">Les concours de recrutement des professeurs d'EPS, session 2027 : qui peut s'inscrire, les épreuves d'admissibilité et d'admission, et les programmes. Inscriptions sur Cyclades du 1er octobre 2026 (12 h) au 25 novembre 2026 (12 h).</p>
       <div class="fil-list">${CONCOURS.map(c => `<button class="fil-card conc-card${c.id === mine ? " is-mine" : ""}" data-conc="${c.id}">
-        <span class="num">${esc(c.tag)}</span><h3>${esc(c.t)}</h3><p>Écrits : ${esc(c.ecrits)}</p>${c.id === mine ? `<span class="mine-badge">Mon concours</span>` : ""}</button>`).join("")}</div>
+        <span class="num">${esc(c.tag)}</span><h2>${esc(c.t)}</h2><p>Écrits : ${esc(c.ecrits)}</p>${c.id === mine ? `<span class="mine-badge">Mon concours</span>` : ""}</button>`).join("")}</div>
       <p class="conc-maj">Informations relevées le ${CONC_MAJ} dans les textes officiels. Les postes 2027 et les dates d'oral ne sont pas encore publiés.</p>`;
     return;
   }
   const c = conc.cur, isMine = c.id === mine;
-  const sect = (title, list) => list.length ? `<div class="sect"><h3>${title}</h3><ul class="ep-list">${list.map(e => concEpHTML(e, c)).join("")}</ul></div>` : "";
+  const sect = (title, list) => list.length ? `<div class="sect"><h2>${title}</h2><ul class="ep-list">${list.map(e => concEpHTML(e, c)).join("")}</ul></div>` : "";
   el.innerHTML = `<button class="back" data-act="conc-back">← Tous les concours</button>
-    <div class="fil-head"><span class="period">${esc(c.tag)}</span><h3>${esc(c.t)}</h3></div>
+    <div class="fil-head"><span class="period">${esc(c.tag)}</span><h2>${esc(c.t)}</h2></div>
     <p class="conc-note">${esc(c.note)}</p>
     <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Mon concours (retirer)" : "C'est mon concours"}</button>${c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Compte à rebours jusqu'aux écrits</button>` : ""}</div>
     <dl class="conc-facts">
@@ -2513,10 +2517,10 @@ function renderConcours(){
     </dl>
     ${sect("Épreuves d'admissibilité", c.adm)}
     ${sect("Épreuves d'admission", c.admi)}
-    ${c.prog.length ? `<div class="sect"><h3>Programme</h3><div class="prog-grid">${c.prog.map(p => `<div class="prog"><h4>${esc(p.t)}</h4>${p.lead ? `<p class="opt">${esc(p.lead)}</p>` : ""}<ol>${p.i.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("")}</div>
+    ${c.prog.length ? `<div class="sect"><h2>Programme</h2><div class="prog-grid">${c.prog.map(p => `<div class="prog"><h3>${esc(p.t)}</h3>${p.lead ? `<p class="opt">${esc(p.lead)}</p>` : ""}<ol>${p.i.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("")}</div>
       ${c.apsa.length ? `<details class="apsa"><summary>Listes d'APSA</summary>${c.apsa.map(a => `<p>${esc(a)}</p>`).join("")}</details>` : ""}</div>` : ""}
-    ${c.chiffres ? `<div class="sect"><h3>La session 2026 en chiffres</h3><p class="lead">${esc(c.chiffres)}</p></div>` : ""}
-    <div class="sect"><h3>Sources</h3><ul class="conc-src">${c.src.map(([l, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a></li>`).join("")}</ul>
+    ${c.chiffres ? `<div class="sect"><h2>La session 2026 en chiffres</h2><p class="lead">${esc(c.chiffres)}</p></div>` : ""}
+    <div class="sect"><h2>Sources</h2><ul class="conc-src">${c.src.map(([l, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a></li>`).join("")}</ul>
       <p class="conc-maj">Relevé le ${CONC_MAJ}. Les textes officiels font foi : vérifie-les avant ton inscription.</p></div>`;
 }
 
@@ -2864,7 +2868,7 @@ function renderRefs(){
   $("#rf-chips").innerHTML = chips;
   $("#rf-count").textContent = `${list.length} référence${list.length > 1 ? "s" : ""}${nQ ? `, ${nQ} citation${nQ > 1 ? "s" : ""} vérifiée${nQ > 1 ? "s" : ""}` : ""}`;
   $("#rf-list").innerHTML = list.length || free.length
-    ? `${list.length ? `<ul class="ref-list">${list.map(refHTML).join("")}</ul>` : ""}${free.length ? `<div class="sect"><h3>Textes officiels et autres citations</h3>${free.map(quoteHTML).join("")}</div>` : ""}`
+    ? `${list.length ? `<ul class="ref-list">${list.map(refHTML).join("")}</ul>` : ""}${free.length ? `<div class="sect"><h2>Textes officiels et autres citations</h2>${free.map(quoteHTML).join("")}</div>` : ""}`
     : `<div class="empty"><h2>Aucune référence trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>`;
 }
 
@@ -4467,7 +4471,7 @@ function renderAnnales(){
   $("#an-ep").innerHTML = [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
   $("#an-count").textContent = `${list.length} sujet${list.length > 1 ? "s" : ""}`;
   const years = Array.from(new Set(list.map(a => a.y)));
-  $("#an-list").innerHTML = list.length ? years.map(y => `<div class="sect"><h3>Session ${y}</h3><ul class="ann-list">${list.filter(a => a.y === y).map(annHTML).join("")}</ul></div>`).join("")
+  $("#an-list").innerHTML = list.length ? years.map(y => `<div class="sect"><h2>Session ${y}</h2><ul class="ann-list">${list.filter(a => a.y === y).map(annHTML).join("")}</ul></div>`).join("")
     : `<div class="empty"><h2>Aucun sujet trouvé.</h2><p>Change de concours ou d'écrit, ou cherche un autre mot.</p></div>`;
 }
 
@@ -4555,11 +4559,11 @@ function renderMethode(){
     const g = JURYS.find(x => x.f === me.f) || JURYS[0];
     body = `<div class="chips me-fam">${JURYS.map(x => `<button class="chip" data-mef="${x.f}" aria-pressed="${x.f === g.f}">${esc(x.t)}</button>`).join("")}</div>
       <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
-      ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h3>${ep}</h3><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
+      ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h2>${ep}</h2><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
   } else {
     const m = METHODE[me.tab];
-    body = `<h3 class="sect-h">${esc(m.t)}</h3><ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p></li>`).join("")}</ol>
-      ${`<div class="sect"><h3>Gérer son temps</h3><p class="lead">Une répartition indicative, à ajuster à ta vitesse d'écriture.</p><ul class="time-list">${TEMPS.map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join("")}</ul></div>`}
+    body = `<h2 class="sect-h">${esc(m.t)}</h2><ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p></li>`).join("")}</ol>
+      ${`<div class="sect"><h2>Gérer son temps</h2><p class="lead">Une répartition indicative, à ajuster à ta vitesse d'écriture.</p><ul class="time-list">${TEMPS.map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join("")}</ul></div>`}
       <div class="row-btns"><button class="btn primary" data-act="me-train" data-e="${me.tab}">M'entraîner sur un sujet d'${me.tab === "e1" ? "écrit 1" : "écrit 2"}</button><button class="btn" data-act="me-jury">Ce que répètent les jurys</button></div>`;
   }
   el.innerHTML = seg + body;
@@ -4570,20 +4574,20 @@ function renderFils(){
   const el = $("#panel-fils");
   if (!fil.cur) {
     el.innerHTML = `<p class="intro">Les fiches donnent des faits isolés. Un fil rouge les relie en un récit sur un thème transversal : étapes, tournants, débats et une piste de plan. C'est la matière d'une partie de dissertation.</p>
-      <div class="fil-list">${FILS.map(f => `<button class="fil-card" data-fil="${f.id}"><h3>${esc(f.t)}</h3><p>${esc(f.q)}</p><span class="num">${f.e.length} étapes · ${f.e[0][0]} → ${f.e[f.e.length - 1][0]}</span></button>`).join("")}</div>
+      <div class="fil-list">${FILS.map(f => `<button class="fil-card" data-fil="${f.id}"><h2>${esc(f.t)}</h2><p>${esc(f.q)}</p><span class="num">${f.e.length} étapes · ${f.e[0][0]} → ${f.e[f.e.length - 1][0]}</span></button>`).join("")}</div>
       <p class="sj-help">Synthèses rédigées à partir des cartes vérifiées du paquet. Confronte-les à tes lectures.</p>`;
     return;
   }
   const f = fil.cur;
   const subs = f.s.map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean);
   el.innerHTML = `<button class="back" data-act="fil-back">← Tous les fils rouges</button>
-    <div class="fil-head"><h3>${esc(f.t)}</h3><p class="fil-q">${esc(f.q)}</p></div>
+    <div class="fil-head"><h2>${esc(f.t)}</h2><p class="fil-q">${esc(f.q)}</p></div>
     <p class="fil-intro">${esc(f.i)}</p>
-    <div class="fil-sect"><h4>Étapes</h4></div>
-    <ol class="tl">${f.e.map(([y, t, id]) => { const p = progress[id], b = p ? p.b : 0; return `<li><span class="yr">${esc(y)}</span><span class="tx">${esc(t)}</span><span class="boxes" aria-label="Carte en boîte ${b} sur 5" title="Carte en boîte ${b} sur 5">${boxes(b)}</span></li>`; }).join("")}</ol>
-    <div class="fil-sect"><h4>Tournants</h4><ul>${f.k.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
-    <div class="fil-sect"><h4>Débats</h4><ul>${f.d.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
-    <div class="fil-sect"><h4>Piste de plan</h4><p>${esc(f.p)}</p></div>
+    <div class="fil-sect"><h3>Étapes</h3></div>
+    <ol class="tl">${f.e.map(([y, t, id]) => { const p = progress[id], b = p ? p.b : 0; return `<li><span class="yr">${esc(y)}</span><span class="tx">${esc(t)}</span><span class="boxes" role="img" aria-label="Carte en boîte ${b} sur 5" title="Carte en boîte ${b} sur 5">${boxes(b)}</span></li>`; }).join("")}</ol>
+    <div class="fil-sect"><h3>Tournants</h3><ul>${f.k.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="fil-sect"><h3>Débats</h3><ul>${f.d.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="fil-sect"><h3>Piste de plan</h3><p>${esc(f.p)}</p></div>
     <div class="row-btns actions"><button class="btn primary" data-act="fil-revise">Réviser les ${f.e.length} cartes de ce fil</button>${subs.map(s => `<button class="btn" data-sjopen="${s.id}">Sujet : ${esc(s.t.length > 60 ? s.t.slice(0, 58) + "…" : s.t)}</button>`).join("")}</div>`;
 }
 
@@ -4616,7 +4620,7 @@ function heatmapHTML(){
     cells += `<span class="hm-cell hm-${lvl(a)}" title="${esc(lab)}"></span>`;
   }
   const st = streaks();
-  return `<div class="sect rd"><h3>Régularité</h3>
+  return `<div class="sect rd"><h2>Régularité</h2>
     <div class="kpis hm-kpis">
       <div class="kpi"><b>${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée en ce moment</span></div>
       <div class="kpi"><b>${st.best}</b><span>meilleure série</span></div>
@@ -4641,7 +4645,7 @@ function forecastHTML(){
   const max = Math.max(1, ...days.map(x => x.n)), total = days.reduce((t, x) => t + x.n, 0);
   const newPD = rel.reduce((t, g) => t + Math.min(grpGoal(g).target, grpGoal(g).unseen), 0);
   const peak = days.reduce((b, x, i) => x.n > days[b].n ? i : b, 0);
-  return `<div class="sect"><h3>Cartes à revoir sur 7 jours</h3>
+  return `<div class="sect"><h2>Cartes à revoir sur 7 jours</h2>
     <p class="fc-sum"><b>${total}</b> révision${total > 1 ? "s" : ""} prévue${total > 1 ? "s" : ""}${total ? `, jusqu'à ${days[peak].n} ${days[peak].long === "aujourd'hui" ? "aujourd'hui" : "le " + esc(days[peak].long)}` : ""}.</p>
     ${seen.length ? `<ol class="fc" aria-label="Cartes à revoir par jour">${days.map(x => `<li aria-label="${esc(x.long)} : ${x.n} carte${x.n > 1 ? "s" : ""}"><div class="fc-track" aria-hidden="true"><span class="fc-v">${x.n}</span><span class="fc-bar" style="height:${x.n ? Math.max(3, Math.round(100 * x.n / max)) : 0}%"></span></div><span class="fc-d" aria-hidden="true">${esc(x.short)}</span></li>`).join("")}</ol>`
       : `<p class="lead">Aucune carte vue pour l'instant : les révisions apparaîtront ici après ta première séance.</p>`}
@@ -4689,13 +4693,13 @@ function planWeeks(){
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function planHTML(){
   const p = planWeeks();
-  if (!p) return `<div class="sect span2"><h3>Ton plan jusqu'aux écrits</h3>
+  if (!p) return `<div class="sect span2"><h2>Ton plan jusqu'aux écrits</h2>
     <p class="lead">Indique la date de ton concours : le site découpe les semaines qui restent en nouvelles cartes, sujets d'annales et copies en temps réel.</p>
     <div class="row-btns"><button class="btn primary" data-act="plan-date">Indiquer la date</button></div></div>`;
   const fmt = d => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
   const wk = x => `<li class="plan-w${x.final ? " fin" : ""}"><div class="plan-h"><b>Semaine ${x.w + 1}</b><span>${x.a.getTime() === x.b.getTime() ? esc(fmt(x.a)) : esc(fmt(x.a)) + " – " + esc(fmt(x.b))}</span>${x.last ? `<span class="plan-tag">Dernière ligne droite</span>` : x.final ? `<span class="plan-tag">Révision finale</span>` : ""}</div><ul>${x.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></li>`;
   const head = p.weeks.slice(0, PLAN_SHOW), rest = p.weeks.slice(PLAN_SHOW);
-  return `<div class="sect span2"><h3>Ton plan jusqu'aux écrits</h3>
+  return `<div class="sect span2"><h2>Ton plan jusqu'aux écrits</h2>
     <p class="lead">${plural(p.weeks.length, "semaine")} avant l'épreuve. Chaque jour : d'abord les cartes à revoir, puis les nouvelles. Les deux dernières semaines servent à revoir, sans nouvelles cartes.</p>
     <ol class="plan">${head.map(wk).join("")}</ol>
     ${rest.length ? `<details class="plan-more"><summary>Voir les ${rest.length} semaines suivantes</summary><ol class="plan" start="${PLAN_SHOW + 1}">${rest.map(wk).join("")}</ol></details>` : ""}
@@ -4706,10 +4710,10 @@ function planHTML(){
 /* ---------- Rappels dans l'agenda (.ics) ---------- */
 const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);      /* 25 novembre 2026, 12 h à Paris */
 function agendaHTML(){
-  if (!STANDALONE) return `<div class="sect"><h3>Rappels dans ton agenda</h3><p class="lead">L'export vers ton agenda est disponible sur le site Bristol EPS.</p></div>`;
+  if (!STANDALONE) return `<div class="sect"><h2>Rappels dans ton agenda</h2><p class="lead">L'export vers ton agenda est disponible sur le site Bristol EPS.</p></div>`;
   const myC = concById(prefs.concours), insc = Date.now() < INSC_END;
   const exLab = prefs.examDate ? `${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} : ${esc(fmtDay(prefs.examDate))}, rappel la veille` : "Date du concours (à indiquer d'abord)";
-  return `<div class="sect"><h3>Rappels dans ton agenda</h3>
+  return `<div class="sect"><h2>Rappels dans ton agenda</h2>
     <p class="lead">Un fichier à ouvrir avec Google Agenda, Apple Calendrier ou Outlook.</p>
     <form class="ics-form" data-icsform="1">
       <label class="chk"><input type="checkbox" name="exam"${prefs.examDate ? " checked" : " disabled"}> ${exLab}</label>
@@ -4787,9 +4791,9 @@ function renderStats(){
     </div></div>
     <div class="span2">${achHTML()}</div>
     <p class="legend-row span2"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
-    <div class="sect"><h3>Par thème</h3>${byTh}</div>
-    <div class="sect"><h3>Par période</h3>${byP}</div>
-    <div class="sect span2"><h3>Points faibles</h3>${weak.length
+    <div class="sect"><h2>Par thème</h2>${byTh}</div>
+    <div class="sect"><h2>Par période</h2>${byP}</div>
+    <div class="sect span2"><h2>Points faibles</h2>${weak.length
       ? `<ul class="list">${weak.map(c => `<li class="item"><div class="ip">${esc(thName(c))} · ${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div><div class="is"><span class="due now">Ratée ${progress[c.id].l} fois</span></div></li>`).join("")}</ul>
          <div class="row-btns actions" style="margin-top:14px"><button class="btn primary" data-act="weak-revise">Réviser ces ${weak.length} cartes</button></div>`
       : `<p class="lead">Aucune carte ratée pour l'instant. Les cartes que tu marques « Raté » apparaîtront ici.</p>`}</div></div>`;
