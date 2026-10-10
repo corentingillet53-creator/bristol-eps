@@ -12,7 +12,13 @@
 //   identique au site (protection CSRF) ;
 // - les tentatives de connexion et de récupération sont limitées par e-mail.
 //
+// - connexion avec Google (OpenID Connect, code d'autorisation + PKCE) : le jeton
+//   d'identité est obtenu directement auprès de Google avec le secret client, puis
+//   ses champs (aud, iss, exp, email_verified) sont vérifiés ; un compte existant
+//   avec la même adresse est relié automatiquement.
+//
 // Liaisons : DB (D1, obligatoire), QUOTA (KV, pour limiter les tentatives).
+// Variables Google : GOOGLE_CLIENT_ID (texte), GOOGLE_CLIENT_SECRET (secret).
 
 const SESSION_COOKIE = "bsess";
 const SESSION_DAYS = 60;
@@ -100,12 +106,13 @@ async function currentUser(request, env) {
   const token = getCookie(request, SESSION_COOKIE);
   if (!/^[0-9a-f]{64}$/.test(token)) return null;
   const row = await env.DB.prepare(
-    "SELECT u.id, u.email, u.key_salt, u.key_hash, s.token_hash FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?"
+    "SELECT u.id, u.email, u.key_salt, u.key_hash, u.google_sub, s.token_hash FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?"
   ).bind(await sha256Hex(token), Date.now()).first();
   return row || null;
 }
 
 async function checkKey(user, key) {
+  if (!user.key_hash) return false;
   return safeEqual(await sha256Hex(user.key_salt, key), user.key_hash);
 }
 
@@ -147,7 +154,7 @@ async function logout(request, env) {
 async function me(request, env) {
   const user = await currentUser(request, env);
   if (!user) return err(401, "not_signed_in");
-  return json(200, { email: user.email });
+  return json(200, { email: user.email, hasPassword: !!user.key_hash, google: !!user.google_sub });
 }
 
 async function recover(request, env) {
@@ -172,7 +179,8 @@ async function deleteAccount(request, env) {
   const { body, error } = await readJson(request); if (error) return error;
   const user = await currentUser(request, env);
   if (!user) return err(401, "not_signed_in");
-  if (!validKey(body.key) || !(await checkKey(user, body.key))) return err(401, "bad_credentials");
+  const ok = user.key_hash ? (validKey(body.key) && (await checkKey(user, body.key))) : body.confirm === "SUPPRIMER";
+  if (!ok) return err(401, user.key_hash ? "bad_credentials" : "bad_confirm");
   await env.DB.batch([
     env.DB.prepare("DELETE FROM progress WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
@@ -207,6 +215,96 @@ async function putProgress(request, env) {
   return json(200, { updatedAt });
 }
 
+
+// ---------- Connexion avec Google ----------
+
+const GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
+const OAUTH_COOKIE = "bgo";
+const googleEnabled = (env) => !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function redirect(location, cookies = []) {
+  const h = new Headers({ location, "cache-control": "no-store" });
+  for (const c of cookies) h.append("set-cookie", c);
+  return new Response(null, { status: 302, headers: h });
+}
+const oauthCookie = (value, maxAge) => `${OAUTH_COOKIE}=${value}; Path=/api/auth/google; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+const callbackUrl = (request) => new URL(request.url).origin + "/api/auth/google/callback";
+
+async function authConfig(request, env) {
+  return json(200, { google: googleEnabled(env) });
+}
+
+async function googleStart(request, env) {
+  if (!googleEnabled(env)) return redirect("/?connexion=erreur&raison=google_indisponible");
+  const state = randomHex(16);
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", enc.encode(verifier)));
+  const q = new URLSearchParams({
+    client_id: env.GOOGLE_CLIENT_ID, redirect_uri: callbackUrl(request), response_type: "code",
+    scope: "openid email profile", state, code_challenge: challenge, code_challenge_method: "S256", prompt: "select_account",
+  });
+  return redirect(`${GOOGLE_AUTH}?${q}`, [oauthCookie(`${state}.${verifier}`, 600)]);
+}
+
+function decodeJwtPayload(jwt) {
+  const part = String(jwt || "").split(".")[1];
+  if (!part) return null;
+  try { return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "=")), (c) => c.charCodeAt(0)))); }
+  catch { return null; }
+}
+
+async function googleCallback(request, env) {
+  const fail = (raison) => redirect(`/?connexion=erreur&raison=${raison}`, [oauthCookie("", 0)]);
+  if (!googleEnabled(env)) return fail("google_indisponible");
+  const url = new URL(request.url);
+  if (url.searchParams.get("error")) return fail("google_annule");
+  const [state, verifier] = getCookie(request, OAUTH_COOKIE).split(".");
+  const code = url.searchParams.get("code");
+  if (!state || !verifier || !code || !safeEqual(url.searchParams.get("state") || "", state)) return fail("google_session");
+
+  let tok;
+  try {
+    const r = await fetch(GOOGLE_TOKEN, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ code, client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, redirect_uri: callbackUrl(request), grant_type: "authorization_code", code_verifier: verifier }),
+    });
+    tok = await r.json();
+    if (!r.ok) { console.error("Échange Google refusé :", r.status, JSON.stringify(tok).slice(0, 300)); return fail("google_refus"); }
+  } catch (e) { console.error("Google injoignable :", String(e)); return fail("google_injoignable"); }
+
+  // Jeton reçu directement de Google par une connexion TLS authentifiée par le secret
+  // client : on vérifie ses champs sans revalider sa signature (OpenID Connect 3.1.3.7).
+  const p = decodeJwtPayload(tok.id_token);
+  const now = Math.floor(Date.now() / 1000);
+  if (!p || p.aud !== env.GOOGLE_CLIENT_ID || !["accounts.google.com", "https://accounts.google.com"].includes(p.iss) || !(p.exp > now) || !p.sub) return fail("google_jeton");
+  if (!p.email || (p.email_verified !== true && p.email_verified !== "true")) return fail("google_email");
+  const email = normEmail(p.email);
+
+  let linked = false;
+  let user = await env.DB.prepare("SELECT id FROM users WHERE google_sub = ?").bind(p.sub).first();
+  if (!user) {
+    user = await env.DB.prepare("SELECT id, key_hash FROM users WHERE email = ?").bind(email).first();
+    if (user) {
+      // Un compte à mot de passe n'a jamais prouvé qu'il possédait cette adresse : pour
+      // empêcher qu'un tiers l'ait créé d'avance, on retire ce mot de passe et on ferme
+      // ses sessions ; la connexion passe désormais par Google, qui a vérifié l'adresse.
+      linked = !!user.key_hash;
+      await env.DB.batch([
+        env.DB.prepare("UPDATE users SET google_sub = ?, key_salt = '', key_hash = '', recovery_hash = '' WHERE id = ?").bind(p.sub, user.id),
+        env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
+      ]);
+    } else {
+      user = { id: crypto.randomUUID() };
+      await env.DB.prepare("INSERT INTO users (id, email, key_salt, key_hash, recovery_hash, created_at, google_sub) VALUES (?, ?, '', '', '', ?, ?)")
+        .bind(user.id, email, Date.now(), p.sub).run();
+    }
+  }
+  const session = await createSession(env, user.id);
+  return redirect(linked ? "/?connexion=google&lie=1" : "/?connexion=google", [session, oauthCookie("", 0)]);
+}
+
 const ROUTES = {
   "POST /api/auth/register": register,
   "POST /api/auth/login": login,
@@ -216,6 +314,9 @@ const ROUTES = {
   "POST /api/auth/delete": deleteAccount,
   "GET /api/progress": getProgress,
   "PUT /api/progress": putProgress,
+  "GET /api/auth/config": authConfig,
+  "GET /api/auth/google/start": googleStart,
+  "GET /api/auth/google/callback": googleCallback,
 };
 
 export function isAccountRoute(pathname) {

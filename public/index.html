@@ -225,6 +225,10 @@ label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color
 .acct-msg.bad{color:var(--bad)} .acct-msg.ok{color:var(--ok)}
 .rk{font-family:var(--f-mono);font-size:20px;letter-spacing:.06em;padding:12px 14px;border:1px dashed var(--accent);border-radius:10px;margin:0 0 14px;word-break:break-all;user-select:all}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
+.g-wrap{max-width:440px;margin:4px 0 6px}
+a.g-btn{text-decoration:none;box-sizing:border-box}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:12px 0 4px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
 /* Navigation en trois espaces + sous-modes */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .top-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -1499,7 +1503,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === "Escape") { e.preventDefault(); const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); }
 });
 /* ---------- Compte et synchronisation (site autonome uniquement) ---------- */
-const acct = { status: "unknown", email: "", view: "login", busy: false, msg: "", msgKind: "", recoveryKey: "", open: false };
+const acct = { status: "unknown", email: "", view: "login", busy: false, msg: "", msgKind: "", recoveryKey: "", open: false, google: false, hasPassword: true, viaGoogle: false };
 const srv = { base: 0, timer: null, saving: false, dirty: false, retries: 0 };
 const PBKDF2_ITER = 310000;
 
@@ -1525,7 +1529,14 @@ const ACCT_ERR = {
   too_many_attempts: "Trop de tentatives pour ce compte. Réessaie dans une heure.",
   bad_recovery: "Cette clé de secours ne correspond pas à ce compte.",
   network: "Impossible de joindre le serveur. Vérifie ta connexion, puis réessaie.",
-  accounts_not_configured: "Les comptes ne sont pas encore activés sur ce site."
+  accounts_not_configured: "Les comptes ne sont pas encore activés sur ce site.",
+  bad_confirm: "Tape SUPPRIMER en majuscules pour confirmer."
+};
+const GOOGLE_ERR = {
+  google_annule: "Connexion avec Google annulée.",
+  google_session: "La connexion avec Google a expiré. Réessaie.",
+  google_email: "Ton adresse Google n'est pas vérifiée : utilise un autre compte ou un mot de passe.",
+  google_indisponible: "La connexion avec Google n'est pas encore activée sur ce site."
 };
 const acctErr = (r) => ACCT_ERR[r.data && r.data.error] || "Une erreur est survenue. Réessaie dans un instant.";
 
@@ -1573,8 +1584,9 @@ function signedOut(){
   acct.status = "out"; acct.email = ""; clearTimeout(srv.timer); srv.dirty = false; srv.base = 0;
   setStatus("local"); renderAccountBtn(); if (acct.open) renderAccount();
 }
-async function signedIn(email){
+async function signedIn(email, info){
   acct.status = "in"; acct.email = email; renderAccountBtn();
+  if (info) { acct.hasPassword = info.hasPassword !== false; acct.viaGoogle = !!info.google; }
   await pullAndMerge();
 }
 
@@ -1599,11 +1611,11 @@ function renderAccount(){
   } else if (acct.status === "in" && acct.view === "delete") {
     body = `<h2 id="account-title">Supprimer mon compte</h2>
       <p class="w-lead">Ton compte et ta progression enregistrée seront effacés définitivement. Ta progression restera seulement dans ce navigateur.</p>
-      <form class="acct-form" data-acctform="delete" novalidate>${acctField("acct-pw", "Mot de passe, pour confirmer", "password", "current-password")}
+      <form class="acct-form" data-acctform="delete" novalidate>${acct.hasPassword ? acctField("acct-pw", "Mot de passe, pour confirmer", "password", "current-password") : acctField("acct-confirm", "Tape SUPPRIMER pour confirmer", "text", "off", 'spellcheck="false"')}
       ${msg}<div class="row-btns"><button class="btn danger" type="submit"${busy}>${acct.busy ? "Suppression…" : "Supprimer définitivement"}</button><button class="btn" type="button" data-act="acct-view" data-v="profile">Annuler</button></div></form>`;
   } else if (acct.status === "in") {
     body = `<h2 id="account-title">Mon compte</h2>
-      <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes. Tes notes de dissertation restent sur chaque appareil.</p>
+      <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>${acct.viaGoogle ? " (compte Google)" : ""}. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes. Tes notes de dissertation restent sur chaque appareil.</p>
       ${msg}<div class="row-btns"><button class="btn" data-act="acct-logout"${busy}>Se déconnecter</button><button class="btn" data-act="acct-view" data-v="delete">Supprimer mon compte</button><button class="btn" data-act="acct-close">Fermer</button></div>`;
   } else if (acct.view === "recover") {
     body = `<h2 id="account-title">Mot de passe oublié</h2>
@@ -1622,6 +1634,7 @@ function renderAccount(){
         <button role="tab" data-act="acct-view" data-v="login" aria-selected="${!reg}">Se connecter</button>
         <button role="tab" data-act="acct-view" data-v="register" aria-selected="${reg}">Créer un compte</button>
       </div>
+      ${acct.google ? `<div class="g-wrap"><a class="btn wide g-btn" href="/api/auth/google/start">Continuer avec Google</a><p class="or"><span>ou avec ton e-mail</span></p></div>` : ""}
       <form class="acct-form" data-acctform="${reg ? "register" : "login"}" novalidate>
         ${acctField("acct-email", "E-mail", "email", "email")}
         ${acctField("acct-pw", reg ? "Mot de passe (10 caractères minimum)" : "Mot de passe", "password", reg ? "new-password" : "current-password")}
@@ -1643,27 +1656,28 @@ function acctSetMsg(m, kind){ acct.msg = m; acct.msgKind = kind || "bad"; }
 async function submitAccount(kind){
   const email = (($("#acct-email") || {}).value || "").trim().toLowerCase();
   const pw = ($("#acct-pw") || {}).value || "";
+  const confirmTxt = (($("#acct-confirm") || {}).value || "").trim();
   const keepEmail = email;
   const fail = (m) => { acct.busy = false; acctSetMsg(m); renderAccount(); const e = $("#acct-email"); if (e) e.value = keepEmail; };
   if (kind !== "delete" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Saisis une adresse e-mail valide.");
   if ((kind === "register" || kind === "recover") && pw.length < 10) return fail("Le mot de passe doit faire au moins 10 caractères.");
   if (kind === "register" && pw !== (($("#acct-pw2") || {}).value || "")) return fail("Les deux mots de passe ne sont pas identiques.");
-  if ((kind === "login" || kind === "delete") && !pw) return fail("Saisis ton mot de passe.");
+  if ((kind === "login" || (kind === "delete" && acct.hasPassword)) && !pw) return fail("Saisis ton mot de passe.");
   const rk = kind === "recover" ? (($("#acct-rk") || {}).value || "") : "";
   if (kind === "recover" && rk.replace(/[^A-Za-z0-9]/g, "").length !== 25) return fail("La clé de secours compte 25 caractères (5 groupes de 5).");
   acct.busy = true; acct.msg = ""; renderAccount();
-  const key = await deriveKey(kind === "delete" ? acct.email : email, pw);
+  const key = (kind === "delete" && !acct.hasPassword) ? "" : await deriveKey(kind === "delete" ? acct.email : email, pw);
   let r;
   if (kind === "login") r = await api("POST", "/api/auth/login", { email, key });
   else if (kind === "register") r = await api("POST", "/api/auth/register", { email, key });
   else if (kind === "recover") r = await api("POST", "/api/auth/recover", { email, key, recoveryKey: rk });
-  else r = await api("POST", "/api/auth/delete", { key });
+  else r = await api("POST", "/api/auth/delete", acct.hasPassword ? { key } : { confirm: confirmTxt });
   acct.busy = false;
   if (r.status < 200 || r.status >= 300) return fail(acctErr(r));
   if (kind === "delete") { signedOut(); acctSetMsg("Ton compte a été supprimé.", "ok"); acct.view = "login"; renderAccount(); toast("Compte supprimé."); return; }
   if (r.data.recoveryKey) { acct.recoveryKey = r.data.recoveryKey; acct.view = "recovery-shown"; }
   else acct.view = "profile";
-  await signedIn(r.data.email);
+  await signedIn(r.data.email, { hasPassword: true, google: false });
   acctSetMsg(kind === "register" ? "Compte créé. Ta progression est maintenant synchronisée." : kind === "recover" ? "Mot de passe changé." : "Connecté. Ta progression est synchronisée.", "ok");
   renderAccount();
   toast(kind === "register" ? "Compte créé." : "Connecté.");
@@ -1681,9 +1695,22 @@ async function logoutAccount(){
 async function initAccount(){
   if (!STANDALONE) return;
   renderAccountBtn();
+  let ret = null;
+  try {
+    const u = new URL(location.href); ret = { c: u.searchParams.get("connexion"), r: u.searchParams.get("raison"), lie: u.searchParams.get("lie") };
+    if (ret.c) history.replaceState(null, "", u.pathname + u.hash);
+  } catch (e) {}
+  const cfg = await api("GET", "/api/auth/config");
+  acct.google = cfg.status === 200 && !!cfg.data.google;
   const r = await api("GET", "/api/auth/me");
-  if (r.status === 200) await signedIn(r.data.email);
+  if (r.status === 200) await signedIn(r.data.email, r.data);
   else { acct.status = "out"; renderAccountBtn(); }
+  if (ret && ret.c === "google" && acct.status === "in") {
+    if (welcomeSeen() === false) hideWelcome();
+    if (ret.lie) { openAccount("profile"); acctSetMsg("Ton compte est maintenant relié à Google. Pour ta sécurité, l'ancien mot de passe est désactivé : connecte-toi désormais avec Google.", "ok"); renderAccount(); }
+    else toast("Connecté avec Google. Ta progression est synchronisée.");
+  }
+  else if (ret && ret.c === "erreur") { openAccount("login"); acctSetMsg(GOOGLE_ERR[ret.r] || "La connexion avec Google a échoué. Réessaie."); renderAccount(); }
 }
 
 /* Accueil et prise en main */

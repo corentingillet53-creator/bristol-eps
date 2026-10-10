@@ -14,6 +14,8 @@
   "preview_urls": false,
   // Garde les variables ajoutées dans le tableau de bord lors des déploiements.
   "keep_vars": true,
+  // Identifiant client Google (public). Le secret GOOGLE_CLIENT_SECRET se règle dans Cloudflare.
+  "vars": { "GOOGLE_CLIENT_ID": "1097426763420-4goof9jn1u4cvq1qb2qtrl4fpvs47nf4.apps.googleusercontent.com" },
   // Compteur des retours par code d'accès et par mois.
   "kv_namespaces": [{ "binding": "QUOTA", "id": "49e3556c30ab46efa24e2238914a5d66" }],
   // Comptes utilisateurs et progression synchronisée (schéma : migrations/).
