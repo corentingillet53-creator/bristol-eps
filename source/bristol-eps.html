@@ -373,6 +373,23 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .sj-ctx dt{font-weight:700;color:var(--accent-text);white-space:nowrap}
 .sj-ctx dd{margin:0 0 6px;color:var(--ink)}
 @media (max-width:520px){ .sj-ctx{grid-template-columns:1fr} .sj-ctx dd{margin-bottom:10px} }
+/* ---------- Méthode ---------- */
+.steps{list-style:none;counter-reset:st;margin:0 0 28px;padding:0;display:grid;gap:10px}
+.step{counter-increment:st;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px 14px 64px}
+.step::before{content:counter(st);position:absolute;left:18px;top:14px;width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:800}
+.step b{display:block;font-size:17px;margin-bottom:4px}
+.step p{margin:0 0 6px;max-width:75ch}
+.step-p{color:var(--bad);font-size:14px}
+.me-fam{margin:4px 0 16px}
+.jury-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.jury-list li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 16px}
+.jury-list p{margin:0 0 4px;max-width:78ch}
+.jury-list span{font-size:13px;color:var(--accent-text);font-weight:700}
+.time-list{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:8px}
+.time-list li{display:grid;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 14px}
+.time-list span{color:var(--muted);font-size:15px}
+@media (max-width:520px){ .step{padding:14px 14px 12px 56px} .step::before{left:14px} }
+#panel-methode > .chips:first-child{margin-bottom:18px}
 /* ---------- Annales ---------- */
 .ann-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .ann{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
@@ -605,12 +622,14 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
         <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
         <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
         <button role="tab" id="tab-annales" data-tab="annales" aria-controls="panel-annales" aria-selected="false" tabindex="-1">Annales</button>
+        <button role="tab" id="tab-methode" data-tab="methode" aria-controls="panel-methode" aria-selected="false" tabindex="-1">Méthode</button>
       </div>
       <p class="intro" id="intro-train"></p>
       <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
       <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
       <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
       <section id="panel-annales" role="tabpanel" aria-labelledby="tab-annales" hidden></section>
+      <section id="panel-methode" role="tabpanel" aria-labelledby="tab-methode" hidden></section>
     </div>
 
     <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
@@ -4361,6 +4380,100 @@ function renderAnnales(){
     : `<div class="empty"><h2>Aucun sujet trouvé.</h2><p>Change de concours ou d'écrit, ou cherche un autre mot.</p></div>`;
 }
 
+
+/* ---------- Méthode des écrits ----------
+   Démarche construite à partir des attentes répétées dans les rapports de jury (2015-2026).
+   La synthèse « Ce que répètent les jurys » renvoie aux sessions où chaque point est relevé (voir Annales). */
+const METHODE = {
+  e1: { t: "Écrit 1 : la dissertation d'histoire", steps: [
+    { t: "Analyser le sujet", d: "Définis chaque terme dans son sens à l'époque, repère les mots-pivots (« toujours », « davantage », « dans quelle mesure », « comment ») et identifie le type de sujet : question fermée, citation à discuter, consigne « montrez que ».", p: "Le piège : survoler un adverbe ou un verbe. « A-t-il toujours été » ou « davantage un moyen qu'une finalité » appellent une réponse nuancée, pas une adhésion." },
+    { t: "Fixer et justifier les bornes", d: "Respecte les bornes du sujet et justifie les dates de début et de fin par des événements liés à la question. Couvre toute la période, temps présent compris.", p: "Le piège : les angles morts. Les jurys sanctionnent régulièrement l'oubli du Front populaire, de Vichy, de la IVe République et des vingt dernières années." },
+    { t: "Construire une problématique", d: "Formule la tension que pose le sujet sous forme de question qui guide toute la copie. Elle doit pouvoir recevoir plusieurs réponses selon les périodes et les acteurs.", p: "Le piège : paraphraser le sujet ou poser une question à laquelle tout le monde répond oui." },
+    { t: "Périodiser au service de la démonstration", d: "Choisis des ruptures qui ont du sens pour le sujet (une réforme, un texte, un changement d'acteurs), puis annonce un plan en deux ou trois parties, chacune portant une thèse.", p: "Le piège : réciter un découpage tout fait (1945-1967-1981…) ou une fresque chronologique sans lien avec la question." },
+    { t: "Argumenter avec des faits", d: "Appuie chaque idée sur des faits datés, des textes, des acteurs, des chiffres, des pratiques. Croise le prescrit et le réel, la diachronie et la synchronie : plusieurs EPS coexistent à une même époque.", p: "Le piège : le contexte en décor. Il doit expliquer ce qui se passe en EPS, pas précéder chaque partie comme un bloc récité." },
+    { t: "Rédiger l'introduction", d: "Accroche liée au sujet, définition des termes, bornes justifiées, contexte et enjeu, problématique, annonce du plan. Environ un sixième de la copie.", p: "Le piège : une introduction démesurée ou une liste de définitions sans fil." },
+    { t: "Conclure en répondant", d: "Réponds explicitement à la problématique en reprenant le chemin parcouru. Une ouverture n'est utile que si elle prolonge vraiment la réflexion.", p: "Le piège : une conclusion qui résume le plan ou une ouverture hors sujet." }
+  ]},
+  e2: { t: "Écrit 2 : la composition", steps: [
+    { t: "Analyser le libellé", d: "Définis chaque notion avec précision et repère la relation que le sujet te demande d'examiner : « en quoi et comment », « dans quelle mesure », « à quelles conditions », « pour tous les élèves ».", p: "Le piège : traiter les notions l'une après l'autre au lieu de travailler leur relation, ou remplacer un verbe du sujet par un autre plus confortable." },
+    { t: "Diagnostiquer le contexte", d: "Tire des annexes les données qui comptent (établissement, élèves, projet, résultats) et déduis-en des priorités. Le contexte sert tout le devoir.", p: "Le piège : recopier ou raconter le contexte sans en tirer de conséquences." },
+    { t: "Analyser les comportements d'élèves", d: "Dans chaque épisode, repère des comportements significatifs, croise plusieurs indices et interprète-les : quelles ressources sont sollicitées, quel obstacle bloque l'élève.", p: "Le piège : partir de l'APSA ou d'une solution toute faite au lieu de partir de ce que font les élèves." },
+    { t: "Mobiliser des connaissances scientifiques", d: "Choisis peu de références, précises (auteur, date), récentes et compatibles entre elles, et mets-les au service du « en quoi » : expliquer pourquoi ta proposition peut fonctionner.", p: "Le piège : un catalogue d'auteurs cités sans être expliqués, ou des références approximatives." },
+    { t: "Proposer et justifier", d: "Chaque proposition découle de l'analyse : principe d'intervention, situation, but, consignes, critères de réussite, variables, effets attendus et limites. Montre l'activité de l'élève, pas seulement celle de l'enseignant.", p: "Le piège : la « magie de la tâche », une situation décrite comme si elle produisait l'apprentissage toute seule." },
+    { t: "Respecter les exigences du sujet", d: "Vérifie les consignes de forme : nombre d'épisodes, de classes ou d'APSA, champs d'apprentissage différents, niveaux de scolarité.", p: "Le piège : ne traiter qu'une APSA ou qu'un champ quand le sujet en demande deux. La copie est alors déclassée." },
+    { t: "Introduire et conclure", d: "Introduction : enjeu, notions définies et reliées, problématique, contexte, annonce du plan. Conclusion : réponse argumentée, avec les conditions et les limites de tes propositions.", p: "Le piège : une introduction qui ne relie pas les notions, une conclusion qui répète." }
+  ]}
+};
+const TEMPS = [
+  ["4 h (CAPEPS externe bac+3, écrit 1 ; CAPEPS interne)", "40 min d'analyse et de plan, 2 h 50 de rédaction, 30 min de relecture et de marge."],
+  ["5 h (CAPEPS externe transitoire)", "50 min d'analyse et de plan, 3 h 40 de rédaction, 30 min de relecture."],
+  ["6 h (agrégation interne, agrégation externe écrit 1)", "1 h d'analyse et de plan, 4 h 30 de rédaction, 30 min de relecture."],
+  ["3 h (CAPEPS externe bac+3, écrit 2)", "30 min d'analyse et de plan, 2 h 10 de rédaction, 20 min de relecture."],
+  ["7 h (agrégation externe, écrit 2)", "1 h 10 d'analyse et de plan, 5 h 20 de rédaction, 30 min de relecture."]
+];
+const JURYS = [
+  { f: "cext", t: "CAPEPS externe", items: [
+    ["Écrit 1", "Les angles morts sont pénalisés : Front populaire, Vichy, IVe République, premier quart du XXIe siècle.", "2016, 2020, 2025, 2026"],
+    ["Écrit 1", "Le contexte doit expliquer, pas servir de décor ou de bloc récité.", "2023, 2024, 2026"],
+    ["Écrit 1", "Introduction courte, autour d'un sixième de la copie.", "2023, 2024, 2025, 2026"],
+    ["Écrit 1", "Discuter les mots-pivots du sujet (« toujours », « davantage », « comment ») au lieu d'y adhérer.", "2015, 2017, 2025, 2026"],
+    ["Écrit 1", "Le temps présent est souvent bâclé : il faut des repères récents et précis.", "2023, 2024, 2026"],
+    ["Écrit 1", "Pas de plans ni de périodisations préconstruits : les bornes et les ruptures se justifient par le sujet.", "2015, 2018, 2026"],
+    ["Écrit 2", "Articuler le « en quoi » (connaissances scientifiques) et le « comment » (propositions), sans les juxtaposer.", "2025, 2026"],
+    ["Écrit 2", "Définir précisément les notions : les sensations ne sont pas des émotions, l'apprentissage moteur suppose une transformation.", "2025, 2026"],
+    ["Écrit 2", "Partir des comportements observés dans les épisodes, pas de l'APSA ni de dispositifs « clés en main ».", "2017, 2020, 2023, 2025, 2026"],
+    ["Écrit 2", "Exploiter les annexes et le contexte sans les paraphraser.", "2020, 2022, 2024"]
+  ]},
+  { f: "cint", t: "CAPEPS interne", items: [
+    ["Écrit", "Articuler la citation, ses mots-clés et le contexte de l'établissement ; ne pas faire un commentaire de texte.", "2024, 2025, 2026"],
+    ["Écrit", "Des propositions concrètes, justifiées et réalisables, centrées sur l'élève acteur.", "2020, 2022, 2026"],
+    ["Écrit", "Distinguer et développer les deux volets demandés : la classe et l'établissement (équipe, AS).", "2022, 2023"],
+    ["Écrit", "Le contexte se traite, il ne se liste pas ; les propositions génériques sont sanctionnées.", "2022, 2023, 2025"],
+    ["Écrit", "Le bilan prospectif synthétise et ouvre ; il ne résume pas.", "2018, 2019"],
+    ["Écrit", "La barre d'admissibilité est haute (autour de 14 à 15 sur 20 dans le public) : la précision fait la différence.", "2024, 2025"]
+  ]},
+  { f: "aext", t: "Agrégation externe", items: [
+    ["Écrit 1", "Analyser finement la citation, avec renvoi aux lignes, avant de la discuter ; la paraphrase est sanctionnée.", "2022, 2023, 2024, 2025"],
+    ["Écrit 1", "Connaître l'auteur et sa trajectoire, situer le texte dans son époque.", "2019, 2020, 2021, 2023, 2024, 2025"],
+    ["Écrit 1", "Éviter la lecture progressiste naïve et les oppositions caricaturales : repérer stagnations et régressions.", "2023, 2025"],
+    ["Écrit 1", "Des références exactes et une historiographie récente ; les références inventées sont sanctionnées.", "2016, 2017, 2026"],
+    ["Écrit 2", "Discuter vraiment : conditions, limites, controverses, sens du verbe pivot (« se nourrir », « se conjuguer », « levier »).", "2022, 2023, 2024, 2025, 2026"],
+    ["Écrit 2", "Définir rigoureusement : les interactions sociales ne se réduisent pas à la coopération, l'engagement n'est pas la motivation.", "2025, 2026"],
+    ["Écrit 2", "Peu de références scientifiques, récentes, maîtrisées et compatibles entre elles.", "2025, 2026"],
+    ["Écrit 2", "Des illustrations analytiques qui montrent l'activité réelle des élèves.", "2021, 2022, 2026"]
+  ]},
+  { f: "aint", t: "Agrégation interne", items: [
+    ["Écrit 1", "Analyser puis discuter la citation et prendre position, sans s'en servir comme simple fil conducteur.", "2022, 2023, 2024, 2025, 2026"],
+    ["Écrit 1", "Éviter le récit chronologique en périodes figées.", "2017, 2022, 2023, 2026"],
+    ["Écrit 1", "Traiter sérieusement la période récente.", "2016, 2019, 2025, 2026"],
+    ["Écrit 1", "Ne pas confondre pratiques professionnelles et textes officiels, le prescrit et le réel.", "2020, 2025"],
+    ["Écrit 2", "Une démonstration située : le contexte et la classe s'exploitent, ils ne se racontent pas.", "2020, 2021, 2024, 2026"],
+    ["Écrit 2", "Au moins deux APSA de deux champs d'apprentissage quand le sujet le demande, sinon la copie est déclassée.", "2022, 2024, 2025, 2026"],
+    ["Écrit 2", "Relier les notions du sujet entre elles au lieu de les traiter séparément.", "2025, 2026"],
+    ["Écrit 2", "Montrer l'apprentissage, pas seulement décrire des dispositifs aux effets « magiques ».", "2016, 2018, 2020, 2026"],
+    ["Écrit 2", "Laisser des décisions à l'élève : projets, choix, autonomie réelle.", "2023, 2024"]
+  ]}
+];
+const me = { tab: "e1", f: null };
+function renderMethode(){
+  const el = $("#panel-methode"); if (!el) return;
+  if (me.f === null) me.f = ANN_FAM_OF_CONC[prefs.concours] || "cext";
+  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", "Écrit 1 : dissertation"], ["e2", "Écrit 2 : composition"], ["jury", "Ce que répètent les jurys"]].map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
+  let body;
+  if (me.tab === "jury") {
+    const g = JURYS.find(x => x.f === me.f) || JURYS[0];
+    body = `<div class="chips me-fam">${JURYS.map(x => `<button class="chip" data-mef="${x.f}" aria-pressed="${x.f === g.f}">${esc(x.t)}</button>`).join("")}</div>
+      <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
+      ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h3>${ep}</h3><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
+  } else {
+    const m = METHODE[me.tab];
+    body = `<h3 class="sect-h">${esc(m.t)}</h3><ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p></li>`).join("")}</ol>
+      ${`<div class="sect"><h3>Gérer son temps</h3><p class="lead">Une répartition indicative, à ajuster à ta vitesse d'écriture.</p><ul class="time-list">${TEMPS.map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join("")}</ul></div>`}
+      <div class="row-btns"><button class="btn primary" data-act="me-train" data-e="${me.tab}">M'entraîner sur un sujet d'${me.tab === "e1" ? "écrit 1" : "écrit 2"}</button><button class="btn" data-act="me-jury">Ce que répètent les jurys</button></div>`;
+  }
+  el.innerHTML = seg + body;
+}
+
 const fil = { cur: null };
 function renderFils(){
   const el = $("#panel-fils");
@@ -4456,14 +4569,15 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","stats","deck","add"];
+const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","methode","stats","deck","add"];
 const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", stats: "suivi" };
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", methode: "train", stats: "suivi" };
 const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
   sujets: "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude.",
+  methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
   annales: "Les sujets officiels des écrits depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Ceux des écrits 1 et 2 servent aussi d'entraînement, avec le retour de Claude."
 };
 function setView(v, focus){
@@ -4489,6 +4603,7 @@ function render(focusActions){
   if (view === "concours") renderConcours();
   if (view === "refs") renderRefs();
   if (view === "annales") renderAnnales();
+  if (view === "methode") renderMethode();
   if (view === "add") { const t = $("#tab-deck"); if (t) { t.setAttribute("aria-selected", "true"); t.tabIndex = 0; } }
   if (view === "frise") renderFrise();
   if (view === "qui") renderQui();
@@ -4511,6 +4626,10 @@ document.addEventListener("click", e => {
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.metab) { me.tab = d.metab; renderMethode(); const b = document.querySelector(`[data-metab="${d.metab}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.mef) { me.f = d.mef; renderMethode(); const b = document.querySelector(`[data-mef="${d.mef}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "me-jury") { me.tab = "jury"; renderMethode(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
+  if (d.act === "me-train") { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.e === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = null; setView("sujets"); return; }
   if (d.anf) { an.f = d.anf; renderAnnales(); const b = document.querySelector(`[data-anf="${d.anf}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.annwork) { const a = ANNALES.find(x => x.id === d.annwork); if (a) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.cur = annSubject(a); sj.epr = sj.cur.epr; sj.axe = "Tous"; sj.shown = false; if (sj.mode !== "intro" && sj.mode !== "para") sj.mode = "plan"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
@@ -4846,7 +4965,7 @@ function renderWelcome(){
       <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : une séance de cartes par épreuve, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
       <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
       <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les références et citations à placer en copie, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
-      <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation, introduction chronométrée et paragraphe argumenté.</span></li>
+      <li class="w-space"><b>S'entraîner</b><span>Frise, quiz « Qui ? », sujets d'écrit 1 et d'écrit 2 avec retour de Claude, annales des concours et méthode des écrits.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
     </ul>
     <div class="w-cols"><div>
