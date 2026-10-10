@@ -22,7 +22,7 @@ img{max-width:100%}
    Un vert « gymnase » pour l'action, l'or réservé à la série et aux succès. */
 :root{
   --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#5a6861; --line:#dde4df; --chip:#e8ede9;
-  --accent:#0b7a53; --accent-ink:#ffffff; --soft:#e1f2e9; --accent-text:#09694a;
+  --accent:#0b7a53; --bar:#0b7a53; --accent-ink:#ffffff; --soft:#e1f2e9; --accent-text:#09694a;
   --hero:#0b7a53; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.8); --hero-tint:rgba(255,255,255,.14); --hero-lane:rgba(255,255,255,.25); --hero-fill:#ffffff;
   --gold:#e5a00d; --gold-ink:#3b2900; --gold-text:#8a5c00;
   --ok:#0b7a53; --ok-soft:#e1f2e9; --mid:#955900; --mid-soft:#fcecd2; --bad:#b53a2d; --bad-soft:#fbe4e0;
@@ -38,7 +38,7 @@ img{max-width:100%}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
-    --accent:#3dcb92; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
+    --accent:#3dcb92; --bar:#2fae78; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
     --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
     --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
     --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
@@ -49,7 +49,7 @@ img{max-width:100%}
 }
 :root[data-theme="dark"]{
   --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
-  --accent:#3dcb92; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
+  --accent:#3dcb92; --bar:#2fae78; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
   --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
   --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
   --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
@@ -500,6 +500,31 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .ach:not(.on) b{color:var(--muted)}
 .ach-st{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
 .ach.on .ach-st{color:var(--gold-text);font-weight:700}
+.fc-sum{margin:0 0 4px;font-size:16px}.fc-sum b{font-family:var(--f-display);font-size:22px}
+.fc{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;height:170px}
+.fc li{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0}
+.fc-track{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;border-bottom:1px solid var(--line);min-height:0}
+.fc-bar{display:block;width:min(24px,70%);background:var(--bar);border-radius:4px 4px 0 0}
+.fc-v{font-size:13px;font-weight:700;color:var(--ink);line-height:1}
+.fc-d{font-size:12px;color:var(--muted);text-align:center;text-transform:capitalize}
+.fc-note{font-size:14px;color:var(--muted);margin:12px 0 0}
+.ics-form{display:grid;gap:2px;margin-top:6px}
+.ics-time{display:flex;align-items:center;gap:12px;margin:6px 0 12px;font-weight:400}
+.ics-time input{width:auto;min-width:120px}
+.ics-form .btn{justify-self:start}
+.plan{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+@media (min-width:1100px){.plan{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.plan-w{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 16px}
+.plan-w.fin{border-color:var(--accent)}
+.plan-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:6px}
+.plan-h b{font-family:var(--f-display);font-size:17px}
+.plan-h span{color:var(--muted);font-size:14px}
+.plan-h .plan-tag{color:var(--accent-text);font-weight:700;font-size:13px;background:var(--soft);border-radius:999px;padding:2px 10px}
+.plan-w ul{margin:0;padding-left:18px;font-size:15px}
+.plan-w li+li{margin-top:4px}
+.plan-more{margin-top:12px}
+.plan-more summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+.sect .row-btns{margin-top:14px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -4592,6 +4617,143 @@ function heatmapHTML(){
     <p class="legend-row hm-legend"><span>Moins</span><i class="hm-cell hm-0"></i><i class="hm-cell hm-1"></i><i class="hm-cell hm-2"></i><i class="hm-cell hm-3"></i><i class="hm-cell hm-4"></i><span>Plus (50 réponses et plus)</span></p>
   </div>`;
 }
+/* ---------- Charge à venir et plan de révision ---------- */
+function forecastHTML(){
+  const rel = relGroups(), t0 = startOfDay().getTime();
+  const seen = allCards().filter(c => rel.includes(grpOf(c)) && progress[c.id]);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const lo = i ? t0 + i * DAY : -Infinity, hi = t0 + (i + 1) * DAY;
+    const n = seen.filter(c => progress[c.id].d >= lo && progress[c.id].d < hi).length;
+    const d = new Date(t0 + i * DAY + DAY / 2);
+    days.push({ n, short: i === 0 ? "Auj." : d.toLocaleDateString("fr-FR", { weekday: "short" }), long: i === 0 ? "aujourd'hui" : d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }) });
+  }
+  const max = Math.max(1, ...days.map(x => x.n)), total = days.reduce((t, x) => t + x.n, 0);
+  const newPD = rel.reduce((t, g) => t + Math.min(grpGoal(g).target, grpGoal(g).unseen), 0);
+  const peak = days.reduce((b, x, i) => x.n > days[b].n ? i : b, 0);
+  return `<div class="sect"><h3>Cartes à revoir sur 7 jours</h3>
+    <p class="fc-sum"><b>${total}</b> révision${total > 1 ? "s" : ""} prévue${total > 1 ? "s" : ""}${total ? `, jusqu'à ${days[peak].n} ${days[peak].long === "aujourd'hui" ? "aujourd'hui" : "le " + esc(days[peak].long)}` : ""}.</p>
+    ${seen.length ? `<ol class="fc" aria-label="Cartes à revoir par jour">${days.map(x => `<li aria-label="${esc(x.long)} : ${x.n} carte${x.n > 1 ? "s" : ""}"><div class="fc-track" aria-hidden="true"><span class="fc-v">${x.n}</span><span class="fc-bar" style="height:${x.n ? Math.max(3, Math.round(100 * x.n / max)) : 0}%"></span></div><span class="fc-d" aria-hidden="true">${esc(x.short)}</span></li>`).join("")}</ol>`
+      : `<p class="lead">Aucune carte vue pour l'instant : les révisions apparaîtront ici après ta première séance.</p>`}
+    <p class="fc-note">${newPD ? `S'y ajoutent ${newPD} nouvelle${newPD > 1 ? "s" : ""} carte${newPD > 1 ? "s" : ""} par jour selon ton objectif.` : "Plus de nouvelles cartes à découvrir pour tes épreuves."} Les cartes ratées reviennent 10 minutes plus tard dans la séance.</p>
+  </div>`;
+}
+
+/* Écrits du concours choisi : la première épreuve « hist » est l'écrit 1, l'autre l'écrit 2. */
+function planEcrits(){
+  const c = concById(prefs.concours);
+  if (c && c.adm && c.adm.length) return c.adm.map(a => ({ g: a.hist ? "e1" : "e2", s: a.hist ? "écrit 1" : (c.adm.length > 1 ? "écrit 2" : "écrit"), h: (a.m.match(/(\d+) h/) || [])[1] }));
+  return [{ g: "e1", s: "écrit 1" }, { g: "e2", s: "écrit 2" }];
+}
+const PLAN_SHOW = 8;
+function planWeeks(){
+  const ex = examDays(); if (!ex || ex.daysLeft <= 0) return null;
+  const rel = relGroups(), t0 = startOfDay();
+  const gs = EPR.filter(e => rel.includes(e.id)).map(e => { const x = grpGoal(e.id); return { g: e.id, s: e.s, rem: x.unseen, per: x.target }; });
+  const ecr = planEcrits(), weeks = [], nW = Math.ceil(ex.daysLeft / 7);
+  for (let w = 0; w < nW; w++) {
+    const d0 = w * 7, d1 = Math.min(ex.daysLeft - 1, d0 + 6);
+    let learn = 0;
+    for (let d = d0; d <= d1; d++) if (ex.daysLeft <= 14 || ex.daysLeft - d > 14) learn++;
+    const news = gs.map(x => { const n = Math.min(x.rem, x.per * learn); x.rem -= n; return { s: x.s, n }; }).filter(x => x.n);
+    const toExam = ex.daysLeft - d0, last = toExam <= 7, final = learn === 0;
+    const items = [];
+    if (news.length) items.push("Nouvelles cartes : " + news.map(x => `${x.s.toLowerCase()} · ${x.n}`).join(", "));
+    else if (!final) items.push("Toutes les cartes sont vues : consolide celles des boîtes 1 à 3.");
+    if (final && !last) items.push("Plus de nouvelles cartes : points faibles et cartes ratées (onglet Progrès).");
+    /* Une copie complète toutes les quatre semaines, en alternant les écrits ; les deux en révision finale. */
+    const full = w % 4 === 3 ? ecr[((w + 1) / 4 - 1) % ecr.length] : null;
+    ecr.forEach(e => {
+      if (last) return;
+      if (final || e === full) items.push(`${cap(e.s)} : une copie complète en temps réel${e.h ? ` (${e.h} h)` : ""}, puis le retour de Claude.`);
+      else items.push(`${cap(e.s)} : un sujet d'annale, problématique et plan détaillé en 1 h.`);
+    });
+    if (!last && !final && rel.includes("e2")) items.push("Références : en apprendre cinq et les placer dans un paragraphe.");
+    if (last) items.push("Relis tes plans, tes références et ta frise ; pas de copie complète, repos la veille.");
+    const a = new Date(t0); a.setDate(a.getDate() + d0);
+    const b = new Date(t0); b.setDate(b.getDate() + d1);
+    weeks.push({ w, a, b, final, last, items });
+  }
+  return { ex, weeks };
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function planHTML(){
+  const p = planWeeks();
+  if (!p) return `<div class="sect span2"><h3>Ton plan jusqu'aux écrits</h3>
+    <p class="lead">Indique la date de ton concours : le site découpe les semaines qui restent en nouvelles cartes, sujets d'annales et copies en temps réel.</p>
+    <div class="row-btns"><button class="btn primary" data-act="plan-date">Indiquer la date</button></div></div>`;
+  const fmt = d => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  const wk = x => `<li class="plan-w${x.final ? " fin" : ""}"><div class="plan-h"><b>Semaine ${x.w + 1}</b><span>${x.a.getTime() === x.b.getTime() ? esc(fmt(x.a)) : esc(fmt(x.a)) + " – " + esc(fmt(x.b))}</span>${x.last ? `<span class="plan-tag">Dernière ligne droite</span>` : x.final ? `<span class="plan-tag">Révision finale</span>` : ""}</div><ul>${x.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></li>`;
+  const head = p.weeks.slice(0, PLAN_SHOW), rest = p.weeks.slice(PLAN_SHOW);
+  return `<div class="sect span2"><h3>Ton plan jusqu'aux écrits</h3>
+    <p class="lead">${plural(p.weeks.length, "semaine")} avant l'épreuve. Chaque jour : d'abord les cartes à revoir, puis les nouvelles. Les deux dernières semaines servent à revoir, sans nouvelles cartes.</p>
+    <ol class="plan">${head.map(wk).join("")}</ol>
+    ${rest.length ? `<details class="plan-more"><summary>Voir les ${rest.length} semaines suivantes</summary><ol class="plan" start="${PLAN_SHOW + 1}">${rest.map(wk).join("")}</ol></details>` : ""}
+    <div class="row-btns"><button class="btn" data-sec="train" data-gotab="annales">Choisir un sujet d'annale</button><button class="btn" data-sec="train" data-gotab="methode">Gestion du temps</button></div>
+  </div>`;
+}
+
+/* ---------- Rappels dans l'agenda (.ics) ---------- */
+const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);      /* 25 novembre 2026, 12 h à Paris */
+function agendaHTML(){
+  if (!STANDALONE) return `<div class="sect"><h3>Rappels dans ton agenda</h3><p class="lead">L'export vers ton agenda est disponible sur le site Bristol EPS.</p></div>`;
+  const myC = concById(prefs.concours), insc = Date.now() < INSC_END;
+  const exLab = prefs.examDate ? `${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} : ${esc(fmtDay(prefs.examDate))}, rappel la veille` : "Date du concours (à indiquer d'abord)";
+  return `<div class="sect"><h3>Rappels dans ton agenda</h3>
+    <p class="lead">Un fichier à ouvrir avec Google Agenda, Apple Calendrier ou Outlook.</p>
+    <form class="ics-form" data-icsform="1">
+      <label class="chk"><input type="checkbox" name="exam"${prefs.examDate ? " checked" : " disabled"}> ${exLab}</label>
+      ${insc ? `<label class="chk"><input type="checkbox" name="insc" checked> Clôture des inscriptions : 25 novembre 2026 à 12 h, rappel deux jours avant</label>` : ""}
+      <label class="chk"><input type="checkbox" name="daily" checked> Séance de cartes chaque jour${prefs.examDate ? " jusqu'aux écrits" : ""}</label>
+      <label class="ics-time"><span>Heure du rappel</span><input type="time" name="time" value="18:30" required></label>
+      <button class="btn primary" type="submit">Télécharger le fichier agenda</button>
+    </form>
+  </div>`;
+}
+function icsText(o){
+  const esc2 = s => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  /* Lignes repliées à 75 octets (RFC 5545), sans couper un caractère accentué. */
+  const u8 = ch => { const c = ch.codePointAt(0); return c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; };
+  const fold = l => { const out = []; let cur = "", n = 0; for (const ch of l) { const b = u8(ch); if (n + b > (out.length ? 74 : 75)) { out.push(cur); cur = ""; n = 0; } cur += ch; n += b; } out.push(cur); return out.join("\r\n "); };
+  const ymd = iso => iso.replace(/-/g, "");
+  const utc = t => new Date(t).toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const stamp = utc(Date.now()), site = location.origin;
+  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bristol EPS//Rappels//FR", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+  const ev = (uid, lines, alarm, desc) => { L.push("BEGIN:VEVENT", "UID:" + uid + "@bristol-eps", "DTSTAMP:" + stamp, ...lines);
+    if (desc) L.push("DESCRIPTION:" + esc2(desc));
+    if (alarm) L.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + esc2(alarm[1]), "TRIGGER:" + alarm[0], "END:VALARM");
+    L.push("END:VEVENT"); };
+  const myC = concById(prefs.concours);
+  if (o.exam && prefs.examDate) {
+    const end = new Date(prefs.examDate + "T12:00:00"); end.setDate(end.getDate() + 1);
+    const t = (myC ? myC.t + " : " : "") + (myC && prefs.examDate === myC.d ? "écrits" : "concours");
+    ev("exam-" + ymd(prefs.examDate), ["DTSTART;VALUE=DATE:" + ymd(prefs.examDate), "DTEND;VALUE=DATE:" + ymd(dayKey(end)), "SUMMARY:" + esc2(cap(t)), "TRANSP:TRANSPARENT"],
+      ["-PT6H", "Demain : " + t], myC && myC.ecrits ? "Écrits : " + myC.ecrits + ". Vérifie ta convocation." : "Vérifie ta convocation.");
+  }
+  if (o.insc && Date.now() < INSC_END) {
+    ev("inscriptions-2027", ["DTSTART:" + utc(INSC_END - 30 * 6e4), "DTEND:" + utc(INSC_END), "SUMMARY:" + esc2("Clôture des inscriptions aux concours (Cyclades)")],
+      ["-P2D", "Inscriptions aux concours : clôture dans deux jours"], "Les inscriptions ferment à 12 h, heure de Paris, sur Cyclades. Vérifie aussi que tu as confirmé ton inscription.");
+  }
+  if (o.daily && /^\d{2}:\d{2}$/.test(o.time)) {
+    const s = new Date(); const [hh, mm] = o.time.split(":").map(Number); s.setHours(hh, mm, 0, 0); if (s.getTime() < Date.now()) s.setDate(s.getDate() + 1);
+    const loc = d => dayKey(d).replace(/-/g, "") + "T" + pad2(d.getHours()) + pad2(d.getMinutes()) + "00";
+    let rr = "RRULE:FREQ=DAILY;COUNT=180";
+    if (prefs.examDate) { const u = new Date(prefs.examDate + "T00:00:00"); u.setDate(u.getDate() - 1); u.setHours(23, 59, 0, 0); if (u > s) rr = "RRULE:FREQ=DAILY;UNTIL=" + loc(u); }
+    ev("seance-" + stamp, ["DTSTART:" + loc(s), "DURATION:PT20M", rr, "SUMMARY:" + esc2("Bristol EPS : séance de cartes")], ["PT0M", "C'est l'heure de ta séance Bristol EPS"], "Les cartes à revoir d'abord, puis les nouvelles. " + site);
+  }
+  L.push("END:VCALENDAR");
+  return L.map(fold).join("\r\n") + "\r\n";
+}
+function icsDownload(form){
+  const f = n => form.elements.namedItem(n);
+  const o = { exam: !!(f("exam") && f("exam").checked), insc: !!(f("insc") && f("insc").checked), daily: !!(f("daily") && f("daily").checked), time: f("time") ? f("time").value : "" };
+  if (!o.exam && !o.insc && !o.daily) { toast("Coche au moins un rappel."); return; }
+  if (o.daily && !/^\d{2}:\d{2}$/.test(o.time)) { toast("Choisis l'heure du rappel."); return; }
+  const url = URL.createObjectURL(new Blob([icsText(o)], { type: "text/calendar;charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = "bristol-eps-rappels.ics"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast("Fichier agenda téléchargé : ouvre-le pour ajouter les rappels.");
+}
 function renderStats(){
   const cards = allCards();
   const seen = cards.filter(c => progress[c.id]).length;
@@ -4604,6 +4766,9 @@ function renderStats(){
   $("#panel-stats").innerHTML = `<div class="stats-grid">
     ${readinessHTML()}
     ${heatmapHTML()}
+    ${forecastHTML()}
+    ${agendaHTML()}
+    ${planHTML()}
     <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
@@ -4675,6 +4840,7 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = fals
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "plan-date") { goalEdit = true; setView("home"); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
   if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
@@ -5096,6 +5262,7 @@ document.addEventListener("submit", e => {
     const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
     return;
   }
+  if (e.target.dataset && e.target.dataset.icsform) { e.preventDefault(); icsDownload(e.target); return; }
   if (e.target.dataset && e.target.dataset.acctform) { e.preventDefault(); submitAccount(e.target.dataset.acctform); return; }
   if (!e.target.dataset || !e.target.dataset.codeform) return;
   e.preventDefault();
