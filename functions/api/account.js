@@ -221,7 +221,18 @@ async function putProgress(request, env) {
 const GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
 const OAUTH_COOKIE = "bgo";
-const googleEnabled = (env) => !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+// Le secret Google vient d'un secret Cloudflare ; à défaut, de la table app_config
+// de la base (jamais du dépôt). Mis en cache quelques minutes par instance.
+let cfgCache = { at: 0, secret: "" };
+async function googleSecret(env) {
+  if (env.GOOGLE_CLIENT_SECRET) return env.GOOGLE_CLIENT_SECRET;
+  if (cfgCache.secret && Date.now() - cfgCache.at < 300000) return cfgCache.secret;
+  let v = "";
+  try { const r = await env.DB.prepare("SELECT value FROM app_config WHERE key = 'GOOGLE_CLIENT_SECRET'").first(); v = (r && r.value) || ""; } catch {}
+  cfgCache = { at: Date.now(), secret: v.trim() };
+  return cfgCache.secret;
+}
+const googleEnabled = async (env) => !!(env.GOOGLE_CLIENT_ID && (await googleSecret(env)));
 const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 function redirect(location, cookies = []) {
   const h = new Headers({ location, "cache-control": "no-store" });
@@ -233,11 +244,12 @@ const callbackUrl = (request) => new URL(request.url).origin + "/api/auth/google
 
 async function authConfig(request, env) {
   // Indique quelle pièce manque, sans jamais révéler de valeur secrète.
-  return json(200, { google: googleEnabled(env), googleClientId: !!env.GOOGLE_CLIENT_ID, googleSecret: !!env.GOOGLE_CLIENT_SECRET });
+  const secret = await googleSecret(env);
+  return json(200, { google: !!(env.GOOGLE_CLIENT_ID && secret), googleClientId: !!env.GOOGLE_CLIENT_ID, googleSecret: !!secret, googleSecretSource: env.GOOGLE_CLIENT_SECRET ? "cloudflare" : (secret ? "base" : "aucune") });
 }
 
 async function googleStart(request, env) {
-  if (!googleEnabled(env)) return redirect("/?connexion=erreur&raison=google_indisponible");
+  if (!(await googleEnabled(env))) return redirect("/?connexion=erreur&raison=google_indisponible");
   const state = randomHex(16);
   const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
   const challenge = b64url(await crypto.subtle.digest("SHA-256", enc.encode(verifier)));
@@ -257,7 +269,7 @@ function decodeJwtPayload(jwt) {
 
 async function googleCallback(request, env) {
   const fail = (raison) => redirect(`/?connexion=erreur&raison=${raison}`, [oauthCookie("", 0)]);
-  if (!googleEnabled(env)) return fail("google_indisponible");
+  if (!(await googleEnabled(env))) return fail("google_indisponible");
   const url = new URL(request.url);
   if (url.searchParams.get("error")) return fail("google_annule");
   const [state, verifier] = getCookie(request, OAUTH_COOKIE).split(".");
@@ -269,7 +281,7 @@ async function googleCallback(request, env) {
     const r = await fetch(GOOGLE_TOKEN, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ code, client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, redirect_uri: callbackUrl(request), grant_type: "authorization_code", code_verifier: verifier }),
+      body: new URLSearchParams({ code, client_id: env.GOOGLE_CLIENT_ID, client_secret: await googleSecret(env), redirect_uri: callbackUrl(request), grant_type: "authorization_code", code_verifier: verifier }),
     });
     tok = await r.json();
     if (!r.ok) { console.error("Échange Google refusé :", r.status, JSON.stringify(tok).slice(0, 300)); return fail("google_refus"); }
