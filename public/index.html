@@ -100,7 +100,7 @@ svg.ic{width:22px;height:22px;flex:none}
   .tool{justify-content:flex-start;border:0;background:none;color:var(--muted);padding:0 12px;border-radius:var(--r-s);font-weight:400}
   .tool:hover{background:var(--chip);color:var(--ink)}
   .status{padding:6px 12px 10px}
-  .main{max-width:1200px;padding:44px 48px 72px}
+  .main{width:100%;max-width:1200px;padding:44px 48px 72px}
   .seg{max-width:560px}
   #area-train > section,#area-train > .intro{max-width:880px}
   .welcome{padding:32px 36px}
@@ -347,6 +347,36 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fil-sect ul{margin:0;padding-left:20px}
 .fil-sect li{margin:4px 0}
 
+/* ---------- Concours ---------- */
+.conc-card{position:relative}
+.conc-card.is-mine{border-color:var(--accent);border-width:2px}
+.mine-badge{justify-self:start;font-size:13px;font-weight:700;color:var(--accent-ink);background:var(--accent);padding:3px 10px;border-radius:999px}
+.conc-maj{color:var(--muted);font-size:13px;margin:16px 0 0;max-width:70ch}
+.conc-note{background:var(--soft);border-radius:var(--r-m);padding:12px 16px;margin:0 0 16px;max-width:none}
+.conc-actions{margin:0 0 20px}
+.conc-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:0 0 32px}
+.conc-facts div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 16px}
+.conc-facts dt{font-family:var(--f-display);font-weight:700;font-size:15px;margin:0 0 4px}
+.conc-facts dd{margin:0;font-size:15px}
+.ep-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ep{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px;display:grid;gap:4px;justify-items:start}
+.ep b{font-size:17px;line-height:1.3}
+.ep-m{font-size:14px;font-weight:700;color:var(--accent-text)}
+.ep p{margin:2px 0 6px;color:var(--muted);max-width:70ch}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.prog{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
+.prog h4{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.3;margin:0 0 8px}
+.prog ol{margin:0;padding-left:22px}
+.prog li{margin:3px 0}
+.apsa{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:12px 16px}
+.apsa summary{font-weight:700;cursor:pointer}
+.apsa p{margin:10px 0 0;color:var(--muted)}
+.conc-src{margin:0;padding-left:20px}
+.conc-src li{margin:4px 0}
+.conc-src a{color:var(--accent-text)}
+.hero-c{margin:0 0 10px;font-weight:700;font-size:15px;color:var(--hero-sub)}
+@media (min-width:1100px){ .ep-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
 /* ---------- Progrès ---------- */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
 .kpi{border:1px solid var(--line);border-radius:var(--r-l);padding:14px 16px;background:var(--surface)}
@@ -438,6 +468,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
   .q{font-size:22px} .a{font-size:20px}
   html.big .q{font-size:24px} html.big .a{font-size:21px}
   .grades .k{display:none}
+  .seg button{font-size:14px;padding:6px 4px;white-space:nowrap}
   .band{align-items:flex-start}
   .period{white-space:normal;border-radius:12px}
   .hero{padding:20px 18px 18px}
@@ -483,11 +514,13 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
       <h1 class="page-h">Apprendre</h1>
       <div class="seg" role="tablist" aria-label="Apprendre">
         <button role="tab" id="tab-fils" data-tab="fils" aria-controls="panel-fils" aria-selected="true">Fils rouges</button>
-        <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Toutes les fiches</button>
+        <button role="tab" id="tab-concours" data-tab="concours" aria-controls="panel-concours" aria-selected="false" tabindex="-1">Concours</button>
+        <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Fiches</button>
         <button role="tab" id="tab-add" data-tab="add" aria-controls="panel-add" aria-selected="false" tabindex="-1">Ajouter</button>
       </div>
       <div class="fbar" id="filters-deck" hidden></div>
       <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils"></section>
+      <section id="panel-concours" role="tabpanel" aria-labelledby="tab-concours" hidden></section>
       <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
       <section id="panel-add" role="tabpanel" aria-labelledby="tab-add" hidden>
       <form id="add-form" novalidate>
@@ -723,10 +756,10 @@ let progress = {}, custom = [], gone = [];
 let games = { frise: { g: 0, t: 0 }, qui: { g: 0, t: 0 } };
 /* Journal des révisions par jour ({ "2026-10-10": { a: réponses, n: nouvelles cartes } })
    et préférences (date du concours). Synchronisés comme la progression. */
-let log = {}, prefs = { examDate: "", t: 0 };
+let log = {}, prefs = { examDate: "", concours: "", t: 0 };
 const pad2 = n => String(n).padStart(2, "0");
 function dayKey(d){ d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
-function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", t: x.t || 0 }; }
+function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", t: x.t || 0 }; }
 function mergeLog(a, b){
   const out = {};
   for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
@@ -1028,18 +1061,18 @@ function subjectOfDay(){
 }
 const plural = (n, w) => n + " " + w + (n > 1 ? "s" : "");
 function heroHTML(){
-  const g = goalInfo(), st = streaks(), pct = readiness(allCards()), rk = rankOf(pct);
+  const g = goalInfo(), st = streaks(), pct = readiness(allCards()), rk = rankOf(pct), myC = concById(prefs.concours);
   const stats = `<div class="hero-stats">
       <div class="hstat"><b>${icon("flame")}${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée</span></div>
       <div class="hstat"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
     </div>`;
   if (!g || goalEdit) {
     return `<section class="hero" id="goal" aria-labelledby="hero-title">
-      <div class="hero-top"><div><h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
+      <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
         <p class="hero-note">Avec la date, le site calcule chaque jour combien de nouvelles cartes voir pour avoir tout vu deux semaines avant l'épreuve.</p></div>${stats}</div>
       <form class="goal-form" data-goalform="1" novalidate>
         <label class="sr-only" for="exam-date">Date du concours</label>
-        <input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn primary" type="submit">Enregistrer</button>${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}
+        <input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn primary" type="submit">Enregistrer</button>${myC && myC.d && prefs.examDate !== myC.d ? `<button class="btn" type="button" data-act="conc-date" data-id="${myC.id}">Écrits du ${esc(fmtDay(myC.d))}</button>` : ""}${myC ? "" : `<button class="btn" type="button" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button>`}${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}
       </form>
     </section>`;
   }
@@ -1056,7 +1089,7 @@ function heroHTML(){
       <p class="hero-note">${g.daysLeft <= 14 ? "Phase finale : après tes nouvelles cartes, revois tes points faibles." : "À ce rythme, tu auras tout vu deux semaines avant le concours."}</p></div>`;
   }
   return `<section class="hero" id="goal" aria-label="Objectif concours">
-    <div class="hero-top"><div><p class="hero-j">${big}</p><p class="hero-date"><span>Concours le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button></p></div>${stats}</div>
+    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
     ${lane}
   </section>`;
 }
@@ -1770,6 +1803,183 @@ const FILS = [
    d:["Éducation physique féminine spécifique (grâce, santé, maternité) ou mêmes pratiques que les garçons : le débat traverse tout le XXe siècle.","Barèmes différenciés : compenser des écarts moyens ou entretenir des stéréotypes ?"],
    p:"Trois temps : une pratique féminine tenue à l'écart (jusqu'aux années 1920), une conquête par l'organisation autonome (1917-1930), puis l'égalité comme objectif scolaire (depuis 1975).",s:["s16","s01"]}
 ];
+/* ---------- Les concours (session 2027) ----------
+   Informations relevées le 10 octobre 2026 dans les programmes officiels de la session 2027
+   (devenirenseignant.gouv.fr), la note de service du BO n° 36 du 24 septembre 2026,
+   les arrêtés d'ouverture du 22 septembre 2026 et les rapports de jury 2026. */
+const CONC_MAJ = "10 octobre 2026";
+const BO_2027 = ["Note de service sur les concours 2027 (BO n° 36 du 24 septembre 2026)", "https://www.education.gouv.fr/bo/2026/Hebdo36/MENH2622420N"];
+const AX_CAPEPS = ["Transmettre et adapter", "Le geste et l'effort", "Débats et controverses"];
+const CONCOURS = [
+  { id: "capeps-l3", t: "CAPEPS externe", tag: "Bac+3, nouveau concours",
+    note: "Deuxième session du concours à bac+3 créé par la réforme de 2025 (décret n° 2025-352 du 17 avril 2025).",
+    qui: "Une licence, ou une inscription en 3e année de licence. Après l'admission : deux années de formation rémunérée en INSPÉ, d'abord comme élève fonctionnaire puis comme fonctionnaire stagiaire, qui mènent au master.",
+    prive: "CAFEP-CAPEPS pour l'enseignement privé sous contrat : mêmes épreuves, même jury.",
+    ecrits: "2 et 3 mars 2027", d: "2027-03-02",
+    postes: "2026 : 478 admis au CAPEPS et 44 au CAFEP, tous les postes pourvus. 2027 : pas encore publié.",
+    adm: [
+      { t: "Première épreuve d'admissibilité", m: "Écrit, 4 h, coefficient 2", hist: true,
+        d: "Répondre de manière argumentée à une ou plusieurs questions sur les enjeux éducatifs portés par l'EPS et les APSA, en mobilisant des connaissances historiques, sociales et culturelles. Une note inférieure ou égale à 5 est éliminatoire." },
+      { t: "Deuxième épreuve d'admissibilité", m: "Écrit, 3 h, coefficient 3",
+        d: "Analyser un ensemble de documents sur l'activité d'élèves en EPS, puis exposer et justifier des propositions pour leur développement et leurs apprentissages, en s'appuyant sur les sciences de la vie et les sciences humaines et sociales. Une note inférieure ou égale à 5 est éliminatoire." }],
+    admi: [
+      { t: "Première épreuve d'admission", m: "Prestation physique, puis oral : 2 h de préparation, 1 h dont 15 min d'exposé. Coefficient 5",
+        d: "Une prestation physique notée sur 8, dans une APSA tirée au sort parmi trois choisies à l'inscription. Puis un oral noté sur 12 : analyser une vidéo d'élèves et proposer une situation d'apprentissage justifiée. Une note globale inférieure ou égale à 5 est éliminatoire." },
+      { t: "Épreuve d'entretien", m: "35 min, coefficient 3",
+        d: "Quinze minutes d'échange, ouvertes par cinq minutes de présentation de ta motivation et de ton parcours, puis vingt minutes de mises en situation professionnelles. La note 0 est éliminatoire." }],
+    prog: [
+      { t: "Écrit 1 : « L'évolution de l'Éducation physique et sportive depuis la fin du XIXe siècle »", i: AX_CAPEPS },
+      { t: "Écrit 2 : « Éducation et motricité »", i: ["Activité et expérience des élèves dans les pratiques physiques, sportives et artistiques", "Apprentissage moteur et techniques corporelles", "Effort et bien-être", "Développement des adolescents"] }],
+    apsa: [],
+    chiffres: "Session 2026 : 5 863 inscrits, 772 admissibles, 478 admis, dernier admis à 11,79 de moyenne. Sujet de l'écrit 1 : « L'effort et la formation des élèves en EPS depuis la fin du XIXe siècle ».",
+    rev: { label: "Réviser l'écrit 1 avec les fiches" },
+    src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20620/download"],
+      ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-3-rapport-du-jury-de-la-session-2026-20852.pdf"], BO_2027] },
+
+  { id: "capeps-m2", t: "CAPEPS externe transitoire", tag: "Bac+5, dernière session en 2027",
+    note: "L'ancien format est maintenu à titre transitoire jusqu'à la session 2027 incluse. Tu peux t'inscrire aux deux CAPEPS externes, mais leurs écrits ont lieu aux mêmes dates : en te présentant à l'un, tu renonces à l'autre.",
+    qui: "Un master, ou une inscription en dernière année de master. Attestations de sauvetage aquatique et de secourisme exigées. Après l'admission : une année de stage.",
+    prive: "CAFEP-CAPEPS pour l'enseignement privé sous contrat : mêmes épreuves, même jury.",
+    ecrits: "2 et 3 mars 2027", d: "2027-03-02",
+    postes: "2026 : 645 admis au CAPEPS et 59 au CAFEP, tous les postes pourvus. 2027 : pas encore publié.",
+    adm: [
+      { t: "Épreuve écrite disciplinaire (dissertation)", m: "Écrit, 5 h, coefficient 2", hist: true,
+        d: "Maîtrise de l'EPS dans son environnement scolaire et connaissances en sciences humaines et sociales sur ses enjeux historiques, sociaux, culturels et éducatifs. Une note inférieure ou égale à 5 est éliminatoire." },
+      { t: "Épreuve écrite disciplinaire appliquée", m: "Écrit, 5 h, coefficient 2",
+        d: "Composition à partir de documents (contexte d'établissement, épisodes de leçons) : concevoir, mettre en œuvre et réguler des situations d'enseignement. Une note globale inférieure ou égale à 5 est éliminatoire." }],
+    admi: [
+      { t: "Leçon", m: "3 h de préparation, puis 1 h au plus : 15 min d'exposé, 45 min d'entretien. Coefficient 2",
+        d: "Concevoir la leçon qui suit une leçon filmée, à partir d'un dossier et d'une vidéo. La note 0 est éliminatoire." },
+      { t: "Épreuve de connaissances pratiques et théoriques des APSA", m: "Épreuves physiques et entretien de spécialité (1 h de préparation, 1 h au plus). Coefficient 3",
+        d: "Épreuves physiques en spécialité et en polyvalence (coefficient 2), puis entretien sur l'activité de spécialité (coefficient 1). Une note globale inférieure ou égale à 5 est éliminatoire." },
+      { t: "Épreuve d'entretien", m: "35 min, coefficient 3",
+        d: "Présentation et échange, puis mises en situation liées à l'enseignement et à la vie scolaire. La note 0 est éliminatoire." }],
+    prog: [
+      { t: "Écrit 1 : « L'évolution de l'Éducation physique et sportive depuis la fin du XIXe siècle »", i: AX_CAPEPS },
+      { t: "Écrit 2", i: ["Technique, technologie et apprentissage moteur", "Effort, bien-être et sensations", "Corps, adolescence et enjeux du monde contemporain"] }],
+    apsa: ["Leçon : relais-vitesse ou natation (CA1), escalade ou savoir-nager (CA2), arts du cirque ou acrosport (CA3), tennis de table, basket-ball ou lutte (CA4), step ou musculation (CA5)."],
+    chiffres: "Session 2026 : 3 663 inscrits, 1 160 admissibles, 645 admis, dernier admis à 11 de moyenne. Sujet de l'écrit 1 : « Depuis la fin du XIXe siècle, la performance a-t-elle été, en EPS, davantage un moyen qu'une finalité ? »",
+    rev: { label: "Réviser l'écrit 1 avec les fiches" },
+    src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20617/download"],
+      ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-5-rapport-du-jury-de-la-session-2026-20853.pdf"], BO_2027] },
+
+  { id: "capeps-int", t: "CAPEPS interne", tag: "Pour les agents publics en poste",
+    note: "Pas de dossier RAEP au CAPEPS interne, contrairement au CAPES interne : l'admissibilité se joue sur un écrit.",
+    qui: "Agents publics en activité justifiant de trois années de services publics et d'une licence. Vérifie ta situation dans la note de service : les conditions sont appréciées à la publication des résultats d'admissibilité.",
+    prive: "CAER-CAPEPS pour les maîtres du privé sous contrat : mêmes épreuves, classement séparé.",
+    ecrits: "29 janvier 2027", d: "2027-01-29",
+    postes: "2026 : 85 postes au CAPEPS interne et 120 au CAER. 2027 : pas encore publié.",
+    adm: [
+      { t: "Épreuve écrite d'admissibilité", m: "Écrit, 4 h, coefficient 1",
+        d: "Une composition sur un cas concret : à partir de documents sur l'EPS dans un établissement, tu dégages les enjeux et proposes des actions pour ta classe et ton établissement." }],
+    admi: [
+      { t: "Épreuve orale d'admission", m: "2 h de préparation, puis 1 h 15 au plus : 20 min d'exposé, 55 min d'entretien. Coefficient 2",
+        d: "Une épreuve professionnelle sur dossier : tu choisis entre deux dossiers (vidéo d'extraits de leçon, fiche sur l'établissement, la classe et la séquence), puis tu analyses et conçois une situation d'enseignement. CV et rapport d'activité à déposer sur Cyclades au moins quinze jours avant l'oral." }],
+    prog: [
+      { t: "Programme de l'écrit", i: ["Les programmes EPS au collège et aux lycées dans les voies générale, technologique et professionnelle", "Le projet pédagogique EPS", "L'association sportive dans le second degré", "L'évaluation en EPS dans le second degré"] }],
+    apsa: ["Oral : relais-vitesse, natation de vitesse, haies (CA1) ; escalade, savoir-nager, sauvetage aquatique (CA2) ; arts du cirque, acrosport (CA3) ; basket-ball, badminton (CA4) ; musculation, step (CA5)."],
+    chiffres: "Session 2026 : 2 492 inscrits. Barre d'admissibilité : 14,75 dans le public, 13 dans le privé.",
+    src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20623/download"],
+      ["Rapport du jury 2026", "https://www.devenirenseignant.gouv.fr/media/20715/download"], BO_2027] },
+
+  { id: "capeps-3", t: "Troisième concours du CAPEPS", tag: "Pour une reconversion depuis le privé",
+    note: "Fermé en 2026, rouvert en 2027. Ses épreuves relèvent désormais de l'arrêté du 17 avril 2025 modifié, comme celles du CAPEPS externe à bac+3 : leur détail est sur la page officielle.",
+    qui: "Au moins cinq ans d'activité professionnelle sous contrat de droit privé, sans condition de diplôme. C'est la règle générale des troisièmes concours : vérifie-la dans la note de service.",
+    ecrits: "2 et 3 mars 2027", d: "2027-03-02",
+    postes: "2025 : 5 admis. 2026 : pas de concours. 2027 : pas encore publié.",
+    adm: [], admi: [], prog: [], apsa: [],
+    src: [["Les épreuves du troisième concours du CAPEPS", "https://www.devenirenseignant.gouv.fr/les-epreuves-du-troisieme-concours-du-capeps-1695"], BO_2027] },
+
+  { id: "agreg-ext", t: "Agrégation externe d'EPS", tag: "Bac+5",
+    note: "Nouveauté 2027 : trois oraux de coefficient 4, au lieu de quatre épreuves d'admission en 2026.",
+    qui: "Un master ou un titre équivalent. Des dispenses de diplôme existent pour les parents de trois enfants et les sportifs de haut niveau. Pas de condition d'ancienneté.",
+    ecrits: "Entre le 17 février et le 5 mars 2027 (dates de l'EPS pas encore publiées)", d: "2027-02-17",
+    postes: "2026 : 40 postes. 2027 : pas encore publié.",
+    adm: [
+      { t: "« Activités physiques sportives et artistiques et civilisations »", m: "Écrit, coefficient 3 (6 h lors des sessions précédentes)", hist: true,
+        d: "Dissertation ou commentaire d'un écrit sur le programme historique et socio-culturel." },
+      { t: "« Éducation physique et sportive et développement de la personne »", m: "Écrit, coefficient 4 (7 h lors des sessions précédentes)",
+        d: "Dissertation sur les aspects biologiques, psychologiques et sociologiques des conduites, en lien avec l'enseignement de l'EPS." }],
+    admi: [
+      { t: "Présentation d'actions pédagogiques et éducatives pour l'EPS, l'AS, les enseignements complémentaires et les dispositifs sportifs", m: "Oral, coefficient 4",
+        d: "Des propositions pour l'EPS dans un établissement du second degré, à partir d'un dossier." },
+      { t: "Présentation d'une leçon d'EPS pour une classe au sein d'un EPLE du second degré", m: "Oral, coefficient 4",
+        d: "Une leçon sur dossier : dossier de classe et vidéo d'élèves." },
+      { t: "Pratique, observation et analyse d'une activité physique et sportive", m: "Oral, coefficient 4",
+        d: "Pratique dans une APSA tirée au sort parmi deux choisies à l'inscription, observation d'un pratiquant filmé, puis analyse et échange avec le jury (10 points + 10 points)." }],
+    prog: [
+      { t: "Écrit 1 : « Éducation physique et sportive, école et société de 1918 à nos jours »", i: ["Enjeux, débats et controverses", "Apprentissages moteurs et techniques corporelles", "Valeurs, transmission, incorporation", "Les jeunes et les pratiques physiques de loisirs"] },
+      { t: "Écrit 2 : « Éducation physique et sportive et développement de la personne »", lead: "Idée directrice : « Éduquer et instruire en contexte scolaire pour préparer les élèves aux défis contemporains. »", i: ["Émotions et interactions sociales", "Apprentissages moteurs et techniques corporelles", "Engagement dans un mode de vie actif, solidaire et durable", "EPS et continuité"] }],
+    apsa: ["Leçon : relais-vitesse, natation de vitesse, savoir-nager, course d'orientation, arts du cirque, tennis de table, savate boxe française, rugby, musculation, step.",
+      "Pratique, deux activités au choix dans deux champs différents : athlétisme (CA1), escalade (CA2), danse ou gymnastique-parkour (CA3), basket-ball ou badminton (CA4)."],
+    chiffres: "Session 2026 : 1 086 inscrits, 89 admissibles, 40 admis.",
+    rev: { label: "Réviser 1918 à nos jours", periods: ["1918-1945", "1945-1967", "1967-1981", "1981-2000", "Depuis 2000"] },
+    src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20528/download"],
+      ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"], BO_2027] },
+
+  { id: "agreg-int", t: "Agrégation interne d'EPS", tag: "Pour les enseignants titulaires",
+    note: "Le programme 2027 est publié sur le site du ministère mais n'a pas pu être relu ici : le programme affiché est celui de 2026. Vérifie-le sur le document officiel avant de t'y fier.",
+    qui: "Fonctionnaires justifiant de cinq années de services publics, appréciées à la date des résultats d'admissibilité. Les candidats en disponibilité ne peuvent pas concourir.",
+    prive: "CAER-PA pour les maîtres contractuels du privé : mêmes épreuves, même jury.",
+    ecrits: "Entre le 25 et le 29 janvier 2027 (dates de l'EPS pas encore publiées)", d: "2027-01-25",
+    postes: "2026 : 136 postes, dont 125 dans le public et 11 au CAER-PA. 2027 : pas encore publié.",
+    adm: [
+      { t: "Première épreuve : dissertation ou commentaire d'un document écrit", m: "Écrit, 6 h, coefficient 2", hist: true,
+        d: "L'EPS comme discipline d'enseignement, ses références culturelles, les déterminants historiques, économiques et sociaux des activités physiques et sportives, de 1975 à nos jours." },
+      { t: "Seconde épreuve : composition", m: "Écrit, 6 h, coefficient 3",
+        d: "Les données scientifiques des activités physiques et sportives (aspects biologiques, psychologiques, sociologiques) liées à leur mise en œuvre didactique, à partir d'un dossier sur un établissement du second degré." }],
+    admi: [
+      { t: "Exposé suivi d'un entretien (leçon)", m: "5 h de préparation, 30 min d'exposé, 60 min d'entretien. Coefficient 4",
+        d: "Une leçon ou une séquence pour une classe du second degré sur une APSA de la liste, à partir d'un dossier d'établissement et d'extraits vidéo d'élèves." },
+      { t: "Prestation physique et entretien", m: "Prestation de 30 min, entretien de 45 min. Coefficient 2",
+        d: "Une prestation dans l'APSA choisie à l'inscription, puis un entretien technique et didactique." }],
+    prog: [
+      { t: "Écrit 1, programme 2026 : de 1975 à nos jours", i: ["Les élèves dans la leçon d'EPS", "Les jeunes, les pratiques physiques et les incidences en EPS", "Les savoirs enseignés et les modalités d'évaluation en EPS", "Les cultures professionnelles des enseignants d'EPS"] },
+      { t: "Écrit 2, programme 2026", i: ["Les objectifs de santé et l'acquisition de techniques corporelles en EPS", "Le parcours de formation de l'élève en EPS et son évaluation", "Le développement des qualités physiques et des compétences en EPS", "Les stratégies d'intervention de l'enseignant d'EPS au service des transformations de tous les élèves"] }],
+    apsa: ["Leçon, liste 2026 : relais-vitesse, haies, multi-bonds, natation de vitesse (CA1) ; escalade, savoir-nager ou sauvetage aquatique (CA2) ; arts du cirque, acrosport (CA3) ; badminton, basket-ball (CA4) ; musculation, step (CA5)."],
+    chiffres: "Session 2026 : 1 597 inscrits, 286 admissibles. L'écrit 1 portait sur l'évolution de la formation des enseignants d'EPS de 1975 à 2025.",
+    rev: { label: "Réviser 1967 à nos jours", periods: ["1967-1981", "1981-2000", "Depuis 2000"] },
+    src: [["Programme officiel de la session 2027 (à vérifier)", "https://www.devenirenseignant.gouv.fr/media/20237/download"],
+      ["Les épreuves de l'agrégation interne d'EPS", "https://www.devenirenseignant.gouv.fr/les-epreuves-de-l-agregation-interne-et-du-caerpa-section-education-physique-et-sportive-967"],
+      ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"]] }
+];
+const conc = { cur: null };
+const concById = id => CONCOURS.find(c => c.id === id) || null;
+function fmtDay(iso){ return new Date(iso + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); }
+function concEpHTML(e, c){
+  return `<li class="ep"><b>${esc(e.t)}</b><span class="ep-m">${esc(e.m)}</span><p>${esc(e.d)}</p>${e.hist && c.rev ? `<button class="btn small" data-act="conc-rev" data-id="${c.id}">${esc(c.rev.label)}</button>` : ""}</li>`;
+}
+function renderConcours(){
+  const el = $("#panel-concours"); if (!el) return;
+  const mine = prefs.concours;
+  if (!conc.cur) {
+    el.innerHTML = `<p class="lead">Les concours de recrutement des professeurs d'EPS, session 2027 : qui peut s'inscrire, les épreuves d'admissibilité et d'admission, et les programmes. Inscriptions sur Cyclades du 1er octobre 2026 (12 h) au 25 novembre 2026 (12 h).</p>
+      <div class="fil-list">${CONCOURS.map(c => `<button class="fil-card conc-card${c.id === mine ? " is-mine" : ""}" data-conc="${c.id}">
+        <span class="num">${esc(c.tag)}</span><h3>${esc(c.t)}</h3><p>Écrits : ${esc(c.ecrits)}</p>${c.id === mine ? `<span class="mine-badge">Mon concours</span>` : ""}</button>`).join("")}</div>
+      <p class="conc-maj">Informations relevées le ${CONC_MAJ} dans les textes officiels. Les postes 2027 et les dates d'oral ne sont pas encore publiés.</p>`;
+    return;
+  }
+  const c = conc.cur, isMine = c.id === mine;
+  const sect = (title, list) => list.length ? `<div class="sect"><h3>${title}</h3><ul class="ep-list">${list.map(e => concEpHTML(e, c)).join("")}</ul></div>` : "";
+  el.innerHTML = `<button class="back" data-act="conc-back">← Tous les concours</button>
+    <div class="fil-head"><span class="period">${esc(c.tag)}</span><h3>${esc(c.t)}</h3></div>
+    <p class="conc-note">${esc(c.note)}</p>
+    <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Mon concours (retirer)" : "C'est mon concours"}</button>${c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Compte à rebours jusqu'aux écrits</button>` : ""}</div>
+    <dl class="conc-facts">
+      <div><dt>Pour qui</dt><dd>${esc(c.qui)}${c.prive ? `<br><span class="opt">${esc(c.prive)}</span>` : ""}</dd></div>
+      <div><dt>Écrits 2027</dt><dd>${esc(c.ecrits)}</dd></div>
+      <div><dt>Inscriptions</dt><dd>Du 1er octobre 2026 (12 h) au 25 novembre 2026 (12 h), sur Cyclades.</dd></div>
+      <div><dt>Postes</dt><dd>${esc(c.postes)}</dd></div>
+    </dl>
+    ${sect("Épreuves d'admissibilité", c.adm)}
+    ${sect("Épreuves d'admission", c.admi)}
+    ${c.prog.length ? `<div class="sect"><h3>Programme</h3><div class="prog-grid">${c.prog.map(p => `<div class="prog"><h4>${esc(p.t)}</h4>${p.lead ? `<p class="opt">${esc(p.lead)}</p>` : ""}<ol>${p.i.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("")}</div>
+      ${c.apsa.length ? `<details class="apsa"><summary>Listes d'APSA</summary>${c.apsa.map(a => `<p>${esc(a)}</p>`).join("")}</details>` : ""}</div>` : ""}
+    ${c.chiffres ? `<div class="sect"><h3>La session 2026 en chiffres</h3><p class="lead">${esc(c.chiffres)}</p></div>` : ""}
+    <div class="sect"><h3>Sources</h3><ul class="conc-src">${c.src.map(([l, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a></li>`).join("")}</ul>
+      <p class="conc-maj">Relevé le ${CONC_MAJ}. Les textes officiels font foi : vérifie-les avant ton inscription.</p></div>`;
+}
+
 const fil = { cur: null };
 function renderFils(){
   const el = $("#panel-fils");
@@ -1865,9 +2075,9 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","frise","qui","sujets","stats","deck","add"];
+const VIEWS = ["home","revise","fils","concours","frise","qui","sujets","stats","deck","add"];
 const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
 const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
@@ -1893,6 +2103,7 @@ function render(focusActions){
   if (view === "home") renderHome();
   if (view === "revise") { renderRevise(); renderReviseSide(); }
   if (view === "fils") renderFils();
+  if (view === "concours") renderConcours();
   if (view === "frise") renderFrise();
   if (view === "qui") renderQui();
   if (view === "sujets") renderSujets();
@@ -1909,10 +2120,16 @@ document.addEventListener("click", e => {
   const d = t.dataset;
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
-  if (d.act === "goal-clear") { prefs = { examDate: "", t: Date.now() }; goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
+  if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
   if (d.act === "home-start") { done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.conc) { conc.cur = concById(d.conc); render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-concours .back"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "conc-back") { const id = conc.cur && conc.cur.id; conc.cur = null; render(); const b = id && document.querySelector(`[data-conc="${id}"]`); if (b) b.focus(); return; }
+  if (d.act === "conc-open") { conc.cur = concById(d.id); setView("concours"); return; }
+  if (d.act === "conc-mine") { const on = prefs.concours !== d.id; prefs = Object.assign({}, prefs, { concours: on ? d.id : "", t: Date.now() }); persist(); render(); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on ? "Concours enregistré : il s'affiche sur l'accueil." : "Concours retiré."); return; }
+  if (d.act === "conc-date") { const c = concById(d.id); if (c && c.d) { prefs = Object.assign({}, prefs, { examDate: c.d, concours: c.id, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); const g = goalInfo(); toast(g && g.newPerDay ? `Compte à rebours réglé sur les écrits : ${g.newPerDay} nouvelles cartes par jour.` : "Compte à rebours réglé sur les écrits."); } return; }
+  if (d.act === "conc-rev") { const c = concById(d.id); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
   if (d.act === "account-open") { openAccount(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -1922,7 +2139,7 @@ document.addEventListener("click", e => {
   if (d.act === "help-open") { showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
-  if (d.sec) { setView(lastSub[d.sec]); return; }
+  if (d.sec) { if (d.gotab) conc.cur = null; setView(d.gotab || lastSub[d.sec]); return; }
   if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
   if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
   if (d.act === "fil-revise" && fil.cur) { startCram(fil.cur.e.map(x => x[2])); return; }
@@ -2231,7 +2448,7 @@ function renderWelcome(){
     <ul class="w-spaces">
       <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : la séance de cartes, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
       <li class="w-space"><b>Réviser</b><span>Les fiches du jour. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
-      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, toutes les fiches, et tes propres cartes.</span></li>
+      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
       <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation, introduction chronométrée et paragraphe argumenté.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
     </ul>
@@ -2278,7 +2495,7 @@ document.addEventListener("submit", e => {
     e.preventDefault();
     const v = ($("#exam-date") || {}).value || "";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { toast("Choisis une date valide."); return; }
-    prefs = { examDate: v, t: Date.now() }; goalEdit = false; persist(); done = 0; buildQueue(); render();
+    prefs = Object.assign({}, prefs, { examDate: v, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render();
     const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
     return;
   }
