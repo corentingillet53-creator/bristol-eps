@@ -382,6 +382,21 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .qod-a{margin:0;font-size:13px;color:var(--muted)}
 @media (min-width:1100px){ .ref-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
+/* ---------- Annales ---------- */
+.ann-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ann{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
+.ann-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 10px}
+.ann-y{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.ann-e{font-size:13px;font-weight:700;color:var(--muted)}
+.ann-t{margin:0 0 8px;font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.45;max-width:78ch;white-space:pre-line}
+.ann-more summary,.ann-jury summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent-text);margin:4px 0}
+.ann-jury ul{margin:8px 0 4px;padding-left:20px;color:var(--muted);max-width:78ch}
+.ann-jury li{margin:4px 0}
+.ann-f{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:10px;font-size:14px}
+.ann-f a{color:var(--accent-text)}
+.ann-f .btn{margin-left:auto}
+@media (max-width:520px){ .ann-f .btn{margin-left:0;width:100%} }
+
 /* ---------- Concours ---------- */
 .conc-card{position:relative}
 .conc-card.is-mine{border-color:var(--accent);border-width:2px}
@@ -598,11 +613,13 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
         <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="true">Frise</button>
         <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
         <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
+        <button role="tab" id="tab-annales" data-tab="annales" aria-controls="panel-annales" aria-selected="false" tabindex="-1">Annales</button>
       </div>
       <p class="intro" id="intro-train"></p>
       <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
       <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
       <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
+      <section id="panel-annales" role="tabpanel" aria-labelledby="tab-annales" hidden></section>
     </div>
 
     <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
@@ -1908,7 +1925,7 @@ async function askFeedback(kind){
   const facts = cards.map(c => `- [${c.p}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`).join("\n");
   const head = `Tu es correcteur de l'épreuve écrite 1 du CAPEPS et de l'agrégation interne d'EPS (dissertation sur l'histoire de l'EPS). Un candidat s'entraîne sur ce sujet :
 « ${s.t} »
-Axe du programme : ${THEMES[s.th]}.
+${s.annale ? "Il s'agit d'un sujet officiel de concours (" + s.label.replace("Annale : ", "") + ")." : "Axe du programme : " + THEMES[s.th] + "."}
 `;
   const prompt = kind === "para" ? head + `
 Voici un paragraphe argumenté qu'il a rédigé pour ce sujet :
@@ -1964,7 +1981,7 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
     if (el && sj.cur && fbKey(sj.cur, sj.mode) === key) el.innerHTML = fbInner(s, kind);
   } };
   /* Sur ton site, le serveur construit lui-même le prompt à partir de ces données. */
-  if (STANDALONE) opts.payload = { kind, subject: s.t, axe: THEMES[s.th], notes: notes.slice(0, 6000), facts: cards.map(c => `[${c.p}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`) };
+  if (STANDALONE) opts.payload = { kind, subject: s.t, axe: s.axe || THEMES[s.th], notes: notes.slice(0, 6000), facts: cards.map(c => `[${c.p}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`) };
   try {
     const res = await sampleFn(prompt, opts);
     if (fb.ctl !== ctl) return;
@@ -2044,7 +2061,7 @@ function renderSujets(){
         <textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="Problématique…&#10;I. …&#10;II. …">${esc(noteGet(s.id))}</textarea>
         ${fbBlock(s, "plan")}`;
     }
-    body = `<article class="bristol qui"><div class="band"><span class="period">Sujet d'entraînement · ${esc(THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p></article>
+    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p></article>
       ${work}
       ${sj.shown
         ? `<div class="sect" style="margin-top:20px"><h3>${cards.length} cartes utiles, dans l'ordre chronologique</h3><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(c.p)}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
@@ -2052,7 +2069,7 @@ function renderSujets(){
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">Afficher les cartes utiles</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
   $("#panel-sujets").innerHTML = `<div class="chips era-chips" aria-label="Axe des sujets">${chips}</div>${modes}${body}
-    <p class="sj-help">Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels. Les cartes proposées sont des points d'appui, pas un plan.</p>`;
+    <p class="sj-help">${sj.cur && sj.cur.annale ? "Sujet officiel de concours. Le retour de Claude est un premier regard, pas le corrigé du jury : relis aussi le rapport du jury dans l'onglet Annales." : "Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels."} Les cartes proposées sont des points d'appui, pas un plan.</p>`;
 }
 
 /* ---------- Fils rouges ---------- */
@@ -2641,6 +2658,1609 @@ function renderRefs(){
     : `<div class="empty"><h2>Aucune référence trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>`;
 }
 
+
+/* ---------- Annales des concours (sujets officiels 2015-2026) ----------
+   Libellés relevés sur les sujets officiels ou dans les rapports de jury (copies du ministère et du SNEP-FSU) ;
+   « Ce que le jury a relevé » paraphrase les rapports de jury. */
+const ANNALES = [
+{
+"id": "an01",
+"f": "cext",
+"co": "CAPEPS externe bac+3",
+"y": 2026,
+"e": "e1",
+"t": "L’effort et la formation des élèves en EPS depuis la fin du XIXe siècle. Question 1 : Comment la notion d’effort a-t-elle été appréhendée dans l’enseignement de l’EPS au cours de son histoire ? Question 2 : En quoi cette évolution reflète-t-elle des conceptions différentes de la formation des élèves en EPS ?",
+"src": [
+"Sujet officiel épreuve d'admissibilité 1 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/capeps-externe-bac-3-sujet-de-la-premi-re-preuve-crite-de-la-session-2026-19289.pdf"
+],
+"j": [
+"Définir l'effort et montrer comment il évolue selon les périodes (dimensions physiologique, psychosociale, affective, cognitive), en le reliant aux finalités de la discipline",
+"Identifier les conceptions de l'élève à former et les tensions entre acteurs et courants (hygiénisme, sport, approches didactiques), en tenant compte de la diversité des élèves (genre, origine sociale, handicap)",
+"Ne pas faire une lecture linéaire : croiser diachronie et synchronie, utiliser le contexte pour analyser et pas comme décor, traiter le temps présent avec des sources récentes",
+"Une copie sans problématique ou inachevée ne peut pas dépasser 5/20"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-3-rapport-du-jury-de-la-session-2026-20852.pdf"
+},
+{
+"id": "an02",
+"f": "cext",
+"co": "CAPEPS externe bac+3",
+"y": 2026,
+"e": "e2",
+"t": "Thématique du sujet : les émotions des élèves en EPS. Après une introduction (30 lignes au maximum, soit environ 300 mots) dans laquelle vous caractériserez la notion d’« émotion », vous développerez deux parties portant chacune sur un épisode de votre choix (épisode différent d’une partie à l’autre). Dans chacune de ces parties, en accordant une importance particulière aux connaissances relatives aux émotions : - vous analyserez des comportements d’élèves que vous jugez significatifs ; - sur la base de cette analyse, vous proposerez des principes d’intervention favorables aux transformations que vous envisagez. Ces principes seront justifiés et illustrés dans l’APSA support de l’épisode. [4 épisodes : arts du cirque 5e, handball 4e, sauvetage aquatique 3e, tennis de table 3e]",
+"src": [
+"Sujet officiel épreuve d'admissibilité 2 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/capeps-externe-bac-3-sujet-de-la-seconde-preuve-crite-de-la-session-2026-19292.pdf"
+],
+"j": [
+"Caractériser précisément l'émotion dès l'introduction (état affectif lié à un élément déclencheur) et relier ses enjeux aux apprentissages en EPS",
+"Analyser des comportements significatifs en croisant plusieurs indices et le contexte (APSA, dispositif, objectifs) : la qualité compte plus que la quantité",
+"Mobiliser des connaissances scientifiques ciblées sur les émotions pour expliquer causes et conséquences. Une faiblesse dans l'interprétation ou dans les connaissances ne se compense pas par l'autre",
+"Les propositions doivent découler de l'analyse, être explicitement reliées aux émotions, concrétisées dans l'APSA et justifiées par un principe d'intervention"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-3-rapport-du-jury-de-la-session-2026-20852.pdf"
+},
+{
+"id": "an03",
+"f": "cext",
+"co": "CAPEPS externe bac+5",
+"y": 2026,
+"e": "e1",
+"t": "Depuis la fin du XIXe siècle, la performance a-t-elle été, en EPS, davantage un moyen qu’une finalité ?",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/capeps-externe-bac-5-sujet-de-la-premi-re-preuve-crite-de-la-session-2026-19283.pdf"
+],
+"j": [
+"Construire une problématique personnelle et nuancée qui discute le rapport moyen/finalité et la portée de « davantage », sans plaquer de blocs préconstruits ni faire une fresque historique",
+"Couvrir toute la période jusqu'à aujourd'hui avec des périodisations justifiées par la place de la performance. Les angles morts sont pénalisés (Front populaire, Vichy, IVe République, premier quart du XXIe siècle)",
+"Introduction concise, conclusion qui répond à la problématique, pas d'ouverture hors sujet ni de paratexte inutile",
+"Contextualiser précisément (histoire de l'École, du système éducatif, des politiques sportives) avec des références à jour"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-5-rapport-du-jury-de-la-session-2026-20853.pdf"
+},
+{
+"id": "an04",
+"f": "cext",
+"co": "CAPEPS externe bac+5",
+"y": 2026,
+"e": "e2",
+"t": "En quoi et comment l’enseignant d’EPS peut-il favoriser les efforts des élèves en prenant en compte leurs sensations ? Vous illustrerez vos propositions dans l’établissement décrit en annexe et en prenant appui sur au moins deux des épisodes présentés. Vous étayerez vos propos en vous référant à des connaissances scientifiques, professionnelles, institutionnelles et technologiques. [Annexe 1 : LGT de 810 élèves ; Annexe 2 : épisodes lutte 2nde, escalade 2nde, natation de vitesse 1re, step Terminale]",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire appliquée (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/capeps-externe-bac-5-sujet-de-la-seconde-preuve-crite-de-la-session-2026-19286.pdf"
+],
+"j": [
+"Définir précisément les sensations (un organe récepteur, une information) et l'effort (mobiliser ses ressources pour surmonter une difficulté), puis les préciser dans les APSA des épisodes",
+"Démontrer la causalité : le « en quoi » par des preuves scientifiques, le « comment » par des mises en œuvre, sans se contenter de décrire des dispositifs",
+"Analyser vraiment les comportements d'élèves dans au moins deux épisodes. Le step et la lutte ont été peu traités",
+"Mobiliser des connaissances physiologiques précises (FCE, récupération, facteurs limitants) et nuancer, par exemple avec l'efficience ou le goût de l'effort"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-5-rapport-du-jury-de-la-session-2026-20853.pdf"
+},
+{
+"id": "an05",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2026,
+"e": "ei",
+"t": "« L’évaluation des acquisitions (…) permet à l’élève de se situer et d’apprécier ses acquis. »¹ [¹ Programme de l’enseignement commun d’EPS en lycée général et technologique publié au BO spécial n°1 du 22 janvier 2019]. Pourquoi et comment l’enseignant d’EPS peut-il répondre à cette préconisation du programme pour les élèves du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe 1 et, plus largement, au sein de ce lycée.",
+"src": [
+"Sujet officiel 2026 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/capeps-interne-sujet-de-l-preuve-crite-de-la-session-2026-18671.pdf"
+],
+"j": [
+"« Se situer » rarement mis au service des apprentissages ; « apprécier » souvent réduit à « aimer » alors qu’il veut dire juger la valeur de ses acquis",
+"Croiser classe, élèves, projets et établissement ; expliciter le processus d’apprentissage (critères, régulations, guidage, interactions)",
+"Dépasser la leçon pour viser la séquence et le parcours ; grille A-D, malus jusqu’à -2 points",
+"Moyenne 10,67"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-interne-rapport-du-jury-de-la-session-2026-20715.pdf"
+},
+{
+"id": "an06",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2026,
+"e": "e1",
+"t": "Extrait : « La femme doit-elle recourir aux mêmes méthodes sportives que l'homme ou adopter d'autres moyens spécialement adaptés à ses ressources physiques ? Nous sommes de ceux qui pensent qu'il faut, en cette matière, tenir compte des différences physiologiques et psychologiques qui séparent les deux sexes. […] Son éducation physique doit se contenter d'être essentiellement « hygiénique ». » (Maurice Boigey, Manuel scientifique d'éducation physique, Paris, Masson et Cie, 1939 [1923], p. 232-235). Consigne : « Vous discuterez l'évolution de l'éducation physique des filles en EPS depuis 1918 à partir des propos défendus par cet auteur. »",
+"src": [
+"Rapport du jury 2026 (SNEP-FSU), rappel du sujet",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"
+],
+"j": [
+"Discuter la citation comme un tout et restituer la logique de Boigey, sans juxtaposer des idées traitées séparément",
+"Ancrer l'histoire de l'EP des filles dans son contexte propre (rapports hommes-femmes, féminismes, politiques d'égalité), pas dans un rappel générique de l'histoire de l'EP",
+"Interroger l'origine des différences plutôt que les tenir pour acquises ; des références exactes et allant au-delà des seuls textes officiels ; les références inventées sont sanctionnées",
+"Soigner la conclusion et l'écriture (malus jusqu'à -2 points)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"
+},
+{
+"id": "an07",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2026,
+"e": "e2",
+"t": "Citation : « La solidarité se développe dans les pratiques physiques grâce aux échanges entre les élèves qui apprennent ainsi à agir ensemble, à se connaître, à se confronter les uns aux autres, à s'aider, à se respecter quelles que soient leurs différences » (Éducation physique et sportive : classes de seconde, de première et de terminale, enseignement commun, BO spécial n°1 du 22 janvier 2019, p. 3). Consigne : « Discutez les relations entre les interactions sociales et les apprentissages moteurs des élèves en EPS »",
+"src": [
+"Rapport du jury 2026 (SNEP-FSU), rappel du sujet",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"
+],
+"j": [
+"Discuter la relation (conditionnement, facilitation, tension, réciprocité…) et non la citation, sans dériver vers le « comment » pédagogique",
+"Interactions sociales = influences réciproques, pas seulement la coopération ; apprentissage moteur = transformation durable des conduites, pas seulement la performance ou la technique",
+"Des références scientifiques peu nombreuses, récentes, maîtrisées et compatibles entre elles : c'est désormais ce qui fait le niveau d'une copie",
+"Une argumentation progressive où la citation irrigue tout le devoir ; des illustrations qui montrent l'activité réelle des élèves"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"
+},
+{
+"id": "an08",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2026,
+"e": "e1",
+"t": "« Transformer l’École et répondre aux objectifs de réussite pour tous, c’est d’abord penser autrement la manière dont on forme celles et ceux qui la feront vivre »¹ [¹ circulaire de rentrée 2025, circulaire du 3-7-2025]. Vous analyserez et discuterez cette citation au regard de l’évolution de la formation des enseignants d’EPS de 1975 à 2025.",
+"src": [
+"Sujet officiel 2026 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-premi-re-preuve-crite-de-la-session-2026-18579.pdf"
+],
+"j": [
+"Analyser les deux blocs de la citation et discuter le postulat, surtout le « d’abord » et le « penser autrement » ; problématique explicite et positionnement argumenté attendus, sans s’en tenir à la seule formation initiale",
+"Erreurs fréquentes : récit chronologique par périodes, citation utilisée comme simple fil conducteur, analyse fragile des vingt dernières années, copies qui dérivent vers l’histoire de l’évaluation",
+"Repères attendus : formation initiale, continue et personnelle ; universitarisation et professionnalisation ; IUFM, ESPE, INSPE, masters MEEF ; loi de Refondation et référentiel de compétences de 2013",
+"Moyenne 7,72/20"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"
+},
+{
+"id": "an09",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2026,
+"e": "e2",
+"t": "« Le premier enjeu de formation de l’éducation physique et sportive (EPS) est de développer la motricité des élèves et leur capacité à s’exprimer en utilisant leur corps. » En quoi et comment, l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, permet-il à tous les élèves de développer leur motricité et leur capacité à s’exprimer en utilisant leur corps ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée en annexe, et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe : collège REP de 800 élèves, classe de 5e]",
+"src": [
+"Sujet officiel 2026 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2026/04/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-seconde-preuve-crite-de-la-session-202-18582.pdf"
+],
+"j": [
+"Articuler les deux blocs (motricité et expression par le corps) pour « tous les élèves », à partir de la classe de 5e et d’au moins deux APSA de deux champs d’apprentissage différents",
+"Erreurs fréquentes : blocs traités séparément, dispositifs décrits sans montrer l’apprentissage, expression confondue avec « parler de son corps », contexte raconté au lieu d’être exploité, traces d’élèves non utilisées",
+"Copie déclassée si elle ne traite qu’un champ ou qu’une APSA",
+"Notions mobilisées : apprentissage moteur, technique corporelle signifiante, autodétermination, transfert, feedbacks"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"
+},
+{
+"id": "an10",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2025,
+"e": "e1",
+"t": "L’enseignement de l’Éducation Physique et Sportive a-t-il toujours été pluriel depuis la fin du XIXe siècle ?",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2025/03/capeps-externe-sujet-de-la-premi-re-preuve-crite-de-la-session-2025-15841.pdf"
+],
+"j": [
+"Définir les termes du sujet et discuter l'adverbe « toujours » : interroger la pluralité sur toute la période sans nier qu'elle existe",
+"Choisir des invariants (pratiques, didactiques, évaluation, acteurs) et les suivre jusqu'à l'époque contemporaine, avec une problématique et des périodisations liées au sujet",
+"Pas d'angles morts (Front populaire, Vichy, IVe République, début du XXIe siècle). Privilégier les ouvrages de synthèse",
+"Éviter l'excès de méthode : introduction courte, peu de paratexte, conclusion qui répond explicitement à la problématique"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2025/11/capeps-externe-rapport-du-jury-de-la-session-2025-17610.pdf"
+},
+{
+"id": "an11",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2025,
+"e": "e2",
+"t": "En quoi et comment les sensations des élèves peuvent-elles être prises en compte par l’enseignant pour favoriser leurs apprentissages moteurs ? Vous illustrerez vos propositions dans l’établissement décrit en annexe et en prenant appui sur au moins deux des épisodes présentés. Vous étayerez vos propos en vous référant à des connaissances scientifiques, professionnelles, institutionnelles et technologiques.",
+"src": [
+"Rapport du jury 2025 (le sujet PDF est un scan illisible)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2025/11/capeps-externe-rapport-du-jury-de-la-session-2025-17610.pdf"
+],
+"j": [
+"Traiter le « en quoi » par des connaissances scientifiques et technologiques et le « comment » par des propositions professionnelles, sans les juxtaposer",
+"Les sensations sont des informations venues des organes sensoriels, pas des émotions, des sentiments ou du plaisir. L'apprentissage moteur suppose une transformation motrice",
+"Partir des comportements observés et des propositions de l'enseignant dans au moins deux épisodes, pas de la seule mention de l'APSA",
+"Traiter la complexité (interprétations variées, temporalités, effets parfois contre-productifs) avec des connaissances scientifiques approfondies"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2025/11/capeps-externe-rapport-du-jury-de-la-session-2025-17610.pdf"
+},
+{
+"id": "an12",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2025,
+"e": "ei",
+"t": "La grande cause nationale 2024 en France est dédiée à la promotion de l’activité physique et sportive. L’un des objectifs affichés est celui « d’inciter les Français, à tous les âges et sur tous les territoires, à faire davantage d’activité physique et sportive ». [Site Internet « grandecause-sport.fr »]. Comment l’EPS peut-elle contribuer à cet enjeu dans le lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe de seconde décrite en annexe et, plus largement, au sein de ce lycée.",
+"src": [
+"Sujet officiel 2025 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2025/03/capeps-interne-sujet-de-l-preuve-crite-de-la-session-2025-15285.pdf"
+],
+"j": [
+"Articuler la citation, les mots clés et le contexte du lycée ; propositions concrètes, justifiées, équilibrées entre leçon et établissement",
+"Erreurs : termes clés survolés, contexte listé, seconde proposition sacrifiée, conclusion qui répète",
+"Niveau D : construire, justifier et rendre opérationnel le lien contexte-enjeu",
+"Barre d’admissibilité 14,75 (public) / 12,25 (privé)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2025/09/capeps-interne-rapport-du-jury-de-la-session-2025.pdf"
+},
+{
+"id": "an13",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2025,
+"e": "e1",
+"t": "Extrait : « Pour améliorer le rendement individuel, il est indispensable d'acquérir une certaine technique (style) par la création d'un bon automatisme. […] Un geste automatique est un geste appris par cœur. C'est en le répétant des centaines et des milliers de fois qu'on crée l'habitude […]. » (Maurice Baquet, Éducation sportive. Initiation et entraînement, Paris, Godin, 1942). Consigne : « En vous appuyant sur les idées avancées ici par Maurice Baquet, vous les discuterez au regard de la construction des apprentissages en EPS depuis les années 1940. »",
+"src": [
+"Sujet officiel EAE EPS 1, session 2025",
+"https://devenirenseignant.gouv.fr/media/15371/download"
+],
+"j": [
+"Analyser d'abord les idées de l'extrait avec renvoi aux lignes ; une discussion centrée sur le seul auteur est hors sujet",
+"Connaissances attendues : la trajectoire de Baquet, Vichy et les IO de 1941, les grands modèles d'apprentissage (béhavioriste, cognitiviste, socio-constructiviste, action située, approches écologiques et dynamiques)",
+"Erreurs : paraphrase, discussion décorative, opposition caricaturale entre « conservateurs » et « modernes », bornes chronologiques classiques sans lien avec les apprentissages",
+"Références pesées et bien citées ; une copie d'au moins 10 à 12 pages"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/17526/download"
+},
+{
+"id": "an14",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2025,
+"e": "e2",
+"t": "Citation : « Au regard des enjeux de société, l'EPS contribue à développer une culture de l'activité physique régulière et durable levier indispensable de l'amélioration de la santé publique particulièrement important, compte tenu du niveau de sédentarité des jeunes qui décrochent de toute pratique physique » (LGT, BO 2019). Consigne : « Discutez l'idée selon laquelle l'engagement des élèves dans une activité physique régulière et durable se nourrit de leurs relations en EPS. »",
+"src": [
+"Sujet officiel EAE EPS 2, session 2025",
+"https://devenirenseignant.gouv.fr/media/15374/download"
+],
+"j": [
+"Discuter le verbe pivot « se nourrir » (conditions, limites, mécanismes) ; le remplacer par « favoriser » ou « permettre » dénature le sujet",
+"Ne pas confondre engagement et motivation ; penser l'activité régulière et durable en termes de fréquence, de persistance et de soutenabilité ; les relations ne se réduisent pas à la coopération entre élèves",
+"Des connaissances scientifiques récentes, référencées, reliées au sujet ; la citation doit rester présente dans tout le devoir",
+"Erreurs : centrage sur les dispositifs pédagogiques, déclinaisons en liste sans problématisation, parties juxtaposées"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/17526/download"
+},
+{
+"id": "an15",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2025,
+"e": "e1",
+"t": "« Par son engagement dans des activités physiques sportives et artistiques (APSA) diversifiées et approfondies, l’élève enrichit sa motricité. Il s’investit dans des apprentissages quels que soient son niveau d’expertise, sa condition physique et son degré d’inaptitude ou de handicap »¹ [¹ Le programme d’éducation physique et sportive du lycée général et technologique (annexe 1 de l’arrêté du 17-1-2019 publié J.O. du 20-1-2019 au BO spécial n°1 du 22 janvier 2019)]. Vous analyserez et discuterez cette citation au regard de l’évolution des pratiques professionnelles des enseignants d’EPS au sein du système éducatif de 1975 à 2024.",
+"src": [
+"Sujet officiel 2025 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2025/03/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-premi-re-preuve-crite-de-la-session-2025-15129.pdf"
+],
+"j": [
+"Définir et discuter les deux idées de la citation, en particulier l’engagement (moteur, cognitif, émotionnel) et la diversité des profils d’élèves",
+"Ne pas réduire la lecture aux APSA et au handicap ; prendre en compte « diversifiées » et « approfondies » ; ne pas confondre pratiques professionnelles et textes officiels",
+"Traiter la période récente (2005-2024), éviter les périodisations figées et la vision d’un progrès linéaire",
+"Élèves presque absents de nombreuses copies ; références citées sans être expliquées"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2025/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2025.pdf"
+},
+{
+"id": "an16",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2025,
+"e": "e2",
+"t": "« En développant ses ressources physiologiques, motrices, cognitives et psychosociales, l’élève améliore son bien-être, pour lui et pour les autres »¹ [¹ Le programme d’éducation physique et sportive du lycée général et technologique (annexe 1 de l’arrêté du 17-1-2019 J.O. du 20-1-2019 publié au BO spécial n°1 du 22 janvier 2019)]. A quelles conditions didactiques et pédagogiques, l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, permet aux élèves de développer leurs différentes ressources au service de leurs apprentissages, facteurs de bien-être individuel et collectif ? Vous illustrerez vos propositions en vous appuyant sur la classe présentée en annexe et sur au moins deux APSA, relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement.",
+"src": [
+"Sujet officiel 2025 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2025/03/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-seconde-preuve-crite-de-la-session-2025-15132.pdf"
+],
+"j": [
+"Relier trois éléments : développement des ressources, apprentissages (produit et processus), bien-être individuel et collectif, à travers des conditions didactiques et pédagogiques concrètes (classe de 2de)",
+"Erreurs fréquentes : notions traitées séparément, bien-être découpé en dimensions, apprentissage réduit à un produit, conditions génériques plaquées",
+"Copie déclassée si elle n’utilise qu’une APSA ou qu’un champ",
+"Notions : ressources mises en synergie, bien-être objectif et subjectif, tension entre bien-être présent et « bien-devenir » (Meirieu)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2025/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2025.pdf"
+},
+{
+"id": "an17",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2024,
+"e": "e1",
+"t": "Comment les enseignants d’éducation physique et sportive ont-ils promu les valeurs du sport depuis 1936 ?",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-externe-sujet-de-la-premi-re-preuve-crite-de-la-session-2024-12894.pdf"
+],
+"j": [
+"Traiter le « comment » sous l'angle pédagogique et militant : moyens concrets, lieux et moments où les valeurs sont débattues, appuyés sur des faits, des dates et des témoignages",
+"Ne pas tenir les valeurs du sport pour immuables ni supposer que les enseignants les ont « toujours » portées : examiner appropriation, rejet ou réinterprétation selon les contextes",
+"Couvrir toute la période, notamment l'après-1945 et les vingt dernières années. Le contexte doit expliquer, pas servir de décor",
+"Introduction trop longue (pas plus d'1/6 de la copie), transitions redondantes, temps présent superficiel"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-externe-rapport-du-jury-de-la-session-2024-14252.pdf"
+},
+{
+"id": "an18",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2024,
+"e": "e2",
+"t": "« Développer sa motricité et apprendre à s’exprimer en utilisant son corps » (Programme du cycle 4, 2015). À partir de priorités que vous aurez définies dans l’établissement au regard des annexes, montrez comment les enseignants d’EPS peuvent les articuler avec cet élément de programme. Vous justifierez vos choix. Vous illustrerez vos propositions en vous appuyant sur au moins deux activités physiques, sportives, artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. Vous étayerez vos propos en vous référant à des connaissances scientifiques, institutionnelles, technologiques et professionnelles.",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire appliquée (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-externe-sujet-de-la-deuxi-me-preuve-crite-de-la-session-2024-12897.pdf"
+],
+"j": [
+"Articuler des priorités tirées du contexte avec la CG1, sans juxtaposer les deux ni se contenter de citer des mots-clés",
+"Justifier chaque priorité par l'analyse des annexes (caractéristiques des élèves, épisodes, projets)",
+"Caractériser les transformations visées de la motricité et de l'expression corporelle, sans les réduire à la verbalisation",
+"Choisir des APSA de deux champs d'apprentissage qui illustrent vraiment le sujet. Les développements interdisciplinaires ne doivent pas faire oublier la moitié du sujet"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-externe-rapport-du-jury-de-la-session-2024-14252.pdf"
+},
+{
+"id": "an19",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2024,
+"e": "ei",
+"t": "Vous êtes professeur d’EPS dans le collège présenté en annexe. La circulaire de rentrée 2023-2024 précise « l’épanouissement de nos élèves suppose qu’ils puissent construire une relation aux autres et à eux-mêmes respectueuse et positive ». Comment pouvez-vous contribuer à cet enjeu ? Vous présenterez et justifierez des propositions au sein des cours d’EPS pour les élèves de l’une des classes décrites dans le document annexe 1 et, plus largement, au sein de l’établissement.",
+"src": [
+"Sujet officiel 2024 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-interne-sujet-de-l-preuve-crite-de-la-session-2024-12117.pdf"
+],
+"j": [
+"Répondre à la question en s’appuyant sur la citation, pas faire un commentaire de texte",
+"Articuler épanouissement, relation aux autres, relation à soi, « respectueuse » et « positive », ancrés dans le contexte REP et la classe choisie",
+"Erreurs : épanouissement réduit au bien-être, relation aux autres réduite au « vivre ensemble », relation à soi oubliée",
+"Moyenne 10,56 ; barre 14,25 (public) / 11 (privé)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2024/09/capeps-interne-rapport-du-jury-de-la-session-2024-14249.pdf"
+},
+{
+"id": "an20",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2024,
+"e": "e1",
+"t": "Extrait commençant par : « Et si les professeurs se contentaient de développer la souplesse et la musculature de leurs élèves, […] L'Éducation doit préparer l'homme à la vie parmi ses semblables. […] » (Yvonne Surrel, « De la Gymnastique à la danse », Revue EP.S n°81, 1966). Consigne : « Discutez ces propos au regard des pratiques physiques de la jeunesse depuis les années 1930. »",
+"src": [
+"Rapport du jury 2024 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/14240/download"
+],
+"j": [
+"Une analyse fine de la citation est un préalable : en dégager les idées directrices (finalités, rôle de l'enseignant, supports, place de l'EPS) avec renvoi aux lignes",
+"Dépasser l'EPS seule pour interroger les pratiques physiques réelles de la jeunesse dans leur diversité (approche diachronique et synchronique)",
+"Connaissances jugées lacunaires sur l'item « les jeunes et les pratiques physiques de loisir » et sur Yvonne Surrel ; pas d'argumentation « hors-sol »",
+"Équilibre entre introduction, développement et conclusion ; pas de conclusion écrite à l'avance"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/14240/download"
+},
+{
+"id": "an21",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2024,
+"e": "e2",
+"t": "Citation : « Par son engagement dans la pratique physique, l'élève apprend à développer durablement sa santé. En développant ses ressources physiologiques, motrices, cognitives et psychosociales, il améliore son bien-être, pour lui et pour les autres. » (BO spécial n°1 du 22 janvier 2019). Consigne : « Discutez l'idée selon laquelle le bien-être des élèves en EPS se conjugue avec leurs progrès en termes d'apprentissages moteurs. »",
+"src": [
+"Rapport du jury 2024 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/14240/download"
+],
+"j": [
+"« Se conjuguer » invite à questionner l'accord entre bien-être et progrès moteurs et à faire apparaître des controverses, pas à plaquer un « oui… mais… donc »",
+"Bien-être multidimensionnel ; apprentissage moteur abordé par des théories actualisées, en distinguant produit et processus",
+"Analyse multi-niveaux : profils d'élèves, contextes, champs d'apprentissage, temporalités, conditions concrètes d'enseignement",
+"Le regard critique sur l'injonction au bien-être est valorisé ; les références canoniques gagnent à être actualisées"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/14240/download"
+},
+{
+"id": "an22",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2024,
+"e": "e1",
+"t": "« L’évaluation est un outil au service de la formation des élèves. Le professeur conçoit des situations d’évaluation qui renseignent les élèves sur le degré d’acquisition des compétences au fil des leçons. Il veille à les informer régulièrement sur l’évolution de leurs acquisitions »¹ [¹ Annexe de l’arrêté du 3-4-2019 - J.O. du 9-4-2019 publié au BO officiel n° 5 du 11 avril 2019 : Programme d’enseignement d’éducation physique et sportive des classes préparant au certificat d’aptitude professionnelle et des classes préparant au baccalauréat professionnel]. Vous analyserez et discuterez cette citation au regard de l’évolution des pratiques d’évaluation des enseignants d’EPS dans le contexte des mutations du système éducatif de 1967 à 2023.",
+"src": [
+"Sujet officiel 2024 (copie SNEP-FSU) + rapport",
+"https://lesite.snepfsu.fr/wp-content/uploads/2024/09/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-premi-re-preuve-crite-de-la-session-2024-11967.pdf"
+],
+"j": [
+"Analyser puis discuter les trois injonctions de la citation (outil de formation, situations conçues par le professeur, information régulière de l’élève)",
+"Croiser les pratiques concrètes d’évaluation avec les mutations du système éducatif, sans juxtaposer un bloc de contexte",
+"Erreurs fréquentes : évaluation réduite à la certification, histoire de l’EPS hors sujet, références non expliquées",
+"Repères : notation et évaluation, arrêtés de 1967 et table Letessier, socle commun, contrôle continu, AFC/AFL/AFLP ; moyenne 7,99/20"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/14117/download"
+},
+{
+"id": "an23",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2024,
+"e": "e2",
+"t": "« L’EPS s’attache à différencier les conditions d’enseignement pour que chaque élève puisse progresser et réaliser des projets individuels et collectifs. L’accès progressif à l’autonomie conduit les élèves à opérer des choix dans des contextes de pratique différents. »¹ [¹ programme d’EPS du lycée général et technologique, annexe 1 de l’arrêté du 17-1-2019]. Vous montrerez comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut créer les conditions d’enseignement permettant à tous les élèves de s’engager avec réussite dans des projets individuels et collectifs, facteurs déterminants de leur accès à l’autonomie. Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée en annexe et sur au moins deux APSA, relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement.",
+"src": [
+"Sujet officiel 2024 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2024/09/agr-gation-interne-section-ducation-physique-et-sportive-sujet-de-la-deuxi-me-preuve-crite-de-la-session-2024-11970.pdf"
+],
+"j": [
+"Montrer les liens entre conditions d’enseignement, projets individuels et collectifs, réussite et accès à l’autonomie (classe de 1re)",
+"Erreurs : projets entièrement prescrits sans décision de l’élève, autonomie réduite au réflexif ou au social en oubliant le moteur, contexte raconté sans être analysé",
+"Pénalité si un seul champ ou une seule APSA ; textes de l’évaluation certificative attendus (AFL2, AFL3)",
+"Moyenne 9,35/20"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/14117/download"
+},
+{
+"id": "an24",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2023,
+"e": "e1",
+"t": "Montrez que l’Éducation physique et sportive, depuis 1936, a toujours souhaité répondre aux attentes sociétales et scolaires.",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2023/04/capeps_externe_ecrit-1_session-2023.pdf"
+],
+"j": [
+"Démontrer le lien entre attentes sociétales et attentes scolaires, en distinguant vouloir répondre et y parvenir, et en périodisant les inflexions",
+"Argumenter avec des faits, des dates, des chiffres, des auteurs et des témoignages, pas avec de simples citations",
+"Couvrir toutes les périodes sans réduire une époque à un événement emblématique. Le temps présent est souvent mal traité",
+"Le contexte doit expliquer et non servir de décor préconstruit. Introduction courte (environ 1/6 de la copie)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2023/09/rapport-du-jury-session-2023-CAPEPS-Externe.pdf"
+},
+{
+"id": "an25",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2023,
+"e": "e2",
+"t": "Le programme du cycle 4 identifie la compétence « Construire et mettre en œuvre des projets d’apprentissage individuel ou collectif » comme une des compétences à travailler en EPS. Vous montrerez en quoi et comment cette compétence participe à la formation du collégien. Vous illustrerez votre propos par des propositions didactiques et pédagogiques adaptées à la classe décrite dans le document 3 et en vous appuyant sur des APSA de la programmation de cette classe.",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire appliquée (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2023/04/capeps_externe_ecrit-2_session-2023.pdf"
+],
+"j": [
+"Définir compétence, projet d'apprentissage individuel ou collectif et formation du collégien, et établir explicitement leurs liens",
+"Ancrer les propositions dans la classe du document 3 et les APSA de sa programmation, en distinguant l'activité de l'enseignant et celle de l'élève",
+"Éviter les exemples « prêts à porter » et les références institutionnelles mal maîtrisées. Distinguer pédagogie et didactique",
+"Considérer le collégien dans sa singularité et utiliser plusieurs échelles (cycle, établissement, AS, EPI)"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2023/09/rapport-du-jury-session-2023-CAPEPS-Externe.pdf"
+},
+{
+"id": "an26",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2023,
+"e": "ei",
+"t": "Le préambule du programme d’éducation physique et sportive des classes préparant au certificat d’aptitude professionnelle et au baccalauréat professionnel stipule que « au regard des enjeux de société, l’EPS contribue à développer une culture physique, régulière et durable, condition de la construction d’une éducation pour la santé ». Dans le contexte de l’établissement proposé en annexe et en référence aux programmes d’EPS, vous présenterez, en les justifiant au regard de cet enjeu, des propositions : - de choix didactiques et pédagogiques dans votre enseignement pour une des deux classes décrites ; - pour l’organisation collective de l’enseignement de l’EPS et/ou de l’AS dans cet établissement.",
+"src": [
+"Sujet officiel 2023 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2023/03/Sujet-capeps_interne_session-2023.pdf"
+],
+"j": [
+"Présenter la culture physique régulière et durable comme condition de l’éducation à la santé ; traiter un seul terme donne une réponse partielle",
+"Deux volets à ne pas confondre : proposition didactique pour une classe, proposition collective (équipe EPS, AS)",
+"Erreurs : propositions génériques, santé sans lien avec la culture physique, volet collectif simplement décrit et bâclé",
+"Moyenne de l’écrit 9,55"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2023/09/rapport-du-jury-session-2023-CAPEPS-Interne.pdf"
+},
+{
+"id": "an27",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2023,
+"e": "e1",
+"t": "Extrait commençant par : « Il faut consentir à la disparition du type de professeur, attaché, derrière le vocable d'E.P., à l'amalgame qui s'était peu à peu formé […] » (Robert Mérand, « Que devient l'Éducation Physique ? Leçon d'ouverture », 9 novembre 1967). Consigne : « Discutez ces propos au regard de l'évolution de l'EPS depuis 1967. »",
+"src": [
+"Rapport du jury 2023 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/10248/download"
+],
+"j": [
+"Discuter et non paraphraser, avec des renvois explicites aux lignes",
+"Situer le texte (IO de 1967, discours militant) et articuler sciences, techniques, formation des enseignants et transformation de la leçon",
+"Éviter une lecture progressiste naïve : repérer les stagnations et les régressions ; connaître la trajectoire de Mérand, l'un des acteurs au programme",
+"Ne pas confondre les finalités de l'écrit 1 et de l'écrit 2 ; une conclusion qui discute l'auteur au lieu de redire le plan"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/10248/download"
+},
+{
+"id": "an28",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2023,
+"e": "e2",
+"t": "Citation : « Développer sa motricité et apprendre à s'exprimer avec son corps : - Acquérir des techniques spécifiques pour améliorer son efficience ; - Communiquer des intentions et des émotions avec son corps devant un groupe ; - Verbaliser les émotions et sensations ressenties ; - Utiliser un vocabulaire adapté pour décrire la motricité d'autrui et la sienne. » (Extrait du programme d'EPS du cycle des approfondissements (cycle 4), Bulletin Officiel Spécial n°11 du 26 novembre 2015). Consigne : « Discutez et illustrez l'idée selon laquelle la mise en mots de son expérience est un levier favorable à l'acquisition de techniques corporelles par les élèves en EPS. »",
+"src": [
+"Rapport du jury 2023 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/10248/download"
+],
+"j": [
+"La discussion est au cœur de l'épreuve : un « levier » peut accélérer comme freiner, et la relation peut aussi fonctionner dans l'autre sens",
+"Interroger la tension entre « dire » et « faire » et les limites de la verbalisation selon le type d'habileté et le niveau des élèves",
+"La notion d'« acquisition » est centrale mais rarement traitée ; connaître les théories de l'apprentissage moteur et éviter le technicisme",
+"Des illustrations variées (APSA, niveaux, publics), à plusieurs échelles de temps, analysées avec recul critique"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/10248/download"
+},
+{
+"id": "an29",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2023,
+"e": "e1",
+"t": "« La formation des filles justifie pourtant peut-être plus visiblement encore que celle des garçons l’existence de l’éducation physique obligatoire tout au long du système éducatif. Qui, sinon l’école, permettra à toutes les filles (…) cette fréquentation du donné essentiel d’une culture physique contemporaine ? » [Davisse, A. et Louveau, C. (1991). Sports, école, société : la part des femmes (p. 236). Actio]. Vous analyserez et discuterez cette citation au regard de l’évolution de l’EPS de 1967 à 2022.",
+"src": [
+"Sujet officiel 2023 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2023/02/Sujet-agreg_interne_eps_Ecrit-1-session-2023.pdf"
+],
+"j": [
+"Analyser d’abord la citation (constat, puis proposition) et la contextualiser à chaque période, puis prendre position",
+"Erreurs : histoire générique de l’EPS sans acteurs, culture physique scolaire confondue avec les pratiques extérieures à l’école, périodisation figée, introduction-liste de définitions",
+"Notions : formation, fréquentation, culture physique contemporaine, mixité, domination masculine ; bornes justifiées par de vraies ruptures, plusieurs EPS par époque"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/10032/download"
+},
+{
+"id": "an30",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2023,
+"e": "e2",
+"t": "« L’adolescence est un âge marqué par des prises de risque diverses (…) Le but des institutions n’est plus d’essayer d’empêcher les adolescents de prendre des risques par la prévention dans tous les domaines de la vie qui présentent des dangers, mais d’en encadrer les menaces auxquelles ils s’exposent et de proposer un territoire d’expression aux prises de risque. » [Griffet, J. et Luiggi, M. (2018). La nature du risque. In M. Travert et O. Rey (dir.), L’engagement de l’élève en EPS (pp. 111-119), Dossier EP.S n° 85]. Dans quelle mesure cette réflexion peut-elle orienter l’enseignement de l’EPS dans l’établissement décrit en annexe ? Vous illustrerez vos propositions en vous appuyant sur au moins deux activités physiques, sportives, artistiques (APSA), relevant de deux champs d’apprentissage, inscrites dans la programmation de l’établissement.",
+"src": [
+"Sujet officiel 2023 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2023/02/Sujet-agreg_interne_eps_Ecrit-2-Session-2023.pdf"
+],
+"j": [
+"Traiter le « dans quelle mesure » : discuter la citation sans l’appliquer telle quelle ; articuler EPS, enseigner/apprendre et établissement",
+"Erreurs : confondre prise de risque et sécurisation, dispositifs prescrits sans décision de l’élève, passer du constat à la solution sans analyse",
+"Prises de risque tactiques, stratégiques et collectives souvent oubliées ; risque vu comme décision dans l’incertitude, menace comme interaction élève-danger"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/10032/download"
+},
+{
+"id": "an31",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2022,
+"e": "e1",
+"t": "« L’enseignant doit exercer sa pleine responsabilité de concepteur afin de définir les contextes d’apprentissage spécifiques dans lesquels ses élèves pourront s’engager et, ainsi, s’enrichir, se cultiver, se développer, et réussir leur projet personnel de formation » (arrêté du 17 janvier 2019, programme d'EPS du lycée général et technologique). Dans quels contextes historiques et à quelles conditions les enseignants d’EPS ont-ils été en mesure d’exercer cette responsabilité ? [analyse bornée de 1945 à nos jours] (libellé à vérifier)",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2022/03/sujet-2022-capeps_externe_ecrit-1.pdf"
+],
+"j": [
+"Articuler la responsabilité de conception et les contextes d'apprentissage de 1945 à nos jours, en croisant l'échelle macro (contexte historique) et l'échelle micro (établissements, classes, acteurs)",
+"Démontrer les choix réellement faits par les enseignants, pourquoi et avec quels élèves. Ne pas confondre « concepteur responsable » et « enseignant responsable »",
+"Problématique précise, plan tenu jusqu'au bout, conclusion réflexive, faits exacts plutôt qu'approximatifs ou accumulés",
+"Une copie longue ne garantit rien : il faut une démonstration structurée"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2022/11/Rapport-Jury-CAPEPS-Externe-2022.pdf"
+},
+{
+"id": "an32",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2022,
+"e": "e2",
+"t": "« Justice, bienveillance, tact, l’éthique professorale doit nouer ces trois vertus. La justice car elle est reconnaissance des droits et des mérites, la bienveillance car elle est attention à la fragilité et le tact car il est souci du lien. On pourrait dire les choses d’une autre manière mais ce serait encore dire la même chose. La justice car elle est souci du collectif et des équilibres, la bienveillance car elle est souci des sujets singuliers et le tact car il est souci de la relation elle-même. » Prairat, E. (2019). L’éthique professorale : une éthique de la présence. Blog de l’Internationale de l’éducation. En quoi et comment cette définition de l‘éthique professorale, guide-t-elle l’enseignant d’EPS pour engager les élèves dans leurs apprentissages en développant leur bien-être tout au long du parcours de formation ? Vous illustrerez votre réponse à différents niveaux de la scolarité dans le second degré et justifierez vos choix en vous appuyant, si besoin, sur les documents proposés en annexe.",
+"src": [
+"Sujet officiel épreuve écrite disciplinaire appliquée (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2022/03/sujet-2022-capeps_externe_ecrit-2.pdf"
+],
+"j": [
+"Définir justice, bienveillance, tact, bien-être et parcours de formation, et les relier dès l'introduction en reliant les trois vertus entre elles",
+"Traiter le bien-être sous plusieurs dimensions et à plusieurs niveaux de scolarité, relié explicitement à l'engagement des élèves",
+"Illustrer avec des exemples ciblés tirés de la pratique en EPS. Utiliser les annexes sans les paraphraser",
+"Prendre du recul, assumer des choix nuancés et envisager le parcours sur le long terme"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2022/11/Rapport-Jury-CAPEPS-Externe-2022.pdf"
+},
+{
+"id": "an33",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2022,
+"e": "ei",
+"t": "Le préambule du programme d’éducation physique et sportive du lycée général et technologique stipule « L’éducation physique et sportive du lycéen prend appui sur les compétences développées à l’école primaire et au collège […]. Elle est l’occasion d’une meilleure connaissance par l’élève de ses possibilités et d’une véritable éducation à faire des choix. » Dans le contexte de l’établissement proposé en annexe et en référence aux programmes d’EPS, vous présenterez, en les justifiant au regard de cet enjeu, des propositions : - de choix didactiques et pédagogiques dans votre enseignement pour une des deux classes décrites ; - pour l’organisation collective de l’enseignement de l’EPS et/ou de l’AS dans cet établissement.",
+"src": [
+"Sujet officiel 2022 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2022/03/sujet-2022_capeps_interne.pdf"
+],
+"j": [
+"Bien distinguer la proposition didactique (une classe) et la proposition collective, qui doit vraiment mobiliser les acteurs",
+"Relier connaissance de soi et éducation au choix dans chaque partie, dans le parcours de l’école au lycée",
+"Erreurs : propositions vagues, contexte juste décrit, démarche centrée sur l’enseignant plutôt que sur l’élève acteur",
+"Moyenne de l’écrit 9,35"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2022/11/Rapport-Jury-CAPEPS-Interne-2022.pdf"
+},
+{
+"id": "an34",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2022,
+"e": "e1",
+"t": "Extrait contenant : « Le maître a un rôle double : diriger l'entraînement et conduire effectivement les leçons […] la séance d'entraînement doit être un véritable plaisir et ne jamais être une corvée […] » (Georges Hébert, L'Éducation physique, virile et morale par la méthode naturelle, Paris, Vuibert, 1936, p. 92-93). Consigne : « Commentez ces propos et discutez-les au regard de la prise en compte des caractéristiques et des aspirations des jeunes dans la conception et la mise en œuvre des leçons d'éducation physique depuis 1936. »",
+"src": [
+"Rapport du jury 2022 (devenirenseignant)",
+"https://www.devenirenseignant.gouv.fr/media/2728/download"
+],
+"j": [
+"Double consigne : le commentaire (analyse du lexique, contexte, auteur) et la discussion forment le fil rouge du devoir ; une discussion réduite à une phrase est sanctionnée",
+"Situer Hébert (« guerre des méthodes », Front populaire en 1936) ; montrer le passage d'une leçon autoritaire et frontale à la différenciation",
+"Erreurs : paraphrase, jugement anachronique, décennies regroupées, périodes clés oubliées (Front populaire, Vichy, années 1970), introduction de plus d'un sixième du devoir",
+"Notions : la jeunesse (Mauger, Donnat), la culture jeune, le plaisir en EPS, la différenciation"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/2728/download"
+},
+{
+"id": "an35",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2022,
+"e": "e2",
+"t": "Citation : « L'éducation physique et sportive occupe une place originale où le corps, la motricité, l'action et l'engagement de soi sont au cœur des apprentissages. » (Programme d'enseignement du cycle de consolidation, BOEN n° 31 du 30/07/2020). Consigne : « Discutez et illustrez l'idée selon laquelle l'enseignant d'EPS peut concourir à développer chez les élèves à la fois une culture de l'effort et une conscience de leur corps. »",
+"src": [
+"Rapport du jury 2022 (devenirenseignant)",
+"https://www.devenirenseignant.gouv.fr/media/2728/download"
+],
+"j": [
+"Discuter = identifier les controverses et justifier une position ; illustrer = des propositions concrètes au service de la discussion",
+"Analyser « et », « à la fois » (simultanéité, réciprocité) et « concourir » (contribution dans une perspective écosystémique)",
+"Erreurs : illustrations aux effets « magiques » sans analyse de l'activité de l'élève, plans stéréotypés, tensions posées en introduction puis abandonnées",
+"Notions : effort (physique, mental, affectif, social), conscience du corps, littératie physique, modèles socio-écologiques"
+],
+"ju": "https://www.devenirenseignant.gouv.fr/media/2728/download"
+},
+{
+"id": "an36",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2022,
+"e": "e1",
+"t": "« De même que le professeur de littérature n’a pas pour fonction de former des écrivains, ni le professeur de musique celle de virtuoses, le professeur d’éducation physique n’a pas pour rôle de produire des champions. Ils ont pour mission d’introduire aux acquis culturels. Ils interviennent dans le cadre de l’éducation. (…) » [Bernard Jeu, « Analyse du sport », 1987, Paris, PUF, p. 181]. Vous commenterez cette citation de Bernard Jeu au regard des enjeux de la discipline EPS de 1967 à 2021.",
+"src": [
+"Sujet officiel 2022 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2022/03/sujet-2022_agreg_interne_eps_ecrit1.pdf"
+],
+"j": [
+"Expliquer la citation et prendre position sur les propos de B. Jeu en les reliant aux enjeux de la discipline ; les copies qui se bornent à confirmer ou infirmer sont moins bien classées",
+"Les débats et luttes entre acteurs autour de l’identité de la discipline sont trop absents",
+"Erreurs : périodes figées (sportive, scolaire, inclusive), IO de 1967 présentées comme purement sportives, CC5 considérée comme acquise dès 2001",
+"Orthographe : jusqu’à 2 points de pénalité"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2022/11/Rapport-de-jury-agregation-interne-eps_2022.pdf"
+},
+{
+"id": "an37",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2022,
+"e": "e2",
+"t": "« Construire durablement sa santé : (…) Placé dans des conditions favorables de réussite, l’élève ressent le plaisir du jeu et de l’apprentissage. Il développe ainsi une image positive de lui-même et une estime de soi. L’EPS l’aide à percevoir l’intérêt d’une pratique physique régulière, la plus complète possible pour construire sa santé aux différentes étapes de sa vie »¹ [¹ Programme d’enseignement d’éducation physique et sportive (CAP et baccalauréat professionnel), B.O. spécial n° 5 du 11 avril 2019]. Au sein du contexte scolaire décrit dans l’annexe 1, comment les enseignants d’EPS peuvent-ils créer les conditions pour permettre à chaque élève de « construire durablement sa santé » ? Vous illustrerez vos propositions en vous appuyant, notamment, sur les classes présentées et sur au moins deux APSA, relevant de deux champs d’apprentissage, inscrites dans la programmation de l’établissement.",
+"src": [
+"Sujet officiel 2022 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2022/03/sujet-2022_agreg_interne_eps_ecrit2.pdf"
+],
+"j": [
+"Démontrer le lien entre les conditions créées et la construction durable de la santé (lycée professionnel), la santé étant un processus et non un état",
+"Erreurs : conditions et effets juxtaposés sans démonstration, engagement durable confondu avec investissement dans la leçon, solutions sans analyse du contexte",
+"Copie déclassée si un seul champ, une seule APSA ou une seule classe ; l’identité motrice de l’EPS doit rester visible"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2022/11/Rapport-de-jury-agregation-interne-eps_2022.pdf"
+},
+{
+"id": "an38",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2021,
+"e": "e1",
+"t": "« L’école entretient un rapport ambigu avec les pratiques culturelles de ses élèves. Selon les contextes, les moments et la nature des pratiques, on attend que l’institution scolaire aide à les construire, qu’elle les encourage ou qu’elle contribue à la délimitation entre la culture « légitime » et les « loisirs ». » (Dossier de veille de l’IFÉ, Les cultures adolescentes, pour grandir et s’affirmer, n°110, avril 2016). L’enseignement de l’EPS est-il révélateur de cette ambiguïté depuis les années 1960 ?",
+"src": [
+"Sujet officiel ECE EPS 1 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/10/sujet_capeps_externe_ecrit1_2021.pdf"
+],
+"j": [],
+"ju": ""
+},
+{
+"id": "an39",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2021,
+"e": "e2",
+"t": "« De la sensibilisation à l'engagement, à sa facilitation aux différentes étapes de la vie, les pouvoirs publics jouent un rôle aux côtés des associations, pour concourir au développement d'une véritable société de l'engagement, et à la reconnaissance de la place de l'engagement citoyen. Des passerelles solides sont à construire entre les associations, les pouvoirs publics, ou encore le milieu professionnel. Le but est de favoriser une palette d'expériences d'engagement qui seront rendues accessibles par un travail de sensibilisation, de reconnaissance et de valorisation. [...] La construction de ces parcours d'engagement amène une réflexion sur trois dimensions : celle de la vie scolaire, celle de la vie active, et enfin celle de l'acquisition des compétences tout au long de la vie. » (Pour une politique de vie associative ambitieuse et le développement d'une société de l'engagement. Rapport rendu par le mouvement associatif au premier ministre, mai 2018). En quoi et comment l'enseignant d'EPS contribue-t-il, à travers sa posture professionnelle et ses choix pédagogiques et didactiques, à un engagement durable des élèves dans leurs apprentissages, au service d'un mode de vie actif et solidaire ? Vous illustrerez votre réponse à différents niveaux de la scolarité dans le second degré et justifierez vos choix en vous appuyant, si besoin, sur les documents placés en annexe.",
+"src": [
+"Sujet officiel ECE EPS 2 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/10/sujet_capeps_externe_ecrit2_2021.pdf"
+],
+"j": [],
+"ju": ""
+},
+{
+"id": "an40",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2021,
+"e": "ei",
+"t": "Dans le programme du cycle 4, le volet 3 concernant l’enseignement de l’EPS stipule « Au cours du cycle 4, les élèves passent de la préadolescence à l’adolescence et connaissent des transformations corporelles, psychologiques importantes qui les changent et modifient leur vie sociale. Dans ce cadre, l’éducation physique et sportive aide tous les collégiens et collégiennes à acquérir de nouveaux repères sur soi, sur les autres, sur l’environnement, pour construire une image positive de soi dans le respect des différences. » Dans le contexte de l’établissement proposé en annexe et en référence aux programmes d’EPS, vous présenterez, en les justifiant au regard de cet enjeu, des propositions : - de choix didactiques et pédagogiques dans votre enseignement pour une des deux classes décrites ; - pour l’organisation collective de l’enseignement de l’EPS et/ou de l’AS dans cet établissement.",
+"src": [
+"Sujet officiel rectifié 2021 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/10/sujet_capeps_interne_2021.pdf"
+],
+"j": [
+"Définir et articuler adolescence, repères, image positive de soi, respect des différences, en lien avec le contexte",
+"Montrer enseignants et élèves en situation d’apprentissage dans toute la copie",
+"Erreurs : schémas préfabriqués, situations sans repères d’apprentissage ni contenus, introduction trop longue",
+"Moyenne de l’écrit 10,86"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/10/rapport_2021_capeps_interne_eps.pdf"
+},
+{
+"id": "an41",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2021,
+"e": "e1",
+"t": "Extrait contenant : « Les leçons qui s'adressent à des femmes doivent être différentes de celles qui s'adressent à des hommes. […] Une femme n'est pas un homme faible. […] » (Marie-Thérèse Eyquem, La Femme et le sport, Paris, Les Éditions J. Susse, coll. « Tous les sports », 1944, p. 242-243). Consigne : « En vous appuyant sur les propos de Marie-Thérèse Eyquem, montrez comment la formation des enseignants d'éducation physique, des années 1940 à nos jours, a pris en compte ces différences sexuées. »",
+"src": [
+"Rapport du jury 2021 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/2443/download"
+],
+"j": [
+"Présenter l'autrice (trajectoire, féminisme modéré, ambivalence entre tradition et modernité) sans bloc biographique, et la mobiliser tout au long du devoir",
+"Analyser les moyens de la formation (concours, structures, contenus, formation continue) et le degré de prise en compte des différences sexuées",
+"Repères précis sur l'évolution des concours et des structures, de la séparation à la mixité",
+"Erreurs : introductions démesurées, citations plaquées, généralités sans faits, conclusions prédictives"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/2443/download"
+},
+{
+"id": "an42",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2021,
+"e": "e2",
+"t": "Citation : « Enseigner revient à confronter les élèves à des expériences leur permettant d'étendre l'usage des règles apprises à d'autres contextes. » (Bertone, S., et Chaliès, S. (2008). Enseigner l'usage des règles aux élèves. In Sébastien Chaliès et Stefano Bertone, L'enseignement. Paris : revue EPS, p. 40). Consigne : « Discutez et illustrez. »",
+"src": [
+"Rapport du jury 2021 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/2443/download"
+],
+"j": [
+"Discuter et illustrer sont indissociables ; des illustrations analytiques (quoi, pourquoi, comment) reliées à l'argumentation",
+"Définir enseigner, expériences, extension d'usage et règles sans les réduire (les règles ne se limitent pas aux règles du jeu) ; problématiser le transfert",
+"Attendus : une classification des règles, les travaux sur le transfert, l'enseignant comme médiateur",
+"Erreurs : réinvestissement présenté comme automatique, définitions juxtaposées, usage galvaudé de la démarche PAC"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/2443/download"
+},
+{
+"id": "an43",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2021,
+"e": "e1",
+"t": "« Les idées comptent, en éducation physique, plus que les gestes ; elles se renouvellent plus qu’eux » [Ulmann J. (1964), « De la gymnastique aux sports modernes », Paris : PUF, 3ème Ed VRIN, p. 5]. Ces propos de Jacques Ulmann se sont-ils vérifiés au regard de l’évolution du métier d’enseignant d’EPS depuis 1967 ?",
+"src": [
+"Sujet officiel 2021 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/10/sujet_agregation_interne_ecrit1_2021.pdf"
+],
+"j": [
+"Répondre explicitement à la question : conforter, nuancer ou réfuter, en justifiant par l’évolution du métier",
+"Définir « idées » et « gestes » et analyser les verbes clés (compter, se renouveler, se vérifier) ; ne pas confondre évolution du métier et évolution de l’EPS",
+"Bornes chrono-thématiques à justifier (ex. 2005 et le socle) ; copies narratives ou juxtaposées classées en bas",
+"Moyenne 7,85"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/10/rapport_2021_agregation_interne_eps.pdf"
+},
+{
+"id": "an44",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2021,
+"e": "e2",
+"t": "[Présentation détaillée de Lucas (2de) et de Chloé (Tle), non reproduite ici.] Chloé, Lucas et les autres élèves du lycée présenté en annexe vivent différemment les leçons d’EPS. Dans quelle mesure, l’enseignant d’EPS peut-il agir sur les différents ressentis de ces élèves pour leur permettre d’atteindre, dans cet établissement, les objectifs de la discipline ? En vous appuyant sur vos connaissances scientifiques, techniques, institutionnelles et professionnelles, vous proposerez des illustrations dans au moins trois champs d’apprentissage différents.",
+"src": [
+"Sujet officiel 2021 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/10/sujet_agregation_interne_ecrit2_2021.pdf"
+],
+"j": [
+"Démonstration située : le contexte (lycéens en réussite, milieu favorisé) et les profils guident le choix des objectifs",
+"Programmes de 2019, objectifs généraux et AFL attendus ; erreurs : programmes de 2010, socle commun appliqué au lycée",
+"Montrer les conditions et les limites d’une action sur des ressentis intimes ; distinguer prendre en compte, créer et apprendre à agir sur ses ressentis",
+"Moyenne 6,99"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/10/rapport_2021_agregation_interne_eps.pdf"
+},
+{
+"id": "an45",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2020,
+"e": "e1",
+"t": "« Dans le système scolaire français, la relation à l’espace, au temps, au travail, à la hiérarchie, aux autres, vise à domestiquer le corps à travers un réseau de normes répressives et / ou morales, de codes, d’apprentissages, et d’interdits très précis. L’objectif est la civilité du corps, (aujourd’hui la vogue est à la citoyenneté) en d’autres termes une incorporation des valeurs dominantes ». Betty Lefèvre, « Corps baroque et éducation physique scolaire », Corps et culture n°5, 2000. Une telle affirmation a-t-elle été toujours dominante dans la conception et l’organisation des pratiques physiques scolaires proposées en EPS depuis 1936 ? Vous pourrez illustrer vos réflexions sur des activités physiques et sportives variées.",
+"src": [
+"Sujet officiel écrit 1 principal (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/01/sujet_capeps_externe_ecrit1_2020.pdf"
+],
+"j": [
+"Articuler la citation et la question : expliciter civilité du corps, domestication, incorporation, et montrer comment les conceptions et l'organisation de l'EPS traduisent l'incorporation des valeurs dominantes",
+"Couvrir 1936 jusqu'à l'actualité, Front populaire et Vichy compris, avec des périodisations justifiées par des ruptures",
+"Erreurs fréquentes : confondre but et moyens (une pédagogie incitative ne supprime pas l'incorporation), réduire la citoyenneté à la civilité, anachronismes"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/01/rapport_2020_capeps_externe_eps.pdf"
+},
+{
+"id": "an46",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2020,
+"e": "e2",
+"t": "« Le conseil européen du 17 juin 2010 a réaffirmé l'enjeu pour les systèmes éducatifs européens : réduire le taux d'abandon scolaire, améliorer les niveaux d'éducation et favoriser l'inclusion sociale. » (Eduscol, Enjeux et objectifs de la lutte contre le décrochage en France et en Europe). Dans quelle mesure et comment l’enseignant d’EPS, à travers la conception de son enseignement et la régulation des processus d’apprentissage de ses élèves, peut contribuer à proposer des solutions pour sécuriser les parcours de formation des élèves du second degré ? Vous justifierez vos propositions et les illustrerez en vous appuyant, en tant que de besoin, sur les données contextuelles proposées en annexes.",
+"src": [
+"Sujet officiel ECE EPS 2 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/01/sujet_capeps_externe_ecrit2_2020.pdf"
+],
+"j": [
+"Analyser et relier « sécuriser », « parcours de formation », conception et régulation, puis répondre explicitement au « dans quelle mesure » (conditions, limites) et au « comment »",
+"Ne pas réduire la sécurisation à la réussite ou à la motivation, éviter les solutions « clés en main », questionner le décrochage",
+"Illustrer avec des situations variées (publics, contextes, champs d'apprentissage). Les annexes ne remplacent pas l'argumentation",
+"Voir l'élève comme acteur de son parcours, en lien avec l'équipe éducative"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/01/rapport_2020_capeps_externe_eps.pdf"
+},
+{
+"id": "an47",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2020,
+"e": "ei",
+"t": "Dans le contexte de l’établissement proposé en annexe et en référence aux programmes d’EPS, montrez en quoi et comment l’enseignement de l’EPS permet aux élèves d’atteindre les attendus des programmes ? Vous ferez émerger les enjeux proposés par le sujet, vous concevrez des propositions d’action et vous terminerez par un bilan prospectif.",
+"src": [
+"Sujet officiel 2020 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/01/sujet_capeps_interne_2020.pdf"
+],
+"j": [
+"Propositions situées, réalisables et systémiques, reliant besoins des élèves, attendus (AFC, AFL, AFLP) et choix collectifs de l’équipe",
+"Erreur fréquente : décrire une situation sans montrer comment elle mène aux attendus (saut « magique »)",
+"Introduction trop longue et priorités annoncées puis absentes des propositions : pénalisées",
+"Moyenne 10,29"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/01/rapport_2020_capeps_interne_eps.pdf"
+},
+{
+"id": "an48",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2020,
+"e": "e1",
+"t": "Extrait : « J'ai tenté de montrer que le sport, par l'attrait qu'il exerce (il est très différent, en cela, de l'éducation physique), constitue un puissant moyen d'action. Il offre ce dilemme à l'éducateur : servir la jeunesse, ou l'asservir. […] » (Georges Magnane, Sociologie du sport, Paris, Gallimard, coll. « idées », 1964, p. 135). Consigne : « En vous appuyant sur ces propos, vous analyserez l'évolution des réformes disciplinaires en éducation physique depuis 1964. »",
+"src": [
+"Rapport du jury 2020 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/6911/download"
+],
+"j": [
+"Situer Magnane (trajectoire, œuvre) et périodiser l'évolution des réformes de 1964 à aujourd'hui",
+"Erreurs : auteur méconnu, citation peu exploitée, notions d'humanisme et d'« animalisme » mal définies",
+"Analyser l'attrait du sport, sa fonction éducative, la responsabilité de l'enseignant et les débats récents (2S2C, sections sportives)",
+"Introduction de plus d'un quart de la copie et conclusion-résumé sanctionnées"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/6911/download"
+},
+{
+"id": "an49",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2020,
+"e": "e2",
+"t": "Citation : « Les expériences motrices des élèves et les significations qu'ils leur attribuent constituent la base de l'apprentissage et s'accompagnent de connaissances sur soi et sur ses actions. » (Huet, B. et Gal-Petitfaux, N. (2011). L'inscription corporelle de l'expérience en EPS. In Benoît Huet et Nathalie Gal-Petitfaux, L'expérience corporelle. Paris : revue EPS, p. 63). Consigne : « Discutez et illustrez. »",
+"src": [
+"Rapport du jury 2020 (devenirenseignant)",
+"https://devenirenseignant.gouv.fr/media/6911/download"
+],
+"j": [
+"Trois blocs à définir et à traiter sans substitution de termes : expériences et significations, base de l'apprentissage, connaissances sur soi et sur ses actions",
+"Discuter = thèses contradictoires, nuances et limites ; illustrer = mises en œuvre concrètes et explicitées, pas de simples descriptions de dispositifs",
+"Démontrer les relations avec des cadres maîtrisés (action située, cognitivisme, énaction) ; catalogues de références et illustrations standardisées déplorés"
+],
+"ju": "https://devenirenseignant.gouv.fr/media/6911/download"
+},
+{
+"id": "an50",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2020,
+"e": "e1",
+"t": "« L’élève fait du sport avec un « prof de gym » qui dit faire de l’EPS »¹ [¹ Alain Hébrard, doyen du groupe EPS de l’Inspection générale de l’éducation nationale, in revue EPS n°312 Mars-Avril 2005]. Commentez cette citation au regard des évolutions de la leçon d’EPS depuis 1967.",
+"src": [
+"Sujet officiel 2020 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/01/sujet_agregation_interne_ecrit1_2020.pdf"
+],
+"j": [
+"Dégager les idées-forces de la citation (écart entre le dire et le faire, relation élève-enseignant, etc.) et les relier explicitement à l’évolution de la leçon",
+"Erreurs : histoire générique de la discipline, une seule idée-force exploitée, plans trop fermés",
+"Attendus : prescrit et réel, coexistence de plusieurs leçons à une même période, chocs générationnels d’enseignants, programmes récents",
+"Moyenne 7,92"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/01/rapport_2020_agregation_interne_eps.pdf"
+},
+{
+"id": "an51",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2020,
+"e": "e2",
+"t": "Pourquoi et comment évaluer les élèves en éducation physique et sportive dans le contexte précis de l’établissement décrit en annexe ? Vous illustrerez vos propositions avec des exemples de mises en œuvre dans les classes présentées et en vous aidant des documents rassemblés dans l’annexe C.",
+"src": [
+"Sujet officiel 2020 (copie SNEP-FSU)",
+"https://lesite.snepfsu.fr/wp-content/uploads/2021/01/sujet_agregation_interne_ecrit2_2020.pdf"
+],
+"j": [
+"Démonstration située (REP+), cultivée et lucide sur les effets réels de l’évaluation ; penser le « pourquoi » avant ou avec le « comment »",
+"Erreurs : « pourquoi » et « comment » juxtaposés, contexte « picoré », propositions génériques ou « magiques », socle commun absent",
+"Notions : fonctions de l’évaluation, évaluer les apprentissages / évaluer pour apprendre / apprendre à évaluer, évaluation sans note",
+"Moyenne 8,35"
+],
+"ju": "https://lesite.snepfsu.fr/wp-content/uploads/2021/01/rapport_2020_agregation_interne_eps.pdf"
+},
+{
+"id": "an52",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2019,
+"e": "e1",
+"t": "« Soucieux d'équité, tiraillés par la question des inégalités de potentiel et de développement des adolescents, les enseignants d'EPS ont relativisé l'usage de leurs chronomètres et de leurs décamètres. L'évaluation des seules performances révélait une injustice profonde par sa référence à des facteurs biologiques, physiologiques, génétiques, inégalement répartis entre les individus » (Cécile Vigneron, Revue française de pédagogie n°154, janvier-mars 2006, p. 111). En quoi les réflexions autour de l'évaluation, synthétisées ici par Cécile Vigneron, accompagnent-elles une transformation du regard que l'enseignant en EPS, porte sur l'élève sous la 5e République ? (libellé à vérifier)",
+"src": [
+"Sujet officiel écrit 1 (archives SNEP-FSU) et rapport de jury",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_externe_ecrit1_2019.pdf"
+],
+"j": [
+"Respecter la période : de la Ve République (1958) à aujourd'hui. Les erreurs de bornes sont lourdement sanctionnées",
+"Répondre au « en quoi » sans inverser le sens : démontrer le lien entre évaluation et transformation du regard, pas seulement l'affirmer",
+"Définir l'évaluation (diagnostique, formative, formatrice, sommative) et distinguer enseignants innovants et dominants",
+"Périodes souvent négligées : années 1980 (réforme du bac 1983) et années 2000"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_capeps_externe_eps.pdf"
+},
+{
+"id": "an53",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2019,
+"e": "e2",
+"t": "« Pistes de réflexion pour les différents acteurs de la société apprenante : Proposition pour les professeurs : créer des écosystèmes apprenants dans votre classe, pour permettre que les apprentissages des uns favorisent ceux des autres, par exemple en invitant à la coopération entre pairs et en créant du mentorat (1) entre apprenants… » (1) Mentor : « Qui oriente et accompagne, avec sollicitude et bienveillance, le cheminement de l'apprenant et l'aide à progresser ». Les grands axes du rapport ministériel : « Vers une société apprenante », François Taddei, Catherine Becchetti-Bizot, Guillaume Houzel, Ministère de l'éducation nationale, de l'enseignement supérieur et de la recherche, Mars 2017, p. 7. En quoi et comment la mise en œuvre de dispositifs permettant la coopération pourrait favoriser la régulation des apprentissages pour tous les élèves en EPS et contribuer à enrichir leurs parcours de formation tout au long de leur scolarité ? Vous justifierez vos propositions et les illustrerez en vous appuyant en tant que de besoin sur les données contextuelles proposées en annexes.",
+"src": [
+"Sujet officiel écrit 2 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_externe_ecrit2_2019.pdf"
+],
+"j": [
+"Analyser chaque terme (coopération, régulation des apprentissages, tous les élèves, parcours de formation) et les tensions entre eux, pas séparément",
+"Proposer des dispositifs précis et justifiés (groupements, tutorat, outils pour les élèves), adaptés à la diversité des élèves",
+"Ne pas supposer que la coopération produit mécaniquement des apprentissages. Éviter les catalogues et les plans standardisés",
+"S'appuyer sur des références à jour (recherche STAPS, sciences de l'éducation) et sur les textes officiels"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_capeps_externe_eps.pdf"
+},
+{
+"id": "an54",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2019,
+"e": "ei",
+"t": "En quoi et comment un enseignant d’EPS peut-il gérer l’hétérogénéité des élèves dans ce lycée et construire une culture commune en EPS ? En vous appuyant sur les documents fournis, vous ferez émerger les enjeux proposés par le sujet, vous concevrez des propositions d’action et vous terminerez par un bilan prospectif.",
+"src": [
+"Sujet officiel 2019 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_interne_2019.pdf"
+],
+"j": [
+"Définir hétérogénéité et culture commune et interroger le lien entre les deux, avec appui constant sur le contexte",
+"Propositions détaillées (pourquoi, comment, rôle de l’enseignant), qui débordent la classe (établissement, AS)",
+"Erreurs : une seule notion traitée, propositions plaquées, bilan qui résume sans ouvrir",
+"Moyenne 10,34"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_capeps_interne_eps.pdf"
+},
+{
+"id": "an55",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2019,
+"e": "e1",
+"t": "Extrait commençant par : « Une position critique ne peut se greffer que sur une pratique effective. Pratique et critique supposent une dé- et re- construction constantes des activités sportives existantes […] » (Claude Pujade-Renaud, « Conclusion », Questions-réponses sur l'éducation physique et sportive, Paris, ESF, coll. « Science de l'éducation », 1979 (3e édition, 1re édition en 1977), p. 172). Consigne : « En vous appuyant sur les propos de Claude Pujade-Renaud, vous analyserez l'évolution des réformes de l'éducation physique depuis 1967, notamment dans son rapport aux types et modalités de pratiques en usage dans la société française. »",
+"src": [
+"Rapport du jury 2019 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_externe_eps.pdf"
+],
+"j": [
+"Analyser la citation dès l'introduction et l'exploiter dans toute la copie, pas comme simple illustration",
+"Trajectoire de Pujade-Renaud mal connue de la majorité des candidats",
+"Justifier les bornes chronologiques par le sujet, pas par des découpages tout faits",
+"Introduction d'un quart de la copie au maximum"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_externe_eps.pdf"
+},
+{
+"id": "an56",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2019,
+"e": "e2",
+"t": "« Dans quelle mesure l'enseignant d'EPS peut-il favoriser les apprentissages techniques des élèves afin de développer des compétences et construire une culture commune ? »",
+"src": [
+"Rapport du jury 2019 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_externe_eps.pdf"
+],
+"j": [
+"Traiter les trois notions, y compris la culture commune, peu investie",
+"Démontrer les relations par des connaissances scientifiques, pas seulement les suggérer",
+"Éviter les réductions : technique ≠ geste, compétence ≠ motricité seule, culture ≠ culture de l'APSA"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_externe_eps.pdf"
+},
+{
+"id": "an57",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2019,
+"e": "e1",
+"t": "Evolution de la place du corps et de ses représentations dans la société française, au sein de l’Ecole et de l’EPS de 1967 à nos jours : caractérisez les principales mutations en discutant leur influence sur les pratiques enseignantes.",
+"src": [
+"Sujet officiel 2019 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_agregation_interne_ecrit1_2019.pdf"
+],
+"j": [
+"Traiter tout le libellé : caractériser les mutations PUIS discuter leur influence, sur trois niveaux (société, École, EPS)",
+"Indicateurs d’analyse attendus (méthodes, contenus, évaluation) ; influence à discuter, pas à postuler",
+"Erreurs : récitation de l’histoire de l’EPS, adjectifs du corps non expliqués, références approximatives ; période récente à traiter",
+"Moyenne 6,51/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_interne_eps.pdf"
+},
+{
+"id": "an58",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2019,
+"e": "e2",
+"t": "Discutez de la place, du rôle et des formes du travail personnel de l’élève en EPS à travers les notions : d’activité chez l’élève, de mise en activité de l’élève et d’acquisition de connaissances et de compétences. Vous montrerez comment l’enseignant d’EPS doit questionner la notion de travail personnel dans le but d’accroître la réussite des élèves. Vous justifierez les fondements de vos choix et leur pertinence dans le contexte de l’établissement retenu et de l’ensemble des documents fournis. Vous illustrerez en décrivant des situations concrètes d’apprentissage en crescendo d’exigence, sur deux niveaux de classe dans au moins deux champs d’apprentissage ou deux compétences propres à l’EPS.",
+"src": [
+"Sujet officiel 2019 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_agregation_interne_ecrit2_2019.pdf"
+],
+"j": [
+"Distinguer activité de l’élève, mise en activité et acquisition de connaissances et compétences",
+"Diagnostiquer le contexte à partir du dossier et de l’iconographie ; situations progressives sur deux niveaux de classe",
+"Erreurs : mise en activité globale prise pour une activité cognitive ou motrice, glissement vers l’activité de l’enseignant",
+"Moyenne 5,77/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2019_agregation_interne_eps.pdf"
+},
+{
+"id": "an59",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2018,
+"e": "e1",
+"t": "« Le sport scolaire est une des composantes de la politique éducative de notre pays, au service de la réussite, de la responsabilisation, de la santé et du bien-être des élèves … En complément de l'enseignement de l'éducation physique et sportive, il offre à tous les élèves volontaires la possibilité de pratiquer des activités physiques et sportives dans le cadre de l'association sportive scolaire » Extrait du Rapport parlementaire établi par Robert Lecou, « Le sport à l'école et le sport scolaire », février 2012. Cette affirmation est-elle selon vous le résultat d'une évolution lente et continue du sport scolaire ou l'expression de ruptures successives ? Vous situerez votre réflexion de 1960 à nos jours.",
+"src": [
+"Sujet officiel écrit 1 (archives SNEP-FSU) et rapport de jury",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_externe_ecrit1_2018.pdf"
+],
+"j": [
+"Trancher entre continuité et ruptures en mettant en tension sport scolaire et politiques éducatives. Mobiliser réussite, responsabilisation, santé, bien-être",
+"Un choix argumenté vaut mieux qu'une couverture exhaustive. Le découpage classique années 1960-1980 et les plans en deux parties non justifiés sont jugés peu adaptés",
+"Erreurs fréquentes : confondre sport scolaire, UNSS, ASSU et EPS, définitions insuffisantes (santé, bien-être), glisser vers les conditions d'apprentissage de l'écrit 2",
+"Distinguer les acteurs (qui parle, d'où, pour qui) et adopter une position critique argumentée"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2018_capeps_externe_eps.pdf"
+},
+{
+"id": "an60",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2018,
+"e": "e2",
+"t": "« Si la nécessité de faire bouger les enfants et les adolescents est désormais reconnue, les moyens d'y parvenir restent à développer. Chez l'enfant comme chez l'adulte, la pratique régulière d'une activité physique, favorise le maintien ou l'amélioration de la forme physique, procure des bénéfices sur le plan psychologique et social et a un effet favorable sur plusieurs aspects de la santé… La pratique régulière d'activité physique pendant l'enfance et l'adolescence dépasse ses effets immédiats sur la santé, pour au moins deux raisons : pratiquée avec plaisir, elle prédit le niveau de pratique d'activité physique du futur adulte ; nombre de bienfaits de l'activité physique pratiquée pendant l'enfance se prolongent jusqu'à l'âge adulte, indépendamment du degré d'activité de ce dernier. …Plus largement, la pratique d'activités physiques favorise la cohésion et l'intégration sociale dès lors qu'elles sont organisées dans un cadre facilitant l'accès à tous et la mixité des publics. En favorisant la concentration et la confiance en soi, elles pourraient, de plus, contribuer à de meilleurs résultats scolaires. » Etude de l'institut national de prévention et d'éducation pour la santé (INPES), « Promouvoir l'activité physique des jeunes », 2011. L'EPS actuellement enseignée au lycée prépare-t-elle suffisamment les lycéens à poursuivre une activité physique régulière, dont nous connaissons tous les bénéfices, quelle que soit la situation dans laquelle ils vont se retrouver après leurs études secondaires ? A partir d'exemples concrets, vous justifierez votre prise de position et illustrerez vos propositions en vous appuyant, en tant que de besoin, sur les données contextuelles proposées en annexe.",
+"src": [
+"Sujet officiel écrit 2 (archives SNEP-FSU) et rapport de jury",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_externe_ecrit2_2018.pdf"
+],
+"j": [
+"Prendre position sur le caractère suffisant de la préparation en analysant « suffisamment », « régulière », « préparer à » et « quelle que soit la situation »",
+"Notions attendues : temporalités court/moyen/long terme, bénéfices immédiats et différés, habitus santé et sédentarité, écarts filles/garçons, liaison collège-lycée, diversité des filières LGT/LP",
+"Erreurs : termes du libellé survolés, introduction démesurée, références plaquées ou citations imprécises",
+"Exemples ancrés dans les compétences propres, méthodologiques et sociales et dans les données contextuelles, avec les limites des propositions"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2018_capeps_externe_eps.pdf"
+},
+{
+"id": "an61",
+"f": "cint",
+"co": "CAPEPS interne",
+"y": 2018,
+"e": "ei",
+"t": "La circulaire de rentrée 2017¹ souligne que les profondes évolutions du collège lui permettent de mieux remplir ses missions notamment « accompagner tous les élèves pour leur réussite scolaire et préparer les élèves à devenir des citoyens engagés et responsables ». [¹ Circulaire n° 2017-045 du 9-3-2017 MENESR - DGESCO]. En quoi et comment les choix pédagogiques et didactiques de l’enseignant d’EPS, en EPS et dans le cadre de l’association sportive de l’établissement, peuvent-ils prendre en compte cette affirmation ? En vous appuyant sur les documents fournis vous ferez émerger les enjeux proposés par le sujet, vous concevrez des propositions d’action et vous terminerez par un bilan prospectif.",
+"src": [
+"Sujet officiel 2018 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/sujet_capeps_interne_2018.pdf"
+],
+"j": [
+"Croiser l’analyse des termes (réussite scolaire, citoyenneté) avec des éléments précis du contexte ; enjeux argumentés",
+"Au moins deux propositions développées, reliées au sujet, montrant le rôle de l’enseignant et la diversité des élèves ; AS à évoquer",
+"Bilan prospectif : synthèse et ouverture, pas un résumé ; erreurs : liens laissés au lecteur, schémas non expliqués"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2018_capeps_interne_eps.pdf"
+},
+{
+"id": "an62",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2018,
+"e": "e1",
+"t": "Extrait commençant par : « Les études d'éducation physique sont marginales ; elles sont aussi très “techniques” et n'ont pas pour l'instant de statut universitaire véritable. […] » (Paul Irlinger et Georges Vigarello, « La formation des enseignants », Revue Esprit, n° 5, mai 1975, p. 687). Consigne : « En vous appuyant sur ces propos, vous analyserez l'évolution des contenus dans la formation des enseignants d'éducation physique depuis 1933. »",
+"src": [
+"Rapport du jury 2018 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/externe/54/8/rj-2018-agregation-externe-eps_995548.pdf"
+],
+"j": [
+"Dépasser la succession chronologique pour dégager continuités, filiations et ruptures",
+"Trois idées à tirer du texte : un cursus spécialisé et non universitaire, l'équilibre techniques sportives / discours scientifique, la tension terrain / théorie",
+"Repères : de l'ENEP aux STAPS, CAPEPS, agrégation, formation initiale et continue, dimension genrée",
+"Plans détaillés, copies inachevées et citations mal attribuées sanctionnés"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/externe/54/8/rj-2018-agregation-externe-eps_995548.pdf"
+},
+{
+"id": "an63",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2018,
+"e": "e2",
+"t": "« À quelles conditions les efforts et les performances des élèves en éducation physique et sportive peuvent-ils s'accompagner du développement de compétences et d'une culture spécifique ? »",
+"src": [
+"Rapport du jury 2018 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/externe/54/8/rj-2018-agregation-externe-eps_995548.pdf"
+],
+"j": [
+"Démontrer la relation entre les deux blocs (efforts et performances / compétences et culture) en identifiant les conditions et leurs limites",
+"Définir chaque notion : effort physiologique et psychologique, performance comme résultat situé, compétence, culture scolaire et culture sportive",
+"Erreurs : effort réduit au physique, confusion effort / performance / compétence, culture réduite à une liste de techniques, références plaquées"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/externe/54/8/rj-2018-agregation-externe-eps_995548.pdf"
+},
+{
+"id": "an64",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2018,
+"e": "e1",
+"t": "L’enseignement de l’EPS et l’apport des outils techniques et pédagogiques : vous discuterez leur contribution à l’évolution des pratiques professionnelles au service de la discipline et des élèves de 1967 à nos jours.",
+"src": [
+"Bernard Lefort (recoupé avec le rapport 2018)",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Définir les « outils » à partir des adjectifs « techniques » et « pédagogiques » ; le verbe « discuter » est central",
+"Erreurs : tout appeler « outil » (textes, concepts, méthodes), opposition caricaturale techniciens/pédagogues, contribution supposée toujours positive",
+"Pratiques professionnelles au sens large, pas seulement la leçon ; le chronomètre comme fil conducteur (contrôle ou aide à l’apprentissage)",
+"Moyenne 6,60/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2018_agregation_interne_eps.pdf"
+},
+{
+"id": "an65",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2018,
+"e": "e2",
+"t": "L’apprentissage en EPS et la question du temps. En vous appuyant sur le dossier d’établissement et les images, fournis en annexe, vous proposerez vos analyses sur la question des liens entre « temps » et « apprentissage » en EPS. Vous montrerez comment vous traitez cette question en lycée professionnel pour favoriser les acquisitions des élèves, selon les textes en vigueur, à l’aide d’exemples dans deux APSA relevant de deux compétences propres à l’EPS différentes.",
+"src": [
+"Bernard Lefort + rapport 2018",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Distinguer apprentissage et acquisitions ; utiliser plusieurs dimensions du temps (temps requis/offert, augmenté ou réduit)",
+"Exploiter l’annexe sur les PFMP (parcours discontinu en lycée pro) ; erreur fréquente : l’ignorer",
+"Erreurs : temps réduit à la chronologie, images juste illustratives, « magie de la tâche », programmes de 2010",
+"Moyenne 6,01/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2018_agregation_interne_eps.pdf"
+},
+{
+"id": "an66",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2017,
+"e": "e1",
+"t": "« Les disciplines, au-delà de leur ancrage historique et de leurs finalités pédagogiques propres, souffrent toujours de cet écart entre les programmes tels qu'ils sont prévus, les cours qui sont enseignés et ce qui est, au bout du compte, véritablement appris par les élèves. C'est pourquoi, on ne parle plus seulement aujourd'hui de « programmes » mais plus largement de « curriculum », en prenant en compte non seulement les connaissances transmises par l'enseignant mais l'appropriation de celles-ci par les élèves, ce qu'on appelle les compétences. En ce sens, les programmes concernent aussi la place et la réussite des élèves à l'école, ainsi que les modes d'évaluation puisqu'il ne s'agit plus seulement de demander aux enseignants de se conformer à une liste de prescriptions, mais de viser l'acquisition de compétences par les élèves qui leur sont confiés. Le véritable enjeu de la transmission est de donner la possibilité aux élèves de s'approprier les savoirs dispensés, et c'est bien l'objectif du socle commun qui identifie les connaissances et compétences qui doivent être acquises à l'issue de la scolarité obligatoire ». (Terra Nova, « Que doit-on apprendre à l'école ? », 27 mai 2016). Vous discuterez cette prise de position, en fin d'extrait, et vous montrerez dans quelle mesure les enseignants d'EPS ont pu répondre à cet enjeu depuis 1945.",
+"src": [
+"Rapport du jury 2017 (le sujet PDF est un scan illisible)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_capeps_externe_eps.pdf"
+],
+"j": [
+"Double consigne : démontrer (« vous montrerez ») et discuter avec des éléments contradictoires (« vous discuterez »)",
+"Mettre en tension appropriation, transmission, savoir et enjeu plutôt que raisonner de façon déductive",
+"Couvrir toute la période depuis 1945 avec des repères précis et une lecture dialectique École-EPS",
+"Erreurs : copies descriptives, arrêt aux années 1980, glisser de « a pu répondre » à « a dû répondre ». Orthographe et syntaxe : jusqu'à 3 points en moins"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_capeps_externe_eps.pdf"
+},
+{
+"id": "an67",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2017,
+"e": "e2",
+"t": "« Dans une approche globale, la réforme du collège, qui entrera en vigueur à la rentrée 2016, agit sur tous les leviers pédagogiques pour améliorer la réussite des apprentissages de tous les élèves et leur permettre d'atteindre, au meilleur niveau possible, la maîtrise du socle commun de connaissances, de compétences et de culture. » Circulaire de rentrée, bulletin officiel du 14 avril 2016. Afin de contribuer à ce double objectif, quels savoirs professionnels l'enseignant d'EPS peut-il mobiliser aujourd'hui pour permettre à l'élève de surmonter ses difficultés en EPS ? À partir d'exemples concrets, vous justifierez et illustrerez vos propositions en vous appuyant notamment sur l'analyse des données contextuelles proposées en annexe.",
+"src": [
+"Rapport du jury 2017 (le sujet PDF est un scan illisible)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_capeps_externe_eps.pdf"
+],
+"j": [
+"Mettre en tension trois blocs : savoirs professionnels, double objectif (réussite des apprentissages et socle), difficultés à surmonter. « Surmonter » ne veut pas dire éviter ou pallier",
+"Préciser les savoirs professionnels propres à l'EPS et les justifier avec les données macro, méso et micro des annexes",
+"Références précises (au moins auteur et année) au service de l'argumentation. Un plan séquentiel avant/pendant/après est insuffisant",
+"Interroger les enjeux et les limites de la contribution au socle au lieu de la traiter comme une évidence"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_capeps_externe_eps.pdf"
+},
+{
+"id": "an68",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2017,
+"e": "e1",
+"t": "Extrait commençant par : « Mais n'est-ce pas une idée un peu simpliste que d'attribuer une fois pour toutes la Grâce à la Femme et la Force à l'Homme sans songer à tenir compte des différences individuelles ? […] » (Claude Magnin, « Doit-on parler d'éducation physique féminine ? », Revue EP.S, n° 10, avril 1952, p. 23). Consigne : « En vous appuyant sur les propos de ce professeur, vous montrerez dans quelle mesure l'éducation physique, au cours de son évolution, a permis de prendre en compte les différences interindividuelles. »",
+"src": [
+"Rapport du jury 2017 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/ext/82/8/rj-2017-agregation-externe-eps_818828.pdf"
+],
+"j": [
+"Analyser et situer la citation dès l'introduction, puis la mobiliser tout au long du devoir",
+"Qualifier la « prise en compte » des différences (sexuées, socioculturelles, motrices) à l'aide d'indicateurs et des réformes (1945, 1985…)",
+"Erreurs : histoire « hors sol » qui ignore l'architecture scolaire, Vichy traité de façon elliptique, contextualisation décorative",
+"Couvrir toute la période de 1918 à nos jours de façon homogène, avec une historiographie récente"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/ext/82/8/rj-2017-agregation-externe-eps_818828.pdf"
+},
+{
+"id": "an69",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2017,
+"e": "e2",
+"t": "Citation : « Lors des trois ans de collège du cycle 4, les élèves, qui sont aussi des adolescentes et des adolescents en pleine évolution physique et psychique, vivent un nouveau rapport à eux-mêmes, en particulier à leur corps, et de nouvelles relations avec les autres » (Programme cycle 4, Bulletin Officiel du 26 novembre 2015). Consigne : « Dans quelle mesure l'enseignant d'Éducation Physique et Sportive peut-il offrir conjointement aux adolescents la possibilité de s'épanouir personnellement et de développer leur sociabilité ? »",
+"src": [
+"Rapport du jury 2017 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/ext/82/8/rj-2017-agregation-externe-eps_818828.pdf"
+],
+"j": [
+"Examiner la nature des relations entre les deux visées (indépendance, causalité, réciprocité, inclusion) et chercher un optimum de contribution conjointe",
+"Conceptualiser épanouissement personnel et sociabilité avec des auteurs de référence, situés dans l'adolescence et le cycle 4",
+"Erreurs : tensions évoquées puis écartées, typologies toutes faites, illustrations isolées sans continuité sur le cycle"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/ext/82/8/rj-2017-agregation-externe-eps_818828.pdf"
+},
+{
+"id": "an70",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2017,
+"e": "e1",
+"t": "En mettant en évidence l’évolution des classifications des pratiques physiques retenues en EPS dans les textes officiels de 1967 à nos jours, vous montrerez pour quelles raisons, dans quelle mesure et pour quelles conséquences, elle a provoqué un changement de référence dans les rapports entre l’élève, l’enseignant, l’école et les pratiques physiques extra-scolaires.",
+"src": [
+"Bernard Lefort + rapport 2017",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Articuler les deux blocs (classifications ; rapports élève-enseignant-école-pratiques extra-scolaires) et traiter les trois questions, surtout « dans quelle mesure »",
+"Problématique sous forme d’hypothèse explicative, pas une paraphrase",
+"Erreurs : récit en « âges » successifs, inventaire descriptif des classifications, explication tautologique par la « légitimité scolaire »",
+"Moyenne 7,25/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_agregation_interne_eps.pdf"
+},
+{
+"id": "an71",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2017,
+"e": "e2",
+"t": "L’éternel débutant en Education Physique et Sportive : entre déterminants personnels et sociaux chez l’élève et responsabilité d’un processus de formation. Vous mettrez en évidence les principaux fondements scientifiques des processus qui selon vous sont impliqués dans ce problème d’apprentissage en EPS, mais également les connaissances empiriques et vos choix axiologiques qui sous-tendent votre position professionnelle. Vous montrerez comment dans un contexte de continuité entre les deux établissements du même secteur retenus dans ce dossier, après avoir identifié vos choix personnels, vous envisagez de présenter une programmation et une planification des acquisitions respectueuses des programmes en vigueur à la rentrée 2016 pour lutter contre cette forme d’échec scolaire en EPS : l’éternel débutant. Vous illustrerez vos hypothèses dans deux champs d’apprentissage ou compétences propres [à] l’EPS conduits en parallèle et dans la continuité du curriculum de formation, en mettant en avant les leviers d’action, les étapes et quelques situations d’apprentissage qui témoignent de vos choix. (libellé à vérifier)",
+"src": [
+"Bernard Lefort (sujet officiel en image)",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Exploiter tout le dossier : contextes collège et lycée, deux photographies de lancer de javelot",
+"Définir l’éternel débutant dans ses dimensions motrice, méthodologique et sociale ; projet cohérent en continuité collège-lycée",
+"Erreurs : photos ignorées, définition réduite à l’échec scolaire, propositions « magiques », pas de continuité",
+"Moyenne 6,80/20"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2017_agregation_interne_eps.pdf"
+},
+{
+"id": "an72",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2016,
+"e": "e1",
+"t": "« La mixité sociale est un avantage pour tous les élèves sans exception » Nathalie MONS, présidente du conseil national de l'évaluation du système scolaire, octobre 2015. Vous discuterez cette affirmation et vous montrerez en quoi et dans quelle mesure, notamment depuis 1960, la question de la mixité des publics scolaires a dû être prise en compte par les professeurs d'éducation physique et sportive.",
+"src": [
+"Rapport du jury 2016 (sujet officiel sur cache.media.education.gouv.fr, bloqué aux robots)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_capeps_externe_eps.pdf"
+],
+"j": [
+"Discuter l'affirmation : partir de son acceptation puis montrer ses effets ambivalents (ségrégation, inégalités) et le rôle du travail éducatif",
+"Définir la mixité sociale, la situer par rapport aux autres mixités (pas seulement la mixité filles-garçons), distinguer les publics scolaires en diachronie et en synchronie",
+"Problématiser la borne « depuis 1960 » : genèse (Front populaire, Vichy, plan Langevin-Wallon) et réformes concrètes",
+"Relier aux repères propres à l'EPS (programmes, évaluation et certification, groupements, débats entre courants)"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_capeps_externe_eps.pdf"
+},
+{
+"id": "an73",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2016,
+"e": "e2",
+"t": "« En proposant une activité physique régulière, source de bien être, elle (l'EPS) favorise l'acquisition d'habitudes de pratiques nées souvent du plaisir éprouvé. » (Bulletin officiel spécial n° 6 du 28 août 2008). A quelles conditions la prise en compte des émotions peut-elle contribuer à favoriser les apprentissages en EPS, et leur réinvestissement en dehors de l'école ? Vous illustrerez vos propositions à partir d'exemples concrets relevant de deux compétences propres.",
+"src": [
+"Rapport du jury 2016 (sujet officiel sur cache.media.education.gouv.fr, bloqué aux robots)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_capeps_externe_eps.pdf"
+],
+"j": [
+"Ne pas réduire les émotions au plaisir : les voir positives et négatives, comme moteur ou comme frein",
+"Apprentissages moteurs mais aussi méthodologiques et sociaux, dans la durée. Le réinvestissement hors de l'école pose la question du transfert",
+"Répondre aux « conditions » par des éléments de stratégie d'enseignement nuancés, illustrés dans deux CP justifiées avec des exemples réalistes et variés",
+"Références complètes et à jour. Pas d'abréviations, de schémas ni de phrases sans verbe"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_capeps_externe_eps.pdf"
+},
+{
+"id": "an74",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2016,
+"e": "e1",
+"t": "Extrait : « Les sports collectifs, forme supérieure du jeu, se proposent d'agir autant sur le caractère que sur le corps de l'enfant. […] Exaltation de la personnalité d'une part, soumission de l'individu au profit de l'équipe d'autre part, voilà en quoi diffèrent les sports individuels et collectifs » (Maurice Baquet, Précis d'initiation sportive, Bourrelier, 3e édition, 1950). Consigne : « Selon vous, en quoi ces propos sont-ils révélateurs des enjeux et des usages des sports collectifs dans la construction des savoirs en EPS de 1918 à nos jours ? »",
+"src": [
+"Rapport du jury 2016 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/externe/10/0/rj-2016-agregation-externe-eps_624100.pdf"
+],
+"j": [
+"Partir du texte : socialisation, conception moniste, classifications, rapport garçons / filles, apprentissage ; situer l'auteur et l'ouvrage",
+"Distinguer enjeux et usages (au moins deux de chaque) et les relier à la construction des savoirs",
+"Erreurs : périodes passées sous silence (entre-deux-guerres, Vichy, années 1970), noms et dates erronés, références non lues",
+"Bornes justifiées ; s'appuyer sur des travaux de recherche plutôt que sur des ouvrages de synthèse"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/externe/10/0/rj-2016-agregation-externe-eps_624100.pdf"
+},
+{
+"id": "an75",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2016,
+"e": "e2",
+"t": "Citation : « Parmi les disciplines scolaires, l'EPS est l'unique garante pour les élèves d'un engagement corporel. Pour nombre d'entre eux, elle représente le seul moment d'activité physique et pour tous, elle doit apporter des connaissances, des capacités et des attitudes leur permettant de construire puis d'entretenir tout au long de la vie, leur habitus santé. » Consigne : « Discuter cet extrait des programmes de l'EPS au lycée général et technologique. »",
+"src": [
+"Rapport du jury 2016 (devenirenseignant)",
+"https://media.devenirenseignant.gouv.fr/file/externe/10/0/rj-2016-agregation-externe-eps_624100.pdf"
+],
+"j": [
+"Discuter, et non illustrer : examiner, nuancer ou contester les affirmations au lieu de les tenir pour évidentes",
+"Engagement corporel ≠ physiologie de l'effort ou motivation ; l'habitus santé appelle une analyse sociologique (Bourdieu)",
+"Des sources de première main et récentes ; distinguer connaissance scientifique et intention pédagogique"
+],
+"ju": "https://media.devenirenseignant.gouv.fr/file/externe/10/0/rj-2016-agregation-externe-eps_624100.pdf"
+},
+{
+"id": "an76",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2016,
+"e": "e1",
+"t": "Evolution des missions de l’enseignant d’EPS de 1958 à nos jours : étude de l’influence des conditions de formation initiale, des concours de recrutement et mise en évidence des conséquences sur la conception et la mise en œuvre de l’enseignement en EPS.",
+"src": [
+"Bernard Lefort + rapport 2016",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Relier les trois blocs (missions ; formation et concours ; conception et mise en œuvre) par des liens de causalité",
+"Erreurs : missions réduites à « éduquer, former, instruire » ou confondues avec celles de l’EPS, plan chronologique descriptif, période récente évasive",
+"Repères : IUFM puis ESPE et masterisation, référentiel 2013, décret 2014 sur les missions, réforme du collège 2016",
+"Moyenne 7,22"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_agregation_interne_eps.pdf"
+},
+{
+"id": "an77",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2016,
+"e": "e2",
+"t": "Dès cette rentrée scolaire 2015, un certain nombre de collèges expérimentent sous l’impulsion des autorités académiques, la mise en place entière ou partielle de ce qui est appelé « La réforme du collège » promulguée par le décret n° 2015-544 du 19-5-2015 et l’arrêté du 19-5-2015, en lien avec la publication du décret n° 2015-372 du 31-3-2015 relatif au nouveau « socle commun de connaissances de compétences et de culture ». Montrez en quoi et comment, dans le contexte de l’établissement pris en exemple et en référence aux programmes d’EPS actuels vous êtes en capacité de concevoir et mettre en œuvre une organisation des enseignements et des apprentissages en EPS non seulement favorables aux acquisitions visées par l’EPS mais à la réussite scolaire de l’élève. Vous justifierez le fondement de vos choix et détaillerez les procédures qui impactent le travail de l’enseignant et le travail de l’élève.",
+"src": [
+"Bernard Lefort + rapport 2016",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Organisation ancrée dans le collège du dossier (petit collège, SEGPA, résultats au DNB), en lien avec la réforme et le S4C",
+"Relier réussite en EPS et réussite scolaire, l’élève acteur de ses apprentissages",
+"Erreurs : « patchwork », situations « passe-partout », lien « magique » tâche-réussite, interdisciplinarité juxtaposée",
+"Moyenne 7,00"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2016_agregation_interne_eps.pdf"
+},
+{
+"id": "an78",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2015,
+"e": "e1",
+"t": "« Il n’y a pas de fatalité à ce que l’école soit la plus inégalitaire d’Europe. Je mettrai toute mon énergie à apporter des réponses aux élèves les plus fragiles. Car ce sont eux qui ont le plus besoin de l’école de la République. » (Extrait d’un discours de la ministre de l’éducation nationale, de l’enseignement supérieur et de la recherche, 23 septembre 2014). Dans quelle mesure, depuis la fin du XIXème siècle, cet engagement a pu être une préoccupation des enseignants d’EPS, soucieux de prendre en compte l’hétérogénéité des élèves tout en s’adaptant aux transformations scolaires. (libellé à vérifier)",
+"src": [
+"Rapport du jury 2015 (sujet officiel sur cache.media.education.gouv.fr, bloqué aux robots)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_capeps_externe_eps.pdf"
+],
+"j": [
+"Mettre en tension trois éléments (élèves fragiles, hétérogénéité, transformations scolaires) au lieu de traiter des « duos » ou de réciter un plan préétabli",
+"Définir et situer dans leur période la fragilité (physique, sociale, culturelle), l'hétérogénéité et les transformations scolaires, depuis la fin du XIXe siècle",
+"Le « dans quelle mesure » demande une analyse critique et nuancée, pas une adhésion automatique",
+"Forme : jusqu'à 3 points de pénalité. Absence de conclusion ou partie annoncée non traitée : copie déclassée"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_capeps_externe_eps.pdf"
+},
+{
+"id": "an79",
+"f": "cext",
+"co": "CAPEPS externe",
+"y": 2015,
+"e": "e2",
+"t": "« Au sein des disciplines d’enseignement, l’EPS occupe une place originale où le corps, la motricité, l’action et l’engagement de soi sont au cœur des apprentissages » (Bulletin officiel spécial n°6 du 28 août 2008). « Parmi les disciplines scolaires, l’EPS est l’unique garante pour les élèves d’un engagement corporel » (Bulletin officiel n°4 du 29 avril 2010). Vous montrerez comment, par la connaissance théorique et pratique des processus de planification et de régulation, l’enseignant d’EPS peut créer les conditions d’un engagement corporel efficace de ses élèves. Vous illustrerez vos propositions à partir d’exemples concrets relevant des compétences propres à l’EPS CP2 et CP5.",
+"src": [
+"Rapport du jury 2015 (sujet officiel sur cache.media.education.gouv.fr, bloqué aux robots)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_capeps_externe_eps.pdf"
+],
+"j": [
+"Analyser chaque terme du libellé (engagement corporel efficace, planification, régulation, processus, CP2/CP5), et pas seulement en introduction. L'efficacité est souvent oubliée",
+"Planification = phase préactive ; régulation = phases interactive et rétroactive. Approche dialectique tenant compte du temps",
+"Exemples réalistes dans des APSA de CP2 et CP5, pour plusieurs publics et niveaux (collège, lycée). Caricatures et propos discriminants sanctionnés",
+"Références précises et à jour. Approximations fréquentes sur les auteurs et les dates"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_capeps_externe_eps.pdf"
+},
+{
+"id": "an80",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2015,
+"e": "e1",
+"t": "« L'utilité sociale de l'EPS et du sport scolaire est une évidence » Discutez cette affirmation en vous appuyant sur la période de 1930 à nos jours.",
+"src": [
+"Rapport du jury 2015 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_externe_eps.pdf"
+],
+"j": [
+"Interroger l'« évidence » : pour quels acteurs elle va de soi (inspection, familles, syndicats, mouvement sportif), sans plaidoyer militant",
+"Distinguer l'EPS (enseignement obligatoire) et le sport scolaire (associatif, facultatif), leurs enjeux communs et leur interaction",
+"Définir l'utilité sociale et couvrir toute la période, y compris le Front populaire et Vichy",
+"Éviter les connaissances datées et une copie qui ressemble à un « CAPEPS bis »"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_externe_eps.pdf"
+},
+{
+"id": "an81",
+"f": "aext",
+"co": "Agrégation externe",
+"y": 2015,
+"e": "e2",
+"t": "« Lors du lancement de la conférence nationale sur l'évaluation des élèves, le 26 juin 2014, Benoit Hamon souligne la nécessité de faire évoluer en profondeur la manière d'évaluer. L'évaluation doit dire quelque chose. Elle doit être un outil de progrès pour les élèves et non un outil de relégation. Elle doit être un indicateur de ce qui est acquis et de ce qui ne l'est pas, et non un couperet séparant pour toujours les bons et les mauvais élèves. L'évaluation doit être plus ouverte à la progressivité des apprentissages des élèves. Il ne s'agit en aucun cas d'abaisser le niveau d'exigence mais de faire de l'évaluation une démarche, et non seulement une mesure, afin que l'élève se sente valorisé et encouragé à prendre confiance en ses capacités. Sur quelles connaissances s'appuyer et comment organiser l'enseignement de manière à répondre, en EPS, à cette attente de l'institution ? »",
+"src": [
+"Rapport du jury 2015 (archives SNEP-FSU)",
+"https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_externe_eps.pdf"
+],
+"j": [
+"Traiter tout le sujet : contexte, forme et destinataires du discours politique, puis prise de position ; ne pas se limiter à la question finale",
+"Une connaissance n'est pas un argument : articuler savoirs scientifiques, institutionnels et professionnels",
+"Penser l'évaluation à plusieurs échelles (leçon, cycle, cursus), avec des précautions sur l'auto- et la co-évaluation ; la situer dans les débats de 2014 et la loi de refondation"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_externe_eps.pdf"
+},
+{
+"id": "an82",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2015,
+"e": "e1",
+"t": "L’Education Physique et Sportive a-t-elle toujours utilisé le sport comme moyen d’éducation au cours de la Vème République ? Dans quelles perspectives doit-elle s’inscrire ? Les extraits de textes joints peuvent servir d’appui à votre réponse. [Extraits : IO de 1967 ; Y. Vargas, « Sport, crime et châtiment : la pureté de l’épure », Revue EPS n° 251, 1995 ; B. Jeu, symposium « Sport… le troisième millénaire », Québec, 1990 ; J. Ulmann, La pensée éducative, Vrin, 1982]",
+"src": [
+"Bernard Lefort + rapport 2015",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Définir « sport » dans sa pluralité et ses valeurs, interroger l’adverbe « toujours » et prendre position",
+"Question 2 : proposition personnelle sur l’avenir de la discipline, au-delà des seuls enjeux institutionnels",
+"Erreurs : copies descriptives, anachronismes, commentaire de texte des extraits (facultatifs)"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_interne_eps.pdf"
+},
+{
+"id": "an83",
+"f": "aint",
+"co": "Agrégation interne",
+"y": 2015,
+"e": "e2",
+"t": "« Promouvoir une école à la fois exigeante et bienveillante » constitue l’un des axes de la circulaire du 20-5-2014 concernant la préparation de la rentrée scolaire 2014. En quoi et comment l’enseignant d’Education Physique et Sportive peut-il prendre en compte cet objectif ? Vous construirez et vous illustrerez vos propositions à partir de connaissances scientifiques, institutionnelles, professionnelles et en prenant en compte le contexte particulier du collège proposé en annexe. (libellé à vérifier)",
+"src": [
+"Bernard Lefort + rapport 2015",
+"https://bernard-lefort-eps.fr/Sujets_concours/sujets-agregation-interne-eps.html"
+],
+"j": [
+"Définir « exigeante » et « bienveillante » et lire « à la fois » comme un équilibre dynamique ; articuler le « en quoi » et le « comment »",
+"Indicateurs du collège en éducation prioritaire (SEGPA, ULIS, DNB, AS) à utiliser dans tout le devoir",
+"Erreurs : « patchwork » de propositions, récit de pratique, élèves réduits à leur profil moteur"
+],
+"ju": "https://www.snepfsu.fr/archives/concours/docs/rapport/rapport_2015_agregation_interne_eps.pdf"
+}
+];
+
+const ANN_FAM = [["tous", "Tous les concours"], ["cext", "CAPEPS externe"], ["cint", "CAPEPS interne"], ["aext", "Agrégation externe"], ["aint", "Agrégation interne"]];
+const ANN_FAM_OF_CONC = { "capeps-l3": "cext", "capeps-m2": "cext", "capeps-3": "cext", "capeps-int": "cint", "agreg-ext": "aext", "agreg-int": "aint" };
+const an = { f: null, e: "tous", q: "" };
+const ANN_STOP = new Set("depuis comment entre leurs elles ainsi cette selon notamment contexte propos discutez vous vos votre analyserez montrerez illustrerez appuyant enseignant enseignants education physique sportive eleves eleve fin xixe siecle jours".split(" "));
+function annCards(a){
+  const words = Array.from(new Set(normTxt(a.t).split(/[^a-z0-9]+/).filter(w => w.length >= 6 && !ANN_STOP.has(w))));
+  const pool = BASE.filter(c => GROUP_OF[c.th] === "e1");
+  const scored = pool.map(c => { const h = normTxt(c.q + " " + c.a + " " + (c.x || "")); return [c, words.reduce((n, w) => n + (h.includes(w) ? 1 : 0), 0)]; })
+    .filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]).slice(0, 12).map(([c]) => c.id);
+  return scored;
+}
+function annSubject(a){
+  return { id: a.id, th: "T", t: a.t, c: annCards(a), axe: "Sujet d'annale", annale: true,
+    label: `Annale : ${a.co}, session ${a.y}, ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}` };
+}
+function annHTML(a){
+  const long = a.t.length > 420;
+  const ep = a.e === "e1" ? "Écrit 1" : a.e === "e2" ? "Écrit 2" : "Écrit";
+  return `<li class="ann">
+    <div class="ann-h"><span class="ann-y">${a.y}</span><span class="period">${esc(a.co)}</span><span class="ann-e">${ep}</span></div>
+    ${long ? `<p class="ann-t">${esc(a.t.slice(0, 380).replace(/\s+\S*$/, ""))}…</p><details class="ann-more"><summary>Lire le sujet complet</summary><p class="ann-t">${esc(a.t)}</p></details>` : `<p class="ann-t">${esc(a.t)}</p>`}
+    ${a.j.length ? `<details class="ann-jury"><summary>Ce que le jury a relevé (${a.j.length})</summary><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
+    <div class="ann-f"><a href="${esc(a.src[1])}" target="_blank" rel="noopener">Sujet</a>${a.ju ? `<a href="${esc(a.ju)}" target="_blank" rel="noopener">Rapport du jury</a>` : ""}${a.e === "e1" ? `<button class="btn small" data-annwork="${a.id}">M'entraîner sur ce sujet</button>` : ""}</div>
+  </li>`;
+}
+function renderAnnales(){
+  const el = $("#panel-annales"); if (!el) return;
+  if (an.f === null) an.f = ANN_FAM_OF_CONC[prefs.concours] || "tous";
+  const list = ANNALES.filter(a => (an.f === "tous" || a.f === an.f) && (an.e === "tous" || a.e === an.e || (an.e === "e1" && a.e === "ei"))
+    && (!an.q || normTxt(a.t + " " + a.j.join(" ") + " " + a.y).includes(normTxt(an.q))));
+  if (!document.getElementById("an-search")) {
+    el.innerHTML = `<div class="rf-bar"><label class="sr-only" for="an-search">Chercher dans les annales</label><input id="an-search" type="search" placeholder="Chercher un mot du sujet : effort, mixité, 1967…" autocomplete="off">
+      <div class="chips" id="an-fam"></div><div class="chips" id="an-ep"></div></div><p class="rf-count" id="an-count" aria-live="polite"></p><div id="an-list"></div>`;
+  }
+  $("#an-fam").innerHTML = ANN_FAM.map(([k, l]) => `<button class="chip" data-anf="${k}" aria-pressed="${k === an.f}">${esc(l)}</button>`).join("");
+  $("#an-ep").innerHTML = [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
+  $("#an-count").textContent = `${list.length} sujet${list.length > 1 ? "s" : ""}`;
+  const years = Array.from(new Set(list.map(a => a.y)));
+  $("#an-list").innerHTML = list.length ? years.map(y => `<div class="sect"><h3>Session ${y}</h3><ul class="ann-list">${list.filter(a => a.y === y).map(annHTML).join("")}</ul></div>`).join("")
+    : `<div class="empty"><h2>Aucun sujet trouvé.</h2><p>Change de concours ou d'écrit, ou cherche un autre mot.</p></div>`;
+}
+
 const fil = { cur: null };
 function renderFils(){
   const el = $("#panel-fils");
@@ -2736,14 +4356,15 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","stats","deck","add"];
+const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","stats","deck","add"];
 const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", stats: "suivi" };
 const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
-  sujets: "Tire un sujet d'entraînement, construis ton plan, puis vois les cartes qui peuvent l'alimenter."
+  sujets: "Tire un sujet d'entraînement, construis ton plan, puis vois les cartes qui peuvent l'alimenter.",
+  annales: "Les sujets officiels des écrits depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Les sujets d'histoire (écrit 1) servent aussi d'entraînement au plan, à l'introduction ou au paragraphe."
 };
 function setView(v, focus){
   const moved = SEC_OF[v] !== SEC_OF[view];
@@ -2767,6 +4388,7 @@ function render(focusActions){
   if (view === "fils") renderFils();
   if (view === "concours") renderConcours();
   if (view === "refs") renderRefs();
+  if (view === "annales") renderAnnales();
   if (view === "add") { const t = $("#tab-deck"); if (t) { t.setAttribute("aria-selected", "true"); t.tabIndex = 0; } }
   if (view === "frise") renderFrise();
   if (view === "qui") renderQui();
@@ -2789,6 +4411,9 @@ document.addEventListener("click", e => {
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.anf) { an.f = d.anf; renderAnnales(); const b = document.querySelector(`[data-anf="${d.anf}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.annwork) { const a = ANNALES.find(x => x.id === d.annwork); if (a) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.cur = annSubject(a); sj.shown = false; if (sj.mode !== "intro" && sj.mode !== "para") sj.mode = "plan"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.rfg) { rf.g = d.rfg; renderRefs(); const b = document.querySelector(`[data-rfg="${d.rfg}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.refcopy) { const r = REFS.find(x => x.id === d.refcopy); if (r) { try { navigator.clipboard.writeText(refCite(r)).then(() => toast("Référence copiée."), () => toast("Copie impossible : sélectionne le texte.")); } catch (err) { toast("Copie impossible : sélectionne le texte."); } } return; }
   if (d.act === "home-refs") { setView("refs"); return; }
@@ -2851,6 +4476,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("input", e => {
   if (e.target.id === "rf-search") { rf.q = e.target.value; renderRefs(); return; }
+  if (e.target.id === "an-search") { an.q = e.target.value; renderAnnales(); return; }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }

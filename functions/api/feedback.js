@@ -15,7 +15,7 @@ const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_NOTES = 6000;
 const MAX_FACTS = 25;
 const MAX_FACT_LEN = 500;
-const AXES = new Set(["Transmettre et adapter", "Le geste et l'effort", "Débats et controverses"]);
+const AXES = new Set(["Transmettre et adapter", "Le geste et l'effort", "Débats et controverses", "Sujet d'annale"]);
 
 function json(status, error, extra = {}) {
   return new Response(JSON.stringify({ error, ...extra }), {
@@ -28,7 +28,7 @@ function buildPrompt(kind, subject, axe, notes, facts) {
   const factList = facts.map((f) => "- " + f).join("\n");
   const head = `Tu es correcteur de l'épreuve écrite 1 du CAPEPS et de l'agrégation interne d'EPS (dissertation sur l'histoire de l'EPS). Un candidat s'entraîne sur ce sujet :
 « ${subject} »
-Axe du programme : ${axe}.
+${axe === "Sujet d'annale" ? "Il s'agit d'un sujet officiel de concours." : "Axe du programme : " + axe + "."}
 `;
   if (kind === "para") {
     return head + `
@@ -194,7 +194,7 @@ export async function onRequestPost({ request, env }) {
   const facts = Array.isArray(body.facts)
     ? body.facts.filter((f) => typeof f === "string" && f.trim()).slice(0, MAX_FACTS).map((f) => f.trim().slice(0, MAX_FACT_LEN))
     : [];
-  if (!kind || !subject || subject.length > 400 || !AXES.has(axe)) return json(400, "bad_request");
+  if (!kind || !subject || subject.length > 2000 || !AXES.has(axe)) return json(400, "bad_request");
   if (notes.length < 40) return json(400, "too_short");
   if (notes.length > MAX_NOTES) return json(413, "too_long");
 
