@@ -1,0 +1,20 @@
+{
+  "name": "Bristol EPS",
+  "short_name": "Bristol EPS",
+  "description": "Réviser les écrits du CAPEPS et de l'agrégation d'EPS : fiches, annales, entraînement.",
+  "lang": "fr",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f5f2",
+  "theme_color": "#f3f5f2",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

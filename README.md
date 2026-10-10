@@ -3,6 +3,7 @@
 Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offre gratuite) :
 
 - `public/` : le site (fiches, fils rouges, entraînements, suivi), servi tel quel ;
+  `public/manifest.webmanifest`, `public/sw.js` et `public/icons/` rendent le site installable et utilisable hors ligne (la page et les polices sont mises en cache, jamais `/api/*`) ;
 - `functions/api/feedback.js` : la fonction serveur qui appelle Claude avec **ta** clé d'API, après avoir vérifié le code d'accès et le quota ;
 - `worker.js` et `wrangler.jsonc` : le point d'entrée et la configuration du Worker ;
 - `source/bristol-eps.html` et `build.py` : la source de la page et le script qui fabrique `public/index.html`.

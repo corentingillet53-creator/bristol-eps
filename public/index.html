@@ -4,7 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="description" content="Révision de l'histoire de l'EPS pour l'écrit 1 du CAPEPS et de l'agrégation interne.">
+<meta name="description" content="Réviser les écrits du CAPEPS et de l'agrégation d'EPS : fiches, annales, entraînement avec retour de Claude.">
+<meta name="theme-color" content="#f3f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1412" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="Bristol EPS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -525,6 +534,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .plan-more{margin-top:12px}
 .plan-more summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
 .sect .row-btns{margin-top:14px}
+.w-install{margin-top:8px}.w-inst-how{margin:8px 0 0;font-size:15px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -4879,6 +4889,7 @@ document.addEventListener("click", e => {
   if (d.act === "acct-logout") { logoutAccount(); return; }
   if (d.act === "rk-copy") { const t = acct.recoveryKey; try { navigator.clipboard.writeText(t).then(() => toast("Clé copiée."), () => toast("Copie impossible : sélectionne la clé et copie-la.")); } catch (e) { toast("Copie impossible : sélectionne la clé et copie-la."); } return; }
   if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
+  if (d.act === "install") { if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); ev.userChoice.finally(() => renderWelcome()); } return; }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); setGrp("e1"); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
@@ -5225,7 +5236,28 @@ function renderWelcome(){
     <p class="w-sub">Bon à savoir</p>
     <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Une carte sue revient après 1, 3, 7 puis 15 jours. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
+    ${installHTML()}
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
+}
+/* ---------- Application installable et hors ligne (site uniquement) ---------- */
+let installEvt = null;
+const isInstalled = () => { try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (e) { return false; } };
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function installHTML(){
+  if (!STANDALONE || isInstalled()) return "";
+  const how = installEvt ? `<button class="btn" data-act="install">Installer l'application</button>`
+    : isIOS() ? `<span>Sur iPhone ou iPad, dans Safari : bouton Partager, puis « Sur l'écran d'accueil ».</span>`
+    : `<span>Dans le menu du navigateur : « Installer l'application » ou « Ajouter à l'écran d'accueil ».</span>`;
+  return `<div class="w-install"><p class="w-sub">Sur ton téléphone</p><p class="w-note">Installe Bristol EPS comme une application : elle s'ouvre en plein écran et tes révisions de cartes marchent sans connexion (le retour de Claude et la synchronisation reprennent au retour du réseau).</p><p class="w-inst-how">${how}</p></div>`;
+}
+if (STANDALONE) {
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if (!$("#welcome").hidden) renderWelcome(); });
+  window.addEventListener("appinstalled", () => { installEvt = null; if (!$("#welcome").hidden) renderWelcome(); toast("Bristol EPS est installé."); });
+  window.addEventListener("offline", () => { setStatus("offline"); toast("Hors ligne : tes révisions restent enregistrées ici."); });
+  window.addEventListener("online", () => { if (acct.status === "in") pullAndMerge().catch(() => {}); else setStatus("local"); });
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
+  }
 }
 /* Le bloc de bienvenue ne s'affiche que sur l'accueil. */
 let welcomeOpen = false;
