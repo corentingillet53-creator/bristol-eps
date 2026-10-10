@@ -194,7 +194,18 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .task.done .task-tx b{color:var(--muted)}
 .task .btn{flex:none;min-height:44px;padding:10px 16px}
 .task.lead-task{padding:18px 18px 18px 18px;border-width:2px;border-color:var(--accent)}
-@media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .task.lead-task{flex-wrap:wrap} .task.lead-task .btn{width:100%} }
+.sess-task{align-items:flex-start}
+.grp-rows{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.grp-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--paper);border-radius:var(--r-m);padding:8px 8px 8px 14px;min-height:52px}
+.gr-t{min-width:0}
+.gr-t b{display:inline;font-size:15px;margin-right:8px}
+.gr-t span{display:inline;color:var(--muted);font-size:14px}
+.grp-row.done .gr-t b{color:var(--muted)}
+.gr-ok{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);flex:none}
+.gr-ok svg.ic{width:18px;height:18px}
+.seg-n{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:12px;line-height:18px}
+.grp-seg{margin-bottom:14px}
+@media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .sess-task .task-ic{display:none} .gr-t b,.gr-t span{display:block} }
 
 .next-ach{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px}
 .next-ach > div{flex:1;min-width:0}
@@ -492,6 +503,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise" hidden>
       <h1 class="page-h">Réviser</h1>
       <div class="rev-grid"><div class="rev-main">
+      <div class="seg grp-seg" role="tablist" aria-label="Épreuve" id="grp-seg"></div>
       <details class="fdd" id="fdd-revise"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtrer <span class="fsum" id="fsum-revise"></span></summary><div class="fbar" id="filters-revise"></div></details>
       <section id="panel-revise" aria-live="polite"></section>
       </div><aside class="rev-side" id="revise-side" aria-label="Résumé de la séance"></aside></div>
@@ -1031,9 +1043,19 @@ const pIdx = p => { const i = PERIODS.indexOf(p); return i < 0 ? 99 : i; };
 
 function allCards(){ return BASE.concat(custom.filter(c => !gone.includes(c.id)).map(c => ({...c, custom: true}))); }
 function byId(id){ return allCards().find(c => c.id === id); }
-function themeOk(c){ return theme === "Tous" ? true : theme === "Mes cartes" ? !!c.custom : theme.startsWith("g:") ? GROUP_OF[c.th] === theme.slice(2) && !c.custom : c.th === theme; }
-function themeLabel(v){ return v === "Tous" ? "Tous les thèmes" : v === "Mes cartes" ? "Mes cartes" : v.startsWith("g:") ? (eprOf(v.slice(2)) || {}).t || v : THEMES[v] || v; }
-function inFilter(c){ return themeOk(c) && (period === "Toutes" || c.p === period); }
+/* Les révisions se font épreuve par épreuve : écrit 1, écrit 2 ou textes officiels. */
+const GRP_KEY = "bristol-eps-grp";
+let grp = "e1";
+try { const g = localStorage.getItem(GRP_KEY); if (["e1","e2","tx"].includes(g)) grp = g; } catch (e) {}
+const grpOf = c => GROUP_OF[c.th] || "e1";
+function setGrp(g){
+  if (!["e1","e2","tx"].includes(g)) return;
+  grp = g; try { localStorage.setItem(GRP_KEY, g); } catch (e) {}
+  if (theme !== "Tous" && theme !== "Mes cartes" && GROUP_OF[theme] !== g) theme = "Tous";
+}
+function themeOk(c){ if (grpOf(c) !== grp) return false; return theme === "Tous" || theme.startsWith("g:") ? true : theme === "Mes cartes" ? !!c.custom : c.th === theme; }
+function themeLabel(v){ return v === "Tous" || v.startsWith("g:") ? "Tous les thèmes" : v === "Mes cartes" ? "Mes cartes" : v.startsWith("g:") ? (eprOf(v.slice(2)) || {}).t || v : THEMES[v] || v; }
+function inFilter(c){ return themeOk(c) && (period === "Toutes" || grp !== "e1" || c.p === period); }
 
 function fmtIn(ms){
   const m = Math.max(1, Math.round(ms / 6e4));
@@ -1115,17 +1137,31 @@ async function connect(){
 
 /* ---------- Objectif concours ---------- */
 function startOfDay(d){ d = new Date(d || Date.now()); d.setHours(0, 0, 0, 0); return d; }
-function goalInfo(){
+function examDays(){
   if (!prefs.examDate) return null;
-  const exam = new Date(prefs.examDate + "T00:00:00");
-  const daysLeft = Math.round((exam - startOfDay()) / DAY);
-  const unseen = allCards().filter(c => !progress[c.id]).length;
-  const today = log[dayKey()] || { a: 0, n: 0 };
+  const daysLeft = Math.round((new Date(prefs.examDate + "T00:00:00") - startOfDay()) / DAY);
   /* On garde les 14 derniers jours pour revoir : les nouvelles cartes sont réparties avant. */
-  const learnDays = daysLeft > 14 ? daysLeft - 14 : Math.max(1, daysLeft);
-  const remainingToday = unseen + today.n;
-  const newPerDay = daysLeft <= 0 || !remainingToday ? 0 : Math.min(40, Math.max(3, Math.ceil(remainingToday / learnDays)));
-  return { daysLeft, unseen, newPerDay, today, newLeft: Math.max(0, Math.min(unseen, newPerDay - today.n)) };
+  return { daysLeft, learnDays: daysLeft > 14 ? daysLeft - 14 : Math.max(1, daysLeft) };
+}
+/* Nouvelles cartes du jour pour une épreuve : objectif calculé d'après la date, ou 10 par jour ;
+   « 10 de plus » ajoute un supplément pour la journée. */
+let extraNew = {};
+function grpGoal(g){
+  const cards = allCards().filter(c => grpOf(c) === g);
+  const unseen = cards.filter(c => !progress[c.id]).length;
+  const n = (log[dayKey()] || {})["n_" + g] || 0;
+  const ex = examDays();
+  const target = !ex ? NEW_MAX : ex.daysLeft <= 0 || !(unseen + n) ? 0 : Math.min(25, Math.max(2, Math.ceil((unseen + n) / ex.learnDays)));
+  const now = Date.now(), due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const left = Math.max(0, Math.min(unseen, target + (extraNew[g] || 0) - n));
+  return { g, unseen, n, target, left, due, todo: due + left };
+}
+function goalInfo(){
+  const ex = examDays(); if (!ex) return null;
+  const gs = EPR.map(e => grpGoal(e.id));
+  const today = log[dayKey()] || { a: 0, n: 0 };
+  const newPerDay = gs.reduce((t, x) => t + x.target, 0);
+  return { daysLeft: ex.daysLeft, unseen: gs.reduce((t, x) => t + x.unseen, 0), newPerDay, today: Object.assign({}, today, { n: gs.reduce((t, x) => t + Math.min(x.n, x.target), 0) }), newLeft: gs.reduce((t, x) => t + x.left, 0), groups: gs };
 }
 function streaks(){
   const active = d => ((log[dayKey(d)] || {}).a || 0) > 0;
@@ -1137,9 +1173,7 @@ function streaks(){
   for (const k of days) { const t = new Date(k + "T00:00:00"); run = prev && Math.round((t - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; }
   return { cur, best: Math.max(best, cur) };
 }
-/* Nouvelles cartes autorisées aujourd'hui : l'objectif calculé, ou 10 par jour sans date ; « 10 de plus » ajoute un supplément. */
-let extraNew = 0;
-function newLimit(){ const g = goalInfo(), today = log[dayKey()] || { n: 0 }; return Math.max(0, (g ? g.newPerDay : NEW_MAX) + extraNew - (today.n || 0)); }
+function newLimit(){ return grpGoal(grp).left; }
 function renderGoal(){ if (view === "home") renderHome(); }
 let goalEdit = false;
 
@@ -1288,7 +1322,7 @@ function heroHTML(){
   else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
   else {
     const n = Math.min(g.today.n, g.newPerDay), w = Math.round(100 * n / g.newPerDay);
-    lane = `<div><p class="lane-lab"><span>Nouvelles cartes du jour</span><b>${n} / ${g.newPerDay}</b></p>
+    lane = `<div><p class="lane-lab"><span>Nouvelles cartes du jour, toutes épreuves</span><b>${n} / ${g.newPerDay}</b></p>
       <div class="lane" role="progressbar" aria-label="Nouvelles cartes du jour" aria-valuemin="0" aria-valuemax="${g.newPerDay}" aria-valuenow="${n}"><span style="width:${w}%"></span></div>
       <p class="hero-note">${g.daysLeft <= 14 ? "Phase finale : après tes nouvelles cartes, revois tes points faibles." : "À ce rythme, tu auras tout vu deux semaines avant le concours."}</p></div>`;
   }
@@ -1299,21 +1333,20 @@ function heroHTML(){
 }
 function homeTasks(){
   const now = Date.now(), cards = allCards();
-  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
-  const g = goalInfo(), today = log[dayKey()] || { a: 0, n: 0 };
-  const unseen = cards.filter(c => !progress[c.id]).length;
-  const fresh = Math.min(unseen, newLimit());
-  const sDone = !due && !fresh;
-  const parts = [due ? plural(due, "carte") + " à revoir" : "", fresh ? fresh + (fresh > 1 ? " nouvelles cartes" : " nouvelle carte") : ""].filter(Boolean);
+  const today = log[dayKey()] || { a: 0, n: 0 };
+  const gs = EPR.map(e => [e, grpGoal(e.id)]);
+  const sDone = gs.every(([, x]) => !x.todo);
+  const rows = gs.map(([e, x]) => {
+    const parts = [x.due ? plural(x.due, "carte") + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean);
+    return `<li class="grp-row${x.todo ? "" : " done"}"><span class="gr-t"><b>${esc(e.s)}</b><span>${x.todo ? parts.join(" et ") : "Terminé pour aujourd'hui"}</span></span>${x.todo ? `<button class="btn small${e.id === gs.find(([, y]) => y.todo)[0].id ? " primary" : ""}" data-act="home-start" data-g="${e.id}">Réviser</button>` : `<span class="gr-ok">${icon("check")}</span>`}</li>`;
+  }).join("");
   const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
   const subj = subjectOfDay();
   const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
   const fDone = (today.f || 0) > 0;
   const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
   return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
-    task(sDone, "cards", sDone ? "Séance du jour terminée" : "Séance du jour",
-      sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : parts.join(" et "),
-      sDone ? `<button class="btn" data-act="home-start">Réviser</button>` : `<button class="btn primary big" data-act="home-start">Commencer</button>`, !sDone),
+    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul></div></li>`,
     task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
       `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
     task(fDone, "line", fDone ? "Frise faite" : "Faire une frise", "Cinq événements à remettre dans l'ordre chronologique.",
@@ -1352,11 +1385,14 @@ function buildQueue(){
   const now = Date.now();
   const cards = allCards().filter(inFilter);
   const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).sort((a, b) => progress[a.id].d - progress[b.id].d);
-  const pool = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p));
-  const lanes = {}; pool.forEach(c => { const g = c.custom ? "mine" : GROUP_OF[c.th] || "x"; (lanes[g] = lanes[g] || []).push(c); });
-  const mixed = [], ls = Object.values(lanes);
-  for (let k = 0; mixed.length < pool.length; k++) ls.forEach(l => { if (l[k]) mixed.push(l[k]); });
-  const fresh = mixed.slice(0, newLimit());
+  let pool = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p));
+  if (grp !== "e1") { /* écrit 2 et textes : on alterne les thèmes */
+    const by = {}; pool.forEach(c => { (by[c.th] = by[c.th] || []).push(c); });
+    const ls = Object.values(by), mixed = [];
+    for (let k = 0; mixed.length < pool.length; k++) ls.forEach(l => { if (l[k]) mixed.push(l[k]); });
+    pool = mixed;
+  }
+  const fresh = pool.slice(0, newLimit());
   queue = due.concat(fresh).map(c => c.id);
   cram = false; flipped = false;
 }
@@ -1369,7 +1405,8 @@ function grade(r){
   const id = queue.shift(); if (!id) return;
   const now = Date.now(), p = progress[id];
   const dk = dayKey(), lg = log[dk] || { a: 0, n: 0 };
-  log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) });
+  const gk = "n_" + grpOf(byId(id) || {});
+  log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) }, p ? {} : { [gk]: (lg[gk] || 0) + 1 });
   if (!cram || r === "rate") {
     let b;
     if (r === "rate") b = 1;
@@ -1391,18 +1428,26 @@ function renderFilters(){
   if (!target) return;
   const p = target === "#filters-revise" ? "r" : "d";
   const fs = $("#fsum-revise");
-  if (fs) fs.textContent = themeLabel(theme) + ", " + (period === "Toutes" ? "toutes les périodes" : period);
+  if (fs) fs.textContent = themeLabel(theme) + (grp === "e1" ? ", " + (period === "Toutes" ? "toutes les périodes" : period) : "");
   const cards = allCards();
   const opt = (v, l, n) => `<option value="${esc(v)}"${v === theme ? " selected" : ""}>${esc(l)} (${n})</option>`;
-  const tHTML = opt("Tous", "Tous les thèmes", cards.length)
-    + EPR.map(g => `<optgroup label="${esc(g.t)}">${opt("g:" + g.id, "Tout : " + g.s, cards.filter(c => !c.custom && GROUP_OF[c.th] === g.id).length)}${g.th.map(k => opt(k, THEMES[k], cards.filter(c => c.th === k).length)).join("")}</optgroup>`).join("")
-    + opt("Mes cartes", "Mes cartes", cards.filter(c => c.custom).length);
+  const inG = cards.filter(c => grpOf(c) === grp);
+  const tHTML = opt("Tous", "Tous les thèmes", inG.length)
+    + eprOf(grp).th.map(k => opt(k, THEMES[k], inG.filter(c => c.th === k).length)).join("")
+    + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "");
+  const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
   const pOpts = [["Toutes", "Toutes les périodes"]].concat(PERIODS.map(x => [x, x]));
   $(target).innerHTML =
-    `<div><label for="fa-${p}">Thème</label><select id="fa-${p}" data-fsel="theme">${tHTML}</select></div>` +
-    `<div><label for="fp-${p}">Période</label><select id="fp-${p}" data-fsel="period">${pOpts.map(([v, l]) => `<option value="${esc(v)}"${v === period ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+    gSel + `<div><label for="fa-${p}">Thème</label><select id="fa-${p}" data-fsel="theme">${tHTML}</select></div>` +
+    (grp === "e1" ? `<div><label for="fp-${p}">Période</label><select id="fp-${p}" data-fsel="period">${pOpts.map(([v, l]) => `<option value="${esc(v)}"${v === period ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>` : "");
+}
+function renderGrpSeg(){
+  const el = $("#grp-seg"); if (!el) return;
+  el.innerHTML = EPR.map(e => { const x = grpGoal(e.id), on = e.id === grp;
+    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}>${esc(e.s)}${x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
 }
 function renderRevise(){
+  renderGrpSeg();
   const el = $("#panel-revise");
   const c = queue.length ? byId(queue[0]) : null;
   if (!c) {
@@ -1414,7 +1459,10 @@ function renderRevise(){
     }
     const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
     const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
-    el.innerHTML = `<div class="empty"><h2>${goalMet ? "Objectif du jour atteint." : done ? "Séance terminée." : "Rien à revoir pour l'instant."}</h2>
+    const others = EPR.filter(e => e.id !== grp).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
+    el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? "objectif du jour atteint." : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
+      ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
+      <div class="row-btns" style="margin-bottom:16px">${others.map(([e]) => `<button class="btn primary" data-grp="${e.id}">Passer ${e.id === "tx" ? "aux textes officiels" : "à l'" + e.s.toLowerCase()}</button>`).join("")}</div>` : ""}
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
       <div class="row-btns">${goalMet ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
@@ -1423,7 +1471,7 @@ function renderRevise(){
   const left = queue.length;
   el.innerHTML = `
     ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour"}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
       <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></span></div>
@@ -1444,14 +1492,12 @@ function renderRevise(){
 }
 function renderReviseSide(){
   const el = $("#revise-side"); if (!el) return;
-  const now = Date.now(), cards = allCards();
-  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
-  const unseen = cards.filter(c => !progress[c.id]).length;
-  const today = log[dayKey()] || { a: 0 };
-  el.innerHTML = `<div class="side-card"><h3>Aujourd'hui</h3><div class="side-stats">
-      <div><b>${today.a || 0}</b><span>réponses</span></div>
-      <div><b>${due}</b><span>à revoir</span></div>
-      <div><b>${Math.min(unseen, newLimit())}</b><span>nouvelles</span></div></div></div>
+  const today = log[dayKey()] || { a: 0 }, x = grpGoal(grp);
+  el.innerHTML = `<div class="side-card"><h3>${esc(eprOf(grp).t)}</h3><div class="side-stats">
+      <div><b>${x.due}</b><span>à revoir</span></div>
+      <div><b>${x.left}</b><span>nouvelles</span></div>
+      <div><b>${x.n}</b><span>découvertes</span></div></div>
+      <p class="goal-sub" style="margin-top:10px">${today.a || 0} réponse${(today.a || 0) > 1 ? "s" : ""} aujourd'hui, toutes épreuves confondues.</p></div>
     <div class="side-card"><h3>Raccourcis</h3><ul class="keys">
       <li><span class="k">Espace</span>Retourner la carte</li>
       <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
@@ -2341,7 +2387,8 @@ document.addEventListener("click", e => {
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
   if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
-  if (d.act === "home-start") { done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.grp && !d.act) { setGrp(d.grp); done = 0; buildQueue(); render(true); const b = document.querySelector(`#grp-seg [data-grp="${grp}"]`); if (b && !$('[data-act="flip"]')) b.focus({ preventScroll: true }); return; }
+  if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
   if (d.conc) { conc.cur = concById(d.conc); render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-concours .back"); if (b) b.focus({ preventScroll: true }); return; }
@@ -2349,8 +2396,8 @@ document.addEventListener("click", e => {
   if (d.act === "conc-open") { conc.cur = concById(d.id); setView("concours"); return; }
   if (d.act === "conc-mine") { const on = prefs.concours !== d.id; prefs = Object.assign({}, prefs, { concours: on ? d.id : "", t: Date.now() }); persist(); render(); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on ? "Concours enregistré : il s'affiche sur l'accueil." : "Concours retiré."); return; }
   if (d.act === "conc-date") { const c = concById(d.id); if (c && c.d) { prefs = Object.assign({}, prefs, { examDate: c.d, concours: c.id, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); const g = goalInfo(); toast(g && g.newPerDay ? `Compte à rebours réglé sur les écrits : ${g.newPerDay} nouvelles cartes par jour.` : "Compte à rebours réglé sur les écrits."); } return; }
-  if (d.act === "conc-grp") { done = 0; theme = "g:" + d.g; period = "Toutes"; buildQueue(); setView("revise"); toast("Séance sur : " + themeLabel(theme) + "."); return; }
-  if (d.act === "conc-rev") { const c = concById(d.id); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
+  if (d.act === "conc-grp") { setGrp(d.g); done = 0; theme = "Tous"; period = "Toutes"; buildQueue(); setView("revise"); toast("Séance : " + eprOf(grp).t + "."); return; }
+  if (d.act === "conc-rev") { const c = concById(d.id); if (c) setGrp("e1"); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
   if (d.act === "account-open") { openAccount(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -2359,15 +2406,15 @@ document.addEventListener("click", e => {
   if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
-  if (d.act === "welcome-start") { hideWelcome(); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
+  if (d.act === "welcome-start") { hideWelcome(); setGrp("e1"); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
   if (d.sec) { if (d.gotab) conc.cur = null; setView(d.gotab || lastSub[d.sec]); return; }
   if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
   if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
-  if (d.act === "fil-revise" && fil.cur) { startCram(fil.cur.e.map(x => x[2])); return; }
+  if (d.act === "fil-revise" && fil.cur) { setGrp("e1"); startCram(fil.cur.e.map(x => x[2])); return; }
   if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
   if (d.tab) { setView(d.tab); return; }
   if (d.act === "flip") { flipped = true; render(true); return; }
-  if (d.act === "more-new") { extraNew += 10; done = 0; buildQueue(); render(true); return; }
+  if (d.act === "more-new") { extraNew[grp] = (extraNew[grp] || 0) + 10; done = 0; buildQueue(); render(true); return; }
   if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
   if (d.act === "refresh") { done = 0; buildQueue(); render(true); return; }
   if (d.g) { grade(d.g); return; }
@@ -2390,7 +2437,7 @@ document.addEventListener("click", e => {
   if (d.act === "tm-reset") { tmReset(); render(); return; }
   if (d.act === "fb-stop") { if (fb.ctl) fb.ctl.abort(); return; }
   if (d.act === "code-change") { codeSet(""); render(); const i = $("#access-code"); if (i) i.focus(); return; }
-  if (d.act === "sj-revise" && sj.cur) { startCram(sj.cur.c.slice()); return; }
+  if (d.act === "sj-revise" && sj.cur) { setGrp("e1"); startCram(sj.cur.c.slice()); return; }
   if (d.act === "weak-revise") { startCram(weakCards().map(c => c.id)); return; }
   if (d.act === "qui-next") { newQui(); render(); const b = $("#panel-qui .qopt"); if (b) b.focus({preventScroll: true}); return; }
   if (d.del) { pendingDel = d.del; render(); return; }
@@ -2416,7 +2463,7 @@ document.addEventListener("change", e => {
   }
   const f = e.target.dataset && e.target.dataset.fsel; if (!f) return;
   const id = e.target.id;
-  if (f === "theme") theme = e.target.value; else period = e.target.value;
+  if (f === "grp") setGrp(e.target.value); else if (f === "theme") theme = e.target.value; else period = e.target.value;
   done = 0; pendingDel = null; buildQueue(); render();
   const s = document.getElementById(id); if (s) s.focus();
 });
@@ -2667,8 +2714,8 @@ function renderWelcome(){
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
     <p class="w-sub">Cinq espaces</p>
     <ul class="w-spaces">
-      <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : la séance de cartes, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
-      <li class="w-space"><b>Réviser</b><span>Les fiches du jour. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
+      <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : une séance de cartes par épreuve, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
+      <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
       <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
       <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation, introduction chronométrée et paragraphe argumenté.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
