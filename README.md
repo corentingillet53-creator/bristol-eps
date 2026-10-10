@@ -29,6 +29,7 @@ Dans Cloudflare : **Workers & Pages → bristol-eps → Settings → Variables a
 | `ANTHROPIC_API_KEY` | ta clé d'API | **Secret** |
 | `ACCESS_CODES` | tes codes bêta séparés par des virgules, par exemple `EPS-ALICE-7Q2,EPS-BRUNO-K9F` | **Secret** |
 | `MONTHLY_LIMIT` | nombre de retours par code et par mois, par exemple `30` | Texte (facultatif, 30 par défaut) |
+| `ANTHROPIC_WORKSPACE_ID` | ID de l'espace de travail de la console, **seulement** si ta clé n'est rattachée à aucun espace de travail | Texte (facultatif) |
 
 Mets bien les deux premières en **Secret** : elles restent ainsi cachées et ne sont jamais effacées par un nouveau déploiement.
 
@@ -46,6 +47,7 @@ Déjà en place : l'espace de stockage KV `bristol-quota` compte les retours par
    - `apiKey: false` : la clé n'est pas enregistrée (étape 2) ;
    - `accessCodes: 0` : aucun code (étape 2) ;
    - `quotaStore: false` : la liaison KV manque (étape 3).
+   - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse : `"keyAndModel":"ok"` signifie que tout est bon.
 3. Sur le site, va dans **S'entraîner → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
 
 ---

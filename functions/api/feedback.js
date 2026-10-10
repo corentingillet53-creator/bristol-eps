@@ -8,6 +8,7 @@
 //   ACCESS_CODES       (obligatoire)          codes bêta séparés par des virgules
 //   MONTHLY_LIMIT      (facultatif, 30)       retours par code et par mois
 //   MODEL              (facultatif)           modèle Claude, par défaut claude-sonnet-5-5
+//   ANTHROPIC_WORKSPACE_ID (facultatif)       ID d'espace de travail, si la clé n'y est pas rattachée
 // Liaison KV facultative mais recommandée (Settings > Bindings) : QUOTA
 
 const DEFAULT_MODEL = "claude-sonnet-5-5";
@@ -115,6 +116,15 @@ function toTextStream(upstreamBody) {
   });
 }
 
+// En-têtes de l'API Claude. ANTHROPIC_WORKSPACE_ID n'est utile que si la clé
+// n'est rattachée à aucun espace de travail de la console.
+function apiHeaders(env) {
+  const h = { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" };
+  const ws = String(env.ANTHROPIC_WORKSPACE_ID || "").trim();
+  if (ws) h["anthropic-workspace-id"] = ws;
+  return h;
+}
+
 // Lit le message d'erreur renvoyé par l'API Claude ({type:"error", error:{type, message}}).
 async function readApiError(res) {
   const raw = await res.text().catch(() => "");
@@ -134,13 +144,14 @@ export async function onRequestGet({ request, env }) {
     quotaStore: !!env.QUOTA,
     monthlyLimit: parseInt(env.MONTHLY_LIMIT || "30", 10),
     model: env.MODEL || DEFAULT_MODEL,
+    workspaceId: !!String(env.ANTHROPIC_WORKSPACE_ID || "").trim(),
   };
   const url = new URL(request.url);
   if (url.searchParams.get("probe") && env.ANTHROPIC_API_KEY) {
     try {
       const r = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages/count_tokens", {
         method: "POST",
-        headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        headers: apiHeaders(env),
         body: JSON.stringify({ model: out.model, messages: [{ role: "user", content: "Bonjour" }] }),
       });
       out.probe = r.ok ? { keyAndModel: "ok" } : { keyAndModel: "erreur", ...(await readApiError(r)) };
@@ -183,11 +194,7 @@ export async function onRequestPost({ request, env }) {
   try {
     upstream = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages", {
       method: "POST",
-      headers: {
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
+      headers: apiHeaders(env),
       body: JSON.stringify({
         model: env.MODEL || DEFAULT_MODEL,
         max_tokens: 1200,
