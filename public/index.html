@@ -100,7 +100,33 @@ svg.ic{width:22px;height:22px;flex:none}
   .tool{justify-content:flex-start;border:0;background:none;color:var(--muted);padding:0 12px;border-radius:var(--r-s);font-weight:400}
   .tool:hover{background:var(--chip);color:var(--ink)}
   .status{padding:6px 12px 10px}
-  .main{padding:44px 40px 72px}
+  .main{max-width:1200px;padding:44px 48px 72px}
+  .seg{max-width:560px}
+  #area-train > section,#area-train > .intro,.welcome{max-width:880px}
+}
+/* Grand écran : deux colonnes */
+.home-grid,.rev-grid,.stats-grid{display:grid;gap:0 32px}
+.rev-side{display:none}
+.side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:18px 18px 16px;margin:0 0 20px}
+.side-card h3{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 12px}
+.rd .kpi{background:var(--paper);border:0;padding:12px 14px}
+.rd .kpi b{font-size:26px}
+.stats-grid .rd-row{grid-template-columns:minmax(0,1.3fr) minmax(60px,1.2fr) 3em}
+.side-card .rd-row{grid-template-columns:minmax(0,1.4fr) minmax(60px,1fr) 3em}
+.side-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 4px}
+.side-stats div{background:var(--paper);border-radius:var(--r-m);padding:10px 12px}
+.side-stats b{display:block;font-family:var(--f-display);font-weight:800;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.side-stats span{font-size:13px;color:var(--muted)}
+.keys{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px;color:var(--muted)}
+.keys li{display:flex;gap:10px;align-items:center}
+.keys .k{min-width:52px;text-align:center;padding:4px 6px;color:var(--ink)}
+@media (min-width:1100px){
+  .home-grid{grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);align-items:start}
+  .rev-grid{grid-template-columns:minmax(0,1fr) 300px;align-items:start}
+  .rev-side{display:block;position:sticky;top:44px}
+  .stats-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .stats-grid .span2{grid-column:1 / -1}
+  .hero{padding:30px 32px 28px}
 }
 
 /* ---------- Typographie des pages ---------- */
@@ -359,7 +385,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .hm-out{background:transparent}
 .hm-legend{align-items:center;gap:4px 6px;margin-top:10px}
 .hm-legend .hm-cell{width:12px;height:12px}
-.hm-kpis{margin-bottom:14px}
+.hm-kpis{margin-bottom:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
 .legend-row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 16px}
 .legend{color:var(--muted);font-size:13px;margin:0}
 .sw{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
@@ -444,8 +470,10 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
 
     <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise" hidden>
       <h1 class="page-h">Réviser</h1>
+      <div class="rev-grid"><div class="rev-main">
       <details class="fdd" id="fdd-revise"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtrer <span class="fsum" id="fsum-revise"></span></summary><div class="fbar" id="filters-revise"></div></details>
       <section id="panel-revise" aria-live="polite"></section>
+      </div><aside class="rev-side" id="revise-side" aria-label="Résumé de la séance"></aside></div>
     </div>
 
     <div id="area-comprendre" role="tabpanel" aria-labelledby="sec-comprendre" hidden>
@@ -945,10 +973,14 @@ function backfillWritten(){
     for (const [k, v] of Object.entries(o)) if (!k.startsWith("c:") && typeof v === "string" && v.trim().length >= WRITE_MIN && subjOf(k) && !ach.w[k]) ach.w[k] = Date.now();
   } catch (e) {}
 }
+function axisRows(){
+  const all = allCards();
+  return TH_ORDER.map(k => { const v = readiness(all.filter(c => c.th === k)); return `<div class="rd-row"><span>${esc(THEMES[k])}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></div>`; }).join("");
+}
 function readinessHTML(){
   const all = allCards(), pct = readiness(all), rk = rankOf(pct);
   const next = RANKS[rk + 1];
-  const rows = TH_ORDER.map(k => { const v = readiness(all.filter(c => c.th === k)); return `<div class="rd-row"><span>${esc(THEMES[k])}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></div>`; }).join("");
+  const rows = axisRows();
   return `<div class="sect rd"><h3>Niveau de préparation</h3>
     <div class="rd-top"><div class="rd-pct"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
       <div class="rd-main"><div class="goal-bar" role="progressbar" aria-label="Niveau de préparation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
@@ -1067,9 +1099,12 @@ function renderHome(){
   const t = homeTasks();
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${heroHTML()}
-    <div class="more"><h3>Au programme</h3><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
-    <ul class="today">${t.html}</ul>
-    <div class="sect">${homeAchHTML()}</div>`;
+    <div class="home-grid">
+      <div class="home-main"><div class="more"><h3>Au programme</h3><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
+        <ul class="today">${t.html}</ul></div>
+      <div class="home-side"><div class="sect">${homeAchHTML()}</div>
+        <div class="side-card"><div class="more"><h3>Niveau par axe</h3><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows()}</div></div></div>
+    </div>`;
 }
 
 /* ---------- Séance ---------- */
@@ -1161,6 +1196,23 @@ function renderRevise(){
           <p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(b) + "."}</p>`
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
     </div>`;
+}
+function renderReviseSide(){
+  const el = $("#revise-side"); if (!el) return;
+  const now = Date.now(), cards = allCards();
+  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const unseen = cards.filter(c => !progress[c.id]).length;
+  const today = log[dayKey()] || { a: 0 };
+  el.innerHTML = `<div class="side-card"><h3>Aujourd'hui</h3><div class="side-stats">
+      <div><b>${today.a || 0}</b><span>réponses</span></div>
+      <div><b>${due}</b><span>à revoir</span></div>
+      <div><b>${Math.min(unseen, newLimit())}</b><span>nouvelles</span></div></div></div>
+    <div class="side-card"><h3>Raccourcis</h3><ul class="keys">
+      <li><span class="k">Espace</span>Retourner la carte</li>
+      <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
+      <li><span class="k">2</span>Hésité : elle reste dans sa boîte</li>
+      <li><span class="k">3</span>Su : elle monte d'une boîte</li></ul></div>
+    <div class="side-card"><h3>Les boîtes</h3><p class="goal-sub">Une carte sue revient après 1, 3, 7 puis 15 jours. Elle est maîtrisée en boîte 5.</p></div>`;
 }
 function renderDeck(){
   const now = Date.now();
@@ -1766,7 +1818,7 @@ function heatmapHTML(){
     cells += `<span class="hm-cell hm-${lvl(a)}" title="${esc(lab)}"></span>`;
   }
   const st = streaks();
-  return `<div class="sect"><h3>Régularité</h3>
+  return `<div class="sect rd"><h3>Régularité</h3>
     <div class="kpis hm-kpis">
       <div class="kpi"><b>${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée en ce moment</span></div>
       <div class="kpi"><b>${st.best}</b><span>meilleure série</span></div>
@@ -1786,23 +1838,23 @@ function renderStats(){
   const byTh = TH_ORDER.map(k => barRow(THEMES[k], bucket(cards.filter(c => c.th === k)))).join("")
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
   const byP = PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
-  $("#panel-stats").innerHTML = `
+  $("#panel-stats").innerHTML = `<div class="stats-grid">
     ${readinessHTML()}
-    <div class="sect"><div class="kpis">
+    ${heatmapHTML()}
+    <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
       <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
       <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
     </div></div>
-    ${heatmapHTML()}
-    ${achHTML()}
-    <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
+    <div class="span2">${achHTML()}</div>
+    <p class="legend-row span2"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h3>Par axe</h3>${byTh}</div>
     <div class="sect"><h3>Par période</h3>${byP}</div>
-    <div class="sect"><h3>Points faibles</h3>${weak.length
+    <div class="sect span2"><h3>Points faibles</h3>${weak.length
       ? `<ul class="list">${weak.map(c => `<li class="item"><div class="ip">${esc(thName(c))} · ${esc(c.p || NONE_P)}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div><div class="is"><span class="due now">Ratée ${progress[c.id].l} fois</span></div></li>`).join("")}</ul>
          <div class="row-btns actions" style="margin-top:14px"><button class="btn primary" data-act="weak-revise">Réviser ces ${weak.length} cartes</button></div>`
-      : `<p class="lead">Aucune carte ratée pour l'instant. Les cartes que tu marques « Raté » apparaîtront ici.</p>`}</div>`;
+      : `<p class="lead">Aucune carte ratée pour l'instant. Les cartes que tu marques « Raté » apparaîtront ici.</p>`}</div></div>`;
 }
 function startCram(ids){
   queue = ids.filter(id => byId(id)); cram = true; flipped = false; done = 0;
@@ -1836,7 +1888,7 @@ function render(focusActions){
   VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
   $("#intro-train").textContent = INTROS[view] || "";
   if (view === "home") renderHome();
-  if (view === "revise") renderRevise();
+  if (view === "revise") { renderRevise(); renderReviseSide(); }
   if (view === "fils") renderFils();
   if (view === "frise") renderFrise();
   if (view === "qui") renderQui();
