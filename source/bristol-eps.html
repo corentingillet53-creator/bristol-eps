@@ -343,6 +343,30 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fil-sect ul{margin:0;padding-left:20px}
 .fil-sect li{margin:4px 0}
 
+/* ---------- Références ---------- */
+.rf-bar{display:grid;gap:12px;margin:0 0 10px}
+.rf-bar input{max-width:560px}
+.rf-count{color:var(--muted);font-size:14px;margin:0 0 14px}
+.ref-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ref{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
+.ref-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ref-h b{font-size:17px}
+.ref-y{font-family:var(--f-display);font-weight:800;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.ref-t{font-style:italic;margin:2px 0 8px}
+.ref p{max-width:72ch}
+.ref > p:not(.ref-t){margin:0 0 6px;color:var(--muted)}
+.ref-us span{font-weight:700;color:var(--ink)}
+.quote{margin:12px 0 10px;padding:12px 16px;background:var(--soft);border-radius:var(--r-m)}
+.quote blockquote{margin:0;font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.4}
+.quote figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
+.quote figcaption a{color:var(--accent-text)}
+.quote .opt{margin:6px 0 0;font-size:14px}
+.deck-actions{margin:0 0 18px}
+.sect-h{font-family:var(--f-display);font-weight:700;font-size:22px;margin:4px 0 16px}
+.qod blockquote{margin:0 0 8px;font-family:var(--f-display);font-weight:600;font-size:16px;line-height:1.4}
+.qod-a{margin:0;font-size:13px;color:var(--muted)}
+@media (min-width:1100px){ .ref-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
 /* ---------- Concours ---------- */
 .conc-card{position:relative}
 .conc-card.is-mine{border-color:var(--accent);border-width:2px}
@@ -513,15 +537,19 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
       <h1 class="page-h">Apprendre</h1>
       <div class="seg" role="tablist" aria-label="Apprendre">
         <button role="tab" id="tab-fils" data-tab="fils" aria-controls="panel-fils" aria-selected="true">Fils rouges</button>
+        <button role="tab" id="tab-refs" data-tab="refs" aria-controls="panel-refs" aria-selected="false" tabindex="-1">Références</button>
         <button role="tab" id="tab-concours" data-tab="concours" aria-controls="panel-concours" aria-selected="false" tabindex="-1">Concours</button>
         <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Fiches</button>
-        <button role="tab" id="tab-add" data-tab="add" aria-controls="panel-add" aria-selected="false" tabindex="-1">Ajouter</button>
+
       </div>
       <div class="fbar" id="filters-deck" hidden></div>
       <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils"></section>
+      <section id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden></section>
       <section id="panel-concours" role="tabpanel" aria-labelledby="tab-concours" hidden></section>
       <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
-      <section id="panel-add" role="tabpanel" aria-labelledby="tab-add" hidden>
+      <section id="panel-add" role="tabpanel" aria-labelledby="tab-deck" hidden>
+      <button class="back" data-tab="deck">← Toutes les fiches</button>
+      <h2 class="sect-h">Ajouter une carte</h2>
       <form id="add-form" novalidate>
         <div>
           <label for="f-q">Question</label>
@@ -1366,6 +1394,10 @@ function homeAchHTML(){
     ${nxt}
     ${recent.length ? `<ul class="recent" aria-label="Derniers succès obtenus">${recent.map(a => `<li><span class="medal">${icon("check")}</span>${esc(a.t)}</li>`).join("")}</ul>` : ""}`;
 }
+function quoteOfDay(){
+  const qs = QUOTES.filter(x => x.text.length < 260); if (!qs.length) return null;
+  return qs[Math.floor(startOfDay().getTime() / DAY) % qs.length];
+}
 function renderHome(){
   const el = $("#panel-home"); if (!el) return;
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
@@ -1376,6 +1408,7 @@ function renderHome(){
       <div class="home-main"><div class="more"><h3>Au programme</h3><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
         <ul class="today">${t.html}</ul></div>
       <div class="home-side"><div class="sect">${homeAchHTML()}</div>
+        ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><div class="more"><h3>À citer aujourd'hui</h3><button class="linkbtn" data-act="home-refs">Toutes les références</button></div><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
         <div class="side-card"><div class="more"><h3>Niveau par épreuve</h3><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows(true)}</div></div></div>
     </div>`;
 }
@@ -1511,7 +1544,7 @@ function renderDeck(){
   const keys = TH_ORDER.concat([""]);
   const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
   if (!groups.length) { $("#panel-deck").innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes dans l'onglet « Ajouter ».</p></div>`; return; }
-  $("#panel-deck").innerHTML = groups.map(([k, list]) => {
+  $("#panel-deck").innerHTML = `<div class="row-btns deck-actions"><button class="btn" data-tab="add">Ajouter une carte</button></div>` + groups.map(([k, list]) => {
     const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
     return `<div class="group"><h3>${esc(THEMES[k] || NONE_T)}</h3><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
       const pr = progress[c.id];
@@ -2245,6 +2278,354 @@ function renderConcours(){
       <p class="conc-maj">Relevé le ${CONC_MAJ}. Les textes officiels font foi : vérifie-les avant ton inscription.</p></div>`;
 }
 
+const REFS = [
+/* ---------- Écrit 1 : historiens et sociologues ---------- */
+{id:"r01",g:"e1",au:"Pierre Arnaud",ti:"Le militaire, l'écolier, le gymnaste. Naissance de l'éducation physique en France (1869-1889)",y:1991,
+ id2:"L'éducation physique scolaire naît au croisement de trois modèles : militaire, scolaire et gymnique. Sa forme scolaire se construit contre et avec ces influences.",
+ us:"Pour analyser les origines de la discipline, l'obligation de 1880 et le poids du patriotisme après 1870."},
+{id:"r02",g:"e1",au:"Pierre Arnaud (dir.)",ti:"Les athlètes de la République. Gymnastique, sport et idéologie républicaine, 1870-1914",y:1987,
+ id2:"La République utilise la gymnastique et le sport comme instruments de formation du citoyen et du soldat.",
+ us:"Pour relier les finalités de l'éducation physique aux projets politiques de la IIIe République."},
+{id:"r03",g:"e1",au:"Michaël Attali et Jean Saint-Martin",ti:"L'éducation physique de 1945 à nos jours. Les étapes d'une démocratisation",y:2004,
+ id2:"L'EPS se démocratise et se scolarise après 1945 : sportivisation, intégration au ministère de l'Éducation nationale en 1981, recherche d'une identité disciplinaire.",
+ us:"Ouvrage de synthèse incontournable pour toute la seconde moitié du XXe siècle."},
+{id:"r04",g:"e1",au:"Jacques Thibault",ti:"Sports et éducation physique, 1870-1970",y:1972,
+ id2:"Le sport, d'abord rejeté par l'éducation physique scolaire, finit par en devenir le support principal.",
+ us:"Pour traiter les relations conflictuelles puis intégratrices entre sport et éducation physique."},
+{id:"r05",g:"e1",au:"Georges Vigarello",ti:"Le corps redressé. Histoire d'un pouvoir pédagogique",y:1978,
+ id2:"De l'Ancien Régime au XIXe siècle, la pédagogie corporelle cherche à redresser et à normer le corps de l'enfant.",
+ us:"Pour les sujets sur le corps, la santé, la posture et le pouvoir éducatif."},
+{id:"r06",g:"e1",au:"Georges Vigarello",ti:"Une histoire culturelle du sport. Techniques d'hier et d'aujourd'hui",y:1988,
+ id2:"Les techniques sportives évoluent avec les conceptions du corps, de l'efficacité et de la science.",
+ us:"Pour l'axe « Le geste et l'effort » : historiciser la technique corporelle."},
+{id:"r07",g:"e1",au:"Jacques Defrance",ti:"L'excellence corporelle. La formation des activités physiques et sportives modernes (1770-1914)",y:1987,
+ id2:"Les pratiques physiques modernes se forment dans des luttes entre groupes sociaux pour définir l'excellence corporelle légitime.",
+ us:"Pour une lecture sociologique des méthodes rivales au XIXe siècle."},
+{id:"r08",g:"e1",au:"Jacques Ulmann",ti:"De la gymnastique aux sports modernes. Histoire des doctrines de l'éducation physique",y:1965,
+ id2:"Une histoire des idées : chaque doctrine d'éducation physique repose sur une conception de l'homme et du corps.",
+ us:"Pour situer les méthodes dans leur arrière-plan philosophique."},
+{id:"r09",g:"e1",au:"Norbert Elias et Eric Dunning",ti:"Sport et civilisation. La violence maîtrisée",y:1994,
+ id2:"Le sport participe au processus de civilisation : il permet une excitation et une violence réglées, socialement acceptables.",
+ us:"Pour les sujets sur les valeurs, la violence, les émotions et les règles. Édition anglaise en 1986."},
+{id:"r10",g:"e1",au:"Pierre Bourdieu",ti:"« Comment peut-on être sportif ? », dans Questions de sociologie",y:1980,
+ id2:"Les goûts sportifs dépendent de l'habitus de classe : chaque milieu social entretient un rapport différent au corps.",
+ us:"Pour la démocratisation, les inégalités d'accès et le rapport au corps selon les milieux. Conférence de 1978."},
+{id:"r11",g:"e1",au:"Christian Pociello",ti:"Sports et société. Approche socio-culturelle des pratiques",y:1981,
+ id2:"Les pratiques sportives se distribuent dans un espace social structuré par des styles corporels (énergie, informationnel, etc.).",
+ us:"Pour analyser la diversification des pratiques et l'essor des sports de glisse ou de nature."},
+{id:"r12",g:"e1",au:"Jacques Gleyse",ti:"Archéologie de l'éducation physique au XXe siècle en France. Le corps occulté",y:1995,
+ id2:"Une lecture inspirée de Foucault des rationalités qui organisent le corps scolaire au XXe siècle.",
+ us:"Pour problématiser les finalités cachées des méthodes et les rapports de pouvoir."},
+{id:"r13",g:"e1",au:"Bernard During",ti:"Des jeux aux sports. Repères et documents en histoire des activités physiques",y:1984,
+ id2:"Une histoire longue des pratiques, des jeux traditionnels aux sports codifiés.",
+ us:"Pour les repères avant 1880 et la sportivisation des jeux."},
+{id:"r14",g:"e1",au:"Jean-Marie Brohm",ti:"Sociologie politique du sport",y:1976,
+ id2:"Une critique radicale du sport, vu comme un appareil idéologique au service de la compétition capitaliste.",
+ us:"Pour l'axe « Débats et controverses » : les critiques du modèle sportif dans les années 1970."},
+{id:"r15",g:"e1",au:"Michel Foucault",ti:"Surveiller et punir. Naissance de la prison",y:1975,
+ id2:"La discipline fabrique des corps « dociles » par le contrôle de l'espace, du temps et des gestes.",
+ us:"Pour analyser la gymnastique d'ordre et les exercices militaires du XIXe siècle."},
+{id:"r16",g:"e1",au:"Marcel Mauss",ti:"« Les techniques du corps », Journal de psychologie",y:1936,
+ id2:"Les manières de se servir de son corps sont des techniques apprises et transmises, propres à chaque société.",
+ us:"Pour définir la technique corporelle comme un fait culturel, dans les deux écrits. Communication du 17 mai 1934, publiée en 1936, reprise dans Sociologie et anthropologie (PUF, 1950)."},
+{id:"r17",g:"e1",au:"Annick Davisse et Catherine Louveau",ti:"Sports, école, société : la différence des sexes",y:1998,
+ id2:"La mixité ne garantit pas l'égalité : les contenus et l'évaluation reproduisent souvent des normes masculines.",
+ us:"Pour les sujets sur les filles, la mixité et l'égalité en EPS."},
+{id:"r18",g:"e1",au:"Thierry Terret",ti:"Histoire du sport (Que sais-je ?)",y:2007,
+ id2:"Une synthèse sur la naissance et la diffusion du sport moderne, de l'Angleterre au sport mondialisé.",
+ us:"Pour poser rapidement le contexte sportif d'une période."},
+{id:"r19",g:"e1",au:"Yves Travaillot",ti:"Sociologie des pratiques d'entretien du corps",y:1998,
+ id2:"Depuis les années 1960, les pratiques d'entretien et de forme se développent autour de la santé, de l'apparence et du bien-être.",
+ us:"Pour relier l'EPS aux pratiques sociales de forme, et le CA5 au lycée."},
+{id:"r20",g:"e1",au:"Alain Hébrard",ti:"L'éducation physique et sportive. Réflexions et perspectives",y:1986,
+ id2:"L'EPS est une discipline d'enseignement qui doit définir ses finalités, ses objectifs et ses contenus propres.",
+ us:"Pour les années 1980 et la construction de l'EPS comme discipline scolaire à part entière."},
+{id:"r21",g:"e1",au:"Bernard Jeu",ti:"Le sport, l'émotion, l'espace",y:1977,
+ id2:"Une philosophie du sport : contre-société réglée, il met en scène l'émotion, le risque et la mort symbolique.",
+ us:"Pour défendre la valeur culturelle du sport face à ses critiques."},
+{id:"r22",g:"e1",au:"Claude Pujade-Renaud",ti:"Le corps de l'enseignant dans la classe",y:1983,
+ id2:"Le corps de l'enseignant communique et agit dans la relation pédagogique, au-delà de la parole.",
+ us:"Pour les cultures professionnelles des enseignants et la relation pédagogique."},
+
+/* ---------- Écrit 1 : acteurs et doctrines ---------- */
+{id:"r30",g:"e1",au:"Georges Demenÿ",ti:"Les bases scientifiques de l'éducation physique",y:1902,
+ id2:"L'éducation physique doit s'appuyer sur la physiologie et l'étude scientifique du mouvement, contre la raideur de la gymnastique suédoise.",
+ us:"Pour la scientifisation de l'éducation physique au début du XXe siècle."},
+{id:"r31",g:"e1",au:"Georges Hébert",ti:"L'éducation physique ou l'entraînement complet par la méthode naturelle",y:1912,
+ id2:"Une méthode fondée sur des exercices utilitaires en plein air (marcher, courir, sauter, grimper…), au service de la force et de l'utilité morale.",
+ us:"Pour la méthode naturelle et ses finalités utilitaires et morales."},
+{id:"r32",g:"e1",au:"Georges Hébert",ti:"Le sport contre l'éducation physique",y:1925,
+ id2:"Une critique de la spécialisation, du record et du spectacle sportif, jugés contraires à l'éducation.",
+ us:"Pour l'axe « Débats et controverses » : les critiques du sport dans l'entre-deux-guerres."},
+{id:"r33",g:"e1",au:"Pierre de Coubertin",ti:"L'éducation en Angleterre. Collèges et universités",y:1888,
+ id2:"Le sport des public schools anglaises forme le caractère : Coubertin veut l'importer pour réformer l'éducation française.",
+ us:"Pour l'introduction du sport dans l'éducation à la fin du XIXe siècle."},
+{id:"r34",g:"e1",au:"Pierre de Coubertin",ti:"Pédagogie sportive",y:1922,
+ id2:"Une réflexion d'ensemble sur l'éducation par le sport, ses techniques et sa portée morale.",
+ us:"Pour défendre ou discuter la valeur éducative du sport. Version initiale : Leçons de pédagogie sportive, Lausanne, 1921."},
+{id:"r35",g:"e1",au:"Maurice Baquet",ti:"Éducation sportive. Initiation et entraînement",y:1942,
+ id2:"Une éducation physique fondée sur l'initiation sportive progressive, adaptée à l'enfant.",
+ us:"Pour la naissance de l'éducation sportive et l'influence de Vichy puis de la Libération."},
+{id:"r36",g:"e1",au:"Haut-Comité des sports (commission présidée par Jean Borotra, préface de Maurice Herzog)",ti:"Essai de doctrine du sport",y:1965,
+ id2:"Le sport est reconnu comme un moyen d'éducation et un fait de civilisation que l'État doit soutenir.",
+ us:"Pour la sportivisation de l'EPS dans les années 1960 et la politique sportive gaulliste."},
+{id:"r37",g:"e1",au:"Jean Le Boulch",ti:"L'éducation par le mouvement. La psychocinétique à l'âge scolaire",y:1966,
+ id2:"Une éducation psychomotrice centrée sur le développement global de l'enfant, contre l'initiation sportive précoce.",
+ us:"Pour les courants concurrents du sport dans les années 1960-1970."},
+{id:"r38",g:"e1",au:"Pierre Parlebas",ti:"Jeux, sports et sociétés. Lexique de praxéologie motrice",y:1999,
+ id2:"L'objet de l'EPS est la conduite motrice ; les activités se classent selon l'incertitude du milieu et les interactions avec autrui.",
+ us:"Pour la recherche d'une identité scientifique de l'EPS et la classification des activités. Première version : Contribution à un lexique commenté en science de l'action motrice, INSEP, 1981."},
+{id:"r39",g:"e1",au:"Raymond Catteau et Gérard Garoff",ti:"L'enseignement de la natation",y:1968,
+ id2:"Une didactique de la natation fondée sur la transformation des conduites de l'élève (équilibre, respiration, propulsion).",
+ us:"Pour illustrer le renouvellement didactique des années 1960-1970."},
+{id:"r40",g:"e1",au:"Didier Delignières et Christine Garsault",ti:"Libres propos sur l'éducation physique",y:2004,
+ id2:"Des textes de réflexion sur les finalités, les contenus et l'évolution récente de l'EPS.",
+ us:"Pour les débats contemporains sur les compétences et la culture en EPS."},
+
+/* ---------- Écrit 2 ---------- */
+{id:"r50",g:"e2",au:"Jean-Pierre Famose",ti:"Apprentissage moteur et difficulté de la tâche",y:1990,
+ id2:"La difficulté d'une tâche peut être analysée et manipulée par l'enseignant pour placer l'élève dans les meilleures conditions d'apprentissage.",
+ us:"Pour justifier les variables didactiques et la différenciation."},
+{id:"r51",g:"e2",au:"Marc Durand",ti:"L'enfant et le sport",y:1987,
+ id2:"Une synthèse sur le développement moteur de l'enfant et les conditions d'un apprentissage sportif adapté.",
+ us:"Pour le développement de l'enfant et de l'adolescent et les apprentissages moteurs."},
+{id:"r52",g:"e2",au:"Didier Delignières",ti:"Complexité et compétences. Un itinéraire théorique en éducation physique",y:2009,
+ id2:"Les approches dynamiques et la notion de compétence renouvellent la façon de penser l'apprentissage en EPS.",
+ us:"Pour l'approche dynamique et l'entrée par compétences."},
+{id:"r53",g:"e2",au:"Richard A. Schmidt",ti:"Apprentissage moteur et performance",y:1993,
+ id2:"Un manuel de référence sur le contrôle et l'apprentissage moteur (programmes moteurs, feedback, organisation de la pratique).",
+ us:"Pour les théories cognitivistes de l'apprentissage moteur. Édition américaine en 1991."},
+{id:"r54",g:"e2",au:"Albert Bandura",ti:"Auto-efficacité. Le sentiment d'efficacité personnelle",y:2003,
+ id2:"Croire en sa capacité à réussir conditionne l'engagement, l'effort et la persévérance.",
+ us:"Pour la motivation, la confiance en soi et le rôle des réussites. Édition américaine en 1997."},
+{id:"r55",g:"e2",au:"Edward L. Deci et Richard M. Ryan",ti:"Intrinsic Motivation and Self-Determination in Human Behavior",y:1985,
+ id2:"La motivation est d'autant plus durable qu'elle est autodéterminée, et soutenue par les besoins d'autonomie et de compétence.",
+ us:"Pour la théorie de l'autodétermination et le climat de classe."},
+{id:"r56",g:"e2",au:"Lev Vygotski",ti:"Pensée et langage",y:1934,
+ id2:"Les fonctions psychiques supérieures se construisent dans les interactions sociales ; l'enseignement doit viser la zone proximale de développement.",
+ us:"Pour le socioconstructivisme et le rôle des interactions. Traduction française en 1985."},
+{id:"r57",g:"e2",au:"Philippe Perrenoud",ti:"Construire des compétences dès l'école",y:1997,
+ id2:"Une compétence est une capacité d'agir efficacement dans un type de situation, en mobilisant des ressources.",
+ us:"Pour définir la compétence et discuter l'approche par compétences."},
+{id:"r58",g:"e2",au:"Philippe Meirieu",ti:"Apprendre… oui, mais comment",y:1987,
+ id2:"L'apprentissage se construit en résolvant des problèmes ; l'enseignant conçoit des situations et des dispositifs différenciés.",
+ us:"Pour la situation-problème et la pédagogie différenciée."},
+{id:"r59",g:"e2",au:"Jerome Bruner",ti:"Le développement de l'enfant. Savoir faire, savoir dire",y:1983,
+ id2:"L'adulte étaye l'activité de l'enfant par une aide ajustée, retirée progressivement.",
+ us:"Pour l'étayage et le guidage de l'enseignant."},
+{id:"r60",g:"e2",au:"Mihaly Csikszentmihalyi",ti:"Flow. The Psychology of Optimal Experience",y:1990,
+ id2:"L'expérience optimale naît de l'équilibre entre le défi et les compétences.",
+ us:"Pour le plaisir, l'engagement et le dosage de la difficulté. Traduction française : Vivre, 2004."},
+{id:"r61",g:"e2",au:"Jean Piaget et Bärbel Inhelder",ti:"La psychologie de l'enfant",y:1966,
+ id2:"Le développement cognitif passe par des stades, jusqu'à la pensée formelle à l'adolescence.",
+ us:"Pour le développement de l'adolescent et la capacité à construire un projet."},
+{id:"r62",g:"e2",au:"Henri Wallon",ti:"De l'acte à la pensée",y:1942,
+ id2:"La pensée se construit à partir de l'action et du mouvement ; le tonus est lié aux émotions.",
+ us:"Pour les liens entre motricité, émotion et développement."},
+{id:"r63",g:"e2",au:"Maurice Piéron",ti:"Pédagogie des activités physiques et du sport",y:1992,
+ id2:"L'efficacité de l'enseignement se mesure notamment au temps d'engagement moteur et à la qualité des feedbacks.",
+ us:"Pour l'analyse de l'intervention de l'enseignant d'EPS."},
+{id:"r64",g:"e2",au:"Daryl Siedentop",ti:"Apprendre à enseigner l'éducation physique",y:1994,
+ id2:"Des principes d'enseignement efficace : gestion de classe, temps d'apprentissage, organisation des tâches.",
+ us:"Pour la gestion de classe et l'efficacité de l'enseignement. Traduction française d'un ouvrage américain."},
+{id:"r65",g:"e2",au:"John Hattie",ti:"Visible Learning",y:2009,
+ id2:"Une synthèse de méta-analyses : le feedback et la clarté des objectifs comptent parmi les leviers les plus puissants.",
+ us:"Pour argumenter sur l'efficacité des pratiques enseignantes, avec les limites de la méthode."},
+{id:"r66",g:"e2",au:"Margaret Whitehead (dir.)",ti:"Physical Literacy Throughout the Lifecourse",y:2010,
+ id2:"La littératie physique réunit motivation, confiance, compétence et compréhension pour une pratique tout au long de la vie.",
+ us:"Pour la finalité de long terme de l'EPS et la santé."},
+{id:"r67",g:"e2",au:"Yves Chevallard",ti:"La transposition didactique. Du savoir savant au savoir enseigné",y:1985,
+ id2:"Les savoirs scolaires sont des transformations des savoirs de référence, adaptées à l'enseignement.",
+ us:"Pour la construction des contenus d'enseignement en EPS."},
+{id:"r68",g:"e2",au:"Jean-Louis Martinand",ti:"Connaître et transformer la matière",y:1986,
+ id2:"Les contenus scolaires peuvent prendre pour référence des pratiques sociales, et pas seulement des savoirs savants.",
+ us:"Pour la notion de pratiques sociales de référence, centrale en EPS."},
+{id:"r69",g:"e2",au:"Jean-Francis Gréhaigne",ti:"L'organisation du jeu en football",y:1992,
+ id2:"Le jeu collectif s'analyse comme un rapport d'opposition entre deux équipes en mouvement, d'où des contenus centrés sur la décision tactique.",
+ us:"Pour la didactique des sports collectifs."}
+];
+
+/* ---------- Références et citations ---------- */
+const rf = { q: "", g: "tous", open: null };
+/* Citations reproduites mot pour mot, vérifiées sur la source indiquée (relevé du 10 octobre 2026). */
+const QUOTES = [
+{
+"ref": "r16",
+"author": "Marcel Mauss",
+"text": "les façons dont les hommes, société par société, d'une façon traditionnelle, savent se servir de leur corps",
+"work": "« Les techniques du corps », Journal de psychologie, XXXII, 1936 ; Sociologie et anthropologie, PUF, 1950, p. 365",
+"src_label": "Revue Anthropen (Université Laval)",
+"src_url": "https://revues.ulaval.ca/ojs/index.php/anthropen/article/download/52047/810",
+"context": "Pour poser dès l'introduction que la technique corporelle est un fait social appris et transmis, et non une donnée naturelle."
+},
+{
+"ref": "r16",
+"author": "Marcel Mauss",
+"text": "[Le corps] est le premier et le plus naturel instrument de l'homme.",
+"work": "« Les techniques du corps », 1936 ; Sociologie et anthropologie, p. 369",
+"src_label": "EspacesTemps.net",
+"src_url": "https://www.espacestemps.net/articles/les-techniques-du-corps-des-competences-pour-faire-avec-de-lespace/",
+"context": "Pour justifier que l'EPS enseigne des techniques, comme les autres disciplines enseignent des outils."
+},
+{
+"ref": "r16",
+"author": "Marcel Mauss",
+"text": "un acte traditionnel efficace",
+"work": "« Les techniques du corps », 1936 ; Sociologie et anthropologie, p. 369 (définition de la technique)",
+"src_label": "EspacesTemps.net",
+"src_url": "https://www.espacestemps.net/articles/les-techniques-du-corps-des-competences-pour-faire-avec-de-lespace/",
+"context": "Pour définir la technique par deux critères, la tradition (transmission) et l'efficacité, utiles dans les deux écrits."
+},
+{
+"ref": "r34",
+"author": "Pierre de Coubertin",
+"text": "Dimanche dernier, lors de la cérémonie organisée à Saint-Paul en l'honneur des athlètes, l'évêque de Pennsylvanie l'a rappelé en termes heureux ; l'important dans ces olympiades, c'est moins d'y gagner que d'y prendre part. Retenons, messieurs, cette forte parole. Elle s'étend à travers tous les domaines jusqu'à former la base d'une philosophie sereine et saine. L'important dans la vie, ce n'est point le triomphe mais le combat ; l'essentiel, ce n'est pas d'avoir vaincu mais de s'être bien battu.",
+"work": "Discours du 24 juillet 1908 à Londres, publié dans la Revue olympique, n° 31, juillet 1908, p. 110",
+"src_label": "Citations vérifiées, recoupé avec J. Durry, Le vrai Pierre de Coubertin (CIPC, 2024)",
+"src_url": "https://citationsverifiees.fr/repertoire-des-auteurs/c/coubertin-pierre-de/l-important-c-est-de/",
+"context": "Coubertin reprend le sermon de l'évêque Ethelbert Talbot, prononcé le 19 juillet 1908 à la cathédrale Saint-Paul. Corriger l'attribution montre que tu connais les sources et nuance le mythe du fondateur."
+},
+{
+"ref": "r34",
+"author": "Pierre de Coubertin",
+"text": "Le sport est le culte volontaire et habituel de l'exercice musculaire intensif incité par le désir du progrès et ne craignant pas d'aller jusqu'au risque.",
+"work": "Leçons de pédagogie sportive, Lausanne, 1921, préambule (base de Pédagogie sportive, 1922)",
+"src_label": "J. Durry, Le vrai Pierre de Coubertin, Comité international Pierre de Coubertin, 2024, p. 19",
+"src_url": "https://www.coubertin.org/wp-content/uploads/2018/04/Jean-Durry-LE-VRAI-PIERRE-DE-COUBERTIN-2024-Ed.-2-20240729.pdf",
+"context": "Pour opposer la définition coubertinienne du sport (effort, progrès, risque) aux méthodes hygiénistes ou utilitaires."
+},
+{
+"ref": "r15",
+"author": "Michel Foucault",
+"text": "Est docile un corps qui peut être soumis, qui peut être utilisé, qui peut être transformé et perfectionné",
+"work": "Surveiller et punir, 1975, IIIe partie, chapitre « Les corps dociles »",
+"src_label": "Revue Facteurs humains (Université Laval)",
+"src_url": "https://revues.ulaval.ca/ojs/index.php/facteurs-humains/article/download/53701/2209/105210",
+"context": "Pour analyser la gymnastique d'ordre, les mouvements d'ensemble et les bataillons scolaires comme des dispositifs disciplinaires."
+},
+{
+"ref": "r15",
+"author": "Michel Foucault",
+"text": "une découverte du corps comme objet et cible de pouvoir",
+"work": "Surveiller et punir, 1975, chapitre « Les corps dociles »",
+"src_label": "Revue Facteurs humains (Université Laval)",
+"src_url": "https://revues.ulaval.ca/ojs/index.php/facteurs-humains/article/download/53701/2209/105210",
+"context": "Pour situer à l'âge classique l'origine d'un pouvoir qui s'exerce sur le corps, et lire ensuite l'éducation physique du XIXe siècle à cette lumière."
+},
+{
+"ref": "r57",
+"author": "Philippe Perrenoud",
+"text": "une capacité d'agir efficacement dans un type défini de situations, capacité qui s'appuie sur des connaissances, mais ne s'y réduit pas",
+"work": "Construire des compétences dès l'école, ESF, 1997, introduction",
+"src_label": "Site de Philippe Perrenoud (Université de Genève)",
+"src_url": "https://unige.ch/fapse/SSE/teachers/perrenoud/php_main/php_livres/php_construire.html",
+"context": "Pour définir la compétence comme mobilisation de ressources en situation, et la distinguer d'une accumulation de connaissances."
+},
+{
+"ref": "r36",
+"author": "Haut-Comité des sports (commission Borotra)",
+"text": "Toute activité physique à caractère de jeu, qui prend la forme d'une lutte avec soi-même ou d'une compétition avec les autres, est un sport.",
+"work": "Essai de doctrine du sport, 1965, « Déclaration de principe »",
+"src_label": "J.-R. Bachelet, Inflexions n° 19, 2012",
+"src_url": "https://inflexions.net/la-revue/19/dossier/bachelet-jean-rene-maurice-herzog-architecte-dune-politique-du-sport-comme-grande-cause-nationale",
+"context": "Pour donner la définition officielle du sport retenue par l'État gaulliste, et la rapprocher de celle de Coubertin."
+},
+{
+"ref": "r36",
+"author": "Haut-Comité des sports (commission Borotra)",
+"text": "Les activités sportives doivent faire partie intégrante de tout système d'éducation.",
+"work": "Essai de doctrine du sport, 1965, « Déclaration de principe »",
+"src_label": "J.-R. Bachelet, Inflexions n° 19, 2012",
+"src_url": "https://inflexions.net/la-revue/19/dossier/bachelet-jean-rene-maurice-herzog-architecte-dune-politique-du-sport-comme-grande-cause-nationale",
+"context": "Pour relier la doctrine de 1965 aux instructions de 1967 et à la sportivisation de l'EPS."
+},
+{
+"ref": "io1967",
+"author": "Instructions officielles du 19 octobre 1967",
+"text": "l'écho, sur le plan éducatif, de l'importance croissante du sport comme fait de civilisation. […] C'est la raison pour laquelle, parmi toutes les activités physiques, il doit, dans la majorité des cas, tenir la plus grande place",
+"work": "Circulaire du 19 octobre 1967, EPS dans le second degré (« il » désigne le sport)",
+"src_label": "D. Delignières, Libres propos, 5 décembre 2016",
+"src_url": "https://didierdelignieres.com/2016/12/05/reflexions-sur-cette-education-physique-qui-ne-se-confond-pas-avec-les-activites-supports-de-son-enseignement/",
+"context": "Pour dater la consécration du sport comme support principal de l'EPS, dans le contexte de la politique sportive gaulliste."
+},
+{
+"ref": "io1967",
+"author": "Instructions officielles du 19 octobre 1967",
+"text": "l'éducation physique ne doit plus être confondue avec certains des moyens qu'elle utilise",
+"work": "Circulaire du 19 octobre 1967",
+"src_label": "D. Delignières, Libres propos, 5 décembre 2016",
+"src_url": "https://didierdelignieres.com/2016/12/05/reflexions-sur-cette-education-physique-qui-ne-se-confond-pas-avec-les-activites-supports-de-son-enseignement/",
+"context": "Pour montrer que la sportivisation de 1967 s'accompagne déjà d'une affirmation de l'autonomie de la discipline face au sport."
+},
+{
+"ref": "io1967",
+"author": "Instructions officielles du 19 octobre 1967",
+"text": "… à la différence d'autres disciplines, [l'éducation physique] ne s'appuie pas sur une matière préexistante et constituée hors d'elle-même ; elle repose, au contraire, sur des activités et des gestes dont elle légitime l'emploi et qu'elle organise en fonction des fins qu'elle leur assigne",
+"work": "Circulaire du 19 octobre 1967",
+"src_label": "D. Delignières, Libres propos, 5 décembre 2016",
+"src_url": "https://didierdelignieres.com/2016/12/05/reflexions-sur-cette-education-physique-qui-ne-se-confond-pas-avec-les-activites-supports-de-son-enseignement/",
+"context": "Pour traiter l'identité disciplinaire et les contenus propres à l'EPS, avant l'approche par les contenus des années 1980."
+},
+{
+"ref": "io1985",
+"author": "Programmes du collège (arrêté du 14 novembre 1985)",
+"text": "L'éducation physique et sportive ne se confond pas avec les activités physiques qu'elle propose et organise",
+"work": "Instructions officielles, arrêté du 14 novembre 1985",
+"src_label": "D. Delignières, Libres propos, 5 décembre 2016",
+"src_url": "https://didierdelignieres.com/2016/12/05/reflexions-sur-cette-education-physique-qui-ne-se-confond-pas-avec-les-activites-supports-de-son-enseignement/",
+"context": "Pour marquer l'émancipation de l'EPS vis-à-vis du sport après son retour à l'Éducation nationale en 1981."
+},
+{
+"ref": "loi1975",
+"author": "Loi Mazeaud du 29 octobre 1975, article 3",
+"text": "dans l'enseignement du premier et du second degré, tout élève bénéficie d'une initiation sportive.",
+"work": "Loi n° 75-988 du 29 octobre 1975 relative au développement de l'éducation physique et du sport",
+"src_label": "D. Delignières, Libres propos, 5 décembre 2016",
+"src_url": "https://didierdelignieres.com/2016/12/05/reflexions-sur-cette-education-physique-qui-ne-se-confond-pas-avec-les-activites-supports-de-son-enseignement/",
+"context": "Pour montrer que l'initiation sportive est inscrite dans la loi pendant la période où l'EPS dépend du secrétariat d'État à la Jeunesse et aux Sports."
+}
+];
+const normTxt = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function refCite(r){ return `${r.au}, ${r.ti}, ${r.y}.`; }
+function refMatches(r){
+  if (rf.g !== "tous" && r.g !== rf.g) return false;
+  if (!rf.q) return true;
+  const qs = QUOTES.filter(x => x.ref === r.id).map(x => x.text).join(" ");
+  const hay = normTxt([r.au, r.ti, r.y, r.id2, r.us, qs].join(" "));
+  return normTxt(rf.q).split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+function quoteHTML(x){
+  return `<figure class="quote"><blockquote>« ${esc(x.text)} »</blockquote><figcaption>${esc(x.author)}, ${esc(x.work)}${x.src_url ? ` · <a href="${esc(x.src_url)}" target="_blank" rel="noopener">${esc(x.src_label)}</a>` : ""}</figcaption>${x.context ? `<p class="opt">${esc(x.context)}</p>` : ""}</figure>`;
+}
+function refHTML(r){
+  const qs = QUOTES.filter(x => x.ref === r.id);
+  return `<li class="ref"><div class="ref-h"><b>${esc(r.au)}</b><span class="ref-y">${r.y}</span></div>
+    <p class="ref-t">${esc(r.ti)}</p>
+    <p>${esc(r.id2)}</p>
+    <p class="ref-us"><span>Pour ta copie :</span> ${esc(r.us)}</p>
+    ${qs.map(quoteHTML).join("")}
+    <button class="linkbtn" data-refcopy="${r.id}">Copier la référence</button></li>`;
+}
+function renderRefs(){
+  const el = $("#panel-refs"); if (!el) return;
+  const list = REFS.filter(refMatches);
+  const free = QUOTES.filter(x => !x.ref || !REFS.some(r => r.id === x.ref)).filter(x => (rf.g === "tous" || rf.g === "e1") && (!rf.q || normTxt([x.author, x.text, x.work].join(" ")).includes(normTxt(rf.q))));
+  const chips = [["tous", "Tout"], ["e1", "Écrit 1 : histoire"], ["e2", "Écrit 2 : sciences"]]
+    .map(([k, l]) => `<button class="chip" data-rfg="${k}" aria-pressed="${k === rf.g}">${esc(l)}</button>`).join("");
+  const nQ = QUOTES.length;
+  const head = document.getElementById("rf-search");
+  if (!head) {
+    el.innerHTML = `<p class="lead">Les ouvrages et les auteurs à citer dans tes copies, avec l'idée à retenir et l'usage possible. Les citations sont reproduites mot pour mot et vérifiées sur leur source.</p>
+      <div class="rf-bar"><label class="sr-only" for="rf-search">Chercher une référence</label><input id="rf-search" type="search" placeholder="Chercher un auteur, un ouvrage, une idée…" value="${esc(rf.q)}" autocomplete="off"><div class="chips" id="rf-chips"></div></div>
+      <p class="rf-count" id="rf-count" aria-live="polite"></p><div id="rf-list"></div>`;
+  }
+  $("#rf-chips").innerHTML = chips;
+  $("#rf-count").textContent = `${list.length} référence${list.length > 1 ? "s" : ""}${nQ ? `, ${nQ} citation${nQ > 1 ? "s" : ""} vérifiée${nQ > 1 ? "s" : ""}` : ""}`;
+  $("#rf-list").innerHTML = list.length || free.length
+    ? `${list.length ? `<ul class="ref-list">${list.map(refHTML).join("")}</ul>` : ""}${free.length ? `<div class="sect"><h3>Textes officiels et autres citations</h3>${free.map(quoteHTML).join("")}</div>` : ""}`
+    : `<div class="empty"><h2>Aucune référence trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>`;
+}
+
 const fil = { cur: null };
 function renderFils(){
   const el = $("#panel-fils");
@@ -2340,9 +2721,9 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","concours","frise","qui","sujets","stats","deck","add"];
+const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","stats","deck","add"];
 const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
 const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
@@ -2370,6 +2751,8 @@ function render(focusActions){
   if (view === "revise") { renderRevise(); renderReviseSide(); }
   if (view === "fils") renderFils();
   if (view === "concours") renderConcours();
+  if (view === "refs") renderRefs();
+  if (view === "add") { const t = $("#tab-deck"); if (t) { t.setAttribute("aria-selected", "true"); t.tabIndex = 0; } }
   if (view === "frise") renderFrise();
   if (view === "qui") renderQui();
   if (view === "sujets") renderSujets();
@@ -2391,6 +2774,9 @@ document.addEventListener("click", e => {
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.rfg) { rf.g = d.rfg; renderRefs(); const b = document.querySelector(`[data-rfg="${d.rfg}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.refcopy) { const r = REFS.find(x => x.id === d.refcopy); if (r) { try { navigator.clipboard.writeText(refCite(r)).then(() => toast("Référence copiée."), () => toast("Copie impossible : sélectionne le texte.")); } catch (err) { toast("Copie impossible : sélectionne le texte."); } } return; }
+  if (d.act === "home-refs") { setView("refs"); return; }
   if (d.conc) { conc.cur = concById(d.conc); render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-concours .back"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "conc-back") { const id = conc.cur && conc.cur.id; conc.cur = null; render(); const b = id && document.querySelector(`[data-conc="${id}"]`); if (b) b.focus(); return; }
   if (d.act === "conc-open") { conc.cur = concById(d.id); setView("concours"); return; }
@@ -2449,6 +2835,7 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("input", e => {
+  if (e.target.id === "rf-search") { rf.q = e.target.value; renderRefs(); return; }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
@@ -2716,7 +3103,7 @@ function renderWelcome(){
     <ul class="w-spaces">
       <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : une séance de cartes par épreuve, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
       <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
-      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
+      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les références et citations à placer en copie, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
       <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation, introduction chronométrée et paragraphe argumenté.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
     </ul>
