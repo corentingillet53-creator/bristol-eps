@@ -59,7 +59,7 @@ Les visiteurs peuvent créer un compte (bouton « Se connecter ») pour retrouve
 - **Données** : base D1 `bristol-db` (tables `users`, `sessions`, `progress`, schéma dans `migrations/`).
 - **Mots de passe** : jamais envoyés ni stockés. Le navigateur en dérive une clé (PBKDF2-SHA256, 310 000 itérations) ; le serveur n'en garde qu'une empreinte salée.
 - **Mot de passe oublié** : une clé de secours est affichée une seule fois à l'inscription. Il n'y a pas encore de récupération par e-mail.
-- **Synchronisé** : progression des fiches, cartes perso, références, scores Frise et « Qui ? ». Les notes de dissertation restent sur chaque appareil.
+- **Synchronisé** : progression des fiches, cartes perso, références, scores Frise et « Qui ? », date du concours et calendrier de régularité. Les textes rédigés (plans, introductions, paragraphes) restent sur chaque appareil.
 - **Connexion avec Google** : identifiant client dans `wrangler.jsonc` (`GOOGLE_CLIENT_ID`), secret dans Cloudflare (`GOOGLE_CLIENT_SECRET`, type Secret). URI de redirection à déclarer chez Google : `https://bristol-eps.corentin-gillet53.workers.dev/api/auth/google/callback`. Quand Google se relie à un compte à mot de passe existant de même adresse, ce mot de passe est désactivé (protection contre la création d'un compte par un tiers avec ton adresse). Tant que l'application Google est en mode test, seuls les utilisateurs test déclarés peuvent se connecter : publie-la dans Google Auth Platform → Audience avant d'ouvrir le site.
 - **Suppression** : chaque utilisateur peut supprimer son compte et ses données depuis « Mon compte ».
 - **Voir les comptes** : Cloudflare → Storage & Databases → D1 → `bristol-db` → Console, par exemple `SELECT email, created_at FROM users;`
@@ -72,7 +72,6 @@ Si tu modifies `source/bristol-eps.html`, fabrique d'abord la nouvelle page avec
 
 ## Bon à savoir
 
-- **Ta progression ne se synchronise pas encore entre appareils sur ce site** : elle reste dans le navigateur. La synchronisation reviendra avec les comptes utilisateurs.
 - **Le prompt est construit côté serveur.** Un visiteur ne peut pas se servir de ta clé pour autre chose qu'un retour sur un sujet, avec un texte de 6 000 caractères maximum et une réponse plafonnée.
 - **Changer de modèle** : ajoute une variable `MODEL` (par exemple `claude-opus-5-5`, environ deux fois plus cher).
 - **Retirer un testeur** : enlève son code du secret `ACCESS_CODES`.

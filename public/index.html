@@ -25,6 +25,7 @@ img{max-width:100%}
   --accent:#2747a8; --accent-ink:#ffffff; --shadow:rgba(27,34,51,.16);
   --ok:#1f7a4d; --warn:#9a6200; --bad:#b4372e;
   --seg-m:#2747a8; --seg-c:#8fa3dc; --seg-e:#d5dce8;
+  --hm0:#e3e8f2; --hm1:#c3cfee; --hm2:#8ea3dd; --hm3:#5671c4; --hm4:#2747a8;
   --f-display:"Literata", Georgia, "Times New Roman", serif;
   --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -37,6 +38,7 @@ img{max-width:100%}
     --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
     --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
     --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
+    --hm0:#222a39; --hm1:#2f3d66; --hm2:#43599b; --hm3:#6681d6; --hm4:#9db2ff;
   }
 }
 :root[data-theme="dark"]{
@@ -45,6 +47,7 @@ img{max-width:100%}
   --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
   --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
   --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
+  --hm0:#222a39; --hm1:#2f3d66; --hm2:#43599b; --hm3:#6681d6; --hm4:#9db2ff;
 }
 body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
 .wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:28px 56px}
@@ -219,6 +222,27 @@ label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color
 .w-sub{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
 .w-note{font-size:14px;color:var(--muted);margin:0 0 16px;max-width:62ch}
 .first-hint{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:0 0 12px;color:var(--muted);font-size:15px;max-width:62ch}
+/* Objectif concours et régularité */
+.goal{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;align-items:center;padding:14px 16px;margin:18px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.goal-j{display:grid;text-align:center;min-width:5.5em}
+.goal-j b{font-family:var(--f-mono);font-weight:500;font-size:26px;color:var(--accent);font-variant-numeric:tabular-nums}
+.goal-j span{font-size:12px;color:var(--muted)}
+.goal-main p{margin:0}
+.goal-bar{height:8px;border-radius:4px;background:var(--seg-e);margin:8px 0 6px;overflow:hidden}
+.goal-bar span{display:block;height:100%;background:var(--accent);border-radius:4px}
+.goal-sub{font-size:14px;color:var(--muted)}
+.goal-form{display:grid;gap:6px;margin:18px 0 0;padding:14px 16px;border:1px dashed var(--line);border-radius:12px}
+.goal-form input{width:auto}
+@media (max-width:420px){ .goal{grid-template-columns:1fr} .goal-j{text-align:left;display:flex;gap:10px;align-items:baseline} }
+.hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
+.hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
+.hm-cell{display:inline-block;width:14px;height:14px;border-radius:3px;background:var(--hm0)}
+.hm-1{background:var(--hm1)} .hm-2{background:var(--hm2)} .hm-3{background:var(--hm3)} .hm-4{background:var(--hm4)}
+.hm-out{background:transparent}
+.hm-legend{align-items:center;gap:4px 6px;margin-top:8px}
+.hm-legend .hm-cell{width:12px;height:12px}
+.hm-kpis{margin-bottom:12px}
 /* Compte */
 .acct-form{display:grid;gap:12px;max-width:440px;margin-top:4px}
 .acct-msg{margin:0;font-size:15px}
@@ -309,6 +333,7 @@ html.big .chip,html.big .fbar label,html.big .textsize{font-size:16px}
 
   <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise">
     <h2 class="sr-only">Réviser les fiches du jour</h2>
+    <div id="goal"></div>
     <div class="counts" id="counts"></div>
     <div class="fbar" id="filters-revise"></div>
     <section id="panel-revise" aria-live="polite"></section>
@@ -560,6 +585,20 @@ const IVL = [0, 0, 1, 3, 7, 15];
 
 let progress = {}, custom = [], gone = [];
 let games = { frise: { g: 0, t: 0 }, qui: { g: 0, t: 0 } };
+/* Journal des révisions par jour ({ "2026-10-10": { a: réponses, n: nouvelles cartes } })
+   et préférences (date du concours). Synchronisés comme la progression. */
+let log = {}, prefs = { examDate: "", t: 0 };
+const pad2 = n => String(n).padStart(2, "0");
+function dayKey(d){ d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", t: x.t || 0 }; }
+function mergeLog(a, b){
+  const out = {};
+  for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
+    const o = out[k] || { a: 0, n: 0 };
+    out[k] = { a: Math.max(o.a, (v && v.a) || 0), n: Math.max(o.n, (v && v.n) || 0) };
+  }
+  return out;
+}
 let refs = {}, refEdit = null;
 const SOURCES = {
   TS: { l: "Chronologie des textes officiels de l'EPS (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/textes-officiels-concernant-l-education-physique-et-sportive-en-france" },
@@ -627,9 +666,9 @@ function nextLabel(b){ const nb = b ? Math.min(5, b + 1) : 2; const d = IVL[nb];
 
 /* ---------- Stockage ---------- */
 function localLoad(){
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; } } catch (e) {}
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; log = d.log || {}; prefs = normPrefs(d.prefs); } } catch (e) {}
 }
-function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs})); } catch (e) {} }
+function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs, log, prefs})); } catch (e) {} }
 function setStatus(mode){
   const t = { local: "Sur cet appareil", cloud: "Synchronisé", saving: "Enregistrement…", offline: "Hors ligne, gardé ici" }[mode];
   $("#status").dataset.mode = mode; $("#status-txt").textContent = t;
@@ -645,7 +684,7 @@ async function flush(){
   if (store.saving || !store.dirty || !store.ref) return;
   store.saving = true; store.dirty = false;
   try {
-    await store.ref.set({ progress, custom, gone, games, refs, v: 1 });
+    await store.ref.set({ progress, custom, gone, games, refs, log, prefs, v: 1 });
     store.fails = 0; setStatus("cloud");
   } catch (e) {
     const code = e && e.code;
@@ -667,7 +706,8 @@ function merge(remote){
   const rf = Object.assign({}, remote.refs || {});
   for (const [id, v] of Object.entries(refs)) if (!rf[id] || (v.t || 0) > (rf[id].t || 0)) rf[id] = v;
   g.forEach(id => delete rf[id]);
-  return { progress: out, custom: cu, gone: g, games: gm, refs: rf };
+  const rp = normPrefs(remote.prefs), lp = normPrefs(prefs);
+  return { progress: out, custom: cu, gone: g, games: gm, refs: rf, log: mergeLog(remote.log, log), prefs: lp.t > rp.t ? lp : rp };
 }
 async function connect(){
   if (!window.claude || !window.claude.use) return;
@@ -679,8 +719,8 @@ async function connect(){
   const snap = await ref.get();
   const remote = snap.exists ? clone(snap.data()) : { progress: {}, custom: [], gone: [] };
   const m = merge(remote);
-  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}});
-  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs;
+  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs, l: m.log, f: m.prefs}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}, l: mergeLog(remote.log, {}), f: normPrefs(remote.prefs)});
+  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs;
   store.ref = ref; localSave(); setStatus("cloud");
   if (changed) { store.dirty = true; flush(); }
   if (done === 0 && !flipped) buildQueue();
@@ -689,12 +729,63 @@ async function connect(){
   if (Object.keys(progress).length && !welcomeSeen()) $("#welcome").hidden = true;
 }
 
+/* ---------- Objectif concours ---------- */
+function startOfDay(d){ d = new Date(d || Date.now()); d.setHours(0, 0, 0, 0); return d; }
+function goalInfo(){
+  if (!prefs.examDate) return null;
+  const exam = new Date(prefs.examDate + "T00:00:00");
+  const daysLeft = Math.round((exam - startOfDay()) / DAY);
+  const unseen = allCards().filter(c => !progress[c.id]).length;
+  const today = log[dayKey()] || { a: 0, n: 0 };
+  /* On garde les 14 derniers jours pour revoir : les nouvelles cartes sont réparties avant. */
+  const learnDays = daysLeft > 14 ? daysLeft - 14 : Math.max(1, daysLeft);
+  const remainingToday = unseen + today.n;
+  const newPerDay = daysLeft <= 0 || !remainingToday ? 0 : Math.min(40, Math.max(3, Math.ceil(remainingToday / learnDays)));
+  return { daysLeft, unseen, newPerDay, today, newLeft: Math.max(0, Math.min(unseen, newPerDay - today.n)) };
+}
+function streaks(){
+  const active = d => ((log[dayKey(d)] || {}).a || 0) > 0;
+  let cur = 0; const d = startOfDay();
+  if (!active(d)) d.setDate(d.getDate() - 1);
+  while (active(d)) { cur++; d.setDate(d.getDate() - 1); }
+  const days = Object.keys(log).filter(k => (log[k].a || 0) > 0).sort();
+  let best = 0, run = 0, prev = null;
+  for (const k of days) { const t = new Date(k + "T00:00:00"); run = prev && Math.round((t - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; }
+  return { cur, best: Math.max(best, cur) };
+}
+function newLimit(){ const g = goalInfo(); return g ? g.newLeft : NEW_MAX; }
+function renderGoal(){
+  const el = $("#goal"); if (!el) return;
+  const g = goalInfo(), st = streaks();
+  if (!g || goalEdit) {
+    el.innerHTML = `<form class="goal-form" data-goalform="1" novalidate>
+      <label for="exam-date"><b>Date de ton concours</b> <span class="opt">pour obtenir un objectif quotidien</span></label>
+      <div class="row-btns"><input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn" type="submit">Enregistrer</button>${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}</div>
+    </form>`;
+    return;
+  }
+  const pct = g.newPerDay ? Math.min(100, Math.round(100 * g.today.n / g.newPerDay)) : 100;
+  const dateTxt = new Date(prefs.examDate + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  let line;
+  if (g.daysLeft < 0) line = "La date du concours est passée. Mets-la à jour si tu repasses l'épreuve.";
+  else if (g.daysLeft === 0) line = "C'est le jour du concours. Bon courage !";
+  else if (!g.unseen && !g.today.n) line = "Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.";
+  else if (g.daysLeft <= 14) line = `Phase finale : ${g.today.n} / ${g.newPerDay} nouvelles cartes aujourd'hui, puis revois tes points faibles.`;
+  else line = `Aujourd'hui : <b>${g.today.n} / ${g.newPerDay}</b> nouvelles cartes pour avoir tout vu deux semaines avant le concours.`;
+  el.innerHTML = `<div class="goal">
+    <div class="goal-j"><b>${g.daysLeft > 0 ? "J-" + g.daysLeft : g.daysLeft === 0 ? "Jour J" : "Passé"}</b><span>${esc(dateTxt)}</span></div>
+    <div class="goal-main"><p>${line}</p>${g.daysLeft > 0 && g.newPerDay ? `<div class="goal-bar" role="progressbar" aria-label="Nouvelles cartes du jour" aria-valuemin="0" aria-valuemax="${g.newPerDay}" aria-valuenow="${Math.min(g.today.n, g.newPerDay)}"><span style="width:${pct}%"></span></div>` : ""}
+      <p class="goal-sub">${g.today.a} réponse${g.today.a > 1 ? "s" : ""} aujourd'hui · série : ${st.cur} jour${st.cur > 1 ? "s" : ""} <button class="linkbtn" data-act="goal-edit">Modifier la date</button></p></div>
+  </div>`;
+}
+let goalEdit = false;
+
 /* ---------- Séance ---------- */
 function buildQueue(){
   const now = Date.now();
   const cards = allCards().filter(inFilter);
   const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).sort((a, b) => progress[a.id].d - progress[b.id].d);
-  const fresh = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p)).slice(0, NEW_MAX);
+  const fresh = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p)).slice(0, newLimit());
   queue = due.concat(fresh).map(c => c.id);
   cram = false; flipped = false;
 }
@@ -706,6 +797,8 @@ function cramQueue(){
 function grade(r){
   const id = queue.shift(); if (!id) return;
   const now = Date.now(), p = progress[id];
+  const dk = dayKey(), lg = log[dk] || { a: 0, n: 0 };
+  log[dk] = { a: lg.a + 1, n: lg.n + (p ? 0 : 1) };
   if (!cram || r === "rate") {
     let b;
     if (r === "rate") b = 1;
@@ -713,8 +806,8 @@ function grade(r){
     else b = p ? Math.min(5, p.b + 1) : 2;
     const ivl = b === 1 ? 10 * 6e4 : IVL[b] * DAY;
     progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0) };
-    persist();
   }
+  persist();
   if (r === "rate") queue.splice(Math.min(3, queue.length), 0, id);
   done++; flipped = false; refEdit = null; render(true);
   if (progress[id] && (!cram || r === "rate")) toast(progress[id].b === 5 ? "Carte maîtrisée : boîte 5." : "Carte en boîte " + progress[id].b + ".");
@@ -722,6 +815,7 @@ function grade(r){
 
 /* ---------- Rendu ---------- */
 function renderCounts(){
+  renderGoal();
   const now = Date.now(), cards = allCards();
   const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
   const fresh = cards.filter(c => !progress[c.id]).length;
@@ -760,7 +854,8 @@ function renderRevise(){
       return;
     }
     const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
-    el.innerHTML = `<div class="empty"><h2>${done ? "Séance terminée." : "Rien à revoir pour l'instant."}</h2>
+    const gi = goalInfo(), goalMet = gi && gi.daysLeft > 0 && gi.newPerDay && gi.today.n >= gi.newPerDay;
+    el.innerHTML = `<div class="empty"><h2>${goalMet ? "Objectif du jour atteint." : done ? "Séance terminée." : "Rien à revoir pour l'instant."}</h2>
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
       <div class="row-btns"><button class="btn primary" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button></div></div>`;
     return;
@@ -1082,11 +1177,12 @@ function mdLite(t){
   if (inList) out += "</ul>";
   return out;
 }
-const fbKey = (s, kind) => (kind === "intro" ? "i:" : "") + s.id;
+const fbKey = (s, kind) => (kind === "intro" ? "i:" : kind === "para" ? "p:" : "") + s.id;
+const KIND_TXT = { plan: ["ton plan", "mon plan"], intro: ["ton introduction", "mon introduction"], para: ["ton paragraphe", "mon paragraphe"] };
 function fbInner(s, kind){
   if (!s) return "";
   const key = fbKey(s, kind), mine = fb.sid === key;
-  if (mine && fb.status === "thinking") return `<p class="fb-note">Claude lit ${kind === "intro" ? "ton introduction" : "ton plan"}… (cela peut prendre jusqu'à une minute)</p>`;
+  if (mine && fb.status === "thinking") return `<p class="fb-note">Claude lit ${KIND_TXT[kind][0]}… (cela peut prendre jusqu'à une minute)</p>`;
   const text = mine ? fb.text : fbSaved(key);
   const note = mine ? fb.note : "";
   if (!text && !note) return "";
@@ -1095,7 +1191,7 @@ function fbInner(s, kind){
 }
 function fbBlock(s, kind){
   if (!sampleFn) return "";
-  const key = fbKey(s, kind), what = kind === "intro" ? "mon introduction" : "mon plan";
+  const key = fbKey(s, kind), what = KIND_TXT[kind][1];
   const busy = fb.sid === key && (fb.status === "thinking" || fb.status === "streaming");
   const has = (fb.sid === key && fb.text) || fbSaved(key);
   if (STANDALONE && !codeGet()) {
@@ -1125,6 +1221,7 @@ function fbErr(code, detail){
   if (code === "model_unavailable") return "Le modèle Claude configuré n'est pas disponible pour ce compte API.";
   return "La connexion a été interrompue. Tu peux réessayer." + (detail ? " (Détail : " + detail + ")" : "");
 }
+const PARA_CRIT = ["Une idée directrice claire, en tête de paragraphe", "Un argument qui la justifie", "Un exemple précis et daté (texte, acteur, événement)", "Une nuance ou une limite", "Un lien explicite avec le sujet"];
 const INTRO_CRIT = ["Une accroche liée au sujet", "Les termes du sujet définis", "Les bornes chronologiques justifiées", "Le contexte et l'enjeu du sujet", "Une problématique sous forme de question", "L'annonce du plan"];
 async function askFeedback(kind){
   const s = sj.cur; if (!s || !sampleFn) return;
@@ -1133,7 +1230,7 @@ async function askFeedback(kind){
   if (fb.ctl) fb.ctl.abort();
   if (notes.length < 40) {
     Object.assign(fb, { sid: key, status: "error", text: "", ctl: null,
-      note: kind === "intro" ? "Écris d'abord ton introduction, au moins quelques phrases." : "Écris d'abord au moins une problématique et les grandes parties de ton plan." });
+      note: kind === "intro" ? "Écris d'abord ton introduction, au moins quelques phrases." : kind === "para" ? "Écris d'abord ton paragraphe, au moins quelques phrases." : "Écris d'abord au moins une problématique et les grandes parties de ton plan." });
     render(); return;
   }
   const cards = s.c.map(byId).filter(Boolean).sort((a, b) => pIdx(a.p) - pIdx(b.p));
@@ -1142,7 +1239,21 @@ async function askFeedback(kind){
 « ${s.t} »
 Axe du programme : ${THEMES[s.th]}.
 `;
-  const prompt = kind === "intro"
+  const prompt = kind === "para" ? head + `
+Voici un paragraphe argumenté qu'il a rédigé pour ce sujet :
+"""
+${notes.slice(0, 6000)}
+"""
+
+Voici des faits vérifiés de son paquet de révision, utiles pour ce sujet :
+${facts}
+
+Évalue ce paragraphe, en français, en 250 mots maximum, avec exactement ces trois titres, chacun sur une ligne qui commence par "## " :
+## Ce qui fonctionne
+## Les cinq éléments du paragraphe
+## À retravailler en priorité
+Sous « Les cinq éléments du paragraphe », écris une puce par élément, dans cet ordre, qui commence par "- " puis le nom de l'élément, puis « présent », « à améliorer » ou « absent », et une courte justification : idée directrice ; argument ; exemple précis et daté ; nuance ou limite ; lien avec le sujet. Sous les deux autres titres, 1 à 3 puces qui commencent par "- ". Signale toute date, tout nom ou toute attribution qui contredit les faits fournis. Ne réécris pas le paragraphe à sa place et ne donne pas de note chiffrée. Si tu mentionnes un fait absent de la liste, précise qu'il est à vérifier.`
+    : kind === "intro"
     ? head + `
 Voici l'introduction qu'il a rédigée en temps limité :
 """
@@ -1224,10 +1335,12 @@ function drawSubject(){
 function renderSujets(){
   const chips = [["Tous","Tous les axes"]].concat(["T","G","D"].map(k => [k, THEMES[k]]))
     .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("");
-  const modes = `<div class="modes" role="group" aria-label="Type d'entraînement"><button class="chip" data-sjmode="plan" aria-pressed="${sj.mode === "plan"}">Plan complet</button><button class="chip" data-sjmode="intro" aria-pressed="${sj.mode === "intro"}">Introduction chronométrée</button></div>`;
+  const modes = `<div class="modes" role="group" aria-label="Type d'entraînement"><button class="chip" data-sjmode="plan" aria-pressed="${sj.mode === "plan"}">Plan complet</button><button class="chip" data-sjmode="intro" aria-pressed="${sj.mode === "intro"}">Introduction chronométrée</button><button class="chip" data-sjmode="para" aria-pressed="${sj.mode === "para"}">Paragraphe argumenté</button></div>`;
   let body;
   if (!sj.cur) {
-    body = sj.mode === "intro"
+    body = sj.mode === "para"
+      ? `<p class="lead">Tire un sujet et rédige un seul paragraphe argumenté, la brique de base de la dissertation : une idée, un argument, un exemple précis et daté, une nuance, un lien au sujet. Compte une quinzaine de minutes.</p>`
+      : sj.mode === "intro"
       ? `<p class="lead">Tire un sujet et rédige son introduction en temps limité (20 minutes par défaut). Vérifie ensuite les six éléments attendus avec la grille, et demande un retour si tu veux.</p>`
       : `<p class="lead">${SUBJECTS.length} sujets d'entraînement rédigés sur les trois axes de l'écrit 1. Tire un sujet, cherche ta problématique et ton plan, puis affiche les cartes du paquet qui peuvent nourrir tes arguments.</p>`;
     body += `<div class="row-btns actions"><button class="btn primary" data-act="sj-draw">Tirer un sujet</button></div>`;
@@ -1247,6 +1360,13 @@ function renderSujets(){
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="Accroche, définition des termes, bornes chronologiques, enjeu, problématique, annonce du plan…">${esc(noteGet(key))}</textarea>
         <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${INTRO_CRIT.map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "intro")}`;
+    } else if (sj.mode === "para") {
+      const key = "p:" + s.id, chk = chkGet("p-" + s.id);
+      work = `<p class="sj-help">Choisis une idée qui répond au sujet et développe-la en un paragraphe. Appuie-toi sur un exemple précis, avec sa date et ses acteurs.</p>
+        <label for="sj-notes" class="sj-help" style="display:block">Ton paragraphe. Il reste sur cet appareil.</label>
+        <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="Idée directrice. Argument. Exemple précis et daté. Nuance ou limite. Retour au sujet.">${esc(noteGet(key))}</textarea>
+        <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${PARA_CRIT.map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="p-${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
+        ${fbBlock(s, "para")}`;
     } else {
       work = `<label for="sj-notes" class="sj-help" style="display:block">Tes idées : problématique, plan, exemples. Elles restent sur cet appareil.</label>
         <textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="Problématique…&#10;I. …&#10;II. …">${esc(noteGet(s.id))}</textarea>
@@ -1351,6 +1471,31 @@ function weakCards(){
   return allCards().filter(c => progress[c.id] && progress[c.id].l > 0)
     .sort((a, b) => (progress[b.id].l - progress[a.id].l) || (progress[a.id].b - progress[b.id].b)).slice(0, 8);
 }
+function heatmapHTML(){
+  const WEEKS = 12, today = startOfDay();
+  const dow = (today.getDay() + 6) % 7;               /* lundi = 0 */
+  const start = new Date(today); start.setDate(start.getDate() - dow - (WEEKS - 1) * 7);
+  const lvl = a => a <= 0 ? 0 : a < 10 ? 1 : a < 25 ? 2 : a < 50 ? 3 : 4;
+  let cells = "", active = 0, total = 0;
+  for (let i = 0; i < WEEKS * 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    if (d > today) { cells += `<span class="hm-cell hm-out"></span>`; continue; }
+    const a = (log[dayKey(d)] || {}).a || 0; if (a) { active++; total += a; }
+    const lab = d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" }) + " : " + (a ? a + " réponse" + (a > 1 ? "s" : "") : "aucune révision");
+    cells += `<span class="hm-cell hm-${lvl(a)}" title="${esc(lab)}"></span>`;
+  }
+  const st = streaks();
+  return `<div class="sect"><h3>Régularité</h3>
+    <div class="kpis hm-kpis">
+      <div class="kpi"><b>${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée en ce moment</span></div>
+      <div class="kpi"><b>${st.best}</b><span>meilleure série</span></div>
+      <div class="kpi"><b>${active}</b><span>jours actifs sur 12 semaines</span></div>
+    </div>
+    <div class="hm-wrap"><div class="hm-days" aria-hidden="true"><span>lun.</span><span></span><span>mer.</span><span></span><span>ven.</span><span></span><span>dim.</span></div>
+      <div class="hm" role="img" aria-label="Calendrier des 12 dernières semaines : ${active} jours de révision, ${total} réponses au total.">${cells}</div></div>
+    <p class="legend-row hm-legend"><span>Moins</span><i class="hm-cell hm-0"></i><i class="hm-cell hm-1"></i><i class="hm-cell hm-2"></i><i class="hm-cell hm-3"></i><i class="hm-cell hm-4"></i><span>Plus (50 réponses et plus)</span></p>
+  </div>`;
+}
 function renderStats(){
   const cards = allCards();
   const seen = cards.filter(c => progress[c.id]).length;
@@ -1369,6 +1514,7 @@ function renderStats(){
       <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
       <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
     </div></div>
+    ${heatmapHTML()}
     <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h3>Par axe</h3>${byTh}</div>
     <div class="sect"><h3>Par période</h3>${byP}</div>
@@ -1421,6 +1567,9 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = fals
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
+  if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
+  if (d.act === "goal-clear") { prefs = { examDate: "", t: Date.now() }; goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
   if (d.act === "account-open") { openAccount(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -1451,7 +1600,7 @@ document.addEventListener("click", e => {
   if (d.refedit) { refEdit = d.refedit; render(); const i = $("#ref-input"); if (i) i.focus(); return; }
   if (d.refsave) { const i = $("#ref-input"); saveRef(d.refsave, i ? i.value : ""); return; }
   if (d.refcancel) { const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
-  if (d.act === "fb-ask") { askFeedback(d.kind === "intro" ? "intro" : "plan"); return; }
+  if (d.act === "fb-ask") { askFeedback(["intro", "para"].includes(d.kind) ? d.kind : "plan"); return; }
   if (d.sjmode) { sj.mode = d.sjmode; render(); const b = document.querySelector(`[data-sjmode="${d.sjmode}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.tdur) { tm.dur = +d.tdur * 60; tmReset(); render(); return; }
   if (d.act === "tm-start") { tmStart(); return; }
@@ -1540,10 +1689,10 @@ const GOOGLE_ERR = {
 };
 const acctErr = (r) => ACCT_ERR[r.data && r.data.error] || "Une erreur est survenue. Réessaie dans un instant.";
 
-function syncPayload(){ return { progress, custom, gone, games, refs }; }
-function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; localSave(); }
+function syncPayload(){ return { progress, custom, gone, games, refs, log, prefs }; }
+function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; localSave(); }
 function sameData(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
-function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {} }; }
+function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {}, log: mergeLog(d.log, {}), prefs: normPrefs(d.prefs) }; }
 
 async function pullAndMerge(){
   const r = await api("GET", "/api/progress");
@@ -1688,7 +1837,7 @@ async function logoutAccount(){
   await api("POST", "/api/auth/logout", {});
   acct.busy = false;
   /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */
-  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; localSave();
+  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); localSave();
   signedOut(); done = 0; buildQueue(); render();
   acct.view = "login"; acctSetMsg("Déconnecté. Ta progression reste enregistrée dans ton compte.", "ok"); renderAccount();
 }
@@ -1770,6 +1919,14 @@ $("#f-p").value = NONE_P;
 $("#f-t").innerHTML = TH_ORDER.map(k => `<option value="${k}">${esc(THEMES[k])}</option>`).join("") + `<option value="">${NONE_T}</option>`;
 $("#f-t").value = "";
 document.addEventListener("submit", e => {
+  if (e.target.dataset && e.target.dataset.goalform) {
+    e.preventDefault();
+    const v = ($("#exam-date") || {}).value || "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { toast("Choisis une date valide."); return; }
+    prefs = { examDate: v, t: Date.now() }; goalEdit = false; persist(); done = 0; buildQueue(); render();
+    const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
+    return;
+  }
   if (e.target.dataset && e.target.dataset.acctform) { e.preventDefault(); submitAccount(e.target.dataset.acctform); return; }
   if (!e.target.dataset || !e.target.dataset.codeform) return;
   e.preventDefault();
