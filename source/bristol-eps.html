@@ -228,6 +228,27 @@ label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color
 .hm-legend{align-items:center;gap:4px 6px;margin-top:8px}
 .hm-legend .hm-cell{width:12px;height:12px}
 .hm-kpis{margin-bottom:12px}
+.rd-top{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.rd-pct b{display:block;font-family:var(--f-mono);font-weight:500;font-size:32px;line-height:1.1;font-variant-numeric:tabular-nums}
+.rd-pct span{color:var(--accent);font-weight:700}
+.rd-main{flex:1 1 240px;min-width:0}
+.rd-rows{display:grid;gap:6px}
+.rd-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(80px,2fr) 3.5em;gap:10px;align-items:center;font-size:14px}
+.rd-row b{font-family:var(--f-mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.rd-bar,.ach-bar{display:block;height:6px;border-radius:3px;background:var(--seg-e);overflow:hidden}
+.rd-bar span,.ach-bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
+.ach-n{font-family:var(--f-mono);font-weight:500;font-size:15px;color:var(--muted);margin-left:6px}
+.ach-h{margin:14px 0 6px;font-size:15px;color:var(--muted);font-weight:700}
+.ach-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.ach{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}
+.ach > div{flex:1;min-width:0}
+.ach b{display:block}
+.ach p{margin:2px 0 4px;font-size:14px;color:var(--muted)}
+.ach-ic{flex:0 0 26px;height:26px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-weight:700;font-size:14px}
+.ach.on{border-color:var(--accent)}
+.ach.on .ach-ic{border:0;background:var(--accent);color:var(--accent-ink)}
+.ach:not(.on) b{color:var(--muted)}
+.ach-st{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
 /* Compte */
 .acct-form{display:grid;gap:12px;max-width:440px;margin-top:4px}
 .acct-msg{margin:0;font-size:15px}
@@ -584,6 +605,15 @@ function mergeLog(a, b){
   }
   return out;
 }
+/* Succès : u = succès obtenus { id: date }, w = textes rédigés { clé de note: date },
+   g = jours où l'objectif a été tenu, f = retours de Claude reçus, r = meilleur niveau atteint. */
+let ach = { u: {}, w: {}, g: {}, f: 0, r: 0 };
+function normAch(x){ x = x || {}; const o = v => (v && typeof v === "object" && !Array.isArray(v)) ? Object.assign({}, v) : {}; return { u: o(x.u), w: o(x.w), g: o(x.g), f: +x.f || 0, r: +x.r || 0 }; }
+function mergeAch(a, b){
+  a = normAch(a); b = normAch(b);
+  const un = (x, y) => { const out = Object.assign({}, x); for (const [k, v] of Object.entries(y)) out[k] = out[k] ? Math.min(out[k], v) : v; return out; };
+  return { u: un(a.u, b.u), w: un(a.w, b.w), g: un(a.g, b.g), f: Math.max(a.f, b.f), r: Math.max(a.r, b.r) };
+}
 let refs = {}, refEdit = null;
 const SOURCES = {
   TS: { l: "Chronologie des textes officiels de l'EPS (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/textes-officiels-concernant-l-education-physique-et-sportive-en-france" },
@@ -651,14 +681,15 @@ function nextLabel(b){ const nb = b ? Math.min(5, b + 1) : 2; const d = IVL[nb];
 
 /* ---------- Stockage ---------- */
 function localLoad(){
-  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; log = d.log || {}; prefs = normPrefs(d.prefs); } } catch (e) {}
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; log = d.log || {}; prefs = normPrefs(d.prefs); ach = normAch(d.ach); } } catch (e) {}
 }
-function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs, log, prefs})); } catch (e) {} }
+function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs, log, prefs, ach})); } catch (e) {} }
 function setStatus(mode){
   const t = { local: "Sur cet appareil", cloud: "Synchronisé", saving: "Enregistrement…", offline: "Hors ligne, gardé ici" }[mode];
   $("#status").dataset.mode = mode; $("#status-txt").textContent = t;
 }
 function persist(){
+  checkAch();
   localSave();
   if (STANDALONE) { srvSchedule(); return; }
   if (!store.ref) return;
@@ -669,7 +700,7 @@ async function flush(){
   if (store.saving || !store.dirty || !store.ref) return;
   store.saving = true; store.dirty = false;
   try {
-    await store.ref.set({ progress, custom, gone, games, refs, log, prefs, v: 1 });
+    await store.ref.set({ progress, custom, gone, games, refs, log, prefs, ach, v: 1 });
     store.fails = 0; setStatus("cloud");
   } catch (e) {
     const code = e && e.code;
@@ -692,7 +723,7 @@ function merge(remote){
   for (const [id, v] of Object.entries(refs)) if (!rf[id] || (v.t || 0) > (rf[id].t || 0)) rf[id] = v;
   g.forEach(id => delete rf[id]);
   const rp = normPrefs(remote.prefs), lp = normPrefs(prefs);
-  return { progress: out, custom: cu, gone: g, games: gm, refs: rf, log: mergeLog(remote.log, log), prefs: lp.t > rp.t ? lp : rp };
+  return { progress: out, custom: cu, gone: g, games: gm, refs: rf, log: mergeLog(remote.log, log), prefs: lp.t > rp.t ? lp : rp, ach: mergeAch(remote.ach, ach) };
 }
 async function connect(){
   if (!window.claude || !window.claude.use) return;
@@ -704,9 +735,11 @@ async function connect(){
   const snap = await ref.get();
   const remote = snap.exists ? clone(snap.data()) : { progress: {}, custom: [], gone: [] };
   const m = merge(remote);
-  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs, l: m.log, f: m.prefs}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}, l: mergeLog(remote.log, {}), f: normPrefs(remote.prefs)});
-  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs;
+  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs, l: m.log, f: m.prefs, a: m.ach}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}, l: mergeLog(remote.log, {}), f: normPrefs(remote.prefs), a: normAch(remote.ach)});
+  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach;
+  const fresh = checkAch(true).length > 0;
   store.ref = ref; localSave(); setStatus("cloud");
+  if (fresh) { store.dirty = true; flush(); }
   if (changed) { store.dirty = true; flush(); }
   if (done === 0 && !flipped) buildQueue();
   render();
@@ -764,6 +797,103 @@ function renderGoal(){
   </div>`;
 }
 let goalEdit = false;
+
+/* ---------- Niveau de préparation ---------- */
+/* Chaque carte compte selon sa boîte : jamais vue 0, boîte 1 à 5 de 10 % à 100 %. */
+const BOX_W = [0, 0.1, 0.3, 0.5, 0.75, 1];
+const RANKS = [[0, "Premiers pas"], [15, "En construction"], [35, "Solide"], [60, "Admissible"], [85, "Prêt pour le jury"]];
+function readiness(list){
+  if (!list.length) return 0;
+  const sum = list.reduce((t, c) => t + (progress[c.id] ? BOX_W[progress[c.id].b] || 0 : 0), 0);
+  return Math.round(100 * sum / list.length);
+}
+function rankOf(pct){ let i = 0; RANKS.forEach(([min], k) => { if (pct >= min) i = k; }); return i; }
+
+/* ---------- Succès ---------- */
+const WRITE_MIN = 250;   /* caractères pour qu'un texte compte comme rédigé */
+const mastered = list => list.length > 0 && list.every(c => progress[c.id] && progress[c.id].b === 5);
+const filCards = f => f.e.map(e => byId(e[2])).filter(Boolean);
+function writtenBy(prefix){ return Object.keys(ach.w).filter(k => prefix ? k.startsWith(prefix) : !/^[ip]:/.test(k)); }
+function subjOf(k){ return SUBJECTS.find(x => x.id === k.replace(/^[ip]:/, "")); }
+const ACH_CATS = [["reg", "Régularité"], ["mai", "Maîtrise"], ["ent", "Entraînement"], ["red", "Rédaction"]];
+const ACHS = [
+  { id: "r1", c: "reg", t: "Premier pas", d: "Répondre à une première carte en séance.", v: () => [Object.values(log).some(x => x.a > 0) ? 1 : 0, 1] },
+  { id: "r7", c: "reg", t: "Une semaine", d: "Réviser 7 jours d'affilée.", v: () => [streaks().best, 7] },
+  { id: "r30", c: "reg", t: "Un mois sans lâcher", d: "Réviser 30 jours d'affilée.", v: () => [streaks().best, 30] },
+  { id: "r100", c: "reg", t: "Centurion", d: "Réviser 100 jours d'affilée.", v: () => [streaks().best, 100] },
+  { id: "o1", c: "reg", t: "Objectif tenu", d: "Atteindre l'objectif du jour fixé par la date du concours.", v: () => [Object.keys(ach.g).length, 1] },
+  { id: "o7", c: "reg", t: "Sept objectifs", d: "Atteindre l'objectif du jour 7 fois.", v: () => [Object.keys(ach.g).length, 7] },
+  { id: "m1", c: "mai", t: "Première maîtrise", d: "Faire monter une carte en boîte 5.", v: () => [allCards().filter(c => progress[c.id] && progress[c.id].b === 5).length, 1] },
+  { id: "m50", c: "mai", t: "Cinquante", d: "Maîtriser 50 cartes.", v: () => [allCards().filter(c => progress[c.id] && progress[c.id].b === 5).length, 50] },
+  { id: "seen", c: "mai", t: "Tour complet", d: "Voir au moins une fois toutes les cartes du paquet.", v: () => [BASE.filter(c => progress[c.id]).length, BASE.length] },
+  { id: "fil", c: "mai", t: "Fil rouge tenu", d: "Maîtriser toutes les cartes d'un fil rouge.", v: () => [Math.max(0, ...FILS.map(f => { const l = filCards(f); return l.length ? Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length) : 0; })), 100], pct: true },
+  { id: "axe", c: "mai", t: "Axe bouclé", d: "Maîtriser toutes les cartes d'un axe.", v: () => [Math.max(0, ...TH_ORDER.map(k => { const l = BASE.filter(c => c.th === k); return Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length); })), 100], pct: true },
+  { id: "rev", c: "mai", t: "Revanche", d: "Maîtriser une carte ratée au moins 3 fois.", v: () => [allCards().some(c => progress[c.id] && progress[c.id].b === 5 && (progress[c.id].l || 0) >= 3) ? 1 : 0, 1] },
+  { id: "all", c: "mai", t: "Paquet complet", d: "Maîtriser toutes les cartes du paquet.", v: () => [BASE.filter(c => progress[c.id] && progress[c.id].b === 5).length, BASE.length] },
+  { id: "fr", c: "ent", t: "Chronologiste", d: "Placer 50 événements au bon endroit dans la frise.", v: () => [games.frise.g, 50] },
+  { id: "qui", c: "ent", t: "Qui est qui", d: "Donner 50 bonnes réponses à « Qui ? ».", v: () => [games.qui.g, 50] },
+  { id: "w1", c: "red", t: "Première copie", d: "Rédiger un premier texte sur un sujet (plan, introduction ou paragraphe).", v: () => [Object.keys(ach.w).length, 1] },
+  { id: "wint", c: "red", t: "Introduction complète", d: "Cocher les six éléments de la grille sur une introduction.", v: () => [Math.max(0, ...SUBJECTS.map(x => chkGet(x.id).length)), 6] },
+  { id: "w10", c: "red", t: "Dix paragraphes", d: "Rédiger un paragraphe argumenté sur 10 sujets différents.", v: () => [writtenBy("p:").length, 10] },
+  { id: "wax", c: "red", t: "Sur tous les fronts", d: "Travailler au moins un sujet dans chacun des trois axes.", v: () => [new Set(Object.keys(ach.w).map(k => (subjOf(k) || {}).th).filter(Boolean)).size, 3] },
+  { id: "fb1", c: "red", t: "Regard extérieur", d: "Recevoir un premier retour de Claude.", v: () => [ach.f, 1] }
+];
+/* Vérifie les succès ; renvoie ceux qui viennent d'être obtenus. */
+function checkAch(silent){
+  const g = goalInfo();
+  if (g && g.newPerDay && g.today.n >= g.newPerDay && !ach.g[dayKey()]) ach.g[dayKey()] = Date.now();
+  const now = Date.now(), fresh = [];
+  for (const a of ACHS) {
+    if (ach.u[a.id]) continue;
+    let ok = false; try { const [v, max] = a.v(); ok = v >= max; } catch (e) {}
+    if (ok) { ach.u[a.id] = now; fresh.push(a); }
+  }
+  const rk = rankOf(readiness(allCards())), up = rk > ach.r;
+  if (up) ach.r = rk;
+  if (!silent && (fresh.length || up)) {
+    const msg = fresh.length === 1 ? "Succès obtenu : " + fresh[0].t + "."
+      : fresh.length > 1 ? fresh.length + " succès obtenus : " + fresh.map(a => a.t).join(", ") + "."
+      : "";
+    const lvl = up ? "Nouveau niveau : " + RANKS[rk][1] + "." : "";
+    setTimeout(() => toast((msg + " " + lvl).trim()), 0);
+  }
+  return up ? fresh.concat([{ id: "rank" }]) : fresh;
+}
+/* Textes déjà rédigés sur cet appareil avant l'arrivée des succès. */
+function backfillWritten(){
+  try {
+    const o = JSON.parse(localStorage.getItem(NOTES_KEY) || "{}");
+    for (const [k, v] of Object.entries(o)) if (!k.startsWith("c:") && typeof v === "string" && v.trim().length >= WRITE_MIN && subjOf(k) && !ach.w[k]) ach.w[k] = Date.now();
+  } catch (e) {}
+}
+function readinessHTML(){
+  const all = allCards(), pct = readiness(all), rk = rankOf(pct);
+  const next = RANKS[rk + 1];
+  const rows = TH_ORDER.map(k => { const v = readiness(all.filter(c => c.th === k)); return `<div class="rd-row"><span>${esc(THEMES[k])}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></div>`; }).join("");
+  return `<div class="sect rd"><h3>Niveau de préparation</h3>
+    <div class="rd-top"><div class="rd-pct"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
+      <div class="rd-main"><div class="goal-bar" role="progressbar" aria-label="Niveau de préparation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
+      <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes jusqu'au concours."} Une carte compte pleinement en boîte 5, partiellement avant.</p></div></div>
+    <div class="rd-rows">${rows}</div>
+  </div>`;
+}
+function achHTML(){
+  const got = ACHS.filter(a => ach.u[a.id]).length;
+  const fmt = t => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  const groups = ACH_CATS.map(([c, label]) => {
+    const items = ACHS.filter(a => a.c === c).map(a => {
+      const on = !!ach.u[a.id];
+      let v = 0, max = 1; try { [v, max] = a.v(); } catch (e) {}
+      v = Math.min(v, max);
+      const prog = on ? `<span class="ach-st">Obtenu le ${fmt(ach.u[a.id])}</span>`
+        : max > 1 ? `<span class="ach-st">${a.pct ? v + " %" : v + " / " + max}</span><span class="ach-bar" aria-hidden="true"><span style="width:${Math.round(100 * v / max)}%"></span></span>`
+        : `<span class="ach-st">À obtenir</span>`;
+      return `<li class="ach${on ? " on" : ""}"><span class="ach-ic" aria-hidden="true">${on ? "✓" : ""}</span><div><b>${esc(a.t)}</b><span class="sr-only">${on ? " (obtenu)" : " (pas encore obtenu)"}</span><p>${esc(a.d)}</p>${prog}</div></li>`;
+    }).join("");
+    return `<h4 class="ach-h">${esc(label)}</h4><ul class="ach-list">${items}</ul>`;
+  }).join("");
+  return `<div class="sect"><h3>Succès <span class="ach-n">${got} / ${ACHS.length}</span></h3>${groups}</div>`;
+}
 
 /* ---------- Séance ---------- */
 function buildQueue(){
@@ -1286,6 +1416,7 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
       : (typeof res.quotaLeft === "number" ? `Il te reste ${res.quotaLeft} retour${res.quotaLeft > 1 ? "s" : ""} ce mois-ci.` : "");
     fbSave(key, res.text);
+    ach.f++; persist();
   } catch (e) {
     if (fb.ctl !== ctl) return;
     fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
@@ -1491,6 +1622,7 @@ function renderStats(){
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
   const byP = PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `
+    ${readinessHTML()}
     <div class="sect"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
@@ -1500,6 +1632,7 @@ function renderStats(){
       <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
     </div></div>
     ${heatmapHTML()}
+    ${achHTML()}
     <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h3>Par axe</h3>${byTh}</div>
     <div class="sect"><h3>Par période</h3>${byP}</div>
@@ -1604,12 +1737,17 @@ document.addEventListener("click", e => {
     queue = queue.filter(q => q !== id); pendingDel = null; persist(); render(); toast("Carte supprimée.");
   }
 });
-document.addEventListener("input", e => { if (e.target.id === "sj-notes") noteSet(e.target.dataset.sid, e.target.value); });
+document.addEventListener("input", e => {
+  if (e.target.id !== "sj-notes") return;
+  const k = e.target.dataset.sid; noteSet(k, e.target.value);
+  if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
+});
 document.addEventListener("change", e => {
   if (e.target.dataset && e.target.dataset.chk !== undefined) {
     const sid = e.target.dataset.sid, i = +e.target.dataset.chk;
     const cur = new Set(chkGet(sid)); if (e.target.checked) cur.add(i); else cur.delete(i);
     noteSet("c:" + sid, JSON.stringify(Array.from(cur).sort()));
+    if (checkAch().length) persist();
     return;
   }
   const f = e.target.dataset && e.target.dataset.fsel; if (!f) return;
@@ -1674,10 +1812,10 @@ const GOOGLE_ERR = {
 };
 const acctErr = (r) => ACCT_ERR[r.data && r.data.error] || "Une erreur est survenue. Réessaie dans un instant.";
 
-function syncPayload(){ return { progress, custom, gone, games, refs, log, prefs }; }
-function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; localSave(); }
+function syncPayload(){ return { progress, custom, gone, games, refs, log, prefs, ach }; }
+function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; log = m.log; prefs = m.prefs; ach = m.ach; checkAch(true); localSave(); }
 function sameData(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
-function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {}, log: mergeLog(d.log, {}), prefs: normPrefs(d.prefs) }; }
+function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {}, log: mergeLog(d.log, {}), prefs: normPrefs(d.prefs), ach: normAch(d.ach) }; }
 
 async function pullAndMerge(){
   const r = await api("GET", "/api/progress");
@@ -1822,7 +1960,7 @@ async function logoutAccount(){
   await api("POST", "/api/auth/logout", {});
   acct.busy = false;
   /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */
-  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); localSave();
+  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); ach = normAch(); localSave();
   signedOut(); done = 0; buildQueue(); render();
   acct.view = "login"; acctSetMsg("Déconnecté. Ta progression reste enregistrée dans ton compte.", "ok"); renderAccount();
 }
@@ -1934,7 +2072,7 @@ $("#add-form").addEventListener("submit", e => {
   renderCounts(); toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
 });
 
-localLoad(); buildQueue(); render();
+localLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
