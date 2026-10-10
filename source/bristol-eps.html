@@ -1,410 +1,494 @@
 <title>Bristol EPS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap">
 <style>
-/* Layout : une colonne centrée (720px max) — en-tête et compteurs, onglets, filtres, puis la fiche bristol comme objet central */
+/* Bristol EPS — app épurée : barre latérale (ordinateur) ou onglets en bas (téléphone), une colonne de 720px.
+   Un vert « gymnase » pour l'action, l'or réservé à la série et aux succès. */
 :root{
-  --page:#eef1f6; --card:#ffffff; --rule:#cfdcef; --margin:#b3413a;
-  --ink:#1b2233; --muted:#5b6578; --line:#d5dce8; --chip:#e3e8f2;
-  --accent:#2747a8; --accent-ink:#ffffff; --shadow:rgba(27,34,51,.16);
-  --ok:#1f7a4d; --warn:#9a6200; --bad:#b4372e;
-  --seg-m:#2747a8; --seg-c:#8fa3dc; --seg-e:#d5dce8;
-  --hm0:#e3e8f2; --hm1:#c3cfee; --hm2:#8ea3dd; --hm3:#5671c4; --hm4:#2747a8;
-  --f-display:"Literata", Georgia, "Times New Roman", serif;
+  --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#5a6861; --line:#dde4df; --chip:#e8ede9;
+  --accent:#0b7a53; --accent-ink:#ffffff; --soft:#e1f2e9; --accent-text:#09694a;
+  --hero:#0b7a53; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.8); --hero-tint:rgba(255,255,255,.14); --hero-lane:rgba(255,255,255,.25); --hero-fill:#ffffff;
+  --gold:#e5a00d; --gold-ink:#3b2900; --gold-text:#8a5c00;
+  --ok:#0b7a53; --ok-soft:#e1f2e9; --mid:#955900; --mid-soft:#fcecd2; --bad:#b53a2d; --bad-soft:#fbe4e0;
+  --warn:#955900;
+  --seg-m:#0b7a53; --seg-c:#8fd0b2; --seg-e:#dde4df;
+  --hm0:#e5ebe7; --hm1:#bfe3d1; --hm2:#7cc7a4; --hm3:#2f9c6e; --hm4:#0b6b47;
+  --shadow:rgba(19,32,26,.10);
+  --f-display:"Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
   --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --rl:32px;
+  --f-mono:var(--f-display);
+  --r-xl:28px; --r-l:20px; --r-m:14px; --r-s:10px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --page:#0f131b; --card:#181e2a; --rule:#26314b; --margin:#d9706a;
-    --ink:#e5e9f2; --muted:#9aa3b5; --line:#2a3242; --chip:#222a39;
-    --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
-    --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
-    --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
-    --hm0:#222a39; --hm1:#2f3d66; --hm2:#43599b; --hm3:#6681d6; --hm4:#9db2ff;
+    --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
+    --accent:#3dcb92; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
+    --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
+    --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
+    --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
+    --seg-m:#3dcb92; --seg-c:#2a6b50; --seg-e:#28332e;
+    --hm0:#1f2925; --hm1:#1e4535; --hm2:#2a6b50; --hm3:#36a277; --hm4:#5fdaa7;
+    --shadow:rgba(0,0,0,.45); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --page:#0f131b; --card:#181e2a; --rule:#26314b; --margin:#d9706a;
-  --ink:#e5e9f2; --muted:#9aa3b5; --line:#2a3242; --chip:#222a39;
-  --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
-  --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
-  --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
-  --hm0:#222a39; --hm1:#2f3d66; --hm2:#43599b; --hm3:#6681d6; --hm4:#9db2ff;
+  --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
+  --accent:#3dcb92; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
+  --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
+  --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
+  --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
+  --seg-m:#3dcb92; --seg-c:#2a6b50; --seg-e:#28332e;
+  --hm0:#1f2925; --hm1:#1e4535; --hm2:#2a6b50; --hm3:#36a277; --hm4:#5fdaa7;
+  --shadow:rgba(0,0,0,.45); color-scheme:dark;
 }
-body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
-.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:28px 56px}
-button,select{font:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,select,input,textarea{font:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+svg.ic{width:22px;height:22px;flex:none}
 
-.top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px 16px}
-h1{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:0;letter-spacing:-.01em;text-wrap:balance}
-.sub{color:var(--muted);margin:4px 0 0;font-size:15px}
-.status{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:inline-flex;gap:8px;align-items:center;padding-top:8px;white-space:nowrap}
-.status .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+/* ---------- Cadre : en-tête et navigation ---------- */
+.side{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;margin:0;font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.02em;line-height:1}
+.brand-mark{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:16px;font-weight:800;letter-spacing:-.04em}
+.tools{margin-left:auto;display:flex;align-items:center;gap:6px}
+.tool{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:40px;min-width:40px;padding:0 10px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer}
+.tool svg.ic{width:20px;height:20px}
+.tool[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-text)}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:0 6px;white-space:nowrap}
+.status .dot{width:9px;height:9px;border-radius:50%;background:var(--warn);flex:none}
 .status[data-mode="cloud"] .dot{background:var(--ok)}
-.status[data-mode="saving"] .dot{background:var(--accent)}
+.status[data-mode="saving"] .dot{background:var(--gold)}
+@media (max-width:959px){ .tool .tlab,.status .tlab{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap} .tool{padding:0} }
 
-.counts{display:flex;flex-wrap:wrap;gap:8px 28px;margin:20px 0 0;padding:12px 0;border-block:1px solid var(--line)}
-.count{display:flex;align-items:baseline;gap:8px}
-.count b{font-family:var(--f-mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
-.count span{color:var(--muted);font-size:14px}
-.legend{flex-basis:100%;margin:0;color:var(--muted);font-size:13px}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav-btn{appearance:none;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:12px;font-weight:700;cursor:pointer;min-height:54px;min-width:0}
+.nav-btn .ni{display:grid;place-items:center;width:56px;height:30px;border-radius:999px}
+.nav-btn .nl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.nav-btn[aria-selected="true"]{color:var(--accent-text)}
+.nav-btn[aria-selected="true"] .ni{background:var(--soft)}
+.main{max-width:760px;margin:0 auto;padding:20px 16px calc(100px + env(safe-area-inset-bottom,0px))}
 
-.tabs{display:flex;gap:4px;margin:20px 0 16px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
-.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+@media (min-width:960px){
+  .app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+  .side{flex-direction:column;align-items:stretch;gap:0;height:100vh;padding:28px 16px 20px;border-bottom:0;border-right:1px solid var(--line)}
+  .brand{padding:0 10px 28px;font-size:22px}
+  .nav{position:static;display:flex;flex-direction:column;gap:4px;border:0;padding:0;background:none}
+  .nav-btn{flex-direction:row;justify-content:flex-start;gap:12px;font-size:16px;padding:0 12px;min-height:48px;border-radius:var(--r-m)}
+  .nav-btn .ni{width:auto;height:auto;background:none!important}
+  .nav-btn:hover{background:var(--chip);color:var(--ink)}
+  .nav-btn[aria-selected="true"]{background:var(--soft)}
+  .tools{margin:auto 0 0;flex-direction:column;align-items:stretch;gap:2px;padding-top:16px;border-top:1px solid var(--line)}
+  .tool{justify-content:flex-start;border:0;background:none;color:var(--muted);padding:0 12px;border-radius:var(--r-s);font-weight:400}
+  .tool:hover{background:var(--chip);color:var(--ink)}
+  .status{padding:6px 12px 10px}
+  .main{padding:44px 40px 72px}
+}
 
-.filters{display:grid;gap:10px;margin-bottom:18px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px;padding:5px 12px;border-radius:999px;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.chip .n{font-family:var(--f-mono);font-size:11px;opacity:.75;margin-left:4px}
-.sel{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
-.sel select{width:auto;padding:6px 10px;font-size:14px}
+/* ---------- Typographie des pages ---------- */
+.page-h{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.05;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+.page-sub{color:var(--muted);margin:-14px 0 22px}
+.sect{margin:0 0 36px}
+.sect h3,.group h3{font-family:var(--f-display);font-weight:700;font-size:21px;letter-spacing:-.015em;line-height:1.2;margin:0 0 12px}
+.lead,.intro{color:var(--muted);margin:0 0 16px;max-width:62ch}
+.lead strong{color:var(--ink)}
+.hint{color:var(--muted);font-size:14px;margin:12px 0 0}
+.opt{font-weight:400;color:var(--muted)}
 
-.meta{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-
-/* La fiche bristol : lignes bleues tous les 32px, marge rouge, texte calé sur les lignes */
-.bristol{position:relative;background-color:var(--card);
-  background-image:
-    linear-gradient(to right,transparent 52px,var(--margin) 52px,var(--margin) 53px,transparent 53px),
-    repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rl) - 1px),var(--rule) calc(var(--rl) - 1px),var(--rule) var(--rl));
-  border-radius:4px;box-shadow:0 1px 0 var(--line),0 14px 30px -18px var(--shadow);
-  padding:var(--rl) 20px var(--rl) 68px;min-height:calc(var(--rl) * 10);margin:0}
-.band{position:absolute;top:0;left:68px;right:16px;height:var(--rl);display:flex;align-items:center;justify-content:space-between;gap:12px}
-.period{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--margin);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.q{font-family:var(--f-display);font-size:21px;line-height:var(--rl);margin:0;text-wrap:pretty}
-.a{font-family:var(--f-display);font-size:20px;font-weight:600;line-height:var(--rl);color:var(--accent);margin:var(--rl) 0 0}
-.x{font-size:16px;line-height:var(--rl);color:var(--muted);margin:0}
-.reveal{animation:rise .25s ease-out}
-@keyframes rise{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion: reduce){.reveal{animation:none}}
-
-.boxes{display:inline-flex;gap:3px;align-items:center;flex:none}
-.boxes i{width:9px;height:9px;border:1px solid var(--muted);border-radius:2px;display:block}
-.boxes i.on{background:var(--accent);border-color:var(--accent)}
-
-.actions{margin-top:16px}
-.btn{appearance:none;font-weight:700;border-radius:10px;padding:12px 14px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:10px}
+/* ---------- Boutons et contrôles ---------- */
+.btn{appearance:none;font-weight:700;font-size:16px;line-height:1.2;border-radius:var(--r-m);padding:12px 18px;min-height:48px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
 .btn.wide{width:100%}
-.btn.small{padding:6px 10px;font-size:14px;border-radius:8px}
-.grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.grade.bad{color:var(--bad);border-color:var(--bad)}
-.grade.mid{color:var(--warn);border-color:var(--warn)}
-.grade.good{color:var(--ok);border-color:var(--ok)}
-.k{font-family:var(--f-mono);font-weight:500;font-size:11px;padding:1px 6px;border:1px solid currentColor;border-radius:4px;opacity:.7}
-.hint{color:var(--muted);font-size:14px;margin:10px 0 0}
-
-.empty{padding:24px 0}
-.empty h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0 0 6px}
-.empty p{color:var(--muted);margin:0 0 16px;max-width:60ch}
+.btn.big{min-height:58px;font-size:17px;border-radius:var(--r-l)}
+.btn.small{padding:6px 12px;min-height:36px;font-size:14px;border-radius:var(--r-s)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.k{font-family:var(--f-body);font-weight:700;font-size:11px;line-height:1;padding:3px 6px;border-radius:6px;background:color-mix(in srgb,currentColor 15%,transparent)}
 .row-btns{display:flex;flex-wrap:wrap;gap:8px}
+.actions{margin-top:16px}
+.linkbtn{appearance:none;background:none;border:0;padding:4px 0;color:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:.85}
+.back{appearance:none;background:none;border:0;padding:8px 0;color:var(--accent-text);font-weight:700;cursor:pointer;min-height:44px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;padding:6px 14px;min-height:40px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip .n{font-size:12px;opacity:.7;margin-left:4px}
+.seg{display:flex;gap:4px;padding:4px;margin:0 0 22px;background:var(--chip);border-radius:var(--r-m)}
+.seg button{appearance:none;flex:1 1 0;min-width:0;min-height:44px;border:0;border-radius:11px;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;padding:6px 8px}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:-6px 0 18px}
+form{display:grid;gap:16px;max-width:600px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+label{font-weight:700;display:block;margin-bottom:6px}
+input,textarea,select{width:100%;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:11px 13px;min-height:46px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:96px;resize:vertical;line-height:1.55}
+.err{color:var(--bad);font-size:14px;margin:0}
 
-.group{margin:0 0 28px}
-.group h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0 0 4px}
-.group .gsub{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;padding-bottom:8px;border-bottom:1px solid var(--line)}
-.list{list-style:none;margin:0;padding:0}
-.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:10px 0;border-bottom:1px solid var(--line)}
-.item .ip{grid-column:1;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin)}
+/* ---------- Accueil « Aujourd'hui » ---------- */
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:var(--r-xl);padding:24px 24px 22px;margin:0 0 28px;display:grid;gap:20px}
+.hero-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:18px 24px}
+.hero-j{font-family:var(--f-display);font-weight:800;font-size:clamp(64px,14vw,96px);line-height:.85;letter-spacing:-.045em;font-variation-settings:"wdth" 80;margin:0;font-variant-numeric:tabular-nums}
+[data-theme="dark"] .hero-j{color:var(--accent-text)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .hero-j{color:var(--accent-text)} }
+.hero-j .jd{margin:0 -.06em 0 -.04em}
+.hero-date{color:var(--hero-sub);margin:10px 0 0;font-size:15px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.hero-date .linkbtn{color:var(--hero-ink)}
+.hero-title{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.1;letter-spacing:-.025em;margin:0 0 6px;text-wrap:balance}
+.hero-stats{display:flex;gap:8px;flex-wrap:wrap}
+.hstat{background:var(--hero-tint);border-radius:var(--r-l);padding:10px 16px 12px;min-width:118px}
+.hstat b{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hstat b svg.ic{width:22px;height:22px;color:var(--gold)}
+.hstat span{display:block;font-size:13px;color:var(--hero-sub)}
+.lane-lab{display:flex;justify-content:space-between;gap:12px;font-size:15px;margin:0 0 8px}
+.lane-lab b{font-family:var(--f-display);font-weight:700;font-variant-numeric:tabular-nums}
+.lane{height:14px;border-radius:999px;background:var(--hero-lane);overflow:hidden;position:relative}
+.lane span{display:block;height:100%;background:var(--hero-fill);border-radius:999px}
+.hero-note{margin:8px 0 0;font-size:14px;color:var(--hero-sub)}
+.hero .goal-form{display:flex;flex-wrap:wrap;gap:8px;max-width:none;margin-top:14px}
+.hero .goal-form input{width:auto;flex:0 1 220px;border:0}
+.hero .goal-form .btn{border:0}
+.hero .goal-form .btn.primary{background:var(--hero-fill);color:var(--hero)}
+[data-theme="dark"] .hero .goal-form .btn.primary{color:var(--accent-ink)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .hero .goal-form .btn.primary{color:var(--accent-ink)} }
+.hero .goal-form .btn:not(.primary){background:var(--hero-tint);color:var(--hero-ink)}
+
+.today{list-style:none;margin:0 0 36px;padding:0;display:grid;gap:10px}
+.task{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 14px 14px 16px}
+.task-ic{flex:none;width:44px;height:44px;border-radius:var(--r-m);background:var(--soft);color:var(--accent-text);display:grid;place-items:center}
+.task.done .task-ic{background:var(--accent);color:var(--accent-ink)}
+.task-tx{flex:1;min-width:0}
+.task-tx b{display:block;font-size:17px;line-height:1.3}
+.task-tx span{display:block;color:var(--muted);font-size:14px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.task.done .task-tx b{color:var(--muted)}
+.task .btn{flex:none;min-height:44px;padding:10px 16px}
+.task.lead-task{padding:18px 18px 18px 18px;border-width:2px;border-color:var(--accent)}
+@media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .task.lead-task{flex-wrap:wrap} .task.lead-task .btn{width:100%} }
+
+.next-ach{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px}
+.next-ach > div{flex:1;min-width:0}
+.next-ach b{display:block}
+.next-ach p{margin:2px 0 8px;color:var(--muted);font-size:14px}
+.recent{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0;padding:0;list-style:none}
+.recent li{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 14px 5px 5px;font-size:14px;font-weight:700}
+.medal{flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--gold-ink);display:grid;place-items:center}
+.medal svg.ic{width:18px;height:18px}
+.medal.off{background:none;border:2px dashed var(--line);color:var(--muted)}
+.more{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 12px}
+.more h3{margin:0}
+.more .linkbtn{color:var(--accent-text);font-weight:700;opacity:1}
+
+/* ---------- Réviser ---------- */
+.fdd{margin:-6px 0 18px}
+.fdd summary{list-style:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;max-width:100%}
+.fdd summary::-webkit-details-marker{display:none}
+.fdd summary svg.ic{width:18px;height:18px}
+.fdd summary .fsum{color:var(--muted);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.fdd[open] summary{border-color:var(--ink)}
+.fbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 14px;margin:12px 0 0}
+.fbar label{font-size:14px}
+.sess{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;margin:0 0 8px}
+.sess b{font-family:var(--f-display);font-weight:700}
+.sess span{color:var(--muted);font-variant-numeric:tabular-nums}
+.sess-bar{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin:0 0 16px}
+.band-r{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:13px;white-space:nowrap}
+.sess-bar span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s ease}
+.bristol{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:22px 24px 30px;box-shadow:0 22px 44px -32px var(--shadow);min-height:260px;margin:0}
+.band{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 22px}
+.period{font-size:13px;font-weight:700;color:var(--accent-text);background:var(--soft);padding:5px 12px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.q{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.28;letter-spacing:-.015em;margin:0;text-wrap:pretty}
+.reveal{margin-top:24px;padding-top:22px;border-top:2px dashed var(--line);animation:rise .25s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.reveal{animation:none}.sess-bar span{transition:none}}
+.a{font-family:var(--f-display);font-size:22px;font-weight:700;line-height:1.3;color:var(--accent-text);margin:0}
+.x{color:var(--muted);margin:10px 0 0;max-width:62ch}
+.boxes{display:inline-flex;gap:4px;align-items:center;flex:none}
+.boxes i{width:16px;height:6px;border-radius:3px;background:var(--line);display:block}
+.boxes i.on{background:var(--accent)}
+.grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grade{min-height:64px;border:0;flex-direction:column;gap:4px;font-size:17px}
+.grade.bad{background:var(--bad-soft);color:var(--bad)}
+.grade.mid{background:var(--mid-soft);color:var(--mid)}
+.grade.good{background:var(--ok-soft);color:var(--ok)}
+.grade:hover{filter:brightness(.97)}
+.first-hint{background:var(--soft);border-radius:var(--r-m);padding:12px 16px;margin:0 0 16px;font-size:15px;max-width:none}
+.empty{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:28px 24px}
+.empty h2{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1.15;margin:0 0 8px}
+.empty p{color:var(--muted);margin:0 0 18px;max-width:60ch}
+.meta{color:var(--muted);font-size:14px;margin:0 0 10px}
+
+/* ---------- Listes (paquet) ---------- */
+.group{margin:0 0 32px}
+.group .gsub{color:var(--muted);font-size:14px;margin:-6px 0 8px}
+.list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .ip{grid-column:1;font-size:13px;font-weight:700;color:var(--accent-text)}
 .item .iq{grid-column:1;font-weight:700;min-width:0}
 .item .ia{grid-column:1;color:var(--muted);font-size:15px;min-width:0}
 .item .is{grid-column:2;grid-row:1 / span 3;display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
-.due{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
-.due.now{color:var(--bad)}
-.linkbtn{appearance:none;background:none;border:0;padding:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
+.due{font-size:13px;color:var(--muted);white-space:nowrap}
+.due.now{color:var(--bad);font-weight:700}
 .confirm{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-
-form{display:grid;gap:14px;max-width:600px}
-.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-label{font-weight:700;display:block;margin-bottom:4px}
-.opt{font-weight:400;color:var(--muted)}
-input,textarea,select{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-textarea{min-height:84px;resize:vertical}
-.err{color:var(--bad);font-size:14px;margin:0}
-
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.lead{color:var(--muted);margin:0 0 12px;max-width:60ch}
-.lead strong{color:var(--ink)}
-.scoreline{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.era-chips{margin-bottom:16px}
-.frise-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
-.fr-item{appearance:none;width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;font:inherit}
-.fr-item[aria-pressed="true"]{border-color:var(--accent)}
-.badge{flex:none;width:28px;height:28px;border-radius:50%;border:1px dashed var(--muted);display:grid;place-items:center;font-family:var(--f-mono);font-size:13px}
-.fr-item[aria-pressed="true"] .badge{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
-.fr-res{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--line)}
-.yr{font-family:var(--f-mono);font-weight:500;font-size:15px;color:var(--margin);grid-row:1 / span 2}
-.verdict{font-size:12px;font-family:var(--f-mono);letter-spacing:.03em;text-transform:uppercase}
-.verdict.ok{color:var(--ok)} .verdict.ko{color:var(--bad)}
-.bristol.qui{min-height:calc(var(--rl) * 5)}
-.qui-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:16px}
-.qopt{justify-content:flex-start;text-align:left}
-.qopt:disabled{opacity:1;cursor:default}
-.qopt.right{border-color:var(--ok);color:var(--ok)}
-.qopt.wrong{border-color:var(--bad);color:var(--bad)}
-.sj-notes{min-height:120px;margin-top:16px}
-.sj-help{color:var(--muted);font-size:14px;margin:12px 0 0;max-width:62ch}
-.sect{margin:0 0 28px}
-.sect h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0 0 10px}
-.legend-row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 16px}
-.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.sw.m{background:var(--seg-m)} .sw.c{background:var(--seg-c)} .sw.e{background:var(--seg-e)}
-.srow{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:8px 0}
-.srow .lab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px}
-.srow .num{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.bar{display:flex;gap:2px;height:12px}
-.bar span{display:block;min-width:4px;height:100%}
-.bar span:first-child{border-radius:4px 0 0 4px} .bar span:last-child{border-radius:0 4px 4px 0} .bar span:only-child{border-radius:4px}
-.bar .m{background:var(--seg-m)} .bar .c{background:var(--seg-c)} .bar .e{background:var(--seg-e)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card)}
-.kpi b{display:block;font-family:var(--f-mono);font-weight:500;font-size:22px;font-variant-numeric:tabular-nums}
-.kpi span{color:var(--muted);font-size:14px}
-.src{display:grid;gap:4px;margin-top:10px;font-size:13px;color:var(--muted);max-width:65ch}
-.src a{color:var(--accent)}
+.src{display:grid;gap:4px;margin-top:12px;font-size:13px;color:var(--muted);max-width:65ch}
+.src a{color:var(--accent-text)}
 .src .unv{color:var(--warn)}
 .src .linkbtn{font-size:13px;margin-left:4px;min-height:24px}
 .ref-edit{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.ref-edit input{flex:1 1 220px;width:auto;padding:8px 10px;font-size:14px}
+.ref-edit input{flex:1 1 220px;width:auto;padding:8px 10px;min-height:38px;font-size:14px}
 .item .ia .src{margin-top:6px}
-.modes{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 16px}
-.timer{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:16px 0 6px}
-.tmr{font-family:var(--f-mono);font-weight:500;font-size:34px;font-variant-numeric:tabular-nums;min-width:4.5ch}
+
+/* ---------- S'entraîner ---------- */
+.scoreline{color:var(--muted);font-size:14px;margin:0 0 12px}
+.era-chips{margin-bottom:16px}
+.frise-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+.fr-item{appearance:none;width:100%;text-align:left;display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);cursor:pointer;min-height:56px}
+.fr-item[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.badge{flex:none;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:14px}
+.fr-item[aria-pressed="true"] .badge{border:0;background:var(--accent);color:var(--accent-ink)}
+.fr-res{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 16px;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m)}
+.yr{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--accent-text);grid-row:1 / span 2;font-variant-numeric:tabular-nums}
+.verdict{font-size:13px;font-weight:700}
+.verdict.ok{color:var(--ok)} .verdict.ko{color:var(--bad)}
+.bristol.qui{min-height:180px}
+.qui-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:16px}
+.qopt{justify-content:flex-start;text-align:left}
+.qopt:disabled{opacity:1;cursor:default}
+.qopt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.qopt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.sj-notes{min-height:140px;margin-top:16px}
+.sj-notes.intro{min-height:240px}
+.sj-help{color:var(--muted);font-size:14px;margin:12px 0 0;max-width:62ch}
+.timer{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:18px 0 6px}
+.tmr{font-family:var(--f-display);font-weight:800;font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:4.5ch}
 .tmr.over{color:var(--bad)}
-.sj-notes.intro{min-height:220px}
-fieldset.grid-chk{border:1px solid var(--line);border-radius:10px;padding:10px 14px 12px;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px}
+fieldset.grid-chk{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);padding:10px 16px 12px;margin:16px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px}
 fieldset.grid-chk legend{font-weight:700;padding:0 6px}
-label.chk{display:flex;gap:10px;align-items:center;min-height:40px;font-weight:400;margin:0;cursor:pointer}
-label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color:var(--accent)}
+label.chk{display:flex;gap:10px;align-items:center;min-height:42px;font-weight:400;margin:0;cursor:pointer}
+label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0;accent-color:var(--accent)}
 .code-form{display:grid;gap:6px;max-width:520px}
-.code-form label{font-weight:700;font-size:15px}
+.code-form label{font-size:15px}
 .code-form input{flex:1 1 200px;width:auto}
-.fb{margin-top:14px}
-.fb-out{margin-top:12px;max-width:65ch}
-.fb-label{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
-.fb-body{border-left:3px solid var(--accent);padding:2px 0 2px 14px}
-.fb-body h4{font-family:var(--f-display);font-weight:600;font-size:17px;margin:12px 0 4px}
+.fb{margin-top:16px}
+.fb-out{margin-top:14px;max-width:65ch}
+.fb-label{color:var(--muted);font-size:14px;font-weight:700;margin:0 0 8px}
+.fb-body{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px}
+.fb-body h4{font-family:var(--f-display);font-weight:700;font-size:18px;margin:14px 0 4px}
 .fb-body h4:first-child{margin-top:0}
 .fb-body ul{margin:0;padding-left:20px}
 .fb-body li{margin:3px 0}
 .fb-body p{margin:4px 0}
 .fb-note{color:var(--muted);font-size:14px;margin:8px 0 0}
-/* Accueil et prise en main */
-.top-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.welcome{margin:20px 0 4px;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.welcome h2{font-family:var(--f-display);font-weight:600;font-size:24px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
-.welcome .w-lead{margin:0 0 16px;color:var(--muted);max-width:62ch}
-.w-spaces{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:0 0 18px;padding:0;list-style:none}
-.w-space{display:grid;gap:4px;padding:12px 14px;border-radius:10px;background:var(--page)}
-.w-space b{font-size:16px}
-.w-space span{color:var(--muted);font-size:14px}
-.w-steps{margin:0 0 18px;padding-left:22px;max-width:62ch}
-.w-steps li{margin:4px 0}
-.w-sub{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
-.w-note{font-size:14px;color:var(--muted);margin:0 0 16px;max-width:62ch}
-.first-hint{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:0 0 12px;color:var(--muted);font-size:15px;max-width:62ch}
-/* Objectif concours et régularité */
-.goal{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;align-items:center;padding:14px 16px;margin:18px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--card)}
-.goal-j{display:grid;text-align:center;min-width:5.5em}
-.goal-j b{font-family:var(--f-mono);font-weight:500;font-size:26px;color:var(--accent);font-variant-numeric:tabular-nums}
-.goal-j span{font-size:12px;color:var(--muted)}
-.goal-main p{margin:0}
-.goal-bar{height:8px;border-radius:4px;background:var(--seg-e);margin:8px 0 6px;overflow:hidden}
-.goal-bar span{display:block;height:100%;background:var(--accent);border-radius:4px}
-.goal-sub{font-size:14px;color:var(--muted)}
-.goal-form{display:grid;gap:6px;margin:18px 0 0;padding:14px 16px;border:1px dashed var(--line);border-radius:12px}
-.goal-form input{width:auto}
-@media (max-width:420px){ .goal{grid-template-columns:1fr} .goal-j{text-align:left;display:flex;gap:10px;align-items:baseline} }
+
+/* ---------- Apprendre : fils rouges ---------- */
+.fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.fil-card{appearance:none;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-l);padding:18px;cursor:pointer;display:grid;gap:8px;align-content:start}
+.fil-card:hover{border-color:var(--accent)}
+.fil-card h3{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:-.015em;line-height:1.2;margin:0}
+.fil-card p{margin:0;color:var(--muted);font-size:15px}
+.fil-card .num{font-size:13px;color:var(--accent-text);font-weight:700}
+.fil-head h3{font-family:var(--f-display);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-.025em;margin:4px 0 8px;text-wrap:balance}
+.fil-q{font-family:var(--f-display);font-weight:600;font-size:20px;line-height:1.3;color:var(--accent-text);margin:0 0 12px;max-width:60ch}
+.fil-intro{margin:0 0 24px;max-width:65ch}
+.tl{list-style:none;margin:0 0 28px;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:4.6em;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl li{display:grid;grid-template-columns:4.6em minmax(0,1fr) auto;gap:0 18px;align-items:start;padding:8px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:calc(4.6em - 5px);top:15px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.tl .yr{grid-row:auto;font-size:16px;padding-top:2px}
+.tl .tx{padding-left:6px}
+.fil-sect{margin:0 0 24px;max-width:65ch}
+.fil-sect h4{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0 0 8px}
+.fil-sect ul{margin:0;padding-left:20px}
+.fil-sect li{margin:4px 0}
+
+/* ---------- Progrès ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:var(--r-l);padding:14px 16px;background:var(--surface)}
+.kpi b{display:block;font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:14px}
+.rd{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:22px 22px 20px}
+.rd-top{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.rd-pct b{display:block;font-family:var(--f-display);font-weight:800;font-size:48px;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.rd-pct span{color:var(--accent-text);font-weight:700}
+.rd-main{flex:1 1 240px;min-width:0}
+.rd .goal-bar{height:10px;border-radius:999px;background:var(--seg-e);overflow:hidden;margin:0 0 8px}
+.rd .goal-bar span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.goal-sub{font-size:14px;color:var(--muted);margin:0}
+.rd-rows{display:grid;gap:8px}
+.rd-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(80px,2fr) 3.5em;gap:12px;align-items:center;font-size:14px}
+.rd-row b{font-family:var(--f-display);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.rd-bar,.ach-bar{display:block;height:6px;border-radius:999px;background:var(--seg-e);overflow:hidden}
+.rd-bar span,.ach-bar span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.ach-n{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--muted);margin-left:8px}
+.ach-h{margin:18px 0 8px;font-size:15px;color:var(--muted);font-weight:700}
+.ach-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.ach{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r-l);padding:12px 14px;background:var(--surface)}
+.ach > div{flex:1;min-width:0}
+.ach b{display:block}
+.ach p{margin:2px 0 6px;font-size:14px;color:var(--muted)}
+.ach-ic{flex:0 0 30px;height:30px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-weight:800;font-size:14px}
+.ach.on{border-color:color-mix(in srgb,var(--gold) 60%,var(--line))}
+.ach.on .ach-ic{border:0;background:var(--gold);color:var(--gold-ink)}
+.ach:not(.on) b{color:var(--muted)}
+.ach-st{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.ach.on .ach-st{color:var(--gold-text);font-weight:700}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
-.hm-cell{display:inline-block;width:14px;height:14px;border-radius:3px;background:var(--hm0)}
+.hm-cell{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hm0)}
 .hm-1{background:var(--hm1)} .hm-2{background:var(--hm2)} .hm-3{background:var(--hm3)} .hm-4{background:var(--hm4)}
 .hm-out{background:transparent}
-.hm-legend{align-items:center;gap:4px 6px;margin-top:8px}
+.hm-legend{align-items:center;gap:4px 6px;margin-top:10px}
 .hm-legend .hm-cell{width:12px;height:12px}
-.hm-kpis{margin-bottom:12px}
-.rd-top{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.rd-pct b{display:block;font-family:var(--f-mono);font-weight:500;font-size:32px;line-height:1.1;font-variant-numeric:tabular-nums}
-.rd-pct span{color:var(--accent);font-weight:700}
-.rd-main{flex:1 1 240px;min-width:0}
-.rd-rows{display:grid;gap:6px}
-.rd-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(80px,2fr) 3.5em;gap:10px;align-items:center;font-size:14px}
-.rd-row b{font-family:var(--f-mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
-.rd-bar,.ach-bar{display:block;height:6px;border-radius:3px;background:var(--seg-e);overflow:hidden}
-.rd-bar span,.ach-bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
-.ach-n{font-family:var(--f-mono);font-weight:500;font-size:15px;color:var(--muted);margin-left:6px}
-.ach-h{margin:14px 0 6px;font-size:15px;color:var(--muted);font-weight:700}
-.ach-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
-.ach{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}
-.ach > div{flex:1;min-width:0}
-.ach b{display:block}
-.ach p{margin:2px 0 4px;font-size:14px;color:var(--muted)}
-.ach-ic{flex:0 0 26px;height:26px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-weight:700;font-size:14px}
-.ach.on{border-color:var(--accent)}
-.ach.on .ach-ic{border:0;background:var(--accent);color:var(--accent-ink)}
-.ach:not(.on) b{color:var(--muted)}
-.ach-st{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
-/* Compte */
-.acct-form{display:grid;gap:12px;max-width:440px;margin-top:4px}
+.hm-kpis{margin-bottom:14px}
+.legend-row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 16px}
+.legend{color:var(--muted);font-size:13px;margin:0}
+.sw{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.sw.m{background:var(--seg-m)} .sw.c{background:var(--seg-c)} .sw.e{background:var(--seg-e)}
+.srow{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding:8px 0}
+.srow .lab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px}
+.srow .num{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:2px;height:10px}
+.bar span{display:block;min-width:4px;height:100%}
+.bar span:first-child{border-radius:999px 0 0 999px} .bar span:last-child{border-radius:0 999px 999px 0} .bar span:only-child{border-radius:999px}
+.bar .m{background:var(--seg-m)} .bar .c{background:var(--seg-c)} .bar .e{background:var(--seg-e)}
+
+/* ---------- Bienvenue, aide et compte ---------- */
+.welcome{margin:0 0 28px;padding:24px;border:1px solid var(--line);border-radius:var(--r-xl);background:var(--surface)}
+.welcome h2{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.1;letter-spacing:-.025em;margin:0 0 8px;text-wrap:balance}
+.welcome .w-lead{margin:0 0 18px;color:var(--muted);max-width:62ch}
+.w-spaces{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:0 0 20px;padding:0;list-style:none}
+.w-space{display:grid;gap:4px;padding:14px 16px;border-radius:var(--r-m);background:var(--paper)}
+.w-space b{font-size:16px}
+.w-space span{color:var(--muted);font-size:14px}
+.w-steps{margin:0 0 20px;padding-left:22px;max-width:62ch}
+.w-steps li{margin:4px 0}
+.w-sub{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 10px}
+.w-note{font-size:14px;color:var(--muted);margin:0 0 18px;max-width:62ch}
+.acct-form{display:grid;gap:14px;max-width:440px;margin-top:4px}
 .acct-msg{margin:0;font-size:15px}
 .acct-msg.bad{color:var(--bad)} .acct-msg.ok{color:var(--ok)}
-.rk{font-family:var(--f-mono);font-size:20px;letter-spacing:.06em;padding:12px 14px;border:1px dashed var(--accent);border-radius:10px;margin:0 0 14px;word-break:break-all;user-select:all}
-.btn.danger{color:var(--bad);border-color:var(--bad)}
+.rk{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.06em;padding:14px 16px;border:2px dashed var(--accent);border-radius:var(--r-m);margin:0 0 16px;word-break:break-all;user-select:all}
 .g-wrap{max-width:440px;margin:4px 0 6px}
-a.g-btn{text-decoration:none;box-sizing:border-box}
-.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:12px 0 4px}
+a.g-btn{text-decoration:none}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:14px 0 4px}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
-/* Navigation en trois espaces + sous-modes */
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.top-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.textsize{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;min-height:36px;font-size:14px;cursor:pointer}
-.textsize[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.tabs.main{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;overflow:visible}
-.tabs.main .tab{min-height:48px;padding:10px 4px;font-size:16px;text-align:center}
-@media (max-width:420px){ .tabs.main .tab{font-size:14px;padding:10px 2px} }
-.fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.fil-card{appearance:none;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;cursor:pointer;display:grid;gap:6px;font:inherit}
-.fil-card:hover{border-color:var(--accent)}
-.fil-card h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0}
-.fil-card p{margin:0;color:var(--muted);font-size:15px}
-.fil-card .num{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.back{appearance:none;background:none;border:0;padding:8px 0;color:var(--accent);font-weight:700;cursor:pointer;min-height:44px}
-.fil-head h3{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.2;margin:4px 0 6px;text-wrap:balance}
-.fil-q{font-family:var(--f-display);font-size:19px;color:var(--accent);margin:0 0 10px;max-width:60ch}
-.fil-intro{margin:0 0 20px;max-width:65ch}
-.tl{list-style:none;margin:0 0 24px;padding:0;position:relative}
-.tl::before{content:"";position:absolute;left:4.6em;top:6px;bottom:6px;width:2px;background:var(--rule)}
-.tl li{display:grid;grid-template-columns:4.6em minmax(0,1fr) auto;gap:0 16px;align-items:start;padding:8px 0;position:relative}
-.tl li::before{content:"";position:absolute;left:calc(4.6em - 4px);top:15px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--margin)}
-.tl .yr{grid-row:auto;font-size:14px;padding-top:2px}
-.tl .tx{padding-left:6px}
-.fil-sect{margin:0 0 22px;max-width:65ch}
-.fil-sect h4{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
-.fil-sect ul{margin:0;padding-left:20px}
-.fil-sect li{margin:4px 0}
-.seg{display:flex;gap:4px;padding:4px;margin:0 0 18px;background:var(--chip);border-radius:12px}
-.seg button{appearance:none;flex:1 1 0;min-width:0;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;padding:6px 8px}
-.seg button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
-.fbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px;margin:0 0 18px}
-.fbar label{font-size:14px;font-weight:700;margin-bottom:4px}
-.fbar select{padding:10px 12px;min-height:44px}
-.chip{min-height:40px}
-.k{opacity:.85}
-.intro{color:var(--muted);margin:0 0 14px;max-width:62ch}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:var(--r-m);font-size:15px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 12px 30px -10px var(--shadow)}
+@media (min-width:960px){ .toast{bottom:24px;left:calc(50% + 124px)} }
+
+/* ---------- Texte plus grand ---------- */
 html.big body{font-size:18px}
-html.big{--rl:38px}
-html.big .q{font-size:24px} html.big .a{font-size:22px} html.big .x{font-size:18px}
-html.big .sub,html.big .count span,html.big .hint,html.big .lead,html.big .intro,html.big .item .ia{font-size:17px}
-html.big .chip,html.big .fbar label,html.big .textsize{font-size:16px}
-@media (max-width:480px){ html.big .q{font-size:21px} html.big .a{font-size:20px} }
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--page);padding:10px 16px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);box-sizing:border-box}
-.foot{color:var(--muted);font-size:14px;margin-top:32px;padding-top:16px;border-top:1px solid var(--line);max-width:65ch}
-.foot p{margin:0 0 8px}
-@media (max-width:480px){
-  .bristol{padding-left:44px;padding-right:14px;background-image:
-    linear-gradient(to right,transparent 30px,var(--margin) 30px,var(--margin) 31px,transparent 31px),
-    repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rl) - 1px),var(--rule) calc(var(--rl) - 1px),var(--rule) var(--rl))}
-  .band{left:44px}
-  .q{font-size:19px}.a{font-size:18px}
+html.big .q{font-size:29px} html.big .a{font-size:24px} html.big .x{font-size:18px}
+html.big .lead,html.big .intro,html.big .hint,html.big .item .ia,html.big .task-tx span,html.big .hero-date{font-size:17px}
+html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
+@media (min-width:960px){ html.big .nav-btn{font-size:18px} }
+
+@media (max-width:520px){
+  .page-h{font-size:30px}
+  .bristol{padding:18px 18px 24px;border-radius:var(--r-l)}
+  .q{font-size:22px} .a{font-size:20px}
+  html.big .q{font-size:24px} html.big .a{font-size:21px}
   .grades .k{display:none}
+  .band{align-items:flex-start}
+  .period{white-space:normal;border-radius:12px}
+  .hero{padding:20px 18px 18px}
 }
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Bristol EPS</h1>
-      <p class="sub" id="sub">Histoire de l'EPS · fiches en répétition espacée</p>
-    </div>
-    <div class="top-actions">
-      <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span id="status-txt">Sur cet appareil</span></span>
-      <div class="top-btns"><button class="textsize" id="account-open" type="button" data-act="account-open" hidden>Se connecter</button><button class="textsize" id="help-open" type="button" data-act="help-open">Aide</button><button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button></div>
+<div class="app">
+  <header class="side">
+    <p class="brand"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</p>
+    <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="vertical">
+      <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Aujourd'hui</span></button>
+      <button class="nav-btn" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/></svg></span><span class="nl">Réviser</span></button>
+      <button class="nav-btn" role="tab" id="sec-comprendre" data-sec="comprendre" aria-controls="area-comprendre" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3z"/><path d="M21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z"/></svg></span><span class="nl">Apprendre</span></button>
+      <button class="nav-btn" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2"/><path d="M9.5 2.5h5"/><path d="M12 2.5V6"/></svg></span><span class="nl">S'entraîner</span></button>
+      <button class="nav-btn" role="tab" id="sec-suivi" data-sec="suivi" aria-controls="area-suivi" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13"/><path d="M10 20V8"/><path d="M16 20v-5"/><path d="M22 20V4"/></svg></span><span class="nl">Progrès</span></button>
+    </nav>
+    <div class="tools">
+      <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span class="tlab" id="status-txt">Sur cet appareil</span></span>
+      <button class="tool" id="account-open" type="button" data-act="account-open" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="tlab" id="account-label">Se connecter</span></button>
+      <button class="tool" id="help-open" type="button" data-act="help-open"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.4"/><path d="M12 17h.01"/></svg><span class="tlab">Aide</span></button>
+      <button class="tool" id="textsize" type="button" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 8.5 5 14 19"/><path d="M5 14.5h7"/><path d="M18 8v7"/><path d="M14.5 11.5h7"/></svg><span class="tlab">Texte plus grand</span></button>
     </div>
   </header>
 
-  <section id="account" class="welcome" aria-labelledby="account-title" hidden></section>
-  <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
+  <main class="main">
+    <section id="account" class="welcome" aria-labelledby="account-title" hidden></section>
+    <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
 
-  <nav class="tabs main" role="tablist" aria-label="Espaces">
-    <button class="tab" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="true">Réviser</button>
-    <button class="tab" role="tab" id="sec-comprendre" data-sec="comprendre" aria-controls="area-comprendre" aria-selected="false" tabindex="-1">Comprendre</button>
-    <button class="tab" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1">S'entraîner</button>
-    <button class="tab" role="tab" id="sec-suivi" data-sec="suivi" aria-controls="area-suivi" aria-selected="false" tabindex="-1">Suivi</button>
-  </nav>
-
-  <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise">
-    <h2 class="sr-only">Réviser les fiches du jour</h2>
-    <div id="goal"></div>
-    <div class="counts" id="counts"></div>
-    <div class="fbar" id="filters-revise"></div>
-    <section id="panel-revise" aria-live="polite"></section>
-  </div>
-
-  <div id="area-comprendre" role="tabpanel" aria-labelledby="sec-comprendre" hidden>
-    <h2 class="sr-only">Comprendre : les fils rouges</h2>
-    <section id="panel-fils"></section>
-  </div>
-
-  <div id="area-train" role="tabpanel" aria-labelledby="sec-train" hidden>
-    <h2 class="sr-only">S'entraîner</h2>
-    <div class="seg" role="tablist" aria-label="Mode d'entraînement">
-      <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="true">Frise</button>
-      <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
-      <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
+    <div id="area-home" role="tabpanel" aria-labelledby="sec-home">
+      <h1 class="page-h" id="home-title">Aujourd'hui</h1>
+      <section id="panel-home"></section>
     </div>
-    <p class="intro" id="intro-train"></p>
-    <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
-    <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
-    <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
-  </div>
 
-  <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
-    <h2 class="sr-only">Mon suivi</h2>
-    <div class="seg" role="tablist" aria-label="Suivi">
-      <button role="tab" id="tab-stats" data-tab="stats" aria-controls="panel-stats" aria-selected="true">Statistiques</button>
-      <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Paquet</button>
-      <button role="tab" id="tab-add" data-tab="add" aria-controls="panel-add" aria-selected="false" tabindex="-1">Ajouter</button>
+    <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise" hidden>
+      <h1 class="page-h">Réviser</h1>
+      <details class="fdd" id="fdd-revise"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtrer <span class="fsum" id="fsum-revise"></span></summary><div class="fbar" id="filters-revise"></div></details>
+      <section id="panel-revise" aria-live="polite"></section>
     </div>
-    <div class="fbar" id="filters-deck" hidden></div>
-    <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats"></section>
-    <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
-    <section id="panel-add" role="tabpanel" aria-labelledby="tab-add" hidden>
-    <form id="add-form" novalidate>
-      <div>
-        <label for="f-q">Question</label>
-        <textarea id="f-q" placeholder="Ex. : Quel texte de 1967 fait du sport le support de l'EPS ?"></textarea>
-      </div>
-      <div>
-        <label for="f-a">Réponse</label>
-        <textarea id="f-a" placeholder="Ex. : Les Instructions officielles de 1967."></textarea>
-      </div>
-      <div>
-        <label for="f-x">Contexte <span class="opt">(facultatif)</span></label>
-        <input id="f-x" type="text" placeholder="Auteur, enjeu, lien avec une autre période…">
-      </div>
-      <div>
-        <label for="f-r">Référence <span class="opt">(facultatif : ouvrage, chapitre, page)</span></label>
-        <input id="f-r" type="text" placeholder="Ex. : Attali, chap. 2, p. 45">
-      </div>
-      <div class="two">
-        <div><label for="f-t">Thème</label><select id="f-t"></select></div>
-        <div><label for="f-p">Période</label><select id="f-p"></select></div>
-      </div>
-      <p class="err" id="f-err" hidden>Il faut au moins une question et une réponse.</p>
-      <div class="row-btns"><button class="btn primary" type="submit">Ajouter au paquet</button></div>
-    </form>
-    </section>
-  </div>
 
-  <div class="foot">
-    <p>Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter.</p>
-    <p>Une carte ratée revient dans la séance. Une carte sue revient de plus en plus tard : 1, 3, 7 puis 15 jours. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
-  </div>
+    <div id="area-comprendre" role="tabpanel" aria-labelledby="sec-comprendre" hidden>
+      <h1 class="page-h">Apprendre</h1>
+      <div class="seg" role="tablist" aria-label="Apprendre">
+        <button role="tab" id="tab-fils" data-tab="fils" aria-controls="panel-fils" aria-selected="true">Fils rouges</button>
+        <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Toutes les fiches</button>
+        <button role="tab" id="tab-add" data-tab="add" aria-controls="panel-add" aria-selected="false" tabindex="-1">Ajouter</button>
+      </div>
+      <div class="fbar" id="filters-deck" hidden></div>
+      <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils"></section>
+      <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
+      <section id="panel-add" role="tabpanel" aria-labelledby="tab-add" hidden>
+      <form id="add-form" novalidate>
+        <div>
+          <label for="f-q">Question</label>
+          <textarea id="f-q" placeholder="Ex. : Quel texte de 1967 fait du sport le support de l'EPS ?"></textarea>
+        </div>
+        <div>
+          <label for="f-a">Réponse</label>
+          <textarea id="f-a" placeholder="Ex. : Les Instructions officielles de 1967."></textarea>
+        </div>
+        <div>
+          <label for="f-x">Contexte <span class="opt">(facultatif)</span></label>
+          <input id="f-x" type="text" placeholder="Auteur, enjeu, lien avec une autre période…">
+        </div>
+        <div>
+          <label for="f-r">Référence <span class="opt">(facultatif : ouvrage, chapitre, page)</span></label>
+          <input id="f-r" type="text" placeholder="Ex. : Attali, chap. 2, p. 45">
+        </div>
+        <div class="two">
+          <div><label for="f-t">Thème</label><select id="f-t"></select></div>
+          <div><label for="f-p">Période</label><select id="f-p"></select></div>
+        </div>
+        <p class="err" id="f-err" hidden>Il faut au moins une question et une réponse.</p>
+        <div class="row-btns"><button class="btn primary" type="submit">Ajouter au paquet</button></div>
+      </form>
+      </section>
+    </div>
+
+    <div id="area-train" role="tabpanel" aria-labelledby="sec-train" hidden>
+      <h1 class="page-h">S'entraîner</h1>
+      <div class="seg" role="tablist" aria-label="Mode d'entraînement">
+        <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="true">Frise</button>
+        <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
+        <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
+      </div>
+      <p class="intro" id="intro-train"></p>
+      <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
+      <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
+      <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
+    </div>
+
+    <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
+      <h1 class="page-h">Progrès</h1>
+      <section id="panel-stats"></section>
+    </div>
+  </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -601,7 +685,8 @@ function mergeLog(a, b){
   const out = {};
   for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
     const o = out[k] || { a: 0, n: 0 };
-    out[k] = { a: Math.max(o.a, (v && v.a) || 0), n: Math.max(o.n, (v && v.n) || 0) };
+    for (const [kk, vv] of Object.entries(v || {})) if (typeof vv === "number") o[kk] = Math.max(o[kk] || 0, vv);
+    out[k] = o;
   }
   return out;
 }
@@ -654,7 +739,7 @@ function saveRef(id, v){
   const b = document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true });
 }
 function normGames(x){ x = x || {}; const f = k => ({ g: (x[k] && x[k].g) || 0, t: (x[k] && x[k].t) || 0 }); return { frise: f("frise"), qui: f("qui") }; }
-let view = "revise", theme = "Tous", period = "Toutes";
+let view = "home", theme = "Tous", period = "Toutes";
 let queue = [], flipped = false, cram = false, done = 0, pendingDel = null;
 const store = { ref: null, saving: false, dirty: false, timer: null, fails: 0 };
 
@@ -771,31 +856,10 @@ function streaks(){
   for (const k of days) { const t = new Date(k + "T00:00:00"); run = prev && Math.round((t - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; }
   return { cur, best: Math.max(best, cur) };
 }
-function newLimit(){ const g = goalInfo(); return g ? g.newLeft : NEW_MAX; }
-function renderGoal(){
-  const el = $("#goal"); if (!el) return;
-  const g = goalInfo(), st = streaks();
-  if (!g || goalEdit) {
-    el.innerHTML = `<form class="goal-form" data-goalform="1" novalidate>
-      <label for="exam-date"><b>Date de ton concours</b> <span class="opt">pour obtenir un objectif quotidien</span></label>
-      <div class="row-btns"><input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn" type="submit">Enregistrer</button>${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}</div>
-    </form>`;
-    return;
-  }
-  const pct = g.newPerDay ? Math.min(100, Math.round(100 * g.today.n / g.newPerDay)) : 100;
-  const dateTxt = new Date(prefs.examDate + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-  let line;
-  if (g.daysLeft < 0) line = "La date du concours est passée. Mets-la à jour si tu repasses l'épreuve.";
-  else if (g.daysLeft === 0) line = "C'est le jour du concours. Bon courage !";
-  else if (!g.unseen && !g.today.n) line = "Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.";
-  else if (g.daysLeft <= 14) line = `Phase finale : ${g.today.n} / ${g.newPerDay} nouvelles cartes aujourd'hui, puis revois tes points faibles.`;
-  else line = `Aujourd'hui : <b>${g.today.n} / ${g.newPerDay}</b> nouvelles cartes pour avoir tout vu deux semaines avant le concours.`;
-  el.innerHTML = `<div class="goal">
-    <div class="goal-j"><b>${g.daysLeft > 0 ? "J-" + g.daysLeft : g.daysLeft === 0 ? "Jour J" : "Passé"}</b><span>${esc(dateTxt)}</span></div>
-    <div class="goal-main"><p>${line}</p>${g.daysLeft > 0 && g.newPerDay ? `<div class="goal-bar" role="progressbar" aria-label="Nouvelles cartes du jour" aria-valuemin="0" aria-valuemax="${g.newPerDay}" aria-valuenow="${Math.min(g.today.n, g.newPerDay)}"><span style="width:${pct}%"></span></div>` : ""}
-      <p class="goal-sub">${g.today.a} réponse${g.today.a > 1 ? "s" : ""} aujourd'hui · série : ${st.cur} jour${st.cur > 1 ? "s" : ""} <button class="linkbtn" data-act="goal-edit">Modifier la date</button></p></div>
-  </div>`;
-}
+/* Nouvelles cartes autorisées aujourd'hui : l'objectif calculé, ou 10 par jour sans date ; « 10 de plus » ajoute un supplément. */
+let extraNew = 0;
+function newLimit(){ const g = goalInfo(), today = log[dayKey()] || { n: 0 }; return Math.max(0, (g ? g.newPerDay : NEW_MAX) + extraNew - (today.n || 0)); }
+function renderGoal(){ if (view === "home") renderHome(); }
 let goalEdit = false;
 
 /* ---------- Niveau de préparation ---------- */
@@ -895,6 +959,104 @@ function achHTML(){
   return `<div class="sect"><h3>Succès <span class="ach-n">${got} / ${ACHS.length}</span></h3>${groups}</div>`;
 }
 
+/* ---------- Aujourd'hui ---------- */
+const ICON = {
+  cards: '<rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  pen: '<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/>',
+  line: '<path d="M3 12h18"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/>',
+  flame: '<path d="M12 3c.6 3.2 5 5.3 5 10.2A5 5 0 0 1 7 13.5c0-2 1-3.6 2.2-4.6.2 1.6.9 2.6 1.9 3.1-.2-3.2.1-6.3.9-9z"/>',
+  medal: '<circle cx="12" cy="14.5" r="6"/><path d="M8.5 3h7l-2 5.5h-3z"/>'
+};
+const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
+function isToday(ts){ return !!ts && dayKey(new Date(ts)) === dayKey(); }
+function subjectOfDay(){
+  const n = SUBJECTS.length, day = Math.floor(startOfDay().getTime() / DAY);
+  for (let i = 0; i < n; i++) { const x = SUBJECTS[(day + i) % n]; if (!ach.w["p:" + x.id]) return x; }
+  return SUBJECTS[day % n];
+}
+const plural = (n, w) => n + " " + w + (n > 1 ? "s" : "");
+function heroHTML(){
+  const g = goalInfo(), st = streaks(), pct = readiness(allCards()), rk = rankOf(pct);
+  const stats = `<div class="hero-stats">
+      <div class="hstat"><b>${icon("flame")}${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée</span></div>
+      <div class="hstat"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
+    </div>`;
+  if (!g || goalEdit) {
+    return `<section class="hero" id="goal" aria-labelledby="hero-title">
+      <div class="hero-top"><div><h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
+        <p class="hero-note">Avec la date, le site calcule chaque jour combien de nouvelles cartes voir pour avoir tout vu deux semaines avant l'épreuve.</p></div>${stats}</div>
+      <form class="goal-form" data-goalform="1" novalidate>
+        <label class="sr-only" for="exam-date">Date du concours</label>
+        <input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn primary" type="submit">Enregistrer</button>${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}
+      </form>
+    </section>`;
+  }
+  const dateTxt = new Date(prefs.examDate + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const big = g.daysLeft > 0 ? 'J<span class="jd">-</span>' + g.daysLeft : g.daysLeft === 0 ? "Jour J" : "Passé";
+  let lane;
+  if (g.daysLeft < 0) lane = `<p class="hero-note">La date du concours est passée. Mets-la à jour si tu repasses l'épreuve.</p>`;
+  else if (g.daysLeft === 0) lane = `<p class="hero-note">C'est le jour du concours. Bon courage !</p>`;
+  else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
+  else {
+    const n = Math.min(g.today.n, g.newPerDay), w = Math.round(100 * n / g.newPerDay);
+    lane = `<div><p class="lane-lab"><span>Nouvelles cartes du jour</span><b>${n} / ${g.newPerDay}</b></p>
+      <div class="lane" role="progressbar" aria-label="Nouvelles cartes du jour" aria-valuemin="0" aria-valuemax="${g.newPerDay}" aria-valuenow="${n}"><span style="width:${w}%"></span></div>
+      <p class="hero-note">${g.daysLeft <= 14 ? "Phase finale : après tes nouvelles cartes, revois tes points faibles." : "À ce rythme, tu auras tout vu deux semaines avant le concours."}</p></div>`;
+  }
+  return `<section class="hero" id="goal" aria-label="Objectif concours">
+    <div class="hero-top"><div><p class="hero-j">${big}</p><p class="hero-date"><span>Concours le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button></p></div>${stats}</div>
+    ${lane}
+  </section>`;
+}
+function homeTasks(){
+  const now = Date.now(), cards = allCards();
+  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const g = goalInfo(), today = log[dayKey()] || { a: 0, n: 0 };
+  const unseen = cards.filter(c => !progress[c.id]).length;
+  const fresh = Math.min(unseen, newLimit());
+  const sDone = !due && !fresh;
+  const parts = [due ? plural(due, "carte") + " à revoir" : "", fresh ? fresh + (fresh > 1 ? " nouvelles cartes" : " nouvelle carte") : ""].filter(Boolean);
+  const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
+  const subj = subjectOfDay();
+  const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
+  const fDone = (today.f || 0) > 0;
+  const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
+  return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
+    task(sDone, "cards", sDone ? "Séance du jour terminée" : "Séance du jour",
+      sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : parts.join(" et "),
+      sDone ? `<button class="btn" data-act="home-start">Réviser</button>` : `<button class="btn primary big" data-act="home-start">Commencer</button>`, !sDone),
+    task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
+      `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
+    task(fDone, "line", fDone ? "Frise faite" : "Faire une frise", "Cinq événements à remettre dans l'ordre chronologique.",
+      `<button class="btn" data-act="home-frise">${fDone ? "Rejouer" : "Jouer"}</button>`)
+  ].join("") };
+}
+function homeAchHTML(){
+  const recent = ACHS.filter(a => ach.u[a.id]).sort((a, b) => ach.u[b.id] - ach.u[a.id]).slice(0, 3);
+  let best = null, bestR = -1;
+  for (const a of ACHS) {
+    if (ach.u[a.id]) continue;
+    let v = 0, max = 1; try { [v, max] = a.v(); } catch (e) {}
+    const r = Math.min(1, v / max); if (r > bestR) { bestR = r; best = { a, v: Math.min(v, max), max }; }
+  }
+  const nxt = best ? `<div class="next-ach"><span class="medal off">${icon("medal")}</span><div><b>Prochain succès : ${esc(best.a.t)}</b><p>${esc(best.a.d)}</p>${best.max > 1 ? `<span class="ach-bar" aria-hidden="true"><span style="width:${Math.round(100 * best.v / best.max)}%"></span></span><p>${best.a.pct ? best.v + " %" : best.v + " / " + best.max}</p>` : ""}</div></div>` : "";
+  return `<div class="more"><h3>Succès</h3><button class="linkbtn" data-sec="suivi">Voir mes progrès</button></div>
+    ${nxt}
+    ${recent.length ? `<ul class="recent" aria-label="Derniers succès obtenus">${recent.map(a => `<li><span class="medal">${icon("check")}</span>${esc(a.t)}</li>`).join("")}</ul>` : ""}`;
+}
+function renderHome(){
+  const el = $("#panel-home"); if (!el) return;
+  const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const t = homeTasks();
+  el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
+    ${heroHTML()}
+    <div class="more"><h3>Au programme</h3><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
+    <ul class="today">${t.html}</ul>
+    <div class="sect">${homeAchHTML()}</div>`;
+}
+
 /* ---------- Séance ---------- */
 function buildQueue(){
   const now = Date.now();
@@ -913,7 +1075,7 @@ function grade(r){
   const id = queue.shift(); if (!id) return;
   const now = Date.now(), p = progress[id];
   const dk = dayKey(), lg = log[dk] || { a: 0, n: 0 };
-  log[dk] = { a: lg.a + 1, n: lg.n + (p ? 0 : 1) };
+  log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) });
   if (!cram || r === "rate") {
     let b;
     if (r === "rate") b = 1;
@@ -929,26 +1091,13 @@ function grade(r){
 }
 
 /* ---------- Rendu ---------- */
-function renderCounts(){
-  renderGoal();
-  const now = Date.now(), cards = allCards();
-  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
-  const fresh = cards.filter(c => !progress[c.id]).length;
-  const master = cards.filter(c => progress[c.id] && progress[c.id].b === 5).length;
-  const learning = cards.filter(c => progress[c.id] && progress[c.id].b < 5).length;
-  $("#sub").textContent = "Histoire de l'EPS · " + cards.length + " fiches en répétition espacée";
-  $("#counts").innerHTML =
-    `<div class="count"><b>${due}</b><span>à revoir maintenant</span></div>` +
-    `<div class="count"><b>${fresh}</b><span>jamais vues</span></div>` +
-    `<div class="count"><b>${learning}</b><span>en cours (boîtes 1 à 4)</span></div>` +
-    `<div class="count"><b>${master}</b><span>maîtrisées (boîte 5)</span></div>` +
-    `<p class="legend">Chaque « Su » fait monter la carte d'une boîte. Elle est maîtrisée en boîte 5, après plusieurs « Su » espacés de 1, 3 puis 7 jours.</p>`;
-}
 function renderFilters(){
   const target = view === "revise" ? "#filters-revise" : view === "deck" ? "#filters-deck" : null;
   $("#filters-deck").hidden = view !== "deck";
   if (!target) return;
   const p = target === "#filters-revise" ? "r" : "d";
+  const fs = $("#fsum-revise");
+  if (fs) fs.textContent = (theme === "Tous" ? "Tous les thèmes" : theme === "Mes cartes" ? "Mes cartes" : THEMES[theme] || theme) + ", " + (period === "Toutes" ? "toutes les périodes" : period);
   const cards = allCards();
   const tOpts = [["Tous", "Tous les thèmes", cards.length]]
     .concat(TH_ORDER.map(k => [k, THEMES[k], cards.filter(c => c.th === k).length]))
@@ -969,19 +1118,20 @@ function renderRevise(){
       return;
     }
     const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
-    const gi = goalInfo(), goalMet = gi && gi.daysLeft > 0 && gi.newPerDay && gi.today.n >= gi.newPerDay;
+    const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
     el.innerHTML = `<div class="empty"><h2>${goalMet ? "Objectif du jour atteint." : done ? "Séance terminée." : "Rien à revoir pour l'instant."}</h2>
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
-      <div class="row-btns"><button class="btn primary" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button></div></div>`;
+      <div class="row-btns">${goalMet ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
   }
   const p = progress[c.id], b = p ? p.b : 0;
   const left = queue.length;
   el.innerHTML = `
     ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <p class="meta">${cram ? "Révision libre" : "Séance"} · ${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}${c.custom ? " · ma carte" : ""}</p>
+    <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour"}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
-      <div class="band"><span class="period">${esc(thName(c))} · ${esc(c.p || NONE_P)}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></div>
+      <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(c.p || NONE_P)}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></span></div>
       <p class="q">${esc(c.q)}</p>
       ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
     </article>
@@ -1002,7 +1152,7 @@ function renderDeck(){
   const cards = allCards().filter(inFilter);
   const keys = TH_ORDER.concat([""]);
   const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
-  if (!groups.length) { $("#panel-deck").innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes dans l'onglet « Ajouter une carte ».</p></div>`; return; }
+  if (!groups.length) { $("#panel-deck").innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes dans l'onglet « Ajouter ».</p></div>`; return; }
   $("#panel-deck").innerHTML = groups.map(([k, list]) => {
     const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
     return `<div class="group"><h3>${esc(THEMES[k] || NONE_T)}</h3><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
@@ -1183,7 +1333,7 @@ function renderFrise(){
       <div class="row-btns actions"><button class="btn primary" data-act="fr-new">Nouvelle frise</button></div>`;
   }
   $("#panel-frise").innerHTML = `<div class="chips era-chips" aria-label="Période de la frise">${chips}</div>
-    <p class="scoreline">${fr.total ? "Cette session : " + fr.good + " / " + fr.total + " événements bien placés" : "Remets cinq événements dans l'ordre chronologique"}</p>${body}`;
+    ${fr.total ? `<p class="scoreline">Cette session : ${fr.good} / ${fr.total} événements bien placés</p>` : ""}${body}`;
 }
 function newQui(){
   let it;
@@ -1626,8 +1776,6 @@ function renderStats(){
     <div class="sect"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
-      <div class="kpi"><b>${BASE.filter(c => CARD_SRC[c.id]).length} / ${BASE.length}</b><span>cartes de base recoupées avec une source en ligne</span></div>
-      <div class="kpi"><b>${cards.filter(c => refGet(c.id)).length}</b><span>cartes avec ta propre référence</span></div>
       <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
       <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
     </div></div>
@@ -1647,16 +1795,19 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["revise","fils","frise","qui","sujets","stats","deck","add"];
-const SEC_OF = { revise: "revise", fils: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi", deck: "suivi", add: "suivi" };
-const lastSub = { revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
+const VIEWS = ["home","revise","fils","frise","qui","sujets","stats","deck","add"];
+const SECS = ["home","revise","comprendre","train","suivi"];
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi" };
+const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
   sujets: "Tire un sujet d'entraînement, construis ton plan, puis vois les cartes qui peuvent l'alimenter."
 };
 function setView(v, focus){
+  const moved = SEC_OF[v] !== SEC_OF[view];
   view = v; pendingDel = null; refEdit = null;
+  if (moved) { try { window.scrollTo({ top: 0 }); } catch (e) {} }
   lastSub[SEC_OF[v]] = v;
   if (v === "revise" && !queue.length) buildQueue();
   render();
@@ -1664,11 +1815,12 @@ function setView(v, focus){
   else if (focus) { const t = $(focus); if (t) t.focus(); }
 }
 function render(focusActions){
-  renderCounts(); renderFilters();
+  renderFilters();
   const sec = SEC_OF[view];
-  ["revise","comprendre","train","suivi"].forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
+  SECS.forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
   VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
   $("#intro-train").textContent = INTROS[view] || "";
+  if (view === "home") renderHome();
   if (view === "revise") renderRevise();
   if (view === "fils") renderFils();
   if (view === "frise") renderFrise();
@@ -1688,6 +1840,9 @@ document.addEventListener("click", e => {
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
   if (d.act === "goal-clear") { prefs = { examDate: "", t: Date.now() }; goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
+  if (d.act === "home-start") { done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
+  if (d.act === "home-frise") { setView("frise"); return; }
   if (d.act === "account-open") { openAccount(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -1704,12 +1859,13 @@ document.addEventListener("click", e => {
   if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
   if (d.tab) { setView(d.tab); return; }
   if (d.act === "flip") { flipped = true; render(true); return; }
+  if (d.act === "more-new") { extraNew += 10; done = 0; buildQueue(); render(true); return; }
   if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
   if (d.act === "refresh") { done = 0; buildQueue(); render(true); return; }
   if (d.g) { grade(d.g); return; }
   if (d.era) { fr.era = d.era; newFrise(); render(); return; }
   if (d.fr) { const i = +d.fr, n = fr.picks.indexOf(i); fr.picks = n >= 0 ? fr.picks.slice(0, n) : fr.picks.concat([i]); render(fr.picks.length === fr.items.length); return; }
-  if (d.act === "fr-check") { fr.checked = true; const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y); const ok = sorted.filter((i, r) => fr.picks[r] === i).length; fr.good += ok; fr.total += fr.items.length; games.frise.g += ok; games.frise.t += fr.items.length; persist(); render(true); return; }
+  if (d.act === "fr-check") { fr.checked = true; const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y); const ok = sorted.filter((i, r) => fr.picks[r] === i).length; fr.good += ok; fr.total += fr.items.length; games.frise.g += ok; games.frise.t += fr.items.length; bumpLog("f"); persist(); render(true); return; }
   if (d.act === "fr-new") { newFrise(); render(); return; }
   if (d.qa) { answerQui(d.qa); return; }
   if (d.sjaxe) { sj.axe = d.sjaxe; if (sj.cur && sj.axe !== "Tous" && sj.cur.th !== sj.axe) sj.cur = null; render(); return; }
@@ -1759,11 +1915,11 @@ document.addEventListener("change", e => {
 /* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
 document.addEventListener("keydown", e => {
   const list = e.target.closest && e.target.closest('[role="tablist"]');
-  if (!list || !["ArrowLeft","ArrowRight","Home","End"].includes(e.key)) return;
+  if (!list || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(e.key)) return;
   const tabs = Array.from(list.querySelectorAll('[role="tab"]'));
   let i = tabs.indexOf(e.target.closest('[role="tab"]')); if (i < 0) return;
   e.preventDefault(); e.stopImmediatePropagation();
-  i = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+  i = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + (e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1) + tabs.length) % tabs.length;
   const t = tabs[i];
   if (!t.dataset.sec && !t.dataset.tab) { t.click(); const n = document.querySelector('[role="tablist"] [data-v="' + t.dataset.v + '"]'); if (n) n.focus(); return; }
   if (t.dataset.sec) setView(lastSub[t.dataset.sec], "#" + t.id);
@@ -1865,7 +2021,7 @@ async function signedIn(email, info){
 function renderAccountBtn(){
   const b = $("#account-open"); if (!b) return;
   b.hidden = !STANDALONE;
-  b.textContent = acct.status === "in" ? "Mon compte" : "Se connecter";
+  const l = $("#account-label"); if (l) l.textContent = acct.status === "in" ? "Mon compte" : "Se connecter";
 }
 function acctField(id, label, type, ac, extra = ""){
   return `<div><label for="${id}">${label}</label><input id="${id}" type="${type}" autocomplete="${ac}" ${extra}></div>`;
@@ -2001,12 +2157,13 @@ function renderWelcome(){
   const n = allCards().length;
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
     <p class="w-lead">Un outil pour réviser l'histoire de l'EPS en vue de l'écrit 1 du CAPEPS et de l'agrégation interne : ${n} fiches organisées selon les axes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
-    <p class="w-sub">Quatre espaces</p>
+    <p class="w-sub">Cinq espaces</p>
     <ul class="w-spaces">
+      <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : la séance de cartes, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
       <li class="w-space"><b>Réviser</b><span>Les fiches du jour. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
-      <li class="w-space"><b>Comprendre</b><span>Les fils rouges : des récits qui relient les faits sur un thème, avec une piste de plan.</span></li>
-      <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation et introduction chronométrée.</span></li>
-      <li class="w-space"><b>Suivi</b><span>Ta progression par axe et par période, le paquet complet et tes propres cartes.</span></li>
+      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, toutes les fiches, et tes propres cartes.</span></li>
+      <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation, introduction chronométrée et paragraphe argumenté.</span></li>
+      <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
     </ul>
     <p class="w-sub">Ta première séance</p>
     <ol class="w-steps">
@@ -2014,7 +2171,9 @@ function renderWelcome(){
       <li>Retourne la carte (bouton ou touche Espace).</li>
       <li>Sois honnête : Raté, Hésité ou Su (touches 1, 2 ou 3).</li>
     </ol>
-    <p class="w-note">Dix nouvelles cartes par séance, dans l'ordre chronologique. Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
+    <p class="w-note">Dix nouvelles cartes par jour, dans l'ordre chronologique (ou le rythme calculé d'après la date de ton concours). Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
+    <p class="w-sub">Bon à savoir</p>
+    <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Une carte sue revient après 1, 3, 7 puis 15 jours. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
 }
 function showWelcome(focus){ renderWelcome(); $("#welcome").hidden = false; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
@@ -2069,7 +2228,7 @@ $("#add-form").addEventListener("submit", e => {
   const r = $("#f-r").value.trim().slice(0, 300); if (r) refs[id] = { v: r, t: Date.now() };
   persist();
   $("#f-q").value = ""; $("#f-a").value = ""; $("#f-x").value = ""; $("#f-r").value = "";
-  renderCounts(); toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
+  toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
 });
 
 localLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render();
