@@ -205,6 +205,20 @@ label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color
 .fb-body li{margin:3px 0}
 .fb-body p{margin:4px 0}
 .fb-note{color:var(--muted);font-size:14px;margin:8px 0 0}
+/* Accueil et prise en main */
+.top-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.welcome{margin:20px 0 4px;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.welcome h2{font-family:var(--f-display);font-weight:600;font-size:24px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+.welcome .w-lead{margin:0 0 16px;color:var(--muted);max-width:62ch}
+.w-spaces{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:0 0 18px;padding:0;list-style:none}
+.w-space{display:grid;gap:4px;padding:12px 14px;border-radius:10px;background:var(--page)}
+.w-space b{font-size:16px}
+.w-space span{color:var(--muted);font-size:14px}
+.w-steps{margin:0 0 18px;padding-left:22px;max-width:62ch}
+.w-steps li{margin:4px 0}
+.w-sub{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
+.w-note{font-size:14px;color:var(--muted);margin:0 0 16px;max-width:62ch}
+.first-hint{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:0 0 12px;color:var(--muted);font-size:15px;max-width:62ch}
 /* Navigation en trois espaces + sous-modes */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .top-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -269,9 +283,11 @@ html.big .chip,html.big .fbar label,html.big .textsize{font-size:16px}
     </div>
     <div class="top-actions">
       <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span id="status-txt">Sur cet appareil</span></span>
-      <button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button>
+      <div class="top-btns"><button class="textsize" id="help-open" type="button" data-act="help-open">Aide</button><button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button></div>
     </div>
   </header>
+
+  <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
 
   <nav class="tabs main" role="tablist" aria-label="Espaces">
     <button class="tab" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="true">Réviser</button>
@@ -487,6 +503,39 @@ const BASE = [
 {id:"n92",th:"H",p:"1981-2000",q:"Quelle thèse Norbert Elias défend-il à propos du sport ?",a:"Le sport participe au processus de civilisation : il permet une violence maîtrisée et réglée.",x:"Avec Eric Dunning, Sport et civilisation (traduction française 1994)."},
 {id:"n89",th:"H",p:"1981-2000",q:"Quel ouvrage de Jacques Gleyse (1995) relie l'éducation physique à la rationalisation ?",a:"L'instrumentalisation du corps.",x:"Il lit l'histoire de l'éducation physique à la lumière de la rationalité industrielle."},
 {id:"n77",th:"G",p:"1880-1918",q:"Quel ingénieur américain publie en 1911 ses principes d'organisation scientifique du travail ?",a:"Frederick Taylor.",x:"La rationalisation du geste et de l'effort nourrit la réflexion sur le rendement corporel au XXe siècle."}
+/* ---------- Ajouts v2 : Le geste et l'effort ---------- */
+,{id:"n201",th:"G",p:"Avant 1880",q:"Quel ouvrage d'Étienne-Jules Marey (1873) étudie la locomotion humaine et animale ?",a:"La machine animale. Locomotion terrestre et aérienne.",x:"Avant la chronophotographie, Marey enregistre déjà le mouvement avec des appareils graphiques."}
+,{id:"n202",th:"G",p:"Avant 1880",q:"Quel photographe décompose en 1878 le galop d'un cheval en une série d'images ?",a:"Eadweard Muybridge.",x:"Ses séries photographiques nourrissent les travaux de Marey sur l'analyse du mouvement."}
+,{id:"n215",th:"G",p:"1880-1918",q:"Quelles conceptions de l'effort opposent les hygiénistes aux partisans du sport à la fin du XIXe siècle ?",a:"Un effort dosé et modéré pour préserver la santé, contre un effort intense recherché pour se dépasser.",x:"D'un côté Tissié ou Lagrange, de l'autre Coubertin et le modèle sportif anglais."}
+,{id:"n203",th:"G",p:"1918-1945",q:"Quel physiologiste britannique, prix Nobel en 1922, étudie l'énergétique musculaire ?",a:"Archibald Vivian Hill.",x:"Avec Hartley Lupton, il décrit au début des années 1920 la consommation maximale d'oxygène (VO2 max)."}
+,{id:"n204",th:"G",p:"1945-1967",q:"Quelle méthode d'entraînement alterne efforts intenses et récupérations courtes, popularisée par Emil Zátopek ?",a:"L'entraînement fractionné (interval training).",x:"Formalisé en Allemagne par l'entraîneur Woldemar Gerschler et le cardiologue Herbert Reindell."}
+,{id:"n205",th:"G",p:"1967-1981",q:"Quel médecin américain popularise en 1968 l'endurance au service de la santé, avec un test de course de 12 minutes ?",a:"Kenneth Cooper (Aerobics, 1968).",x:"Le test de Cooper devient un classique de l'évaluation de l'endurance, y compris en EPS."}
+,{id:"n207",th:"G",p:"1967-1981",q:"Quels sont les trois stades de l'apprentissage moteur décrits par Fitts et Posner (1967) ?",a:"Cognitif, associatif, autonome.",x:"L'élève passe de la compréhension de la tâche à l'automatisation du geste."}
+,{id:"n209",th:"G",p:"1967-1981",q:"Quel problème du contrôle moteur Nikolaï Bernstein a-t-il mis en évidence ?",a:"Celui des degrés de liberté : coordonner un très grand nombre d'articulations et de muscles.",x:"Son ouvrage, traduit en anglais en 1967, influence durablement les théories de l'apprentissage moteur."}
+,{id:"n208",th:"G",p:"1967-1981",q:"Quelle théorie Richard Schmidt propose-t-il en 1975 ?",a:"La théorie du schéma moteur.",x:"L'apprentissage construit des règles générales qui permettent d'adapter un programme moteur à des situations variées : d'où l'intérêt de varier la pratique."}
+,{id:"n206",th:"G",p:"1981-2000",q:"Quel test d'endurance en aller-retour sur 20 mètres, à vitesse progressive, a été mis au point par Luc Léger ?",a:"Le test navette (course navette de 20 m).",x:"Conçu au Canada au début des années 1980, il estime la VO2 max et s'utilise largement à l'école."}
+,{id:"n214",th:"G",p:"1981-2000",q:"Que désigne la VMA, utilisée en EPS pour individualiser le travail d'endurance ?",a:"La vitesse maximale aérobie : la plus petite vitesse de course qui sollicite la consommation maximale d'oxygène.",x:"Elle permet de fixer des allures en pourcentage de VMA, par exemple en demi-fond."}
+,{id:"n210",th:"G",p:"1981-2000",q:"Quel ouvrage de Jean-Pierre Famose (1990) relie l'apprentissage à la difficulté des situations proposées ?",a:"Apprentissage moteur et difficulté de la tâche (INSEP).",x:"Il aide l'enseignant à doser la difficulté des situations pour favoriser l'apprentissage."}
+,{id:"n211",th:"G",p:"Depuis 2000",q:"Quel programme national lancé en 2001 recommande l'équivalent d'au moins 30 minutes de marche rapide par jour ?",a:"Le Programme national nutrition santé (PNNS).",x:"L'activité physique devient un enjeu de santé publique, que l'école relaie."}
+,{id:"n212",th:"G",p:"Depuis 2000",q:"Quelle loi de 2016 permet au médecin de prescrire une activité physique adaptée ?",a:"La loi de modernisation de notre système de santé (26 janvier 2016).",x:"On parle de « sport sur ordonnance » pour les patients atteints d'une affection de longue durée."}
+,{id:"n213",th:"T",p:"Depuis 2000",q:"Quelle attestation, dont la version de 2015 a été refondue en 2022, certifie qu'un élève sait nager ?",a:"L'attestation du savoir-nager, devenue en 2022 l'attestation du savoir-nager en sécurité (ASNS).",x:"Elle se prépare de préférence au cycle 3 et conditionne la pratique d'activités nautiques comme la voile ou le canoë-kayak."}
+
+/* ---------- Ajouts v2 : Débats et controverses ---------- */
+,{id:"n223",th:"D",p:"1880-1918",q:"Sur quoi porte l'opposition entre médecins hygiénistes et militaires dans l'éducation physique de la fin du XIXe siècle ?",a:"Sur ses finalités : préserver la santé de l'enfant ou préparer le futur soldat.",x:"Le déclin des bataillons scolaires dans les années 1890 traduit l'influence croissante des hygiénistes."}
+,{id:"n220",th:"D",p:"1918-1945",q:"Quelle pionnière fonde en 1917 une fédération sportive féminine, qu'elle préside à partir de 1919 ?",a:"Alice Milliat.",x:"Elle se bat pour l'ouverture des compétitions, et notamment des Jeux olympiques, aux femmes."}
+,{id:"n221",th:"D",p:"1918-1945",q:"Où et quand se tiennent les premiers Jeux mondiaux féminins organisés autour d'Alice Milliat ?",a:"À Paris, en août 1922.",x:"Ils répondent au refus d'ouvrir l'athlétisme olympique aux femmes ; d'autres éditions suivent jusqu'en 1934."}
+,{id:"n222",th:"D",p:"1918-1945",q:"Quelle position Pierre de Coubertin défend-il sur la participation des femmes aux Jeux olympiques ?",a:"Il y est opposé.",x:"Sous la pression du mouvement sportif féminin, le CIO ouvre cinq épreuves d'athlétisme aux femmes en 1928."}
+,{id:"n224",th:"D",p:"1967-1981",q:"Quelle place Pierre Parlebas accorde-t-il aux jeux traditionnels ?",a:"Il les valorise comme des pratiques motrices aussi éducatives que les sports institutionnalisés.",x:"Le sport n'est pour lui qu'une forme parmi d'autres de l'action motrice."}
+,{id:"n230",th:"D",p:"1967-1981",q:"Que reproche la critique radicale des années 1970 à la compétition sportive ?",a:"De reproduire les valeurs de rendement et de sélection de la société capitaliste.",x:"Critique portée notamment par Jean-Marie Brohm et la revue Quel corps ?"}
+,{id:"n226",th:"D",p:"1981-2000",q:"Pourquoi les enseignants d'EPS revendiquaient-ils le rattachement à l'Éducation nationale, obtenu en 1981 ?",a:"Pour que l'EPS soit reconnue comme une discipline scolaire à part entière, et non comme une annexe de la politique sportive.",x:"Sous la tutelle de la Jeunesse et des Sports, la discipline était souvent confondue avec le développement du sport."}
+,{id:"n228",th:"D",p:"1981-2000",q:"Inaptitude partielle ou dispense : quel principe s'impose à partir de la fin des années 1980 ?",a:"Adapter l'enseignement plutôt que dispenser l'élève.",x:"Le certificat d'inaptitude partielle (1988-1989) ouvre la voie à une EPS adaptée."}
+,{id:"n227",th:"D",p:"Depuis 2000",q:"Quel débat soulèvent les barèmes de performance différenciés entre filles et garçons ?",a:"Celui de l'équité : compenser des écarts physiques moyens, au risque d'entretenir des stéréotypes.",x:"La question traverse l'évaluation au baccalauréat et la réflexion sur l'égalité à l'école."}
+,{id:"n229",th:"D",p:"Depuis 2000",q:"Santé ou performance : comment les programmes du lycée de 2019 traitent-ils ce débat ?",a:"Ils font coexister les deux : performance maximale mesurable (CA1) et entretien de soi (CA5).",x:"« Construire durablement sa santé » devient un objectif général à part entière."}
+
+/* ---------- Ajouts v2 : Historiens et sociologues ---------- */
+,{id:"n225",th:"H",p:"1981-2000",q:"Quel ouvrage de Pierre Parlebas (1981) fixe le vocabulaire de la praxéologie motrice ?",a:"Contribution à un lexique commenté en science de l'action motrice.",x:"Il y définit notamment la logique interne et la conduite motrice."}
+,{id:"n218",th:"H",p:"1981-2000",q:"Quel sociologue publie Anthropologie du corps et modernité (1990) ?",a:"David Le Breton.",x:"Il analyse le corps comme une construction sociale et culturelle."}
+,{id:"n217",th:"H",p:"1981-2000",q:"Quel ouvrage de Georges Vigarello (1993) retrace l'histoire de la santé et du soin du corps ?",a:"Le sain et le malsain.",x:"Une histoire des représentations de la santé et du mieux-être depuis le Moyen Âge."}
 ];
 
 const THEMES = { T: "Transmettre et adapter", G: "Le geste et l'effort", D: "Débats et controverses", R: "Repères institutionnels", H: "Historiens et sociologues" };
@@ -510,12 +559,18 @@ const SOURCES = {
   FOU: { l: "Max Fourestier et l'expérience de Vanves (i-cirena)", u: "https://i-cirena.ubfc.fr/node/25896" },
   MER: { l: "Repères chronologiques sur Robert Mérand (EPS & Société)", u: "https://epsetsociete.fr/wp-content/uploads/2022/09/reperes_chronologiques.pdf" },
   BO19: { l: "Programmes d'EPS du lycée, BO spécial n° 1 du 22 janvier 2019", u: "https://ecampus.paris-saclay.fr/pluginfile.php/3666790/mod_resource/content/0/BO%20Sp%C3%A9%20n%C2%B01%20du%2022-01-2019-Programmes%20EPS%20Lyc%C3%A9e%20GT.pdf" },
-  BES: { l: "Synthèse des programmes d'EPS des cycles 3 et 4 (académie de Besançon)", u: "https://eps.ac-besancon.fr/wp-content/uploads/sites/36/2016/06/2_-_synthese_des_programmes_en_eps_-_cycles_3_et_4.pdf" }
+  BES: { l: "Synthèse des programmes d'EPS des cycles 3 et 4 (académie de Besançon)", u: "https://eps.ac-besancon.fr/wp-content/uploads/sites/36/2016/06/2_-_synthese_des_programmes_en_eps_-_cycles_3_et_4.pdf" },
+  MIL: { l: "Alice Milliat (Wikipédia, en anglais)", u: "https://en.wikipedia.org/wiki/Alice_Milliat" },
+  BDT: { l: "Textes de 2022 sur l'attestation du savoir-nager (Banque des territoires)", u: "https://www.banquedesterritoires.fr/deux-textes-sur-lattestation-du-savoir-nager-lecole" },
+  ARC: { l: "Marey, La machine animale, 1873 (Internet Archive)", u: "https://archive.org/details/lamachineanimale00mare" },
+  NOB: { l: "Prix Nobel de physiologie ou médecine 1922 (nobelprize.org)", u: "https://www.nobelprize.org/prizes/medicine/1922/summary/" },
+  OAL: { l: "Famose, Apprentissage moteur et difficulté de la tâche, INSEP, 1990 (notice)", u: "https://oalib-perpustakaan.upi.edu/Record/doab_20_500_12854_41105/Details" },
 };
 const CARD_SRC = {};
 [["TS","n02 n03 n04 b01 n08 n06 n20 n96 n95 n23 n21 n22 n26 n27 n31 n30 n32 n33 n29 n35 n39 n40 n42 n43 b17 b21 b22 n98 n52 n54 b24 b25 n55 n57 n56 n58 b27 n61 n63"],
  ["GUY","n36 n44 n50 n41 n60 n18 b10"],["TIS","b06 n82"],["COU","b09 n10 n11"],["HEB","n16 n17 b12 n24"],["FOU","n37"],
- ["MER","n45 n59 n79 n38 n34"],["BO19","b29 n68 n69"],["BES","n66 b28"]].forEach(([k, ids]) => ids.split(" ").forEach(id => { CARD_SRC[id] = k; }));
+ ["MER","n45 n59 n79 n38 n34"],["BO19","b29 n68 n69"],["BES","n66 b28"],
+ ["MIL","n220 n221 n222"],["BDT","n213"],["ARC","n201"],["NOB","n203"],["OAL","n210"]].forEach(([k, ids]) => ids.split(" ").forEach(id => { CARD_SRC[id] = k; }));
 function refGet(id){ return (refs[id] && refs[id].v) || ""; }
 function srcHTML(c){
   const k = !c.custom && CARD_SRC[c.id], s = k && SOURCES[k];
@@ -618,6 +673,8 @@ async function connect(){
   if (changed) { store.dirty = true; flush(); }
   if (done === 0 && !flipped) buildQueue();
   render();
+  /* Progression retrouvée depuis un autre appareil : pas besoin de l'accueil. */
+  if (Object.keys(progress).length && !welcomeSeen()) $("#welcome").hidden = true;
 }
 
 /* ---------- Séance ---------- */
@@ -699,6 +756,7 @@ function renderRevise(){
   const p = progress[c.id], b = p ? p.b : 0;
   const left = queue.length;
   el.innerHTML = `
+    ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
     <p class="meta">${cram ? "Révision libre" : "Séance"} · ${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}${c.custom ? " · ma carte" : ""}</p>
     <article class="bristol">
       <div class="band"><span class="period">${esc(thName(c))} · ${esc(c.p || NONE_P)}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></div>
@@ -796,6 +854,17 @@ const EVENTS = [
   {y:2015,t:"Programmes par cycles et champs d'apprentissage"},
   {y:2019,t:"Programmes du lycée : création du CA5"},
   {y:2022,t:"30 minutes d'activité physique quotidienne à l'école élémentaire"}
+  ,{y:1873,t:"Marey publie La machine animale"}
+  ,{y:1878,t:"Muybridge décompose le galop d'un cheval en photographies"}
+  ,{y:1917,t:"Alice Milliat participe à la fondation d'une fédération sportive féminine"}
+  ,{y:1922,t:"Premiers Jeux mondiaux féminins, à Paris"}
+  ,{y:1928,t:"Cinq épreuves d'athlétisme ouvertes aux femmes aux Jeux olympiques"}
+  ,{y:1968,t:"Kenneth Cooper publie Aerobics"}
+  ,{y:1981,t:"Parlebas publie son lexique de l'action motrice"}
+  ,{y:1990,t:"Famose publie Apprentissage moteur et difficulté de la tâche"}
+  ,{y:1993,t:"Vigarello publie Le sain et le malsain"}
+  ,{y:2001,t:"Lancement du Programme national nutrition santé"}
+  ,{y:2016,t:"Loi permettant la prescription d'une activité physique adaptée"}
 ];
 const ERAS = [["all","Toute l'histoire",0,9999],["a","Jusqu'en 1918",0,1918],["b","1919-1967",1919,1967],["c","Depuis 1968",1968,9999]];
 const PEOPLE = [
@@ -849,6 +918,21 @@ const PEOPLE = [
   {w:"Alain Savary",g:"P",d:"La loi de 1984 qui transforme les UEREPS en UFR STAPS."},
   {w:"Edwige Avice",g:"P",d:"La loi de 1984 sur l'organisation et la promotion des activités physiques et sportives."},
   {w:"Lionel Jospin",g:"P",d:"La loi d'orientation de 1989 qui place l'élève au centre du système éducatif."}
+  ,{w:"Alice Milliat",g:"A",d:"Les Jeux mondiaux féminins de Paris (1922)."}
+  ,{w:"Eadweard Muybridge",g:"A",d:"La décomposition photographique du galop d'un cheval (1878)."}
+  ,{w:"Archibald Vivian Hill",g:"A",d:"Le prix Nobel 1922 pour ses travaux sur l'énergétique musculaire."}
+  ,{w:"Woldemar Gerschler",g:"A",d:"La formalisation de l'entraînement fractionné (interval training)."}
+  ,{w:"Kenneth Cooper",g:"A",d:"Aerobics (1968) et le test de course de 12 minutes."}
+  ,{w:"Luc Léger",g:"A",d:"Le test navette de 20 mètres."}
+  ,{w:"Paul Fitts",g:"A",d:"Avec Michael Posner, les trois stades de l'apprentissage moteur (1967)."}
+  ,{w:"Richard Schmidt",g:"A",d:"La théorie du schéma moteur (1975)."}
+  ,{w:"Nikolaï Bernstein",g:"A",d:"Le problème des degrés de liberté dans le contrôle du mouvement."}
+  ,{w:"Jean-Pierre Famose",g:"A",d:"Apprentissage moteur et difficulté de la tâche (1990)."}
+  ,{w:"David Le Breton",g:"A",d:"Anthropologie du corps et modernité (1990)."}
+  ,{w:"Georges Vigarello",g:"A",d:"Le sain et le malsain (1993)."}
+  ,{w:"Jacques Ulmann",g:"A",d:"De la gymnastique aux sports modernes. Histoire des doctrines de l'éducation physique."}
+  ,{w:"Michaël Attali",g:"A",d:"Une histoire du syndicalisme des enseignants d'éducation physique de 1945 à 1981."}
+  ,{w:"Pierre Parlebas",g:"A",d:"Contribution à un lexique commenté en science de l'action motrice (1981)."}
 ];
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const fr = { era: "all", items: [], picks: [], checked: false, good: 0, total: 0 };
@@ -919,6 +1003,11 @@ const SUBJECTS = [
   {id:"s11",th:"D",t:"Le sport à l'école, de la défiance à la consécration (1880-1967).",c:["b09","n10","b12","n96","n34","n40","n43","n85","b17"]},
   {id:"s12",th:"D",t:"La crise d'identité de l'EPS dans les années 1960-1970 : enjeux et acteurs.",c:["n85","b17","b18","b19","n47","b20","n49","n86","n45","b24"]},
   {id:"s13",th:"D",t:"Les enseignants d'EPS face à l'institution : conquêtes et résistances de 1945 à 1985.",c:["n35","n38","n54","b24","b25","n55","n52","n59"]}
+  ,{id:"s14",th:"G",t:"Mesurer le corps et l'effort : comment les sciences ont-elles transformé l'éducation physique, de Marey à nos jours ?",c:["n201","n202","b08","b07","n13","n14","n15","n203","n204","n205","n206","n214"]}
+  ,{id:"s15",th:"G",t:"Apprendre un geste : quelles conceptions de l'apprentissage moteur l'EPS a-t-elle mobilisées depuis les années 1960 ?",c:["b18","b19","n207","n209","n208","n210","n59","n12"]}
+  ,{id:"s16",th:"D",t:"Les femmes et le sport au XXe siècle : de l'exclusion à l'égalité ?",c:["n220","n221","n222","n24","n23","n25","n53","n63","n227"]}
+  ,{id:"s17",th:"D",t:"Santé ou performance : un débat permanent de l'éducation physique ?",c:["n215","n81","n15","b12","b16","b17","n79","n205","n211","n212","n229"]}
+  ,{id:"s18",th:"D",t:"Le modèle sportif en procès : les critiques du sport à l'école, de 1925 aux années 1980.",c:["b12","n86","n49","b18","b19","n224","b20","n230","b24","n226"]}
 ];
 const sj = { axe: "Tous", cur: null, shown: false, mode: "plan" };
 const NOTES_KEY = "bristol-eps-notes";
@@ -1200,6 +1289,18 @@ const FILS = [
    k:["Fin du XIXe siècle : la science fonde une gymnastique rationnelle.","1925 : la méthode française fait une synthèse éclectique.","Années 1980 : la didactique place l'activité de l'élève au centre."],
    d:["Gymnastique analytique (Ling), méthode naturelle et utilitaire (Hébert) ou sport (Coubertin) : la querelle des méthodes de 1880 à 1914.","Psychomotricité ou sociomotricité : l'opposition entre Le Boulch et Parlebas."],
    p:"Suivre ce qui fonde chaque méthode : la morale et la patrie, puis la science du corps, puis le sport, enfin les apprentissages de l'élève.",s:["s10","s08","s12"]}
+  ,{id:"f7",t:"Mesurer l'effort et le geste",q:"Comment les sciences du mouvement et de l'effort ont-elles nourri l'éducation physique ?",
+   i:"De la méthode graphique de Marey aux tests d'endurance, les sciences cherchent à mesurer le mouvement puis l'effort. L'éducation physique s'en empare pour fonder ses méthodes, doser l'effort, puis évaluer et individualiser le travail des élèves. À partir des années 1970, la psychologie de l'apprentissage moteur déplace la question : il ne s'agit plus seulement de mesurer, mais de comprendre comment un geste s'apprend.",
+   e:[["1873","Marey publie La machine animale","n201"],["1878","Muybridge décompose le galop d'un cheval","n202"],["1882","Station physiologique et chronophotographie","b08"],["1902","Demenÿ et les bases scientifiques de l'éducation physique","b07"],["1911","Hébert publie Le Code de la force","n17"],["1922","Prix Nobel d'A. V. Hill, pionnier de la physiologie de l'effort","n203"],["1968","Cooper et le test de course de 12 minutes","n205"],["1975","Schmidt et la théorie du schéma moteur","n208"],["Années 1980","Le test navette de Luc Léger","n206"],["1990","Famose : apprentissage moteur et difficulté de la tâche","n210"]],
+   k:["Fin du XIXe siècle : le mouvement devient un objet de mesure scientifique.","Années 1920 : la physiologie décrit les limites énergétiques de l'effort.","Années 1970-1990 : la psychologie de l'apprentissage moteur outille la didactique de l'EPS."],
+   d:["Mesurer, est-ce éduquer ? La quantification de la performance peut réduire l'élève à un rendement : c'est la lecture de Gleyse dans L'instrumentalisation du corps.","Tests standardisés ou situations d'apprentissage : la place de l'évaluation chiffrée reste discutée en EPS."],
+   p:"Trois temps : observer et mesurer le mouvement (1870-1914), mesurer l'effort (1920-1970), comprendre l'apprentissage du geste (depuis les années 1970).",s:["s14","s15"]},
+  {id:"f8",t:"Femmes et sport",q:"Comment les femmes conquièrent-elles leur place dans le sport, au-delà de l'école ?",
+   i:"Écartées des compétitions par les dirigeants sportifs, Coubertin en tête, les sportives s'organisent elles-mêmes autour d'Alice Milliat. Les Jeux mondiaux féminins de 1922 obligent le CIO à ouvrir l'athlétisme aux femmes en 1928. À l'école, l'alignement des contenus (1924), la mixité (1975) puis l'objectif d'égalité (2000) prolongent ce mouvement.",
+   e:[["1917","Alice Milliat participe à la fondation d'une fédération sportive féminine","n220"],["1919","Hébert publie L'Éducation physique féminine","n24"],["1922","Premiers Jeux mondiaux féminins, à Paris","n221"],["1924","Alignement de l'éducation physique des filles sur celle des garçons","n23"],["1928","Cinq épreuves d'athlétisme olympique ouvertes aux femmes","n222"],["1975","La loi Haby généralise la mixité scolaire","n53"],["2000","« De la mixité à l'égalité » au Bulletin officiel","n63"]],
+   k:["1922 : les sportives créent leurs propres Jeux face au refus olympique.","1928 : première ouverture, limitée, de l'athlétisme olympique aux femmes.","1975 : la mixité scolaire déplace la question vers l'égalité des apprentissages."],
+   d:["Éducation physique féminine spécifique (grâce, santé, maternité) ou mêmes pratiques que les garçons : le débat traverse tout le XXe siècle.","Barèmes différenciés : compenser des écarts moyens ou entretenir des stéréotypes ?"],
+   p:"Trois temps : une pratique féminine tenue à l'écart (jusqu'aux années 1920), une conquête par l'organisation autonome (1917-1930), puis l'égalité comme objectif scolaire (depuis 1975).",s:["s16","s01"]}
 ];
 const fil = { cur: null };
 function renderFils(){
@@ -1308,6 +1409,9 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = fals
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "help-open") { showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
+  if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
+  if (d.act === "welcome-start") { hideWelcome(); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
   if (d.sec) { setView(lastSub[d.sec]); return; }
   if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
   if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
@@ -1379,6 +1483,34 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); saveRef(e.target.dataset.rid, e.target.value); }
   else if (e.key === "Escape") { e.preventDefault(); const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); }
 });
+/* Accueil et prise en main */
+const WELCOME_KEY = "bristol-eps-welcome";
+function welcomeSeen(){ try { return localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { return false; } }
+function welcomeSetSeen(){ try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
+function renderWelcome(){
+  const el = $("#welcome");
+  const n = allCards().length;
+  el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
+    <p class="w-lead">Un outil pour réviser l'histoire de l'EPS en vue de l'écrit 1 du CAPEPS et de l'agrégation interne : ${n} fiches organisées selon les axes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
+    <p class="w-sub">Quatre espaces</p>
+    <ul class="w-spaces">
+      <li class="w-space"><b>Réviser</b><span>Les fiches du jour. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
+      <li class="w-space"><b>Comprendre</b><span>Les fils rouges : des récits qui relient les faits sur un thème, avec une piste de plan.</span></li>
+      <li class="w-space"><b>S'entraîner</b><span>Frise chronologique, quiz « Qui ? », sujets de dissertation et introduction chronométrée.</span></li>
+      <li class="w-space"><b>Suivi</b><span>Ta progression par axe et par période, le paquet complet et tes propres cartes.</span></li>
+    </ul>
+    <p class="w-sub">Ta première séance</p>
+    <ol class="w-steps">
+      <li>Lis la question et cherche la réponse dans ta tête.</li>
+      <li>Retourne la carte (bouton ou touche Espace).</li>
+      <li>Sois honnête : Raté, Hésité ou Su (touches 1, 2 ou 3).</li>
+    </ol>
+    <p class="w-note">Dix nouvelles cartes par séance, dans l'ordre chronologique. Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
+    <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
+}
+function showWelcome(focus){ renderWelcome(); $("#welcome").hidden = false; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
+function hideWelcome(){ $("#welcome").hidden = true; welcomeSetSeen(); }
+
 /* Taille du texte */
 const BIG_KEY = "bristol-eps-big";
 function applyBig(on){ document.documentElement.classList.toggle("big", on); $("#textsize").setAttribute("aria-pressed", String(on)); }
@@ -1423,6 +1555,7 @@ $("#add-form").addEventListener("submit", e => {
 });
 
 localLoad(); buildQueue(); render();
+if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 </script>
 
