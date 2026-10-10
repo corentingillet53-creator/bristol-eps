@@ -893,7 +893,7 @@ async function connect(){
   if (done === 0 && !flipped) buildQueue();
   render();
   /* Progression retrouvée depuis un autre appareil : pas besoin de l'accueil. */
-  if (Object.keys(progress).length && !welcomeSeen()) $("#welcome").hidden = true;
+  if (Object.keys(progress).length && !welcomeSeen()) { welcomeOpen = false; $("#welcome").hidden = true; }
 }
 
 /* ---------- Objectif concours ---------- */
@@ -2082,6 +2082,7 @@ function setView(v, focus){
 function render(focusActions){
   renderFilters();
   const sec = SEC_OF[view];
+  const wl = $("#welcome"); if (wl) wl.hidden = !(typeof welcomeOpen !== "undefined" && welcomeOpen && view === "home");
   SECS.forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
   VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
   $("#intro-train").textContent = INTROS[view] || "";
@@ -2121,7 +2122,7 @@ document.addEventListener("click", e => {
   if (d.act === "acct-logout") { logoutAccount(); return; }
   if (d.act === "rk-copy") { const t = acct.recoveryKey; try { navigator.clipboard.writeText(t).then(() => toast("Clé copiée."), () => toast("Copie impossible : sélectionne la clé et copie-la.")); } catch (e) { toast("Copie impossible : sélectionne la clé et copie-la."); } return; }
   if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
-  if (d.act === "help-open") { showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
+  if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
   if (d.sec) { if (d.gotab) conc.cur = null; setView(d.gotab || lastSub[d.sec]); return; }
@@ -2451,8 +2452,10 @@ function renderWelcome(){
     </div></div>
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
 }
-function showWelcome(focus){ renderWelcome(); $("#welcome").hidden = false; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
-function hideWelcome(){ $("#welcome").hidden = true; welcomeSetSeen(); }
+/* Le bloc de bienvenue ne s'affiche que sur l'accueil. */
+let welcomeOpen = false;
+function showWelcome(focus){ welcomeOpen = true; renderWelcome(); $("#welcome").hidden = view !== "home"; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
+function hideWelcome(){ welcomeOpen = false; $("#welcome").hidden = true; welcomeSetSeen(); }
 
 /* Taille du texte */
 const BIG_KEY = "bristol-eps-big";
