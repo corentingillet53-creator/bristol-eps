@@ -1,0 +1,1409 @@
+<title>Bristol EPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<style>
+/* Layout : une colonne centrée (720px max) — en-tête et compteurs, onglets, filtres, puis la fiche bristol comme objet central */
+:root{
+  --page:#eef1f6; --card:#ffffff; --rule:#cfdcef; --margin:#b3413a;
+  --ink:#1b2233; --muted:#5b6578; --line:#d5dce8; --chip:#e3e8f2;
+  --accent:#2747a8; --accent-ink:#ffffff; --shadow:rgba(27,34,51,.16);
+  --ok:#1f7a4d; --warn:#9a6200; --bad:#b4372e;
+  --seg-m:#2747a8; --seg-c:#8fa3dc; --seg-e:#d5dce8;
+  --f-display:"Literata", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --rl:32px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0f131b; --card:#181e2a; --rule:#26314b; --margin:#d9706a;
+    --ink:#e5e9f2; --muted:#9aa3b5; --line:#2a3242; --chip:#222a39;
+    --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
+    --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
+    --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0f131b; --card:#181e2a; --rule:#26314b; --margin:#d9706a;
+  --ink:#e5e9f2; --muted:#9aa3b5; --line:#2a3242; --chip:#222a39;
+  --accent:#8ea6ff; --accent-ink:#0f131b; --shadow:rgba(0,0,0,.5);
+  --ok:#5cc28f; --warn:#e0a94a; --bad:#ef7a70; color-scheme:dark;
+  --seg-m:#8ea6ff; --seg-c:#46569a; --seg-e:#2a3242;
+}
+body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:28px 56px}
+button,select{font:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px 16px}
+h1{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:15px}
+.status{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:inline-flex;gap:8px;align-items:center;padding-top:8px;white-space:nowrap}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.status[data-mode="cloud"] .dot{background:var(--ok)}
+.status[data-mode="saving"] .dot{background:var(--accent)}
+
+.counts{display:flex;flex-wrap:wrap;gap:8px 28px;margin:20px 0 0;padding:12px 0;border-block:1px solid var(--line)}
+.count{display:flex;align-items:baseline;gap:8px}
+.count b{font-family:var(--f-mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.count span{color:var(--muted);font-size:14px}
+.legend{flex-basis:100%;margin:0;color:var(--muted);font-size:13px}
+
+.tabs{display:flex;gap:4px;margin:20px 0 16px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.filters{display:grid;gap:10px;margin-bottom:18px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px;padding:5px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip .n{font-family:var(--f-mono);font-size:11px;opacity:.75;margin-left:4px}
+.sel{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.sel select{width:auto;padding:6px 10px;font-size:14px}
+
+.meta{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+
+/* La fiche bristol : lignes bleues tous les 32px, marge rouge, texte calé sur les lignes */
+.bristol{position:relative;background-color:var(--card);
+  background-image:
+    linear-gradient(to right,transparent 52px,var(--margin) 52px,var(--margin) 53px,transparent 53px),
+    repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rl) - 1px),var(--rule) calc(var(--rl) - 1px),var(--rule) var(--rl));
+  border-radius:4px;box-shadow:0 1px 0 var(--line),0 14px 30px -18px var(--shadow);
+  padding:var(--rl) 20px var(--rl) 68px;min-height:calc(var(--rl) * 10);margin:0}
+.band{position:absolute;top:0;left:68px;right:16px;height:var(--rl);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.period{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--margin);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.q{font-family:var(--f-display);font-size:21px;line-height:var(--rl);margin:0;text-wrap:pretty}
+.a{font-family:var(--f-display);font-size:20px;font-weight:600;line-height:var(--rl);color:var(--accent);margin:var(--rl) 0 0}
+.x{font-size:16px;line-height:var(--rl);color:var(--muted);margin:0}
+.reveal{animation:rise .25s ease-out}
+@keyframes rise{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.reveal{animation:none}}
+
+.boxes{display:inline-flex;gap:3px;align-items:center;flex:none}
+.boxes i{width:9px;height:9px;border:1px solid var(--muted);border-radius:2px;display:block}
+.boxes i.on{background:var(--accent);border-color:var(--accent)}
+
+.actions{margin-top:16px}
+.btn{appearance:none;font-weight:700;border-radius:10px;padding:12px 14px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.wide{width:100%}
+.btn.small{padding:6px 10px;font-size:14px;border-radius:8px}
+.grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grade.bad{color:var(--bad);border-color:var(--bad)}
+.grade.mid{color:var(--warn);border-color:var(--warn)}
+.grade.good{color:var(--ok);border-color:var(--ok)}
+.k{font-family:var(--f-mono);font-weight:500;font-size:11px;padding:1px 6px;border:1px solid currentColor;border-radius:4px;opacity:.7}
+.hint{color:var(--muted);font-size:14px;margin:10px 0 0}
+
+.empty{padding:24px 0}
+.empty h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0 0 6px}
+.empty p{color:var(--muted);margin:0 0 16px;max-width:60ch}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px}
+
+.group{margin:0 0 28px}
+.group h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0 0 4px}
+.group .gsub{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.list{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item .ip{grid-column:1;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin)}
+.item .iq{grid-column:1;font-weight:700;min-width:0}
+.item .ia{grid-column:1;color:var(--muted);font-size:15px;min-width:0}
+.item .is{grid-column:2;grid-row:1 / span 3;display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+.due{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.due.now{color:var(--bad)}
+.linkbtn{appearance:none;background:none;border:0;padding:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
+.confirm{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+form{display:grid;gap:14px;max-width:600px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label{font-weight:700;display:block;margin-bottom:4px}
+.opt{font-weight:400;color:var(--muted)}
+input,textarea,select{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+.err{color:var(--bad);font-size:14px;margin:0}
+
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.lead{color:var(--muted);margin:0 0 12px;max-width:60ch}
+.lead strong{color:var(--ink)}
+.scoreline{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.era-chips{margin-bottom:16px}
+.frise-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+.fr-item{appearance:none;width:100%;text-align:left;display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;font:inherit}
+.fr-item[aria-pressed="true"]{border-color:var(--accent)}
+.badge{flex:none;width:28px;height:28px;border-radius:50%;border:1px dashed var(--muted);display:grid;place-items:center;font-family:var(--f-mono);font-size:13px}
+.fr-item[aria-pressed="true"] .badge{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.fr-res{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.yr{font-family:var(--f-mono);font-weight:500;font-size:15px;color:var(--margin);grid-row:1 / span 2}
+.verdict{font-size:12px;font-family:var(--f-mono);letter-spacing:.03em;text-transform:uppercase}
+.verdict.ok{color:var(--ok)} .verdict.ko{color:var(--bad)}
+.bristol.qui{min-height:calc(var(--rl) * 5)}
+.qui-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:16px}
+.qopt{justify-content:flex-start;text-align:left}
+.qopt:disabled{opacity:1;cursor:default}
+.qopt.right{border-color:var(--ok);color:var(--ok)}
+.qopt.wrong{border-color:var(--bad);color:var(--bad)}
+.sj-notes{min-height:120px;margin-top:16px}
+.sj-help{color:var(--muted);font-size:14px;margin:12px 0 0;max-width:62ch}
+.sect{margin:0 0 28px}
+.sect h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0 0 10px}
+.legend-row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:0 0 16px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sw.m{background:var(--seg-m)} .sw.c{background:var(--seg-c)} .sw.e{background:var(--seg-e)}
+.srow{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:8px 0}
+.srow .lab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-size:15px}
+.srow .num{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:2px;height:12px}
+.bar span{display:block;min-width:4px;height:100%}
+.bar span:first-child{border-radius:4px 0 0 4px} .bar span:last-child{border-radius:0 4px 4px 0} .bar span:only-child{border-radius:4px}
+.bar .m{background:var(--seg-m)} .bar .c{background:var(--seg-c)} .bar .e{background:var(--seg-e)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card)}
+.kpi b{display:block;font-family:var(--f-mono);font-weight:500;font-size:22px;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:14px}
+.src{display:grid;gap:4px;margin-top:10px;font-size:13px;color:var(--muted);max-width:65ch}
+.src a{color:var(--accent)}
+.src .unv{color:var(--warn)}
+.src .linkbtn{font-size:13px;margin-left:4px;min-height:24px}
+.ref-edit{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ref-edit input{flex:1 1 220px;width:auto;padding:8px 10px;font-size:14px}
+.item .ia .src{margin-top:6px}
+.modes{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 16px}
+.timer{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:16px 0 6px}
+.tmr{font-family:var(--f-mono);font-weight:500;font-size:34px;font-variant-numeric:tabular-nums;min-width:4.5ch}
+.tmr.over{color:var(--bad)}
+.sj-notes.intro{min-height:220px}
+fieldset.grid-chk{border:1px solid var(--line);border-radius:10px;padding:10px 14px 12px;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px}
+fieldset.grid-chk legend{font-weight:700;padding:0 6px}
+label.chk{display:flex;gap:10px;align-items:center;min-height:40px;font-weight:400;margin:0;cursor:pointer}
+label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color:var(--accent)}
+.code-form{display:grid;gap:6px;max-width:520px}
+.code-form label{font-weight:700;font-size:15px}
+.code-form input{flex:1 1 200px;width:auto}
+.fb{margin-top:14px}
+.fb-out{margin-top:12px;max-width:65ch}
+.fb-label{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.fb-body{border-left:3px solid var(--accent);padding:2px 0 2px 14px}
+.fb-body h4{font-family:var(--f-display);font-weight:600;font-size:17px;margin:12px 0 4px}
+.fb-body h4:first-child{margin-top:0}
+.fb-body ul{margin:0;padding-left:20px}
+.fb-body li{margin:3px 0}
+.fb-body p{margin:4px 0}
+.fb-note{color:var(--muted);font-size:14px;margin:8px 0 0}
+/* Navigation en trois espaces + sous-modes */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.top-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.textsize{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;min-height:36px;font-size:14px;cursor:pointer}
+.textsize[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.tabs.main{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;overflow:visible}
+.tabs.main .tab{min-height:48px;padding:10px 4px;font-size:16px;text-align:center}
+@media (max-width:420px){ .tabs.main .tab{font-size:14px;padding:10px 2px} }
+.fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.fil-card{appearance:none;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:14px 16px;cursor:pointer;display:grid;gap:6px;font:inherit}
+.fil-card:hover{border-color:var(--accent)}
+.fil-card h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0}
+.fil-card p{margin:0;color:var(--muted);font-size:15px}
+.fil-card .num{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.back{appearance:none;background:none;border:0;padding:8px 0;color:var(--accent);font-weight:700;cursor:pointer;min-height:44px}
+.fil-head h3{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.2;margin:4px 0 6px;text-wrap:balance}
+.fil-q{font-family:var(--f-display);font-size:19px;color:var(--accent);margin:0 0 10px;max-width:60ch}
+.fil-intro{margin:0 0 20px;max-width:65ch}
+.tl{list-style:none;margin:0 0 24px;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:4.6em;top:6px;bottom:6px;width:2px;background:var(--rule)}
+.tl li{display:grid;grid-template-columns:4.6em minmax(0,1fr) auto;gap:0 16px;align-items:start;padding:8px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:calc(4.6em - 4px);top:15px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--margin)}
+.tl .yr{grid-row:auto;font-size:14px;padding-top:2px}
+.tl .tx{padding-left:6px}
+.fil-sect{margin:0 0 22px;max-width:65ch}
+.fil-sect h4{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
+.fil-sect ul{margin:0;padding-left:20px}
+.fil-sect li{margin:4px 0}
+.seg{display:flex;gap:4px;padding:4px;margin:0 0 18px;background:var(--chip);border-radius:12px}
+.seg button{appearance:none;flex:1 1 0;min-width:0;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;padding:6px 8px}
+.seg button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+.fbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px;margin:0 0 18px}
+.fbar label{font-size:14px;font-weight:700;margin-bottom:4px}
+.fbar select{padding:10px 12px;min-height:44px}
+.chip{min-height:40px}
+.k{opacity:.85}
+.intro{color:var(--muted);margin:0 0 14px;max-width:62ch}
+html.big body{font-size:18px}
+html.big{--rl:38px}
+html.big .q{font-size:24px} html.big .a{font-size:22px} html.big .x{font-size:18px}
+html.big .sub,html.big .count span,html.big .hint,html.big .lead,html.big .intro,html.big .item .ia{font-size:17px}
+html.big .chip,html.big .fbar label,html.big .textsize{font-size:16px}
+@media (max-width:480px){ html.big .q{font-size:21px} html.big .a{font-size:20px} }
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--page);padding:10px 16px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);box-sizing:border-box}
+.foot{color:var(--muted);font-size:14px;margin-top:32px;padding-top:16px;border-top:1px solid var(--line);max-width:65ch}
+.foot p{margin:0 0 8px}
+@media (max-width:480px){
+  .bristol{padding-left:44px;padding-right:14px;background-image:
+    linear-gradient(to right,transparent 30px,var(--margin) 30px,var(--margin) 31px,transparent 31px),
+    repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rl) - 1px),var(--rule) calc(var(--rl) - 1px),var(--rule) var(--rl))}
+  .band{left:44px}
+  .q{font-size:19px}.a{font-size:18px}
+  .grades .k{display:none}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Bristol EPS</h1>
+      <p class="sub" id="sub">Histoire de l'EPS · fiches en répétition espacée</p>
+    </div>
+    <div class="top-actions">
+      <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span id="status-txt">Sur cet appareil</span></span>
+      <button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button>
+    </div>
+  </header>
+
+  <nav class="tabs main" role="tablist" aria-label="Espaces">
+    <button class="tab" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="true">Réviser</button>
+    <button class="tab" role="tab" id="sec-comprendre" data-sec="comprendre" aria-controls="area-comprendre" aria-selected="false" tabindex="-1">Comprendre</button>
+    <button class="tab" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1">S'entraîner</button>
+    <button class="tab" role="tab" id="sec-suivi" data-sec="suivi" aria-controls="area-suivi" aria-selected="false" tabindex="-1">Suivi</button>
+  </nav>
+
+  <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise">
+    <h2 class="sr-only">Réviser les fiches du jour</h2>
+    <div class="counts" id="counts"></div>
+    <div class="fbar" id="filters-revise"></div>
+    <section id="panel-revise" aria-live="polite"></section>
+  </div>
+
+  <div id="area-comprendre" role="tabpanel" aria-labelledby="sec-comprendre" hidden>
+    <h2 class="sr-only">Comprendre : les fils rouges</h2>
+    <section id="panel-fils"></section>
+  </div>
+
+  <div id="area-train" role="tabpanel" aria-labelledby="sec-train" hidden>
+    <h2 class="sr-only">S'entraîner</h2>
+    <div class="seg" role="tablist" aria-label="Mode d'entraînement">
+      <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="true">Frise</button>
+      <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
+      <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
+    </div>
+    <p class="intro" id="intro-train"></p>
+    <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
+    <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
+    <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
+  </div>
+
+  <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
+    <h2 class="sr-only">Mon suivi</h2>
+    <div class="seg" role="tablist" aria-label="Suivi">
+      <button role="tab" id="tab-stats" data-tab="stats" aria-controls="panel-stats" aria-selected="true">Statistiques</button>
+      <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Paquet</button>
+      <button role="tab" id="tab-add" data-tab="add" aria-controls="panel-add" aria-selected="false" tabindex="-1">Ajouter</button>
+    </div>
+    <div class="fbar" id="filters-deck" hidden></div>
+    <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats"></section>
+    <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
+    <section id="panel-add" role="tabpanel" aria-labelledby="tab-add" hidden>
+    <form id="add-form" novalidate>
+      <div>
+        <label for="f-q">Question</label>
+        <textarea id="f-q" placeholder="Ex. : Quel texte de 1967 fait du sport le support de l'EPS ?"></textarea>
+      </div>
+      <div>
+        <label for="f-a">Réponse</label>
+        <textarea id="f-a" placeholder="Ex. : Les Instructions officielles de 1967."></textarea>
+      </div>
+      <div>
+        <label for="f-x">Contexte <span class="opt">(facultatif)</span></label>
+        <input id="f-x" type="text" placeholder="Auteur, enjeu, lien avec une autre période…">
+      </div>
+      <div>
+        <label for="f-r">Référence <span class="opt">(facultatif : ouvrage, chapitre, page)</span></label>
+        <input id="f-r" type="text" placeholder="Ex. : Attali, chap. 2, p. 45">
+      </div>
+      <div class="two">
+        <div><label for="f-t">Thème</label><select id="f-t"></select></div>
+        <div><label for="f-p">Période</label><select id="f-p"></select></div>
+      </div>
+      <p class="err" id="f-err" hidden>Il faut au moins une question et une réponse.</p>
+      <div class="row-btns"><button class="btn primary" type="submit">Ajouter au paquet</button></div>
+    </form>
+    </section>
+  </div>
+
+  <div class="foot">
+    <p>Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter.</p>
+    <p>Une carte ratée revient dans la séance. Une carte sue revient de plus en plus tard : 1, 3, 7 puis 15 jours. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+const BASE = [
+/* ---------- Avant 1880 ---------- */
+{id:"n02",th:"R",p:"Avant 1880",q:"Que prévoit la loi Falloux (1850) pour la gymnastique ?",a:"Elle en fait une matière facultative de l'enseignement primaire.",x:"Première inscription de la gymnastique dans les textes scolaires, sans obligation."},
+{id:"n03",th:"R",p:"Avant 1880",q:"Quel décret de 1869 rend la gymnastique obligatoire dans l'enseignement secondaire ?",a:"Le décret Duruy du 3 février 1869.",x:"Victor Duruy, ministre de l'Instruction publique, agit dans un contexte de rivalité avec la Prusse."},
+{id:"n04",th:"R",p:"Avant 1880",q:"Quel certificat, créé en 1869, devient obligatoire en 1908 pour enseigner la gymnastique en collège et lycée ?",a:"Le CAEG, certificat d'aptitude à l'enseignement de la gymnastique.",x:"Premier diplôme d'État pour les maîtres de gymnastique."},
+{id:"b03",th:"R",p:"Avant 1880",q:"Quelle école, fondée en 1852, devient le centre de la gymnastique militaire en France ?",a:"L'École normale militaire de gymnastique de Joinville-le-Pont.",x:"Elle devient l'École supérieure d'éducation physique (ESEP) en 1925 et élabore la « méthode française »."},
+{id:"b04",th:"G",p:"Avant 1880",q:"Qui fonde en France, au début du XIXe siècle, une gymnastique à visée militaire et morale ?",a:"Francisco Amoros.",x:"Gymnastique utilitaire et patriotique, avec agrès et chants, développée à Paris sous la Restauration."},
+{id:"b05",th:"G",p:"Avant 1880",q:"Quel courant étranger fonde la gymnastique sur l'anatomie et la physiologie ?",a:"La gymnastique suédoise de Pehr Henrik Ling.",x:"Institut central de gymnastique de Stockholm (1813) ; exercices analytiques et correctifs, diffusés en France notamment par Philippe Tissié."},
+{id:"n01",th:"D",p:"Avant 1880",q:"Quel modèle de gymnastique est associé à Friedrich Ludwig Jahn ?",a:"Le Turnen allemand, une gymnastique aux agrès à visée patriotique.",x:"Après 1870, ce modèle « de l'ennemi » est discuté en France face à la gymnastique suédoise."},
+
+/* ---------- 1880-1918 ---------- */
+{id:"b01",th:"R",p:"1880-1918",q:"Quelle loi rend la gymnastique obligatoire dans tous les établissements publics d'enseignement de garçons en 1880 ?",a:"La loi George (27 janvier 1880).",x:"Après la défaite de 1870, l'école doit former des citoyens-soldats ; la loi s'inscrit dans l'œuvre scolaire de Jules Ferry."},
+{id:"n05",th:"T",p:"1880-1918",q:"Quelle loi de 1882 inscrit la gymnastique parmi les matières de l'enseignement primaire obligatoire ?",a:"La loi Ferry du 28 mars 1882.",x:"La gymnastique et, pour les garçons, les exercices militaires figurent au programme de l'école primaire."},
+{id:"b02",th:"T",p:"1880-1918",q:"Que sont les bataillons scolaires créés en 1882 ?",a:"Des unités d'élèves pratiquant l'exercice militaire et le maniement d'armes.",x:"Visée patriotique de revanche ; ils déclinent rapidement dans les années 1890."},
+{id:"n08",th:"T",p:"1880-1918",q:"Que prévoit le décret du 18 janvier 1882 pour les filles ?",a:"Il rend l'éducation physique obligatoire pour elles, mais reste peu appliqué.",x:"Il faut attendre le décret du 25 mars 1924 pour aligner l'enseignement des filles sur celui des garçons."},
+{id:"n103",th:"T",p:"1880-1918",q:"Que crée la loi Camille Sée (1880) ?",a:"Les lycées de jeunes filles.",x:"Point de départ de l'enseignement secondaire public pour les filles."},
+{id:"n06",th:"T",p:"1880-1918",q:"Comment évoluent les manuels officiels de gymnastique scolaire entre 1880 et 1891 ?",a:"D'un manuel de gymnastique et d'exercices militaires (1880) à un manuel qui fait une place aux jeux scolaires (1891).",x:"La gymnastique scolaire s'éloigne du modèle militaire pour une visée plus hygiénique et ludique."},
+{id:"n81",th:"G",p:"1880-1918",q:"Quel objectif hygiéniste domine l'éducation physique de la fin du XIXe siècle ?",a:"Préserver et fortifier la santé de l'enfant face au surmenage scolaire.",x:"Des médecins comme Fernand Lagrange et Philippe Tissié veulent doser l'effort."},
+{id:"n13",th:"G",p:"1880-1918",q:"Quel ouvrage de Fernand Lagrange (1888) fonde la physiologie de l'exercice en France ?",a:"Physiologie des exercices du corps.",x:"Le médecin étudie la fatigue, l'essoufflement et les effets de l'exercice, et défend les jeux de plein air."},
+{id:"n14",th:"G",p:"1880-1918",q:"Quel physiologiste italien publie La fatigue (1891) ?",a:"Angelo Mosso.",x:"Il mesure la fatigue musculaire avec un appareil qu'il a conçu, l'ergographe."},
+{id:"n15",th:"G",p:"1880-1918",q:"Quel ouvrage de Philippe Tissié (1897) relie fatigue et entraînement ?",a:"La fatigue et l'entraînement physique.",x:"L'hygiéniste cherche à doser l'effort pour éviter le surmenage."},
+{id:"b08",th:"G",p:"1880-1918",q:"Quelle technique Étienne-Jules Marey met-il au point pour analyser le mouvement ?",a:"La chronophotographie.",x:"À la Station physiologique (1882), le mouvement devient un objet d'étude scientifique."},
+{id:"b07",th:"G",p:"1880-1918",q:"Quel collaborateur de Marey défend une éducation physique rationnelle, fondée sur la science ?",a:"Georges Demenÿ.",x:"Auteur des Bases scientifiques de l'éducation physique (1902) ; il dirige à partir de 1903 un cours supérieur d'éducation physique."},
+{id:"n12",th:"G",p:"1880-1918",q:"Que reproche Demenÿ à la gymnastique suédoise ?",a:"D'être trop statique et analytique ; il prône des mouvements complets, continus et arrondis.",x:"Il recherche l'économie de l'effort et la beauté du geste."},
+{id:"n16",th:"G",p:"1880-1918",q:"Quelle est la première grande œuvre de Georges Hébert (1907) ?",a:"L'Éducation physique raisonnée.",x:"Officier de marine, Hébert s'inspire de la vigueur de peuples vivant au contact de la nature, observés lors de ses voyages."},
+{id:"n17",th:"G",p:"1880-1918",q:"Que propose Hébert dans Le Code de la force (1911) ?",a:"Une mesure pratique de la force physique et de ses éléments constitutifs.",x:"Il veut évaluer la valeur physique globale par des épreuves concrètes."},
+{id:"b10",th:"G",p:"1880-1918",q:"Quelle méthode Georges Hébert propose-t-il, et quelle est sa devise ?",a:"La méthode naturelle ; devise : « Être fort pour être utile ».",x:"Exposée dès 1912 et développée au collège d'athlètes de Reims, fondé en 1913 par le marquis de Polignac."},
+{id:"b11",th:"G",p:"1880-1918",q:"Citez les dix familles d'exercices de la méthode naturelle.",a:"Marche, course, saut, quadrupédie, grimper, équilibrisme, lever, lancer, défense, natation.",x:"Des gestes utiles, pratiqués de préférence en milieu naturel."},
+{id:"n18",th:"G",p:"1880-1918",q:"Pourquoi le collège d'athlètes de Reims est-il créé en 1913 ?",a:"Pour préparer des athlètes français aux Jeux olympiques de Berlin prévus en 1916.",x:"Le collège est détruit pendant la Première Guerre mondiale."},
+{id:"n84",th:"D",p:"1880-1918",q:"Quelles grandes options s'affrontent en France vers 1890 ?",a:"La gymnastique (militaire ou suédoise), les sports athlétiques anglais (Coubertin) et les jeux traditionnels (Grousset, Tissié).",x:"Un débat sur la meilleure façon d'éduquer physiquement la jeunesse française."},
+{id:"n83",th:"D",p:"1880-1918",q:"Pourquoi la gymnastique suédoise séduit-elle les hygiénistes français ?",a:"Parce qu'elle se veut fondée sur l'anatomie et la physiologie, avec des exercices dosés et correctifs.",x:"Elle s'oppose à la gymnastique aux agrès, jugée acrobatique, et à la compétition sportive."},
+{id:"b06",th:"D",p:"1880-1918",q:"Quel médecin bordelais promeut la gymnastique suédoise et fonde la Ligue girondine d'éducation physique (1888) ?",a:"Philippe Tissié.",x:"Il s'oppose à la compétition et au surmenage ; ses lendits, lancés en 1890, sont interdits par le ministère en 1907."},
+{id:"n82",th:"T",p:"1880-1918",q:"Qu'est-ce qu'un lendit ?",a:"Une grande rencontre scolaire de jeux et d'exercices physiques.",x:"Philippe Tissié organise le premier en 1890 dans la région bordelaise."},
+{id:"n09",th:"D",p:"1880-1918",q:"Qui fonde en 1888 la Ligue nationale de l'éducation physique ?",a:"Paschal Grousset, ancien communard.",x:"Il défend des jeux traditionnels français, contre les sports anglais promus par Coubertin."},
+{id:"n10",th:"D",p:"1880-1918",q:"Sur quoi porte l'opposition entre Tissié et Coubertin ?",a:"Sur la compétition : Tissié, hygiéniste, la juge dangereuse ; Coubertin défend le sport et sa liberté d'excès.",x:"Leur correspondance s'étend de 1889 à 1915."},
+{id:"n11",th:"T",p:"1880-1918",q:"Quel comité Coubertin crée-t-il en 1888 ?",a:"Un comité pour la propagation des exercices physiques dans l'éducation.",x:"Objectif : introduire les sports athlétiques dans les lycées français."},
+{id:"b09",th:"D",p:"1880-1918",q:"Quel rôle joue Pierre de Coubertin à la fin du XIXe siècle ?",a:"Il rénove les Jeux olympiques : projet annoncé à la Sorbonne (1892), CIO créé en 1894, premiers Jeux à Athènes (1896).",x:"Il s'inspire du sport scolaire anglais de Thomas Arnold (collège de Rugby) et préside le CIO de 1896 à 1925."},
+
+/* ---------- 1918-1945 ---------- */
+{id:"n20",th:"R",p:"1918-1945",q:"À quel ministère le service de l'éducation physique est-il rattaché en 1922 ?",a:"Au ministère de l'Instruction publique.",x:"Entre les deux guerres, l'éducation physique oscille entre tutelles militaire, sanitaire et scolaire."},
+{id:"n96",th:"T",p:"1918-1945",q:"Quel texte de 1923 officialise la pratique sportive à l'école ?",a:"La circulaire du 13 janvier 1923.",x:"Le sport fait son entrée officielle dans les établissements scolaires."},
+{id:"n95",th:"T",p:"1918-1945",q:"Quels textes organisent l'éducation physique à l'école primaire en 1923 et 1938 ?",a:"Des Instructions officielles pour l'enseignement primaire (1923), prolongées en 1938.",x:"En 1938, le plein air prend une place importante dans l'horaire."},
+{id:"n23",th:"T",p:"1918-1945",q:"Que décide le décret du 25 mars 1924 ?",a:"Il aligne l'enseignement de l'éducation physique des filles sur celui des garçons.",x:"Il reprend une obligation posée en 1882 mais restée peu appliquée."},
+{id:"n24",th:"T",p:"1918-1945",q:"Quel ouvrage d'Hébert (1919) porte sur l'éducation physique des femmes ?",a:"L'Éducation physique féminine. Muscle et beauté plastique.",x:"Il applique la méthode naturelle aux femmes, en y associant santé et esthétique."},
+{id:"n25",th:"T",p:"1918-1945",q:"Quelle pionnière promeut une gymnastique féminine dite harmonique ?",a:"Irène Popard.",x:"Une gymnastique en musique, qui mêle rythme, souplesse et expression."},
+{id:"n21",th:"T",p:"1918-1945",q:"Quel texte de 1925 constitue la « méthode française » ?",a:"Le Règlement général d'éducation physique, élaboré à Joinville.",x:"Une méthode éclectique, issue de projets publiés de 1919 à 1922 par le ministère de la Guerre."},
+{id:"n22",th:"T",p:"1918-1945",q:"Quel horaire l'arrêté de 1925 fixe-t-il dans le secondaire ?",a:"Deux heures d'éducation physique par semaine, plus une après-midi de plein air.",x:"Le plein air devient une composante régulière de l'horaire."},
+{id:"b12",th:"D",p:"1918-1945",q:"Quel ouvrage d'Hébert (1925) critique les dérives du sport ?",a:"Le Sport contre l'Éducation physique.",x:"Il reproche au sport la spécialisation, la recherche du record et le spectacle."},
+{id:"n26",th:"R",p:"1918-1945",q:"Où est créé en 1927 le premier institut régional d'éducation physique (IREP) ?",a:"À Bordeaux, rattaché à la faculté de médecine.",x:"Les IREP forment des enseignants dans une approche dominée par la médecine."},
+{id:"n97",th:"R",p:"1918-1945",q:"Quelle fédération sportive laïque naît des amicales laïques à la fin des années 1920 ?",a:"L'UFOLEP.",x:"Une fédération multisport liée à la Ligue de l'enseignement."},
+{id:"n27",th:"R",p:"1918-1945",q:"Quelle école et quel diplôme sont créés en 1933 pour former les professeurs ?",a:"L'École normale d'éducation physique (ENEP) et le CAPEP.",x:"Le CAPEPS lui succède en 1941 ; à la Libération, l'école devient deux ENSEP (garçons et filles)."},
+{id:"b13",th:"T",p:"1918-1945",q:"Qui est sous-secrétaire d'État aux Sports et à l'Organisation des loisirs sous le Front populaire ?",a:"Léo Lagrange (1936).",x:"Il démocratise le sport et les loisirs et crée le Brevet sportif populaire (1937)."},
+{id:"n101",th:"R",p:"1918-1945",q:"Quelles mesures sociales de 1936 favorisent l'essor des loisirs sportifs ?",a:"Les congés payés et la semaine de 40 heures.",x:"Le temps libre ouvre le sport et le plein air aux classes populaires."},
+{id:"n29",th:"G",p:"1918-1945",q:"Qu'est-ce que le Brevet sportif populaire (1937) ?",a:"Un brevet d'épreuves physiques accessible à tous, symbole du sport de masse du Front populaire.",x:"Vichy le transforme en Brevet sportif national en 1941."},
+{id:"b14",th:"T",p:"1918-1945",q:"Quel ministre lance en 1937 l'expérience des loisirs dirigés à l'école ?",a:"Jean Zay.",x:"Un arrêté de 1937 ajoute une demi-journée de plein air à l'horaire hebdomadaire."},
+{id:"n31",th:"R",p:"1918-1945",q:"Que décide Jean Zay en 1938 pour le sport scolaire du secondaire ?",a:"Il ouvre l'Office du sport universitaire aux élèves du secondaire et du technique : c'est l'OSSU.",x:"Le sport scolaire du secondaire se structure à l'échelle nationale."},
+{id:"n30",th:"R",p:"1918-1945",q:"Quel ministre crée l'USEP en 1939 ?",a:"Jean Zay, par décret du 1er février 1939.",x:"L'Union sportive de l'enseignement du premier degré organise le sport à l'école primaire."},
+{id:"b15",th:"R",p:"1918-1945",q:"Sous Vichy, qui dirige l'éducation générale et sportive (EGS) ?",a:"Jean Borotra, commissaire général (1940-1942).",x:"L'EGS sert un projet de « redressement » moral et physique ; le colonel Pascot lui succède en 1942."},
+{id:"n32",th:"R",p:"1918-1945",q:"Qu'est-ce que la Charte des sports (décembre 1940) ?",a:"Le texte par lequel Vichy place le mouvement sportif sous le contrôle de l'État.",x:"Les fédérations doivent être agréées par le pouvoir."},
+{id:"n33",th:"T",p:"1918-1945",q:"Quelle épreuve est introduite au baccalauréat en 1941 ?",a:"Une épreuve facultative d'éducation physique.",x:"Elle devient obligatoire en 1959."},
+{id:"n34",th:"D",p:"1918-1945",q:"Quelle conception défend Maurice Baquet ?",a:"L'éducation sportive : faire du sport, enseigné méthodiquement, le moyen de l'éducation physique.",x:"Les stages de la FSGT lancés en 1965 à Sète portent son nom."},
+{id:"n75",th:"G",p:"1918-1945",q:"Que montre Marcel Mauss dans « Les techniques du corps » (1934) ?",a:"Que les façons d'utiliser son corps (marcher, nager, courir) sont apprises et varient selon les sociétés.",x:"Le geste est un fait culturel transmis par l'éducation."},
+
+/* ---------- 1945-1967 ---------- */
+{id:"n35",th:"R",p:"1945-1967",q:"Quelle obligation pèse sur chaque établissement à partir de 1945 ?",a:"Créer une association sportive.",x:"En 1950, les enseignants obtiennent un forfait de trois heures pour l'animer."},
+{id:"n36",th:"T",p:"1945-1967",q:"Quel horaire prévoient les Instructions officielles de 1945 ?",a:"Deux heures d'éducation physique et une demi-journée de plein air par semaine.",x:"Le plein air reste au cœur du projet éducatif de l'après-guerre."},
+{id:"n37",th:"T",p:"1945-1967",q:"Qu'est-ce que l'expérience de Vanves (1950) ?",a:"Le mi-temps pédagogique et sportif du Dr Max Fourestier : la classe le matin, l'activité physique l'après-midi.",x:"Elle inspire plus tard le tiers-temps pédagogique à l'école primaire."},
+{id:"n38",th:"R",p:"1945-1967",q:"Quelle revue professionnelle naît en 1950 à l'initiative de Jean Vivès ?",a:"Éducation physique et sport (la revue EP&S).",x:"Elle diffuse les savoirs techniques et pédagogiques des enseignants."},
+{id:"n39",th:"T",p:"1945-1967",q:"Quand l'épreuve d'éducation physique devient-elle obligatoire au baccalauréat ?",a:"En 1959.",x:"Elle était facultative depuis 1941."},
+{id:"n40",th:"T",p:"1945-1967",q:"Que change la circulaire du 1er juin 1961 ?",a:"La demi-journée de plein air devient une demi-journée de sport.",x:"Un signe de la sportivisation de l'EPS au début des années 1960."},
+{id:"b16",th:"R",p:"1945-1967",q:"Quel événement sportif de 1960 déclenche une politique volontariste du sport en France ?",a:"Les Jeux olympiques de Rome, où la France ne remporte aucune médaille d'or.",x:"Maurice Herzog, haut-commissaire à la Jeunesse et aux Sports, développe le sport et les équipements."},
+{id:"n41",th:"R",p:"1945-1967",q:"Que permettent les lois-programmes d'équipement des années 1960 ?",a:"Un vaste plan de construction d'équipements sportifs.",x:"La France devient l'un des pays les mieux équipés d'Europe, ce qui facilite l'entrée du sport à l'école."},
+{id:"n42",th:"R",p:"1945-1967",q:"Quel organisme succède à l'OSSU en 1962 ?",a:"L'ASSU, Association du sport scolaire et universitaire.",x:"Elle sera remplacée par l'UNSS en 1975."},
+{id:"n43",th:"D",p:"1945-1967",q:"Quelle commission publie en 1964 un Essai de doctrine du sport ?",a:"La Commission de la doctrine, présidée par Jean Borotra.",x:"Le texte défend une conception éducative du sport."},
+{id:"n85",th:"D",p:"1945-1967",q:"Que désigne la « sportivisation » de l'EPS ?",a:"L'adoption des activités et des logiques sportives (règles, performance, compétition) comme contenus de l'EPS.",x:"Le mouvement s'accélère dans les années 1960 et culmine avec les Instructions de 1967."},
+{id:"b18",th:"D",p:"1945-1967",q:"Quelle méthode Jean Le Boulch défend-il ?",a:"La psychocinétique (L'éducation par le mouvement, 1966).",x:"Il refuse le sport comme contenu exclusif et vise le développement psychomoteur global."},
+
+/* ---------- 1967-1981 ---------- */
+{id:"b17",th:"T",p:"1967-1981",q:"Quel texte de 1967 fait des activités sportives le support privilégié de l'EPS ?",a:"Les Instructions officielles du 19 octobre 1967.",x:"Le sport devient le contenu principal de l'EPS, avec une visée éducative."},
+{id:"n44",th:"T",p:"1967-1981",q:"Quel horaire prévoient les Instructions officielles de 1967 ?",a:"Cinq heures : deux heures d'EP et une demi-journée de trois heures de sport.",x:"Un horaire ambitieux, rarement appliqué faute d'enseignants et d'équipements."},
+{id:"n45",th:"T",p:"1967-1981",q:"Quel conseil Robert Mérand crée-t-il à la FSGT en 1967 ?",a:"Le Conseil pédagogique et scientifique (CPS) de la FSGT.",x:"Avec les stages Maurice Baquet, il porte une rénovation pédagogique des sports collectifs fondée sur l'activité de l'enfant."},
+{id:"n51",th:"T",p:"1967-1981",q:"Qu'est-ce que le tiers-temps pédagogique (1969) ?",a:"Une organisation de l'école primaire : 15 h de disciplines fondamentales, 6 h d'éveil et 6 h d'éducation physique et sportive.",x:"Elle s'inscrit dans le prolongement de l'expérience de Vanves."},
+{id:"n50",th:"T",p:"1967-1981",q:"Que fixe la circulaire Comiti de 1971 ?",a:"Trois heures d'EPS dans le premier cycle et deux heures dans le second cycle.",x:"Bien en deçà des cinq heures prévues en 1967."},
+{id:"b19",th:"D",p:"1967-1981",q:"Quelle discipline Pierre Parlebas fonde-t-il ?",a:"La praxéologie motrice, science de l'action motrice.",x:"Concepts-clés : conduite motrice, logique interne, sociomotricité et psychomotricité."},
+{id:"n47",th:"D",p:"1967-1981",q:"Quelle opposition structure le débat entre Parlebas et Le Boulch ?",a:"Sociomotricité (action en interaction avec autrui) contre psychomotricité centrée sur l'individu.",x:"Parlebas reproche à la psychomotricité d'ignorer la dimension relationnelle de l'action."},
+{id:"b20",th:"D",p:"1967-1981",q:"Quel auteur porte la critique radicale du sport dans les années 1970 ?",a:"Jean-Marie Brohm.",x:"Avec la revue Quel corps ? (1975) et Sociologie politique du sport (1976), il analyse le sport comme un appareil idéologique au service du capitalisme."},
+{id:"n49",th:"D",p:"1967-1981",q:"Que désigne la « crise d'identité » de l'EPS dans les années 1960-1970 ?",a:"Le débat sur sa place face au sport : se confondre avec l'initiation sportive ou garder une spécificité éducative.",x:"S'y affrontent conceptions sportive, psychomotrice, sociomotrice et critique."},
+{id:"n86",th:"D",p:"1967-1981",q:"Quelle critique les défenseurs de la spécificité de l'EPS adressent-ils au sport ?",a:"Il sélectionne les meilleurs, spécialise trop tôt et ne garantit pas, à lui seul, une visée éducative.",x:"Au cœur des débats qui suivent les Instructions de 1967."},
+{id:"b21",th:"R",p:"1967-1981",q:"Quelle loi de 1975 organise le développement de l'EPS et du sport ?",a:"La loi Mazeaud (29 octobre 1975).",x:"Elle crée notamment l'UNSS et l'INSEP."},
+{id:"b22",th:"R",p:"1967-1981",q:"Quel organisme du sport scolaire est créé en 1975 ?",a:"L'UNSS, créée par la loi Mazeaud, qui succède à l'ASSU.",x:"Le sport scolaire du second degré s'organise autour des associations sportives d'établissement."},
+{id:"n98",th:"R",p:"1967-1981",q:"Quel institut national est créé en 1975 pour le sport de haut niveau ?",a:"L'INSEP.",x:"Créé par la loi Mazeaud, comme l'UNSS."},
+{id:"n52",th:"R",p:"1967-1981",q:"Quel diplôme universitaire est créé en 1975 ?",a:"Le DEUG STAPS.",x:"La formation à l'EPS entre à l'université ; la licence STAPS suit en 1977."},
+{id:"b23",th:"T",p:"1967-1981",q:"Quelle réforme de 1975 crée le collège unique ?",a:"La réforme Haby.",x:"Le collège accueille tous les élèves : l'hétérogénéité devient un enjeu central pour l'EPS."},
+{id:"n53",th:"T",p:"1967-1981",q:"Quelle loi de 1975 généralise la mixité dans les établissements scolaires ?",a:"La loi Haby.",x:"En EPS, la mixité s'impose progressivement et pose la question de l'égalité filles-garçons."},
+{id:"n54",th:"D",p:"1967-1981",q:"Que provoque le plan Soisson de 1978 ?",a:"Une forte contestation : il réduit le forfait d'association sportive et impose des heures supplémentaires aux enseignants.",x:"Le forfait de trois heures est rétabli en 1981."},
+
+/* ---------- 1981-2000 ---------- */
+{id:"b24",th:"R",p:"1981-2000",q:"Quel changement institutionnel majeur concerne l'EPS en 1981 ?",a:"Son intégration au ministère de l'Éducation nationale (décret du 28 mai 1981).",x:"Elle relevait jusque-là de la Jeunesse et des Sports ; l'EPS devient une discipline scolaire à part entière."},
+{id:"b25",th:"R",p:"1981-2000",q:"Quand l'agrégation d'EPS est-elle créée ?",a:"Par un arrêté de 1982 ; la première session a lieu en 1983.",x:"L'agrégation interne est créée en 1986, le CAPEPS interne en 1989."},
+{id:"n55",th:"R",p:"1981-2000",q:"Que deviennent les UEREPS avec la loi Savary de 1984 ?",a:"Des UFR STAPS.",x:"La formation des enseignants d'EPS s'ancre dans l'université."},
+{id:"b26",th:"R",p:"1981-2000",q:"Quelle loi de 1984 organise et promeut les activités physiques et sportives ?",a:"La loi Avice (16 juillet 1984).",x:"Elle structure notamment le mouvement sportif ; Edwige Avice est alors ministre de la Jeunesse et des Sports."},
+{id:"n57",th:"T",p:"1981-2000",q:"Quand l'EPS devient-elle une épreuve obligatoire du premier groupe au baccalauréat ?",a:"En 1983.",x:"À partir de 1984, l'évaluation repose sur un contrôle en cours de formation."},
+{id:"n56",th:"T",p:"1981-2000",q:"Quel texte de 1985 fixe les programmes et instructions du collège ?",a:"Les Instructions officielles de 1985 (arrêté du 14 novembre 1985).",x:"Elles prévoient 3 heures d'EPS au collège et 2 heures au lycée."},
+{id:"n59",th:"T",p:"1981-2000",q:"Quels chercheurs de l'INRP développent la didactique de l'EPS dans les années 1980 ?",a:"Robert Mérand et Jacqueline Marsenach.",x:"Ils publient L'évaluation formative en EPS dans les collèges (1987)."},
+{id:"n79",th:"G",p:"1981-2000",q:"Quelle publication de Mérand et Dhellemmes (1988) porte sur la santé ?",a:"Éducation à la santé : endurance aérobie, contribution de l'EPS.",x:"L'effort d'endurance devient un objet d'enseignement au service de la santé."},
+{id:"n58",th:"T",p:"1981-2000",q:"Que précise le décret du 11 octobre 1988 ?",a:"Un certificat médical est nécessaire pour justifier une inaptitude à l'EPS ; dès 1989, il doit préciser si elle est totale ou partielle.",x:"La logique de l'inaptitude partielle ouvre la voie à une EPS adaptée plutôt qu'à la dispense."},
+{id:"b27",th:"T",p:"1981-2000",q:"Quelle loi de 1989 place l'élève au centre du système éducatif ?",a:"La loi d'orientation Jospin (10 juillet 1989).",x:"Elle installe les cycles et les projets d'établissement."},
+{id:"n60",th:"T",p:"1981-2000",q:"Quel horaire hebdomadaire les programmes de 1996 fixent-ils en 6e ?",a:"Quatre heures.",x:"Trois heures restent la norme de la 5e à la 3e."},
+{id:"n61",th:"T",p:"1981-2000",q:"Quelle circulaire de 1996 encadre les sections sportives scolaires ?",a:"La circulaire du 13 décembre 1996.",x:"Une charte des sections sportives scolaires suit en 2002."},
+
+/* ---------- Depuis 2000 ---------- */
+{id:"n63",th:"T",p:"Depuis 2000",q:"Quel texte de 2000 promeut l'égalité filles-garçons à l'école ?",a:"Un texte intitulé « De la mixité à l'égalité », publié au Bulletin officiel en 2000.",x:"La mixité ne suffit pas : l'égalité devient un objectif explicite."},
+{id:"b30",th:"T",p:"Depuis 2000",q:"Combien de domaines compte le socle commun de connaissances, de compétences et de culture (2015) ?",a:"Cinq.",x:"Il succède au socle commun de 2005, issu de la loi Fillon du 23 avril 2005."},
+{id:"n64",th:"T",p:"Depuis 2000",q:"Quelles lois fondent l'école inclusive ?",a:"La loi du 11 février 2005 pour l'égalité des droits et des chances des personnes handicapées, puis la loi de refondation de l'école de 2013.",x:"En EPS, les élèves en situation de handicap sont scolarisés et évalués avec des adaptations."},
+{id:"n65",th:"T",p:"Depuis 2000",q:"Combien de compétences propres à l'EPS comptent les programmes du collège de 2008 ?",a:"Quatre, auxquelles s'ajoutent des compétences méthodologiques et sociales.",x:"Au lycée, une cinquième compétence propre porte sur l'entretien de soi."},
+{id:"n66",th:"T",p:"Depuis 2000",q:"Quelles sont les cinq compétences générales des programmes d'EPS de 2015 ?",a:"Développer sa motricité et s'exprimer avec son corps ; s'approprier des méthodes et outils ; partager des règles, assumer des rôles et responsabilités ; apprendre à entretenir sa santé ; s'approprier une culture physique sportive et artistique.",x:"Chacune contribue à un domaine du socle commun."},
+{id:"b28",th:"T",p:"Depuis 2000",q:"Combien de champs d'apprentissage les programmes d'EPS du collège de 2015 comptent-ils ?",a:"Quatre.",x:"Produire une performance optimale ; adapter ses déplacements à des environnements variés ; s'exprimer devant les autres par une prestation artistique et/ou acrobatique ; conduire et maîtriser un affrontement collectif ou interindividuel."},
+{id:"n67",th:"T",p:"Depuis 2000",q:"Que désignent les AFC dans les programmes de 2015 ?",a:"Les attendus de fin de cycle, définis pour chaque champ d'apprentissage.",x:"Ils servent de repères pour construire et évaluer les apprentissages."},
+{id:"n70",th:"T",p:"Depuis 2000",q:"À quels parcours éducatifs l'EPS contribue-t-elle depuis la réforme du collège ?",a:"Le parcours Avenir, le parcours citoyen, le parcours d'éducation artistique et culturelle et le parcours éducatif de santé.",x:"Le parcours éducatif de santé concerne directement l'EPS."},
+{id:"b29",th:"T",p:"Depuis 2000",q:"Quel champ d'apprentissage les programmes du lycée de 2019 ajoutent-ils ?",a:"Le CA5 : réaliser une activité physique pour développer ses ressources et s'entretenir.",x:"Il s'ajoute aux quatre champs du collège (arrêté du 17 janvier 2019)."},
+{id:"n68",th:"T",p:"Depuis 2000",q:"Quels sont les cinq objectifs généraux de l'EPS au lycée (2019) ?",a:"Développer sa motricité ; savoir se préparer et s'entraîner ; exercer sa responsabilité individuelle et au sein d'un collectif ; construire durablement sa santé ; accéder au patrimoine culturel.",x:"Ils sont communs à tous les champs d'apprentissage."},
+{id:"n69",th:"T",p:"Depuis 2000",q:"Que désignent les AFL dans les programmes du lycée ?",a:"Les attendus de fin de lycée, propres à chaque champ d'apprentissage.",x:"Ils structurent l'évaluation au baccalauréat."},
+{id:"n72",th:"R",p:"Depuis 2000",q:"Quelle structure est obligatoire dans chaque collège et lycée pour le sport scolaire ?",a:"Une association sportive affiliée à l'UNSS.",x:"Chaque enseignant d'EPS y consacre 3 heures de son service."},
+{id:"n73",th:"T",p:"Depuis 2000",q:"Quelle mesure d'activité physique est généralisée à l'école élémentaire à la rentrée 2022 ?",a:"30 minutes d'activité physique quotidienne.",x:"Une mesure liée à l'héritage des Jeux de Paris 2024."},
+{id:"n74",th:"T",p:"Depuis 2000",q:"Quelle mesure est lancée au collège à la rentrée 2022, en lien avec Paris 2024 ?",a:"Deux heures de sport supplémentaires par semaine pour des élèves volontaires.",x:"Une expérimentation en partenariat avec les clubs et l'association sportive."},
+
+/* ---------- Historiens et sociologues ---------- */
+{id:"n87",th:"H",p:"1967-1981",q:"Quel ouvrage de Jacques Thibault (1972) est une référence de l'histoire de l'EPS ?",a:"Sport et éducation physique 1870-1970.",x:"Il retrace un siècle de rapports entre sport et éducation physique."},
+{id:"n91",th:"H",p:"1967-1981",q:"Quelle notion Michel Foucault développe-t-il dans Surveiller et punir (1975) ?",a:"Les corps dociles, produits par les disciplines (école, armée, atelier).",x:"Une grille de lecture des gymnastiques disciplinaires du XIXe siècle."},
+{id:"n76",th:"H",p:"1967-1981",q:"Quel ouvrage de Georges Vigarello (1978) étudie l'histoire des postures et du maintien ?",a:"Le corps redressé.",x:"Il montre comment la pédagogie a cherché à redresser et contrôler le corps de l'enfant."},
+{id:"n93",th:"H",p:"1967-1981",q:"Quelle question pose Pierre Bourdieu dans une conférence de 1978 ?",a:"« Comment peut-on être sportif ? »",x:"Il analyse l'offre et la demande de pratiques sportives selon les classes sociales."},
+{id:"n90",th:"H",p:"1981-2000",q:"Quel ouvrage de Jacques Defrance (1987) étudie la naissance des activités physiques modernes ?",a:"L'excellence corporelle.",x:"Il couvre la formation des activités physiques et sportives modernes de la fin du XVIIIe siècle à 1914."},
+{id:"n88",th:"H",p:"1981-2000",q:"Qui écrit Le militaire, l'écolier, le gymnaste (1991) ?",a:"Pierre Arnaud.",x:"Il étudie la naissance de l'éducation physique en France au XIXe siècle."},
+{id:"n92",th:"H",p:"1981-2000",q:"Quelle thèse Norbert Elias défend-il à propos du sport ?",a:"Le sport participe au processus de civilisation : il permet une violence maîtrisée et réglée.",x:"Avec Eric Dunning, Sport et civilisation (traduction française 1994)."},
+{id:"n89",th:"H",p:"1981-2000",q:"Quel ouvrage de Jacques Gleyse (1995) relie l'éducation physique à la rationalisation ?",a:"L'instrumentalisation du corps.",x:"Il lit l'histoire de l'éducation physique à la lumière de la rationalité industrielle."},
+{id:"n77",th:"G",p:"1880-1918",q:"Quel ingénieur américain publie en 1911 ses principes d'organisation scientifique du travail ?",a:"Frederick Taylor.",x:"La rationalisation du geste et de l'effort nourrit la réflexion sur le rendement corporel au XXe siècle."}
+];
+
+const THEMES = { T: "Transmettre et adapter", G: "Le geste et l'effort", D: "Débats et controverses", R: "Repères institutionnels", H: "Historiens et sociologues" };
+const TH_ORDER = ["T","G","D","R","H"];
+const PERIODS = ["Avant 1880","1880-1918","1918-1945","1945-1967","1967-1981","1981-2000","Depuis 2000"];
+const NONE_P = "Sans période", NONE_T = "Sans thème";
+const KEY = "bristol-eps-v1";
+const DAY = 864e5;
+const NEW_MAX = 10;
+const IVL = [0, 0, 1, 3, 7, 15];
+
+let progress = {}, custom = [], gone = [];
+let games = { frise: { g: 0, t: 0 }, qui: { g: 0, t: 0 } };
+let refs = {}, refEdit = null;
+const SOURCES = {
+  TS: { l: "Chronologie des textes officiels de l'EPS (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/textes-officiels-concernant-l-education-physique-et-sportive-en-france" },
+  GUY: { l: "Évolution des conditions d'enseignement de l'EPS (académie de Guyane)", u: "https://eps.dis.ac-guyane.fr/IMG/pdf/evolution_des_conditions_d_enseignement_1940_a_nos_jours.pdf" },
+  TIS: { l: "Philippe Tissié (Wikipédia, en anglais)", u: "https://en.wikipedia.org/wiki/Philippe_Tissi%C3%A9" },
+  COU: { l: "Pierre de Coubertin (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/pierre-de-coubertin" },
+  HEB: { l: "Œuvres de Georges Hébert (methodenaturelle.de)", u: "https://methodenaturelle.de/books-and-works/" },
+  FOU: { l: "Max Fourestier et l'expérience de Vanves (i-cirena)", u: "https://i-cirena.ubfc.fr/node/25896" },
+  MER: { l: "Repères chronologiques sur Robert Mérand (EPS & Société)", u: "https://epsetsociete.fr/wp-content/uploads/2022/09/reperes_chronologiques.pdf" },
+  BO19: { l: "Programmes d'EPS du lycée, BO spécial n° 1 du 22 janvier 2019", u: "https://ecampus.paris-saclay.fr/pluginfile.php/3666790/mod_resource/content/0/BO%20Sp%C3%A9%20n%C2%B01%20du%2022-01-2019-Programmes%20EPS%20Lyc%C3%A9e%20GT.pdf" },
+  BES: { l: "Synthèse des programmes d'EPS des cycles 3 et 4 (académie de Besançon)", u: "https://eps.ac-besancon.fr/wp-content/uploads/sites/36/2016/06/2_-_synthese_des_programmes_en_eps_-_cycles_3_et_4.pdf" }
+};
+const CARD_SRC = {};
+[["TS","n02 n03 n04 b01 n08 n06 n20 n96 n95 n23 n21 n22 n26 n27 n31 n30 n32 n33 n29 n35 n39 n40 n42 n43 b17 b21 b22 n98 n52 n54 b24 b25 n55 n57 n56 n58 b27 n61 n63"],
+ ["GUY","n36 n44 n50 n41 n60 n18 b10"],["TIS","b06 n82"],["COU","b09 n10 n11"],["HEB","n16 n17 b12 n24"],["FOU","n37"],
+ ["MER","n45 n59 n79 n38 n34"],["BO19","b29 n68 n69"],["BES","n66 b28"]].forEach(([k, ids]) => ids.split(" ").forEach(id => { CARD_SRC[id] = k; }));
+function refGet(id){ return (refs[id] && refs[id].v) || ""; }
+function srcHTML(c){
+  const k = !c.custom && CARD_SRC[c.id], s = k && SOURCES[k];
+  const src = s ? `<span>Vérifié avec : <a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.l)}</a></span>`
+    : c.custom ? "" : `<span class="unv">Non recoupé avec une source en ligne : à vérifier dans tes ouvrages.</span>`;
+  const mine = refGet(c.id);
+  const ref = refEdit === c.id
+    ? `<span class="ref-edit"><label class="sr-only" for="ref-input">Ma référence</label><input id="ref-input" data-rid="${esc(c.id)}" value="${esc(mine)}" placeholder="Ex. : Attali, chap. 2, p. 45"><button class="btn small" data-refsave="${esc(c.id)}">Enregistrer</button><button class="btn small" data-refcancel="1">Annuler</button></span>`
+    : `<span>Ma référence : ${mine ? esc(mine) : "aucune"} <button class="linkbtn" data-refedit="${esc(c.id)}">${mine ? "Modifier" : "Ajouter"}</button></span>`;
+  return `<div class="src">${src}${ref}</div>`;
+}
+function saveRef(id, v){
+  v = String(v || "").trim().slice(0, 300);
+  refs[id] = { v, t: Date.now() };
+  refEdit = null; persist(); render(); toast(v ? "Référence enregistrée." : "Référence effacée.");
+  const b = document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true });
+}
+function normGames(x){ x = x || {}; const f = k => ({ g: (x[k] && x[k].g) || 0, t: (x[k] && x[k].t) || 0 }); return { frise: f("frise"), qui: f("qui") }; }
+let view = "revise", theme = "Tous", period = "Toutes";
+let queue = [], flipped = false, cram = false, done = 0, pendingDel = null;
+const store = { ref: null, saving: false, dirty: false, timer: null, fails: 0 };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const thName = c => THEMES[c.th] || NONE_T;
+const pIdx = p => { const i = PERIODS.indexOf(p); return i < 0 ? 99 : i; };
+
+function allCards(){ return BASE.concat(custom.filter(c => !gone.includes(c.id)).map(c => ({...c, custom: true}))); }
+function byId(id){ return allCards().find(c => c.id === id); }
+function themeOk(c){ return theme === "Tous" ? true : theme === "Mes cartes" ? !!c.custom : c.th === theme; }
+function inFilter(c){ return themeOk(c) && (period === "Toutes" || c.p === period); }
+
+function fmtIn(ms){
+  const m = Math.max(1, Math.round(ms / 6e4));
+  if (m < 60) return m + " min";
+  const h = Math.round(m / 60);
+  if (h < 48) return h + " h";
+  return Math.round(h / 24) + " jours";
+}
+function boxes(b){ let s = ""; for (let i = 1; i <= 5; i++) s += `<i class="${i <= b ? "on" : ""}"></i>`; return s; }
+function nextLabel(b){ const nb = b ? Math.min(5, b + 1) : 2; const d = IVL[nb]; return "passe en boîte " + nb + (nb === 5 ? " (maîtrisée)" : "") + " et revient " + (d === 1 ? "demain" : "dans " + d + " jours"); }
+
+/* ---------- Stockage ---------- */
+function localLoad(){
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d) { progress = d.progress || {}; custom = d.custom || []; gone = d.gone || []; games = normGames(d.games); refs = d.refs || {}; } } catch (e) {}
+}
+function localSave(){ try { localStorage.setItem(KEY, JSON.stringify({progress, custom, gone, games, refs})); } catch (e) {} }
+function setStatus(mode){
+  const t = { local: "Sur cet appareil", cloud: "Synchronisé", saving: "Enregistrement…", offline: "Hors ligne, gardé ici" }[mode];
+  $("#status").dataset.mode = mode; $("#status-txt").textContent = t;
+}
+function persist(){
+  localSave();
+  if (!store.ref) return;
+  store.dirty = true; setStatus("saving");
+  clearTimeout(store.timer); store.timer = setTimeout(flush, 1200);
+}
+async function flush(){
+  if (store.saving || !store.dirty || !store.ref) return;
+  store.saving = true; store.dirty = false;
+  try {
+    await store.ref.set({ progress, custom, gone, games, refs, v: 1 });
+    store.fails = 0; setStatus("cloud");
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "unavailable" && store.fails < 2) { store.fails++; store.dirty = true; }
+    else { store.ref = null; setStatus("offline"); }
+  }
+  store.saving = false;
+  if (store.dirty) store.timer = setTimeout(flush, 2500);
+}
+function merge(remote){
+  const g = Array.from(new Set((remote.gone || []).concat(gone)));
+  const out = Object.assign({}, remote.progress || {});
+  for (const [id, v] of Object.entries(progress)) if (!out[id] || (v.t || 0) > (out[id].t || 0)) out[id] = v;
+  const ids = new Set((remote.custom || []).map(c => c.id));
+  const cu = (remote.custom || []).concat(custom.filter(c => !ids.has(c.id))).filter(c => !g.includes(c.id));
+  g.forEach(id => delete out[id]);
+  const rg = normGames(remote.games), lg = normGames(games);
+  const gm = { frise: rg.frise.t >= lg.frise.t ? rg.frise : lg.frise, qui: rg.qui.t >= lg.qui.t ? rg.qui : lg.qui };
+  const rf = Object.assign({}, remote.refs || {});
+  for (const [id, v] of Object.entries(refs)) if (!rf[id] || (v.t || 0) > (rf[id].t || 0)) rf[id] = v;
+  g.forEach(id => delete rf[id]);
+  return { progress: out, custom: cu, gone: g, games: gm, refs: rf };
+}
+async function connect(){
+  if (!window.claude || !window.claude.use) return;
+  const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  if (!db || !user) return;
+  const uid = await user.id();
+  if (!uid) return;
+  const ref = db.doc("data/users/" + uid + "/progress");
+  const snap = await ref.get();
+  const remote = snap.exists ? clone(snap.data()) : { progress: {}, custom: [], gone: [] };
+  const m = merge(remote);
+  const changed = JSON.stringify({p: m.progress, c: m.custom, g: m.gone, s: m.games, r: m.refs}) !== JSON.stringify({p: remote.progress || {}, c: remote.custom || [], g: remote.gone || [], s: normGames(remote.games), r: remote.refs || {}});
+  progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs;
+  store.ref = ref; localSave(); setStatus("cloud");
+  if (changed) { store.dirty = true; flush(); }
+  if (done === 0 && !flipped) buildQueue();
+  render();
+}
+
+/* ---------- Séance ---------- */
+function buildQueue(){
+  const now = Date.now();
+  const cards = allCards().filter(inFilter);
+  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).sort((a, b) => progress[a.id].d - progress[b.id].d);
+  const fresh = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p)).slice(0, NEW_MAX);
+  queue = due.concat(fresh).map(c => c.id);
+  cram = false; flipped = false;
+}
+function cramQueue(){
+  const ids = allCards().filter(inFilter).map(c => c.id);
+  for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+  queue = ids; cram = true; flipped = false;
+}
+function grade(r){
+  const id = queue.shift(); if (!id) return;
+  const now = Date.now(), p = progress[id];
+  if (!cram || r === "rate") {
+    let b;
+    if (r === "rate") b = 1;
+    else if (r === "hesite") b = p ? Math.max(1, p.b) : 1;
+    else b = p ? Math.min(5, p.b + 1) : 2;
+    const ivl = b === 1 ? 10 * 6e4 : IVL[b] * DAY;
+    progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0) };
+    persist();
+  }
+  if (r === "rate") queue.splice(Math.min(3, queue.length), 0, id);
+  done++; flipped = false; refEdit = null; render(true);
+  if (progress[id] && (!cram || r === "rate")) toast(progress[id].b === 5 ? "Carte maîtrisée : boîte 5." : "Carte en boîte " + progress[id].b + ".");
+}
+
+/* ---------- Rendu ---------- */
+function renderCounts(){
+  const now = Date.now(), cards = allCards();
+  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const fresh = cards.filter(c => !progress[c.id]).length;
+  const master = cards.filter(c => progress[c.id] && progress[c.id].b === 5).length;
+  const learning = cards.filter(c => progress[c.id] && progress[c.id].b < 5).length;
+  $("#sub").textContent = "Histoire de l'EPS · " + cards.length + " fiches en répétition espacée";
+  $("#counts").innerHTML =
+    `<div class="count"><b>${due}</b><span>à revoir maintenant</span></div>` +
+    `<div class="count"><b>${fresh}</b><span>jamais vues</span></div>` +
+    `<div class="count"><b>${learning}</b><span>en cours (boîtes 1 à 4)</span></div>` +
+    `<div class="count"><b>${master}</b><span>maîtrisées (boîte 5)</span></div>` +
+    `<p class="legend">Chaque « Su » fait monter la carte d'une boîte. Elle est maîtrisée en boîte 5, après plusieurs « Su » espacés de 1, 3 puis 7 jours.</p>`;
+}
+function renderFilters(){
+  const target = view === "revise" ? "#filters-revise" : view === "deck" ? "#filters-deck" : null;
+  $("#filters-deck").hidden = view !== "deck";
+  if (!target) return;
+  const p = target === "#filters-revise" ? "r" : "d";
+  const cards = allCards();
+  const tOpts = [["Tous", "Tous les thèmes", cards.length]]
+    .concat(TH_ORDER.map(k => [k, THEMES[k], cards.filter(c => c.th === k).length]))
+    .concat([["Mes cartes", "Mes cartes", cards.filter(c => c.custom).length]]);
+  const pOpts = [["Toutes", "Toutes les périodes"]].concat(PERIODS.map(x => [x, x]));
+  $(target).innerHTML =
+    `<div><label for="fa-${p}">Thème</label><select id="fa-${p}" data-fsel="theme">${tOpts.map(([v, l, n]) => `<option value="${esc(v)}"${v === theme ? " selected" : ""}>${esc(l)} (${n})</option>`).join("")}</select></div>` +
+    `<div><label for="fp-${p}">Période</label><select id="fp-${p}" data-fsel="period">${pOpts.map(([v, l]) => `<option value="${esc(v)}"${v === period ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+}
+function renderRevise(){
+  const el = $("#panel-revise");
+  const c = queue.length ? byId(queue[0]) : null;
+  if (!c) {
+    const now = Date.now();
+    const cards = allCards().filter(inFilter);
+    if (!cards.length) {
+      el.innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>${theme === "Mes cartes" ? "Les cartes que tu crées apparaîtront dans ce filtre." : "Aucune carte ne correspond à ce thème et à cette période."}</p><div class="row-btns"><button class="btn primary" data-tab="add">Ajouter une carte</button></div></div>`;
+      return;
+    }
+    const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
+    el.innerHTML = `<div class="empty"><h2>${done ? "Séance terminée." : "Rien à revoir pour l'instant."}</h2>
+      <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
+      <div class="row-btns"><button class="btn primary" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button></div></div>`;
+    return;
+  }
+  const p = progress[c.id], b = p ? p.b : 0;
+  const left = queue.length;
+  el.innerHTML = `
+    <p class="meta">${cram ? "Révision libre" : "Séance"} · ${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}${c.custom ? " · ma carte" : ""}</p>
+    <article class="bristol">
+      <div class="band"><span class="period">${esc(thName(c))} · ${esc(c.p || NONE_P)}</span><span class="boxes" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span></div>
+      <p class="q">${esc(c.q)}</p>
+      ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
+    </article>
+    ${flipped ? srcHTML(c) : ""}
+    <div class="actions">
+      ${flipped
+        ? `<div class="grades">
+            <button class="btn grade bad" data-g="rate">Raté <span class="k">1</span></button>
+            <button class="btn grade mid" data-g="hesite">Hésité <span class="k">2</span></button>
+            <button class="btn grade good" data-g="su">Su <span class="k">3</span></button>
+          </div>
+          <p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(b) + "."}</p>`
+        : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
+    </div>`;
+}
+function renderDeck(){
+  const now = Date.now();
+  const cards = allCards().filter(inFilter);
+  const keys = TH_ORDER.concat([""]);
+  const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
+  if (!groups.length) { $("#panel-deck").innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes dans l'onglet « Ajouter une carte ».</p></div>`; return; }
+  $("#panel-deck").innerHTML = groups.map(([k, list]) => {
+    const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
+    return `<div class="group"><h3>${esc(THEMES[k] || NONE_T)}</h3><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
+      const pr = progress[c.id];
+      const due = !pr ? `<span class="due">Jamais vue</span>` : pr.d <= now ? `<span class="due now">À revoir</span>` : `<span class="due">Dans ${fmtIn(pr.d - now)}</span>`;
+      const del = !c.custom ? "" : pendingDel === c.id
+        ? `<span class="confirm"><button class="btn small" data-confirm="${esc(c.id)}">Supprimer</button><button class="btn small" data-cancel="1">Annuler</button></span>`
+        : `<button class="linkbtn" data-del="${esc(c.id)}">Supprimer</button>`;
+      return `<li class="item"><div class="ip">${esc(c.p || NONE_P)}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is"><span class="boxes" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
+    }).join("")}</ul></div>`;
+  }).join("");
+}
+/* ---------- Frise et Qui ? ---------- */
+const EVENTS = [
+  {y:1850,t:"Loi Falloux : la gymnastique devient une matière facultative du primaire"},
+  {y:1852,t:"Création de l'école de gymnastique militaire de Joinville"},
+  {y:1869,t:"Décret Duruy : gymnastique obligatoire dans le secondaire"},
+  {y:1880,t:"Loi George : gymnastique obligatoire dans les établissements publics de garçons"},
+  {y:1882,t:"Loi Ferry : la gymnastique entre au programme du primaire"},
+  {y:1888,t:"Tissié fonde la Ligue girondine d'éducation physique"},
+  {y:1890,t:"Premier lendit organisé par Tissié"},
+  {y:1891,t:"Nouveau manuel officiel qui fait une place aux jeux scolaires"},
+  {y:1894,t:"Création du Comité international olympique"},
+  {y:1896,t:"Premiers Jeux olympiques modernes à Athènes"},
+  {y:1902,t:"Demenÿ publie Les Bases scientifiques de l'éducation physique"},
+  {y:1907,t:"Hébert publie L'Éducation physique raisonnée"},
+  {y:1911,t:"Taylor publie ses principes d'organisation scientifique du travail"},
+  {y:1913,t:"Fondation du collège d'athlètes de Reims"},
+  {y:1919,t:"Hébert publie L'Éducation physique féminine"},
+  {y:1922,t:"Le service de l'éducation physique rejoint l'Instruction publique"},
+  {y:1923,t:"Une circulaire officialise la pratique sportive à l'école"},
+  {y:1924,t:"Décret alignant l'éducation physique des filles sur celle des garçons"},
+  {y:1925,t:"Règlement général d'éducation physique, dit « méthode française »"},
+  {y:1927,t:"Premier institut régional d'éducation physique, à Bordeaux"},
+  {y:1933,t:"Création de l'ENEP et du CAPEP"},
+  {y:1934,t:"Mauss présente « Les techniques du corps »"},
+  {y:1936,t:"Léo Lagrange au sous-secrétariat d'État aux Sports et aux Loisirs"},
+  {y:1937,t:"Création du Brevet sportif populaire"},
+  {y:1938,t:"Jean Zay crée l'OSSU pour le sport scolaire du secondaire"},
+  {y:1939,t:"Création de l'USEP"},
+  {y:1940,t:"Charte des sports de Vichy"},
+  {y:1941,t:"Épreuve facultative d'éducation physique au baccalauréat"},
+  {y:1945,t:"Chaque établissement doit créer une association sportive"},
+  {y:1950,t:"Expérience du mi-temps pédagogique et sportif à Vanves"},
+  {y:1959,t:"L'épreuve d'éducation physique devient obligatoire au baccalauréat"},
+  {y:1960,t:"Jeux de Rome : aucune médaille d'or française"},
+  {y:1961,t:"La demi-journée de plein air devient une demi-journée de sport"},
+  {y:1962,t:"L'ASSU succède à l'OSSU"},
+  {y:1964,t:"Essai de doctrine du sport de la Commission de la doctrine"},
+  {y:1966,t:"Le Boulch publie L'éducation par le mouvement"},
+  {y:1967,t:"Instructions officielles faisant du sport le support de l'EPS"},
+  {y:1969,t:"Tiers-temps pédagogique à l'école primaire"},
+  {y:1971,t:"Circulaire Comiti sur les horaires d'EPS"},
+  {y:1972,t:"Thibault publie Sport et éducation physique 1870-1970"},
+  {y:1975,t:"Loi Mazeaud : création de l'UNSS et de l'INSEP"},
+  {y:1977,t:"Création de la licence STAPS"},
+  {y:1978,t:"Vigarello publie Le corps redressé"},
+  {y:1981,t:"L'EPS rejoint le ministère de l'Éducation nationale"},
+  {y:1982,t:"Création de l'agrégation d'EPS"},
+  {y:1984,t:"Loi Avice sur les activités physiques et sportives"},
+  {y:1985,t:"Instructions officielles pour le collège"},
+  {y:1987,t:"Mérand et Marsenach : L'évaluation formative en EPS dans les collèges"},
+  {y:1988,t:"Décret sur le certificat médical d'inaptitude à l'EPS"},
+  {y:1989,t:"Loi d'orientation Jospin"},
+  {y:1991,t:"Arnaud publie Le militaire, l'écolier, le gymnaste"},
+  {y:1995,t:"Gleyse publie L'instrumentalisation du corps"},
+  {y:1996,t:"Programmes de 6e : quatre heures d'EPS"},
+  {y:2005,t:"Loi Fillon et premier socle commun"},
+  {y:2008,t:"Programmes du collège fondés sur les compétences propres"},
+  {y:2013,t:"Loi de refondation de l'école"},
+  {y:2015,t:"Programmes par cycles et champs d'apprentissage"},
+  {y:2019,t:"Programmes du lycée : création du CA5"},
+  {y:2022,t:"30 minutes d'activité physique quotidienne à l'école élémentaire"}
+];
+const ERAS = [["all","Toute l'histoire",0,9999],["a","Jusqu'en 1918",0,1918],["b","1919-1967",1919,1967],["c","Depuis 1968",1968,9999]];
+const PEOPLE = [
+  {w:"Francisco Amoros",g:"A",d:"Une gymnastique militaire et morale, avec agrès et chants, à Paris sous la Restauration."},
+  {w:"Pehr Henrik Ling",g:"A",d:"L'Institut central de gymnastique de Stockholm (1813) et une gymnastique fondée sur l'anatomie."},
+  {w:"Friedrich Ludwig Jahn",g:"A",d:"Le Turnen, une gymnastique aux agrès à visée patriotique."},
+  {w:"Étienne-Jules Marey",g:"A",d:"La chronophotographie et la Station physiologique (1882)."},
+  {w:"Georges Demenÿ",g:"A",d:"Les Bases scientifiques de l'éducation physique (1902)."},
+  {w:"Fernand Lagrange",g:"A",d:"Physiologie des exercices du corps (1888)."},
+  {w:"Angelo Mosso",g:"A",d:"La fatigue (1891) et l'ergographe."},
+  {w:"Philippe Tissié",g:"A",d:"La Ligue girondine d'éducation physique (1888) et les lendits."},
+  {w:"Paschal Grousset",g:"A",d:"La Ligue nationale de l'éducation physique (1888)."},
+  {w:"Pierre de Coubertin",g:"A",d:"La rénovation des Jeux olympiques et la création du CIO (1894)."},
+  {w:"Thomas Arnold",g:"A",d:"Le sport comme outil d'éducation au collège de Rugby."},
+  {w:"Georges Hébert",g:"A",d:"La méthode naturelle et la devise « Être fort pour être utile »."},
+  {w:"Georges Hébert",g:"A",d:"Le Sport contre l'Éducation physique (1925)."},
+  {w:"Georges Hébert",g:"A",d:"Le Code de la force (1911)."},
+  {w:"Irène Popard",g:"A",d:"La gymnastique féminine dite harmonique."},
+  {w:"Maurice Baquet",g:"A",d:"L'« éducation sportive », qui donne son nom aux stages de la FSGT."},
+  {w:"Max Fourestier",g:"A",d:"Le mi-temps pédagogique et sportif de Vanves (1950)."},
+  {w:"Jean Vivès",g:"A",d:"La création de la revue Éducation physique et sport (1950)."},
+  {w:"Jean Le Boulch",g:"A",d:"La psychocinétique (L'éducation par le mouvement, 1966)."},
+  {w:"Pierre Parlebas",g:"A",d:"La praxéologie motrice et la notion de sociomotricité."},
+  {w:"Jean-Marie Brohm",g:"A",d:"La revue Quel corps ? et la critique radicale du sport."},
+  {w:"Robert Mérand",g:"A",d:"Le Conseil pédagogique et scientifique de la FSGT (1967)."},
+  {w:"Jacqueline Marsenach",g:"A",d:"Avec Robert Mérand, L'évaluation formative en EPS dans les collèges (1987)."},
+  {w:"Marcel Mauss",g:"A",d:"« Les techniques du corps » (1934)."},
+  {w:"Georges Vigarello",g:"A",d:"Le corps redressé (1978)."},
+  {w:"Jacques Thibault",g:"A",d:"Sport et éducation physique 1870-1970 (1972)."},
+  {w:"Pierre Arnaud",g:"A",d:"Le militaire, l'écolier, le gymnaste (1991)."},
+  {w:"Jacques Gleyse",g:"A",d:"L'instrumentalisation du corps (1995)."},
+  {w:"Jacques Defrance",g:"A",d:"L'excellence corporelle (1987)."},
+  {w:"Michel Foucault",g:"A",d:"Surveiller et punir (1975) et les « corps dociles »."},
+  {w:"Norbert Elias",g:"A",d:"Sport et civilisation, écrit avec Eric Dunning."},
+  {w:"Pierre Bourdieu",g:"A",d:"La conférence « Comment peut-on être sportif ? » (1978)."},
+  {w:"Frederick Taylor",g:"A",d:"L'organisation scientifique du travail (1911)."},
+  {w:"Victor Duruy",g:"P",d:"Le décret de 1869 rendant la gymnastique obligatoire dans le secondaire."},
+  {w:"Émile George",g:"P",d:"La loi de 1880 rendant la gymnastique obligatoire dans les établissements de garçons."},
+  {w:"Jules Ferry",g:"P",d:"La loi de 1882 qui inscrit la gymnastique au programme du primaire."},
+  {w:"Camille Sée",g:"P",d:"La loi de 1880 créant les lycées de jeunes filles."},
+  {w:"Le marquis de Polignac",g:"P",d:"La fondation du collège d'athlètes de Reims (1913)."},
+  {w:"Léo Lagrange",g:"P",d:"Le sous-secrétariat d'État aux Sports et aux Loisirs (1936) et le Brevet sportif populaire."},
+  {w:"Jean Zay",g:"P",d:"Les loisirs dirigés (1937) et la création de l'USEP (1939)."},
+  {w:"Jean Borotra",g:"P",d:"Le commissariat général à l'éducation générale et sportive (1940-1942)."},
+  {w:"Le colonel Pascot",g:"P",d:"La direction de l'éducation générale et sportive à partir de 1942."},
+  {w:"Maurice Herzog",g:"P",d:"La politique sportive lancée après les Jeux de Rome (1960)."},
+  {w:"Joseph Comiti",g:"P",d:"La circulaire de 1971 sur les horaires d'EPS."},
+  {w:"Pierre Mazeaud",g:"P",d:"La loi de 1975 qui crée l'UNSS et l'INSEP."},
+  {w:"René Haby",g:"P",d:"Le collège unique (1975)."},
+  {w:"Jean-Pierre Soisson",g:"P",d:"Le plan de 1978 qui réduit le forfait d'association sportive."},
+  {w:"Alain Savary",g:"P",d:"La loi de 1984 qui transforme les UEREPS en UFR STAPS."},
+  {w:"Edwige Avice",g:"P",d:"La loi de 1984 sur l'organisation et la promotion des activités physiques et sportives."},
+  {w:"Lionel Jospin",g:"P",d:"La loi d'orientation de 1989 qui place l'élève au centre du système éducatif."}
+];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fr = { era: "all", items: [], picks: [], checked: false, good: 0, total: 0 };
+const qz = { item: null, opts: [], ans: null, good: 0, total: 0, last: null };
+
+function newFrise(){
+  const era = ERAS.find(e => e[0] === fr.era);
+  const pool = shuffle(EVENTS.filter(e => e.y >= era[2] && e.y <= era[3]));
+  const used = new Set(), items = [];
+  for (const e of pool) { if (!used.has(e.y)) { used.add(e.y); items.push(e); } if (items.length === 5) break; }
+  fr.items = items; fr.picks = []; fr.checked = false;
+}
+function renderFrise(){
+  if (!fr.items.length) newFrise();
+  const chips = ERAS.map(([k, l]) => `<button class="chip" data-era="${k}" aria-pressed="${k === fr.era}">${esc(l)}</button>`).join("");
+  let body;
+  if (!fr.checked) {
+    body = `<p class="lead">Touche les événements du plus ancien au plus récent. Touche un événement déjà numéroté pour reprendre à partir de lui.</p>
+      <ol class="frise-list">${fr.items.map((e, i) => { const n = fr.picks.indexOf(i); return `<li><button class="fr-item" data-fr="${i}" aria-pressed="${n >= 0}"><span class="badge">${n >= 0 ? n + 1 : ""}</span><span>${esc(e.t)}</span></button></li>`; }).join("")}</ol>
+      <div class="row-btns actions"><button class="btn primary" data-act="fr-check"${fr.picks.length < fr.items.length ? " disabled" : ""}>Vérifier</button><button class="btn" data-act="fr-new">Autre frise</button></div>`;
+  } else {
+    const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y);
+    const good = sorted.filter((i, rank) => fr.picks[rank] === i).length;
+    body = `<p class="lead"><strong>${good} sur ${fr.items.length}</strong> à la bonne place. Voici l'ordre exact :</p>
+      <ol class="frise-list">${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<li class="fr-res"><span class="yr">${e.y}</span><span>${esc(e.t)}</span><span class="verdict ${ok ? "ok" : "ko"}">${ok ? "Bien placé" : "Tu l'avais mis en n° " + (fr.picks.indexOf(i) + 1)}</span></li>`; }).join("")}</ol>
+      <div class="row-btns actions"><button class="btn primary" data-act="fr-new">Nouvelle frise</button></div>`;
+  }
+  $("#panel-frise").innerHTML = `<div class="chips era-chips" aria-label="Période de la frise">${chips}</div>
+    <p class="scoreline">${fr.total ? "Cette session : " + fr.good + " / " + fr.total + " événements bien placés" : "Remets cinq événements dans l'ordre chronologique"}</p>${body}`;
+}
+function newQui(){
+  let it;
+  do { it = PEOPLE[Math.floor(Math.random() * PEOPLE.length)]; } while (it === qz.last);
+  const others = shuffle(Array.from(new Set(PEOPLE.filter(p => p.g === it.g && p.w !== it.w).map(p => p.w)))).slice(0, 3);
+  qz.item = it; qz.last = it; qz.opts = shuffle([it.w].concat(others)); qz.ans = null;
+}
+function renderQui(){
+  if (!qz.item) newQui();
+  const it = qz.item;
+  $("#panel-qui").innerHTML = `<p class="scoreline">${qz.total ? "Cette session : " + qz.good + " / " + qz.total + " bonnes réponses" : "Qui a écrit, fondé ou porté cela ?"}</p>
+    <article class="bristol qui">
+      <div class="band"><span class="period">${it.g === "A" ? "Auteurs et praticiens" : "Acteurs politiques et institutionnels"}</span></div>
+      <p class="q">${esc(it.d)}</p>
+      ${qz.ans ? `<div class="reveal"><p class="a">${esc(it.w)}</p></div>` : ""}
+    </article>
+    <div class="qui-opts">${qz.opts.map((w, i) => { let cls = ""; if (qz.ans) { if (w === it.w) cls = " right"; else if (w === qz.ans) cls = " wrong"; } return `<button class="btn qopt${cls}" data-qa="${esc(w)}"${qz.ans ? " disabled" : ""}><span class="k">${i + 1}</span>${esc(w)}</button>`; }).join("")}</div>
+    ${qz.ans ? `<div class="actions"><p class="hint">${qz.ans === it.w ? "Bonne réponse." : "Raté : la réponse est " + esc(it.w) + "."}</p><button class="btn primary wide" data-act="qui-next">Question suivante <span class="k">Entrée</span></button></div>` : ""}`;
+}
+function answerQui(w){
+  if (qz.ans || !qz.item) return;
+  qz.ans = w; qz.total++; if (w === qz.item.w) qz.good++;
+  games.qui.t++; if (w === qz.item.w) games.qui.g++; persist();
+  render(true);
+}
+
+/* ---------- Sujets ---------- */
+const SUBJECTS = [
+  {id:"s01",th:"T",t:"De la fin du XIXe siècle à nos jours, comment l'éducation physique scolaire s'est-elle adaptée aux filles ?",c:["n103","n08","n24","n23","n25","n53","n63"]},
+  {id:"s02",th:"T",t:"Former le citoyen par le corps : continuités et ruptures de l'éducation physique scolaire depuis 1880.",c:["b01","n05","b02","n06","b15","n32","b27","b30","n66","n68"]},
+  {id:"s03",th:"T",t:"Comment l'EPS a-t-elle pris en compte la diversité des élèves depuis les années 1970 ?",c:["b23","n53","n58","n64","n66","n67","n69"]},
+  {id:"s04",th:"T",t:"Le temps de l'EPS : enjeux de l'horaire et de l'organisation scolaire de 1925 à nos jours.",c:["n22","b14","n36","n37","n40","n44","n51","n50","n56","n60","n73","n74"]},
+  {id:"s05",th:"T",t:"Le sport scolaire, prolongement ou concurrent de l'EPS ? (des années 1920 à nos jours)",c:["n96","n31","n30","n35","n42","b21","b22","n54","n72","n61"]},
+  {id:"s06",th:"G",t:"Comment les savoirs scientifiques sur le corps ont-ils transformé l'éducation physique entre 1880 et 1939 ?",c:["n81","n13","n14","n15","b08","b07","n12","n17","n26","n75"]},
+  {id:"s07",th:"G",t:"Doser l'effort : de l'hygiénisme de la fin du XIXe siècle à l'éducation à la santé.",c:["n81","n13","n14","n15","n83","n79","n65","b29","n68","n73"]},
+  {id:"s08",th:"G",t:"Du geste utile au geste performant : l'évolution des finalités de l'éducation physique de 1900 à 1970.",c:["n16","b10","b11","n17","n18","n21","n29","b13","b16","n85","b17","n77"]},
+  {id:"s09",th:"G",t:"La performance a-t-elle sa place à l'école ? L'EPS face au modèle sportif depuis 1960.",c:["b16","n41","n40","b17","n86","n49","b28","n68"]},
+  {id:"s10",th:"D",t:"Gymnastique, sport ou jeux : les querelles de méthodes en France de 1880 à 1914.",c:["n01","b05","n83","n84","b06","n09","n10","n11","b09","n12"]},
+  {id:"s11",th:"D",t:"Le sport à l'école, de la défiance à la consécration (1880-1967).",c:["b09","n10","b12","n96","n34","n40","n43","n85","b17"]},
+  {id:"s12",th:"D",t:"La crise d'identité de l'EPS dans les années 1960-1970 : enjeux et acteurs.",c:["n85","b17","b18","b19","n47","b20","n49","n86","n45","b24"]},
+  {id:"s13",th:"D",t:"Les enseignants d'EPS face à l'institution : conquêtes et résistances de 1945 à 1985.",c:["n35","n38","n54","b24","b25","n55","n52","n59"]}
+];
+const sj = { axe: "Tous", cur: null, shown: false, mode: "plan" };
+const NOTES_KEY = "bristol-eps-notes";
+function noteGet(id){ try { return (JSON.parse(localStorage.getItem(NOTES_KEY) || "{}")[id]) || ""; } catch (e) { return ""; } }
+function noteSet(id, v){ try { const o = JSON.parse(localStorage.getItem(NOTES_KEY) || "{}"); o[id] = v; localStorage.setItem(NOTES_KEY, JSON.stringify(o)); } catch (e) {} }
+/* ---------- Retour de Claude sur le plan ---------- */
+/* Deux modes : dans Claude (la page appelle Claude avec le compte de la personne)
+   ou sur ton propre site (la page appelle /api/feedback, qui utilise ta clé d'API). */
+const STANDALONE = !(window.claude && window.claude.use);
+let sampleFn = null;
+if (!STANDALONE) { (async () => { try { sampleFn = await window.claude.use("sample"); if (sampleFn) render(); } catch (e) {} })(); }
+else { sampleFn = (_prompt, opts) => serverSample(opts.payload, opts); }
+const CODE_KEY = "bristol-eps-code";
+function codeGet(){ try { return localStorage.getItem(CODE_KEY) || ""; } catch (e) { return ""; } }
+function codeSet(v){ try { if (v) localStorage.setItem(CODE_KEY, v); else localStorage.removeItem(CODE_KEY); } catch (e) {} }
+async function serverSample(payload, { signal, onText }){
+  let res;
+  try {
+    res = await fetch("/api/feedback", { method: "POST", signal,
+      headers: { "content-type": "application/json", "x-access-code": codeGet() },
+      body: JSON.stringify(payload) });
+  } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error" }; }
+  if (!res.ok) {
+    let j = {}; try { j = await res.json(); } catch (e) {}
+    const map = { invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config" };
+    throw { code: map[j.error] || "upstream_error", limit: j.limit };
+  }
+  const left = res.headers.get("x-quota-remaining");
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let text = "", ctl = "", seenCtl = false;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = dec.decode(value, { stream: true });
+      if (seenCtl) { ctl += chunk; continue; }
+      const k = chunk.indexOf("\u001e");
+      if (k >= 0) { text += chunk.slice(0, k); ctl = chunk.slice(k + 1); seenCtl = true; } else text += chunk;
+      if (text.trim()) onText({ text, delta: chunk });
+    }
+  } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", text }; }
+  let meta = {}; if (ctl) { try { meta = JSON.parse(ctl); } catch (e) {} }
+  if (meta.error) throw { code: "upstream_error", text };
+  if (!text.trim()) throw { code: "empty_completion" };
+  return { text, truncated: !!meta.truncated, quotaLeft: left === null ? null : +left };
+}
+const fb = { sid: null, status: "idle", text: "", note: "", ctl: null };
+const FB_KEY = "bristol-eps-fb";
+function fbSaved(sid){ try { return (JSON.parse(localStorage.getItem(FB_KEY) || "{}")[sid]) || ""; } catch (e) { return ""; } }
+function fbSave(sid, t){ try { const o = JSON.parse(localStorage.getItem(FB_KEY) || "{}"); o[sid] = t; localStorage.setItem(FB_KEY, JSON.stringify(o)); } catch (e) {} }
+function mdLite(t){
+  const lines = esc(t).split("\n"); let out = "", inList = false;
+  for (let l of lines) {
+    l = l.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    if (/^\s*[-•*]\s+/.test(l)) { if (!inList) { out += "<ul>"; inList = true; } out += "<li>" + l.replace(/^\s*[-•*]\s+/, "") + "</li>"; continue; }
+    if (inList) { out += "</ul>"; inList = false; }
+    if (/^#{1,4}\s+/.test(l)) out += "<h4>" + l.replace(/^#{1,4}\s+/, "") + "</h4>";
+    else if (l.trim()) out += "<p>" + l + "</p>";
+  }
+  if (inList) out += "</ul>";
+  return out;
+}
+const fbKey = (s, kind) => (kind === "intro" ? "i:" : "") + s.id;
+function fbInner(s, kind){
+  if (!s) return "";
+  const key = fbKey(s, kind), mine = fb.sid === key;
+  if (mine && fb.status === "thinking") return `<p class="fb-note">Claude lit ${kind === "intro" ? "ton introduction" : "ton plan"}… (cela peut prendre jusqu'à une minute)</p>`;
+  const text = mine ? fb.text : fbSaved(key);
+  const note = mine ? fb.note : "";
+  if (!text && !note) return "";
+  return (text ? `<p class="fb-label">Retour de Claude · un premier regard, pas une note de jury</p><div class="fb-body">${mdLite(text)}</div>` : "")
+    + (note ? `<p class="fb-note">${esc(note)}</p>` : "");
+}
+function fbBlock(s, kind){
+  if (!sampleFn) return "";
+  const key = fbKey(s, kind), what = kind === "intro" ? "mon introduction" : "mon plan";
+  const busy = fb.sid === key && (fb.status === "thinking" || fb.status === "streaming");
+  const has = (fb.sid === key && fb.text) || fbSaved(key);
+  if (STANDALONE && !codeGet()) {
+    return `<div class="fb"><form class="code-form" data-codeform="1" novalidate>
+      <label for="access-code">Code d'accès pour le retour de Claude</label>
+      <div class="row-btns"><input id="access-code" type="text" autocomplete="off" spellcheck="false" placeholder="Ton code bêta"><button class="btn" type="submit">Valider le code</button></div>
+    </form><div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
+  }
+  return `<div class="fb"><div class="row-btns"><button class="btn" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
+    ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas. <button class="linkbtn" data-act="code-change">Changer de code</button></p>` : ""}
+    <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
+}
+function fbErr(code){
+  if (code === "cancelled") return "Retour interrompu.";
+  if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(code)) { sampleFn = null; return "Le retour de Claude n'est pas autorisé ici. Tu peux l'activer dans les autorisations de la page."; }
+  if (code === "rate_limited") return "Trop de demandes pour l'instant. Réessaie dans quelques minutes.";
+  if (code === "session_expired") return "Ta session a expiré. Reconnecte-toi à Claude, puis réessaie.";
+  if (code === "refused") return "Claude n'a pas pu répondre à cette demande. Reformule ton texte, puis réessaie.";
+  if (code === "empty_completion") return "Aucune réponse reçue. Simplifie ton texte, puis réessaie.";
+  if (code === "prompt_too_large") return "Ton texte est trop long. Raccourcis-le, puis réessaie.";
+  if (code === "bad_code") { codeSet(""); return "Ce code d'accès n'est pas valide. Vérifie-le, puis saisis-le à nouveau."; }
+  if (code === "quota") return "Tu as utilisé tous tes retours de ce mois. Ils se renouvellent le 1er du mois.";
+  if (code === "too_short") return "Écris un peu plus avant de demander un retour.";
+  if (code === "server_config") return "Le retour de Claude n'est pas encore configuré sur ce site.";
+  return "La connexion a été interrompue. Tu peux réessayer.";
+}
+const INTRO_CRIT = ["Une accroche liée au sujet", "Les termes du sujet définis", "Les bornes chronologiques justifiées", "Le contexte et l'enjeu du sujet", "Une problématique sous forme de question", "L'annonce du plan"];
+async function askFeedback(kind){
+  const s = sj.cur; if (!s || !sampleFn) return;
+  const key = fbKey(s, kind);
+  const notes = noteGet(key).trim();
+  if (fb.ctl) fb.ctl.abort();
+  if (notes.length < 40) {
+    Object.assign(fb, { sid: key, status: "error", text: "", ctl: null,
+      note: kind === "intro" ? "Écris d'abord ton introduction, au moins quelques phrases." : "Écris d'abord au moins une problématique et les grandes parties de ton plan." });
+    render(); return;
+  }
+  const cards = s.c.map(byId).filter(Boolean).sort((a, b) => pIdx(a.p) - pIdx(b.p));
+  const facts = cards.map(c => `- [${c.p}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`).join("\n");
+  const head = `Tu es correcteur de l'épreuve écrite 1 du CAPEPS et de l'agrégation interne d'EPS (dissertation sur l'histoire de l'EPS). Un candidat s'entraîne sur ce sujet :
+« ${s.t} »
+Axe du programme : ${THEMES[s.th]}.
+`;
+  const prompt = kind === "intro"
+    ? head + `
+Voici l'introduction qu'il a rédigée en temps limité :
+"""
+${notes.slice(0, 6000)}
+"""
+
+Voici des faits vérifiés de son paquet de révision, utiles pour ce sujet :
+${facts}
+
+Évalue cette introduction, en français, en 250 mots maximum, avec exactement ces trois titres, chacun sur une ligne qui commence par "## " :
+## Ce qui fonctionne
+## Les six éléments attendus
+## À retravailler en priorité
+Sous « Les six éléments attendus », écris une puce par élément, dans cet ordre, qui commence par "- " puis le nom de l'élément, puis « présent », « à améliorer » ou « absent », et une courte justification : accroche ; définition des termes ; bornes chronologiques justifiées ; contexte et enjeu ; problématique ; annonce du plan. Sous les deux autres titres, 1 à 3 puces qui commencent par "- ". Ne réécris pas l'introduction à sa place et ne donne pas de note chiffrée. Si tu mentionnes un fait absent de la liste, précise qu'il est à vérifier.`
+    : head + `
+Voici ses notes de préparation (problématique, plan, idées) :
+"""
+${notes.slice(0, 6000)}
+"""
+
+Voici des faits vérifiés de son paquet de révision, utiles pour ce sujet :
+${facts}
+
+Donne-lui un retour exigeant, bienveillant et concret, en français, en 300 mots maximum, avec exactement ces quatre titres, chacun sur une ligne qui commence par "## " :
+## Ce qui fonctionne
+## Problématique
+## Plan et périodisation
+## À ajouter ou corriger
+Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la problématique répond vraiment au sujet (termes, bornes, tension), si le plan est démonstratif plutôt que descriptif, et si la périodisation est justifiée. Signale les faits de la liste qu'il n'utilise pas et qui renforceraient sa démonstration. Ne donne pas de note chiffrée et ne rédige pas de plan complet à sa place. Appuie-toi sur les faits fournis ; si tu mentionnes un autre fait, précise qu'il est à vérifier. Si les notes sont trop minces pour juger, dis-le simplement et indique quoi ajouter.`;
+  const ctl = new AbortController();
+  Object.assign(fb, { sid: key, status: "thinking", text: "", note: "", ctl });
+  render();
+  const opts = { signal: ctl.signal, cache: false, onText: ({ text }) => {
+    if (fb.ctl !== ctl) return;
+    fb.status = "streaming"; fb.text = text;
+    const el = document.getElementById("sj-fb");
+    if (el && sj.cur && fbKey(sj.cur, sj.mode) === key) el.innerHTML = fbInner(s, kind);
+  } };
+  /* Sur ton site, le serveur construit lui-même le prompt à partir de ces données. */
+  if (STANDALONE) opts.payload = { kind, subject: s.t, axe: THEMES[s.th], notes: notes.slice(0, 6000), facts: cards.map(c => `[${c.p}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`) };
+  try {
+    const res = await sampleFn(prompt, opts);
+    if (fb.ctl !== ctl) return;
+    fb.status = "done"; fb.text = res.text;
+    fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
+      : (typeof res.quotaLeft === "number" ? `Il te reste ${res.quotaLeft} retour${res.quotaLeft > 1 ? "s" : ""} ce mois-ci.` : "");
+    fbSave(key, res.text);
+  } catch (e) {
+    if (fb.ctl !== ctl) return;
+    fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code);
+  }
+  fb.ctl = null;
+  render();
+}
+
+/* ---------- Chronomètre de l'introduction ---------- */
+const tm = { dur: 20 * 60, left: 20 * 60, running: false, end: 0, iv: null };
+function fmtT(s){ s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+function tmStop(){ tm.running = false; if (tm.iv) { clearInterval(tm.iv); tm.iv = null; } }
+function tick(){
+  if (!tm.running) return;
+  tm.left = (tm.end - Date.now()) / 1000;
+  if (tm.left <= 0) { tm.left = 0; tmStop(); toast("Temps écoulé. Relis ton introduction avec la grille."); render(); return; }
+  const el = document.getElementById("tmr"); if (el) el.textContent = fmtT(tm.left);
+}
+function tmStart(){ if (tm.left <= 0) tm.left = tm.dur; tm.end = Date.now() + tm.left * 1000; tm.running = true; if (!tm.iv) tm.iv = setInterval(tick, 250); render(); const t = $("#sj-notes"); if (t) t.focus(); }
+function tmPause(){ tick(); tmStop(); render(); }
+function tmReset(){ tmStop(); tm.left = tm.dur; }
+function chkGet(sid){ try { return JSON.parse(noteGet("c:" + sid) || "[]"); } catch (e) { return []; } }
+
+function drawSubject(){
+  if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
+  tmReset();
+  const pool = SUBJECTS.filter(s => sj.axe === "Tous" || s.th === sj.axe);
+  const others = pool.filter(s => !sj.cur || s.id !== sj.cur.id);
+  const list = others.length ? others : pool;
+  sj.cur = list[Math.floor(Math.random() * list.length)] || null; sj.shown = false;
+}
+function renderSujets(){
+  const chips = [["Tous","Tous les axes"]].concat(["T","G","D"].map(k => [k, THEMES[k]]))
+    .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("");
+  const modes = `<div class="modes" role="group" aria-label="Type d'entraînement"><button class="chip" data-sjmode="plan" aria-pressed="${sj.mode === "plan"}">Plan complet</button><button class="chip" data-sjmode="intro" aria-pressed="${sj.mode === "intro"}">Introduction chronométrée</button></div>`;
+  let body;
+  if (!sj.cur) {
+    body = sj.mode === "intro"
+      ? `<p class="lead">Tire un sujet et rédige son introduction en temps limité (20 minutes par défaut). Vérifie ensuite les six éléments attendus avec la grille, et demande un retour si tu veux.</p>`
+      : `<p class="lead">${SUBJECTS.length} sujets d'entraînement rédigés sur les trois axes de l'écrit 1. Tire un sujet, cherche ta problématique et ton plan, puis affiche les cartes du paquet qui peuvent nourrir tes arguments.</p>`;
+    body += `<div class="row-btns actions"><button class="btn primary" data-act="sj-draw">Tirer un sujet</button></div>`;
+  } else {
+    const s = sj.cur;
+    const cards = s.c.map(byId).filter(Boolean).sort((a, b) => pIdx(a.p) - pIdx(b.p));
+    let work;
+    if (sj.mode === "intro") {
+      const key = "i:" + s.id, chk = chkGet(s.id);
+      const started = tm.left < tm.dur && tm.left > 0;
+      work = `<div class="timer">
+          <span id="tmr" class="tmr${tm.left <= 0 ? " over" : ""}" role="timer" aria-label="Temps restant">${fmtT(tm.left)}</span>
+          <div class="row-btns">${tm.running ? `<button class="btn" data-act="tm-pause">Pause</button>` : `<button class="btn primary" data-act="tm-start">${started ? "Reprendre" : tm.left <= 0 ? "Recommencer" : "Démarrer"}</button>`}<button class="btn" data-act="tm-reset">Réinitialiser</button></div>
+          ${tm.running || started ? "" : `<div class="chips" role="group" aria-label="Durée">${[15, 20, 30].map(m => `<button class="chip" data-tdur="${m}" aria-pressed="${tm.dur === m * 60}">${m} min</button>`).join("")}</div>`}
+        </div>
+        <label for="sj-notes" class="sj-help" style="display:block">Ton introduction. Elle reste sur cet appareil.</label>
+        <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="Accroche, définition des termes, bornes chronologiques, enjeu, problématique, annonce du plan…">${esc(noteGet(key))}</textarea>
+        <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${INTRO_CRIT.map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
+        ${fbBlock(s, "intro")}`;
+    } else {
+      work = `<label for="sj-notes" class="sj-help" style="display:block">Tes idées : problématique, plan, exemples. Elles restent sur cet appareil.</label>
+        <textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="Problématique…&#10;I. …&#10;II. …">${esc(noteGet(s.id))}</textarea>
+        ${fbBlock(s, "plan")}`;
+    }
+    body = `<article class="bristol qui"><div class="band"><span class="period">Sujet d'entraînement · ${esc(THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p></article>
+      ${work}
+      ${sj.shown
+        ? `<div class="sect" style="margin-top:20px"><h3>${cards.length} cartes utiles, dans l'ordre chronologique</h3><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(c.p)}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
+           <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
+        : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">Afficher les cartes utiles</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
+  }
+  $("#panel-sujets").innerHTML = `<div class="chips era-chips" aria-label="Axe des sujets">${chips}</div>${modes}${body}
+    <p class="sj-help">Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels. Les cartes proposées sont des points d'appui, pas un plan.</p>`;
+}
+
+/* ---------- Fils rouges ---------- */
+const FILS = [
+  {id:"f1",t:"Filles et mixité",q:"Comment l'éducation physique des filles passe-t-elle d'une éducation à part à un objectif d'égalité ?",
+   i:"Longtemps distincte de celle des garçons, l'éducation physique des filles est d'abord obligatoire sur le papier, puis alignée sur celle des garçons. La mixité généralisée en 1975 déplace ensuite la question : enseigner ensemble ne garantit pas l'égalité, qui devient un objectif explicite en 2000.",
+   e:[["1880","Lycées de jeunes filles (loi Camille Sée)","n103"],["1882","Obligation de l'éducation physique pour les filles, peu appliquée","n08"],["1919","Hébert publie L'Éducation physique féminine","n24"],["1924","Alignement de l'éducation physique des filles sur celle des garçons","n23"],["1975","La loi Haby généralise la mixité scolaire","n53"],["2000","« De la mixité à l'égalité » au Bulletin officiel","n63"]],
+   k:["1924 : l'alignement des contenus met fin, sur le papier, à une éducation physique séparée.","1975 : la mixité généralisée oblige à penser l'égalité dans les pratiques et l'évaluation."],
+   d:["Mixité ou égalité : enseigner ensemble suffit-il à garantir les mêmes apprentissages ? Le texte de 2000 répond que non.","Activités, barèmes et attentes différenciés : protection ou maintien des inégalités ? La question traverse l'évaluation en EPS."],
+   p:"Un plan en trois temps : une éducation à part (1880-1924), un alignement d'abord formel (1924-1975), la mixité puis l'égalité comme objectif (depuis 1975).",s:["s01","s03"]},
+  {id:"f2",t:"Santé et effort",q:"Comment passe-t-on de la protection de l'enfant contre le surmenage à l'éducation à la santé ?",
+   i:"À la fin du XIXe siècle, les médecins font de l'effort un objet de mesure et de dosage pour protéger l'enfant du surmenage. Au XXe siècle, la santé reste une finalité constante, mais elle change de sens : d'un effort dosé par le médecin, on passe à un élève qui apprend à entretenir lui-même sa santé.",
+   e:[["1888","Lagrange publie Physiologie des exercices du corps","n13"],["1891","Mosso publie La fatigue et mesure l'effort à l'ergographe","n14"],["1897","Tissié publie La fatigue et l'entraînement physique","n15"],["1902","Demenÿ publie Les Bases scientifiques de l'éducation physique","b07"],["1927","Premier IREP, rattaché à une faculté de médecine","n26"],["1950","Mi-temps pédagogique et sportif à Vanves","n37"],["1988","Mérand et Dhellemmes : l'endurance au service de la santé","n79"],["2019","Au lycée, le CA5 et l'objectif « construire durablement sa santé »","b29"],["2022","30 minutes d'activité physique quotidienne à l'école","n73"]],
+   k:["Fin du XIXe siècle : la médecine fait de l'effort un objet de mesure et de dosage.","1988 : l'endurance devient un contenu d'éducation à la santé, pas seulement un entraînement.","2019 : l'entretien de soi devient un champ d'apprentissage à part entière au lycée."],
+   d:["L'hygiénisme protège l'enfant, mais le sport lui oppose le goût de l'effort et de la compétition : c'est le fond de l'opposition entre Tissié et Coubertin.","Santé ou performance : les deux finalités coexistent dans les programmes récents, entre le CA1 et le CA5."],
+   p:"Opposer deux conceptions de l'effort, l'effort dosé pour préserver (hygiénisme) et l'effort recherché pour se dépasser (sport), puis montrer comment l'éducation à la santé cherche à les concilier.",s:["s07","s06"]},
+  {id:"f3",t:"Le sport à l'école",q:"Comment le sport, d'abord contesté, devient-il le contenu principal de l'EPS ?",
+   i:"Le sport entre à l'école par la marge, porté par Coubertin et contesté par les hygiénistes et par Hébert. Il gagne une reconnaissance officielle dans l'entre-deux-guerres, puis devient une cause nationale après l'échec de Rome en 1960. Les Instructions de 1967 le consacrent, ce qui ouvre une crise d'identité de l'EPS.",
+   e:[["1888","Coubertin veut introduire les sports athlétiques dans les lycées","n11"],["1890","Premier lendit organisé par Tissié","n82"],["1923","Une circulaire officialise la pratique sportive à l'école","n96"],["1925","Hébert publie Le Sport contre l'Éducation physique","b12"],["1937","Brevet sportif populaire","n29"],["1960","Jeux de Rome : aucune médaille d'or française","b16"],["1961","La demi-journée de plein air devient une demi-journée de sport","n40"],["1967","Les Instructions officielles font du sport le support de l'EPS","b17"],["2015","Des champs d'apprentissage plutôt qu'une liste de sports","b28"]],
+   k:["1960 : l'échec de Rome fait du sport une priorité de l'État.","1967 : le sport devient le support privilégié de l'EPS."],
+   d:["Hébert (1925) reproche au sport la spécialisation, le record et le spectacle.","Années 1960-1970 : la crise d'identité oppose la sportivisation, la psychocinétique de Le Boulch, la praxéologie de Parlebas et la critique radicale de Brohm."],
+   p:"De la défiance (1880-1918) à la reconnaissance officielle (1918-1960), puis à une consécration contestée (depuis 1960).",s:["s11","s09","s12"]},
+  {id:"f4",t:"Statut et tutelle de l'EPS",q:"Comment l'éducation physique devient-elle une discipline scolaire à part entière ?",
+   i:"Matière facultative en 1850, la gymnastique devient obligatoire en 1880 mais reste longtemps marquée par l'armée et la médecine. La création d'un corps de professeurs diplômés, l'épreuve au baccalauréat, l'entrée à l'université puis le rattachement à l'Éducation nationale en 1981 construisent pas à pas sa légitimité scolaire.",
+   e:[["1850","Gymnastique facultative au primaire (loi Falloux)","n02"],["1852","Création de l'école de gymnastique militaire de Joinville","b03"],["1869","Décret Duruy et création du CAEG","n03"],["1880","Loi George : gymnastique obligatoire","b01"],["1922","Le service de l'éducation physique rejoint l'Instruction publique","n20"],["1933","Création de l'ENEP et du CAPEP","n27"],["1959","Épreuve obligatoire au baccalauréat","n39"],["1975","Création du DEUG STAPS","n52"],["1981","Rattachement au ministère de l'Éducation nationale","b24"],["1982","Création de l'agrégation d'EPS","b25"],["1983","Épreuve du premier groupe au baccalauréat","n57"]],
+   k:["1880 : l'obligation légale.","1933 : un corps de professeurs formés et diplômés.","1981-1982 : rattachement à l'Éducation nationale et création de l'agrégation."],
+   d:["Entre tutelles militaire, médicale et scolaire, l'éducation physique cherche longtemps sa légitimité.","Le rattachement de 1981 répond à une revendication ancienne de la profession : être une discipline comme les autres."],
+   p:"Un plan par légitimité dominante : militaire, puis médicale, puis scolaire et universitaire.",s:["s13","s02"]},
+  {id:"f5",t:"Le sport scolaire",q:"Comment le sport scolaire s'organise-t-il à côté des cours d'EPS ?",
+   i:"Né d'initiatives locales comme les lendits, le sport scolaire se structure à l'échelle nationale avec l'OSSU et l'USEP à la fin des années 1930. Après 1945, l'association sportive devient obligatoire dans chaque établissement et entre dans le service des enseignants, ce qui en fait un enjeu professionnel durable.",
+   e:[["1890","Premier lendit","n82"],["1923","Officialisation de la pratique sportive à l'école","n96"],["1938","Création de l'OSSU","n31"],["1939","Création de l'USEP","n30"],["1945","Association sportive obligatoire ; forfait de 3 heures en 1950","n35"],["1962","L'ASSU succède à l'OSSU","n42"],["1975","Création de l'UNSS","b22"],["1978","Le plan Soisson réduit le forfait d'association sportive","n54"],["1996","Circulaire sur les sections sportives scolaires","n61"]],
+   k:["1945-1950 : l'association sportive devient obligatoire et entre dans le service des enseignants.","1978-1981 : le forfait est réduit puis rétabli, après une forte contestation."],
+   d:["Le sport scolaire prolonge-t-il l'EPS ou la concurrence-t-il ? Sa logique compétitive pose la question de la sélection.","Le forfait de trois heures reste un enjeu professionnel et budgétaire récurrent."],
+   p:"Trois temps : des initiatives dispersées (1890-1938), une structuration nationale (1938-1975), puis l'UNSS et l'association sportive comme service public (depuis 1975).",s:["s05"]},
+  {id:"f6",t:"Méthodes et conceptions",q:"Quelles grandes conceptions de l'éducation physique se succèdent et s'affrontent ?",
+   i:"Chaque époque fonde l'éducation physique sur une légitimité différente : la morale et la patrie au début du XIXe siècle, la science du corps à la fin du siècle, l'utilité et la nature avec Hébert, puis le sport, et enfin, à partir des années 1980, les apprentissages de l'élève.",
+   e:[["1813","Ling fonde l'Institut central de gymnastique de Stockholm","b05"],["1814-1830","Amoros et sa gymnastique militaire et morale","b04"],["1902","Demenÿ et la gymnastique rationnelle","b07"],["1912","Hébert expose la méthode naturelle","b10"],["1925","Règlement général d'éducation physique, dit « méthode française »","n21"],["1966","Le Boulch et la psychocinétique","b18"],["1967","Mérand crée le Conseil pédagogique et scientifique de la FSGT","n45"],["1987","Mérand et Marsenach : l'évaluation formative en EPS","n59"],["2015","Les compétences générales des programmes","n66"]],
+   k:["Fin du XIXe siècle : la science fonde une gymnastique rationnelle.","1925 : la méthode française fait une synthèse éclectique.","Années 1980 : la didactique place l'activité de l'élève au centre."],
+   d:["Gymnastique analytique (Ling), méthode naturelle et utilitaire (Hébert) ou sport (Coubertin) : la querelle des méthodes de 1880 à 1914.","Psychomotricité ou sociomotricité : l'opposition entre Le Boulch et Parlebas."],
+   p:"Suivre ce qui fonde chaque méthode : la morale et la patrie, puis la science du corps, puis le sport, enfin les apprentissages de l'élève.",s:["s10","s08","s12"]}
+];
+const fil = { cur: null };
+function renderFils(){
+  const el = $("#panel-fils");
+  if (!fil.cur) {
+    el.innerHTML = `<p class="intro">Les fiches donnent des faits isolés. Un fil rouge les relie en un récit sur un thème transversal : étapes, tournants, débats et une piste de plan. C'est la matière d'une partie de dissertation.</p>
+      <div class="fil-list">${FILS.map(f => `<button class="fil-card" data-fil="${f.id}"><h3>${esc(f.t)}</h3><p>${esc(f.q)}</p><span class="num">${f.e.length} étapes · ${f.e[0][0]} → ${f.e[f.e.length - 1][0]}</span></button>`).join("")}</div>
+      <p class="sj-help">Synthèses rédigées à partir des cartes vérifiées du paquet. Confronte-les à tes lectures.</p>`;
+    return;
+  }
+  const f = fil.cur;
+  const subs = f.s.map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean);
+  el.innerHTML = `<button class="back" data-act="fil-back">← Tous les fils rouges</button>
+    <div class="fil-head"><h3>${esc(f.t)}</h3><p class="fil-q">${esc(f.q)}</p></div>
+    <p class="fil-intro">${esc(f.i)}</p>
+    <div class="fil-sect"><h4>Étapes</h4></div>
+    <ol class="tl">${f.e.map(([y, t, id]) => { const p = progress[id], b = p ? p.b : 0; return `<li><span class="yr">${esc(y)}</span><span class="tx">${esc(t)}</span><span class="boxes" aria-label="Carte en boîte ${b} sur 5" title="Carte en boîte ${b} sur 5">${boxes(b)}</span></li>`; }).join("")}</ol>
+    <div class="fil-sect"><h4>Tournants</h4><ul>${f.k.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="fil-sect"><h4>Débats</h4><ul>${f.d.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="fil-sect"><h4>Piste de plan</h4><p>${esc(f.p)}</p></div>
+    <div class="row-btns actions"><button class="btn primary" data-act="fil-revise">Réviser les ${f.e.length} cartes de ce fil</button>${subs.map(s => `<button class="btn" data-sjopen="${s.id}">Sujet : ${esc(s.t.length > 60 ? s.t.slice(0, 58) + "…" : s.t)}</button>`).join("")}</div>`;
+}
+
+/* ---------- Statistiques ---------- */
+function bucket(list){
+  let m = 0, c = 0, e = 0;
+  list.forEach(x => { const p = progress[x.id]; if (!p) e++; else if (p.b === 5) m++; else c++; });
+  return { m, c, e, n: list.length };
+}
+function barRow(label, s){
+  const seg = (k, v, l) => v ? `<span class="${k}" style="flex:${v} 1 0" title="${v} ${l}"></span>` : "";
+  return `<div class="srow"><div class="lab"><span>${esc(label)}</span><span class="num">${s.m} maîtrisées · ${s.c} en cours · ${s.e} jamais vues</span></div>
+    <div class="bar" role="img" aria-label="${esc(label)} : ${s.m} maîtrisées, ${s.c} en cours, ${s.e} jamais vues sur ${s.n}">${seg("m", s.m, "maîtrisées")}${seg("c", s.c, "en cours")}${seg("e", s.e, "jamais vues")}</div></div>`;
+}
+function weakCards(){
+  return allCards().filter(c => progress[c.id] && progress[c.id].l > 0)
+    .sort((a, b) => (progress[b.id].l - progress[a.id].l) || (progress[a.id].b - progress[b.id].b)).slice(0, 8);
+}
+function renderStats(){
+  const cards = allCards();
+  const seen = cards.filter(c => progress[c.id]).length;
+  const reviews = Object.values(progress).reduce((s, p) => s + (p.n || 0), 0);
+  const weak = weakCards();
+  const pct = (g, t) => t ? Math.round(100 * g / t) + " %" : "–";
+  const byTh = TH_ORDER.map(k => barRow(THEMES[k], bucket(cards.filter(c => c.th === k)))).join("")
+    + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
+  const byP = PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
+  $("#panel-stats").innerHTML = `
+    <div class="sect"><div class="kpis">
+      <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
+      <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
+      <div class="kpi"><b>${BASE.filter(c => CARD_SRC[c.id]).length} / ${BASE.length}</b><span>cartes de base recoupées avec une source en ligne</span></div>
+      <div class="kpi"><b>${cards.filter(c => refGet(c.id)).length}</b><span>cartes avec ta propre référence</span></div>
+      <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
+      <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
+    </div></div>
+    <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
+    <div class="sect"><h3>Par axe</h3>${byTh}</div>
+    <div class="sect"><h3>Par période</h3>${byP}</div>
+    <div class="sect"><h3>Points faibles</h3>${weak.length
+      ? `<ul class="list">${weak.map(c => `<li class="item"><div class="ip">${esc(thName(c))} · ${esc(c.p || NONE_P)}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div><div class="is"><span class="due now">Ratée ${progress[c.id].l} fois</span></div></li>`).join("")}</ul>
+         <div class="row-btns actions" style="margin-top:14px"><button class="btn primary" data-act="weak-revise">Réviser ces ${weak.length} cartes</button></div>`
+      : `<p class="lead">Aucune carte ratée pour l'instant. Les cartes que tu marques « Raté » apparaîtront ici.</p>`}</div>`;
+}
+function startCram(ids){
+  queue = ids.filter(id => byId(id)); cram = true; flipped = false; done = 0;
+  theme = "Tous"; period = "Toutes"; view = "revise"; render(true);
+  try { window.scrollTo({ top: 0 }); } catch (e) {}
+}
+
+const VIEWS = ["revise","fils","frise","qui","sujets","stats","deck","add"];
+const SEC_OF = { revise: "revise", fils: "comprendre", frise: "train", qui: "train", sujets: "train", stats: "suivi", deck: "suivi", add: "suivi" };
+const lastSub = { revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
+const INTROS = {
+  frise: "Remets cinq événements dans l'ordre chronologique.",
+  qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
+  sujets: "Tire un sujet d'entraînement, construis ton plan, puis vois les cartes qui peuvent l'alimenter."
+};
+function setView(v, focus){
+  view = v; pendingDel = null; refEdit = null;
+  lastSub[SEC_OF[v]] = v;
+  if (v === "revise" && !queue.length) buildQueue();
+  render();
+  if (v === "add") $("#f-q").focus();
+  else if (focus) { const t = $(focus); if (t) t.focus(); }
+}
+function render(focusActions){
+  renderCounts(); renderFilters();
+  const sec = SEC_OF[view];
+  ["revise","comprendre","train","suivi"].forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
+  VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
+  $("#intro-train").textContent = INTROS[view] || "";
+  if (view === "revise") renderRevise();
+  if (view === "fils") renderFils();
+  if (view === "frise") renderFrise();
+  if (view === "qui") renderQui();
+  if (view === "sujets") renderSujets();
+  if (view === "stats") renderStats();
+  if (view === "deck") renderDeck();
+  if (focusActions) { const b = $("#panel-" + view + " .actions button:not([disabled]), #panel-" + view + " .row-btns button:not([disabled])"); if (b) b.focus({preventScroll: true}); }
+}
+let toastTimer;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+/* ---------- Événements ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  const d = t.dataset;
+  if (d.sec) { setView(lastSub[d.sec]); return; }
+  if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
+  if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
+  if (d.act === "fil-revise" && fil.cur) { startCram(fil.cur.e.map(x => x[2])); return; }
+  if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
+  if (d.tab) { setView(d.tab); return; }
+  if (d.act === "flip") { flipped = true; render(true); return; }
+  if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
+  if (d.act === "refresh") { done = 0; buildQueue(); render(true); return; }
+  if (d.g) { grade(d.g); return; }
+  if (d.era) { fr.era = d.era; newFrise(); render(); return; }
+  if (d.fr) { const i = +d.fr, n = fr.picks.indexOf(i); fr.picks = n >= 0 ? fr.picks.slice(0, n) : fr.picks.concat([i]); render(fr.picks.length === fr.items.length); return; }
+  if (d.act === "fr-check") { fr.checked = true; const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y); const ok = sorted.filter((i, r) => fr.picks[r] === i).length; fr.good += ok; fr.total += fr.items.length; games.frise.g += ok; games.frise.t += fr.items.length; persist(); render(true); return; }
+  if (d.act === "fr-new") { newFrise(); render(); return; }
+  if (d.qa) { answerQui(d.qa); return; }
+  if (d.sjaxe) { sj.axe = d.sjaxe; if (sj.cur && sj.axe !== "Tous" && sj.cur.th !== sj.axe) sj.cur = null; render(); return; }
+  if (d.act === "sj-draw") { drawSubject(); render(); return; }
+  if (d.act === "sj-show") { sj.shown = true; render(); return; }
+  if (d.refedit) { refEdit = d.refedit; render(); const i = $("#ref-input"); if (i) i.focus(); return; }
+  if (d.refsave) { const i = $("#ref-input"); saveRef(d.refsave, i ? i.value : ""); return; }
+  if (d.refcancel) { const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "fb-ask") { askFeedback(d.kind === "intro" ? "intro" : "plan"); return; }
+  if (d.sjmode) { sj.mode = d.sjmode; render(); const b = document.querySelector(`[data-sjmode="${d.sjmode}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.tdur) { tm.dur = +d.tdur * 60; tmReset(); render(); return; }
+  if (d.act === "tm-start") { tmStart(); return; }
+  if (d.act === "tm-pause") { tmPause(); const b = $('[data-act="tm-start"]'); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "tm-reset") { tmReset(); render(); return; }
+  if (d.act === "fb-stop") { if (fb.ctl) fb.ctl.abort(); return; }
+  if (d.act === "code-change") { codeSet(""); render(); const i = $("#access-code"); if (i) i.focus(); return; }
+  if (d.act === "sj-revise" && sj.cur) { startCram(sj.cur.c.slice()); return; }
+  if (d.act === "weak-revise") { startCram(weakCards().map(c => c.id)); return; }
+  if (d.act === "qui-next") { newQui(); render(); const b = $("#panel-qui .qopt"); if (b) b.focus({preventScroll: true}); return; }
+  if (d.del) { pendingDel = d.del; render(); return; }
+  if (d.cancel) { pendingDel = null; render(); return; }
+  if (d.confirm) {
+    const id = d.confirm;
+    gone = gone.concat([id]); custom = custom.filter(c => c.id !== id); delete progress[id];
+    queue = queue.filter(q => q !== id); pendingDel = null; persist(); render(); toast("Carte supprimée.");
+  }
+});
+document.addEventListener("input", e => { if (e.target.id === "sj-notes") noteSet(e.target.dataset.sid, e.target.value); });
+document.addEventListener("change", e => {
+  if (e.target.dataset && e.target.dataset.chk !== undefined) {
+    const sid = e.target.dataset.sid, i = +e.target.dataset.chk;
+    const cur = new Set(chkGet(sid)); if (e.target.checked) cur.add(i); else cur.delete(i);
+    noteSet("c:" + sid, JSON.stringify(Array.from(cur).sort()));
+    return;
+  }
+  const f = e.target.dataset && e.target.dataset.fsel; if (!f) return;
+  const id = e.target.id;
+  if (f === "theme") theme = e.target.value; else period = e.target.value;
+  done = 0; pendingDel = null; buildQueue(); render();
+  const s = document.getElementById(id); if (s) s.focus();
+});
+/* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
+document.addEventListener("keydown", e => {
+  const list = e.target.closest && e.target.closest('[role="tablist"]');
+  if (!list || !["ArrowLeft","ArrowRight","Home","End"].includes(e.key)) return;
+  const tabs = Array.from(list.querySelectorAll('[role="tab"]'));
+  let i = tabs.indexOf(e.target.closest('[role="tab"]')); if (i < 0) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  i = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+  const t = tabs[i];
+  if (t.dataset.sec) setView(lastSub[t.dataset.sec], "#" + t.id);
+  else setView(t.dataset.tab, "#" + t.id);
+}, true);
+document.addEventListener("keydown", e => {
+  if (e.target.id !== "ref-input") return;
+  if (e.key === "Enter") { e.preventDefault(); saveRef(e.target.dataset.rid, e.target.value); }
+  else if (e.key === "Escape") { e.preventDefault(); const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); }
+});
+/* Taille du texte */
+const BIG_KEY = "bristol-eps-big";
+function applyBig(on){ document.documentElement.classList.toggle("big", on); $("#textsize").setAttribute("aria-pressed", String(on)); }
+try { applyBig(localStorage.getItem(BIG_KEY) === "1"); } catch (e) {}
+$("#textsize").addEventListener("click", () => { const on = !document.documentElement.classList.contains("big"); applyBig(on); try { localStorage.setItem(BIG_KEY, on ? "1" : "0"); } catch (e) {} });
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (view === "qui") {
+    if (!qz.ans && ["1","2","3","4"].includes(e.key)) { const w = qz.opts[+e.key - 1]; if (w) { e.preventDefault(); answerQui(w); } }
+    else if (qz.ans && (e.key === "Enter" || e.key === " ") && !e.target.closest("button")) { e.preventDefault(); newQui(); render(); }
+    return;
+  }
+  if (view !== "revise") return;
+  if (!queue.length) return;
+  if (!flipped && (e.key === " " || e.key === "Enter")) { if (e.target.closest("button")) return; e.preventDefault(); flipped = true; render(true); return; }
+  if (flipped && ["1","2","3"].includes(e.key)) { e.preventDefault(); grade({ "1": "rate", "2": "hesite", "3": "su" }[e.key]); }
+});
+$("#f-p").innerHTML = PERIODS.concat([NONE_P]).map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
+$("#f-p").value = NONE_P;
+$("#f-t").innerHTML = TH_ORDER.map(k => `<option value="${k}">${esc(THEMES[k])}</option>`).join("") + `<option value="">${NONE_T}</option>`;
+$("#f-t").value = "";
+document.addEventListener("submit", e => {
+  if (!e.target.dataset || !e.target.dataset.codeform) return;
+  e.preventDefault();
+  const v = ($("#access-code").value || "").trim();
+  if (!v) { $("#access-code").focus(); return; }
+  codeSet(v); fb.note = ""; if (fb.status === "error") fb.status = "idle";
+  render(); toast("Code enregistré.");
+  const b = $('[data-act="fb-ask"]'); if (b) b.focus({ preventScroll: true });
+});
+$("#add-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const q = $("#f-q").value.trim(), a = $("#f-a").value.trim(), x = $("#f-x").value.trim(), p = $("#f-p").value, th = $("#f-t").value;
+  if (!q || !a) { $("#f-err").hidden = false; return; }
+  $("#f-err").hidden = true;
+  const id = "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  custom = custom.concat([{ id, th, p, q, a, x }]);
+  const r = $("#f-r").value.trim().slice(0, 300); if (r) refs[id] = { v: r, t: Date.now() };
+  persist();
+  $("#f-q").value = ""; $("#f-a").value = ""; $("#f-x").value = ""; $("#f-r").value = "";
+  renderCounts(); toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
+});
+
+localLoad(); buildQueue(); render();
+connect().catch(() => { if (!store.ref) setStatus("local"); });
+</script>
