@@ -232,7 +232,8 @@ const oauthCookie = (value, maxAge) => `${OAUTH_COOKIE}=${value}; Path=/api/auth
 const callbackUrl = (request) => new URL(request.url).origin + "/api/auth/google/callback";
 
 async function authConfig(request, env) {
-  return json(200, { google: googleEnabled(env) });
+  // Indique quelle pièce manque, sans jamais révéler de valeur secrète.
+  return json(200, { google: googleEnabled(env), googleClientId: !!env.GOOGLE_CLIENT_ID, googleSecret: !!env.GOOGLE_CLIENT_SECRET });
 }
 
 async function googleStart(request, env) {
