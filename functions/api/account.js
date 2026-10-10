@@ -1,0 +1,235 @@
+// Bristol EPS — comptes utilisateurs et progression synchronisée.
+//
+// Sécurité :
+// - le mot de passe ne quitte jamais le navigateur : celui-ci en dérive une clé
+//   (PBKDF2-SHA256, 310 000 itérations, sel = e-mail) ; le serveur n'en stocke
+//   qu'une empreinte SHA-256 salée (sel aléatoire par compte) ;
+// - une clé de secours aléatoire, montrée une seule fois, permet de changer de
+//   mot de passe ; seule son empreinte est stockée ;
+// - la session est un jeton aléatoire dans un cookie HttpOnly, Secure, SameSite=Lax ;
+//   seule son empreinte est stockée ;
+// - les écritures exigent un corps JSON et, si le navigateur l'envoie, une origine
+//   identique au site (protection CSRF) ;
+// - les tentatives de connexion et de récupération sont limitées par e-mail.
+//
+// Liaisons : DB (D1, obligatoire), QUOTA (KV, pour limiter les tentatives).
+
+const SESSION_COOKIE = "bsess";
+const SESSION_DAYS = 60;
+const MAX_PROGRESS_BYTES = 256 * 1024;
+const MAX_ATTEMPTS_PER_HOUR = 10;
+const enc = new TextEncoder();
+
+function json(status, body, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
+  });
+}
+const err = (status, error, extra = {}) => json(status, { error, ...extra });
+
+const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+async function sha256Hex(...parts) {
+  const chunks = parts.map((p) => (typeof p === "string" ? enc.encode(p) : p));
+  const all = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+  let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; }
+  return hex(await crypto.subtle.digest("SHA-256", all));
+}
+function randomHex(bytes) { return hex(crypto.getRandomValues(new Uint8Array(bytes))); }
+function safeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
+  let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
+// Clé de secours lisible : 5 groupes de 5 caractères sans ambiguïté (≈ 120 bits).
+const RC_ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newRecoveryKey() {
+  const b = crypto.getRandomValues(new Uint8Array(25));
+  const s = [...b].map((x) => RC_ALPHA[x % 32]).join("");
+  return s.match(/.{5}/g).join("-");
+}
+const normRecovery = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+const normEmail = (s) => String(s || "").trim().toLowerCase();
+const validEmail = (s) => s.length <= 200 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+// La clé dérivée arrive en hexadécimal (32 octets = 64 caractères).
+const validKey = (k) => typeof k === "string" && /^[0-9a-f]{64}$/.test(k);
+
+function getCookie(request, name) {
+  const h = request.headers.get("cookie") || "";
+  for (const part of h.split(/;\s*/)) { const i = part.indexOf("="); if (i > 0 && part.slice(0, i) === name) return part.slice(i + 1); }
+  return "";
+}
+function sessionCookie(token, maxAge) {
+  return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+}
+
+async function readJson(request) {
+  const ct = request.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) return { error: err(415, "json_required") };
+  const origin = request.headers.get("origin");
+  if (origin) {
+    try { if (new URL(origin).host !== new URL(request.url).host) return { error: err(403, "bad_origin") }; }
+    catch { return { error: err(403, "bad_origin") }; }
+  }
+  try { return { body: await request.json() }; } catch { return { error: err(400, "bad_request") }; }
+}
+
+async function tooManyAttempts(env, kind, email) {
+  if (!env.QUOTA) return false;
+  const k = `rl:${kind}:${email}:${new Date().toISOString().slice(0, 13)}`;
+  return (parseInt((await env.QUOTA.get(k)) || "0", 10) || 0) >= MAX_ATTEMPTS_PER_HOUR;
+}
+async function countAttempt(env, kind, email) {
+  if (!env.QUOTA) return;
+  const k = `rl:${kind}:${email}:${new Date().toISOString().slice(0, 13)}`;
+  const n = (parseInt((await env.QUOTA.get(k)) || "0", 10) || 0) + 1;
+  await env.QUOTA.put(k, String(n), { expirationTtl: 60 * 60 * 2 });
+}
+
+async function createSession(env, userId) {
+  const token = randomHex(32);
+  const now = Date.now();
+  await env.DB.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
+    .bind(await sha256Hex(token), userId, now, now + SESSION_DAYS * 86400000).run();
+  return sessionCookie(token, SESSION_DAYS * 86400);
+}
+
+async function currentUser(request, env) {
+  const token = getCookie(request, SESSION_COOKIE);
+  if (!/^[0-9a-f]{64}$/.test(token)) return null;
+  const row = await env.DB.prepare(
+    "SELECT u.id, u.email, u.key_salt, u.key_hash, s.token_hash FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?"
+  ).bind(await sha256Hex(token), Date.now()).first();
+  return row || null;
+}
+
+async function checkKey(user, key) {
+  return safeEqual(await sha256Hex(user.key_salt, key), user.key_hash);
+}
+
+// ---------- Routes ----------
+
+async function register(request, env) {
+  const { body, error } = await readJson(request); if (error) return error;
+  const email = normEmail(body.email), key = body.key;
+  if (!validEmail(email)) return err(400, "bad_email");
+  if (!validKey(key)) return err(400, "bad_key");
+  const exists = await env.DB.prepare("SELECT 1 FROM users WHERE email = ?").bind(email).first();
+  if (exists) return err(409, "email_taken");
+  const id = crypto.randomUUID();
+  const salt = randomHex(16);
+  const recovery = newRecoveryKey();
+  await env.DB.prepare("INSERT INTO users (id, email, key_salt, key_hash, recovery_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(id, email, salt, await sha256Hex(salt, key), await sha256Hex(normRecovery(recovery)), Date.now()).run();
+  const cookie = await createSession(env, id);
+  return json(201, { email, recoveryKey: recovery }, { "set-cookie": cookie });
+}
+
+async function login(request, env) {
+  const { body, error } = await readJson(request); if (error) return error;
+  const email = normEmail(body.email), key = body.key;
+  if (!validEmail(email) || !validKey(key)) return err(400, "bad_request");
+  if (await tooManyAttempts(env, "login", email)) return err(429, "too_many_attempts");
+  const user = await env.DB.prepare("SELECT id, email, key_salt, key_hash FROM users WHERE email = ?").bind(email).first();
+  if (!user || !(await checkKey(user, key))) { await countAttempt(env, "login", email); return err(401, "bad_credentials"); }
+  const cookie = await createSession(env, user.id);
+  return json(200, { email: user.email }, { "set-cookie": cookie });
+}
+
+async function logout(request, env) {
+  const token = getCookie(request, SESSION_COOKIE);
+  if (/^[0-9a-f]{64}$/.test(token)) await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256Hex(token)).run();
+  return json(200, { ok: true }, { "set-cookie": sessionCookie("", 0) });
+}
+
+async function me(request, env) {
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  return json(200, { email: user.email });
+}
+
+async function recover(request, env) {
+  const { body, error } = await readJson(request); if (error) return error;
+  const email = normEmail(body.email), key = body.key, rc = normRecovery(body.recoveryKey);
+  if (!validEmail(email) || !validKey(key) || rc.length !== 25) return err(400, "bad_request");
+  if (await tooManyAttempts(env, "recover", email)) return err(429, "too_many_attempts");
+  const user = await env.DB.prepare("SELECT id, email, recovery_hash FROM users WHERE email = ?").bind(email).first();
+  if (!user || !safeEqual(await sha256Hex(rc), user.recovery_hash)) { await countAttempt(env, "recover", email); return err(401, "bad_recovery"); }
+  const salt = randomHex(16);
+  const recovery = newRecoveryKey();
+  await env.DB.batch([
+    env.DB.prepare("UPDATE users SET key_salt = ?, key_hash = ?, recovery_hash = ? WHERE id = ?")
+      .bind(salt, await sha256Hex(salt, key), await sha256Hex(normRecovery(recovery)), user.id),
+    env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
+  ]);
+  const cookie = await createSession(env, user.id);
+  return json(200, { email: user.email, recoveryKey: recovery }, { "set-cookie": cookie });
+}
+
+async function deleteAccount(request, env) {
+  const { body, error } = await readJson(request); if (error) return error;
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  if (!validKey(body.key) || !(await checkKey(user, body.key))) return err(401, "bad_credentials");
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM progress WHERE user_id = ?").bind(user.id),
+    env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
+    env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
+  ]);
+  return json(200, { ok: true }, { "set-cookie": sessionCookie("", 0) });
+}
+
+async function getProgress(request, env) {
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  const row = await env.DB.prepare("SELECT data, updated_at FROM progress WHERE user_id = ?").bind(user.id).first();
+  return json(200, { data: row ? JSON.parse(row.data) : null, updatedAt: row ? row.updated_at : 0 });
+}
+
+// Écriture avec contrôle de version : si un autre appareil a écrit depuis la
+// version connue (base), on renvoie 409 et l'état du serveur pour fusion.
+async function putProgress(request, env) {
+  const raw = await request.clone().text().catch(() => "");
+  if (raw.length > MAX_PROGRESS_BYTES) return err(413, "too_large");
+  const { body, error } = await readJson(request); if (error) return error;
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  if (!body || typeof body.data !== "object" || body.data === null || Array.isArray(body.data)) return err(400, "bad_request");
+  const base = Number(body.base) || 0;
+  const row = await env.DB.prepare("SELECT data, updated_at FROM progress WHERE user_id = ?").bind(user.id).first();
+  if (row && row.updated_at > base) return json(409, { error: "conflict", data: JSON.parse(row.data), updatedAt: row.updated_at });
+  const updatedAt = Math.max(Date.now(), row ? row.updated_at + 1 : 0);
+  await env.DB.prepare(
+    "INSERT INTO progress (user_id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at"
+  ).bind(user.id, JSON.stringify(body.data), updatedAt).run();
+  return json(200, { updatedAt });
+}
+
+const ROUTES = {
+  "POST /api/auth/register": register,
+  "POST /api/auth/login": login,
+  "POST /api/auth/logout": logout,
+  "GET /api/auth/me": me,
+  "POST /api/auth/recover": recover,
+  "POST /api/auth/delete": deleteAccount,
+  "GET /api/progress": getProgress,
+  "PUT /api/progress": putProgress,
+};
+
+export function isAccountRoute(pathname) {
+  return pathname.startsWith("/api/auth/") || pathname === "/api/progress";
+}
+
+export async function handleAccount(request, env) {
+  if (!env.DB) return err(500, "accounts_not_configured");
+  const url = new URL(request.url);
+  const fn = ROUTES[`${request.method} ${url.pathname}`];
+  if (!fn) {
+    const known = Object.keys(ROUTES).some((k) => k.endsWith(" " + url.pathname));
+    return known ? err(405, "method_not_allowed") : err(404, "not_found");
+  }
+  try { return await fn(request, env); }
+  catch (e) { console.error("Erreur compte :", String(e && e.stack || e)); return err(500, "server_error"); }
+}

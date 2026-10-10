@@ -219,6 +219,12 @@ label.chk input{width:20px;height:20px;flex:none;margin:0;padding:0;accent-color
 .w-sub{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--margin);margin:0 0 8px}
 .w-note{font-size:14px;color:var(--muted);margin:0 0 16px;max-width:62ch}
 .first-hint{border-left:3px solid var(--accent);padding:6px 0 6px 12px;margin:0 0 12px;color:var(--muted);font-size:15px;max-width:62ch}
+/* Compte */
+.acct-form{display:grid;gap:12px;max-width:440px;margin-top:4px}
+.acct-msg{margin:0;font-size:15px}
+.acct-msg.bad{color:var(--bad)} .acct-msg.ok{color:var(--ok)}
+.rk{font-family:var(--f-mono);font-size:20px;letter-spacing:.06em;padding:12px 14px;border:1px dashed var(--accent);border-radius:10px;margin:0 0 14px;word-break:break-all;user-select:all}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
 /* Navigation en trois espaces + sous-modes */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .top-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -283,10 +289,11 @@ html.big .chip,html.big .fbar label,html.big .textsize{font-size:16px}
     </div>
     <div class="top-actions">
       <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span id="status-txt">Sur cet appareil</span></span>
-      <div class="top-btns"><button class="textsize" id="help-open" type="button" data-act="help-open">Aide</button><button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button></div>
+      <div class="top-btns"><button class="textsize" id="account-open" type="button" data-act="account-open" hidden>Se connecter</button><button class="textsize" id="help-open" type="button" data-act="help-open">Aide</button><button class="textsize" id="textsize" type="button" aria-pressed="false">Texte plus grand</button></div>
     </div>
   </header>
 
+  <section id="account" class="welcome" aria-labelledby="account-title" hidden></section>
   <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
 
   <nav class="tabs main" role="tablist" aria-label="Espaces">
@@ -625,6 +632,7 @@ function setStatus(mode){
 }
 function persist(){
   localSave();
+  if (STANDALONE) { srvSchedule(); return; }
   if (!store.ref) return;
   store.dirty = true; setStatus("saving");
   clearTimeout(store.timer); store.timer = setTimeout(flush, 1200);
@@ -1409,6 +1417,12 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = fals
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "account-open") { openAccount(); return; }
+  if (d.act === "acct-close") { closeAccount(); return; }
+  if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
+  if (d.act === "acct-logout") { logoutAccount(); return; }
+  if (d.act === "rk-copy") { const t = acct.recoveryKey; try { navigator.clipboard.writeText(t).then(() => toast("Clé copiée."), () => toast("Copie impossible : sélectionne la clé et copie-la.")); } catch (e) { toast("Copie impossible : sélectionne la clé et copie-la."); } return; }
+  if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
   if (d.act === "help-open") { showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
@@ -1475,6 +1489,7 @@ document.addEventListener("keydown", e => {
   e.preventDefault(); e.stopImmediatePropagation();
   i = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
   const t = tabs[i];
+  if (!t.dataset.sec && !t.dataset.tab) { t.click(); const n = document.querySelector('[role="tablist"] [data-v="' + t.dataset.v + '"]'); if (n) n.focus(); return; }
   if (t.dataset.sec) setView(lastSub[t.dataset.sec], "#" + t.id);
   else setView(t.dataset.tab, "#" + t.id);
 }, true);
@@ -1483,6 +1498,194 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); saveRef(e.target.dataset.rid, e.target.value); }
   else if (e.key === "Escape") { e.preventDefault(); const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); }
 });
+/* ---------- Compte et synchronisation (site autonome uniquement) ---------- */
+const acct = { status: "unknown", email: "", view: "login", busy: false, msg: "", msgKind: "", recoveryKey: "", open: false };
+const srv = { base: 0, timer: null, saving: false, dirty: false, retries: 0 };
+const PBKDF2_ITER = 310000;
+
+async function deriveKey(email, password){
+  const mat = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode("bristol-eps|" + email), iterations: PBKDF2_ITER }, mat, 256);
+  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function api(method, path, body){
+  let res;
+  try {
+    res = await fetch(path, { method, credentials: "same-origin",
+      headers: body !== undefined ? { "content-type": "application/json" } : {},
+      body: body !== undefined ? JSON.stringify(body) : undefined });
+  } catch (e) { return { status: 0, data: { error: "network" } }; }
+  let data = {}; try { data = await res.json(); } catch (e) {}
+  return { status: res.status, data };
+}
+const ACCT_ERR = {
+  email_taken: "Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.",
+  bad_credentials: "E-mail ou mot de passe incorrect.",
+  bad_email: "Cette adresse e-mail n'est pas valide.",
+  too_many_attempts: "Trop de tentatives pour ce compte. Réessaie dans une heure.",
+  bad_recovery: "Cette clé de secours ne correspond pas à ce compte.",
+  network: "Impossible de joindre le serveur. Vérifie ta connexion, puis réessaie.",
+  accounts_not_configured: "Les comptes ne sont pas encore activés sur ce site."
+};
+const acctErr = (r) => ACCT_ERR[r.data && r.data.error] || "Une erreur est survenue. Réessaie dans un instant.";
+
+function syncPayload(){ return { progress, custom, gone, games, refs }; }
+function applyMerged(m){ progress = m.progress; custom = m.custom; gone = m.gone; games = m.games; refs = m.refs; localSave(); }
+function sameData(a, b){ return JSON.stringify(a) === JSON.stringify(b); }
+function normRemote(d){ d = d || {}; return { progress: d.progress || {}, custom: d.custom || [], gone: d.gone || [], games: normGames(d.games), refs: d.refs || {} }; }
+
+async function pullAndMerge(){
+  const r = await api("GET", "/api/progress");
+  if (r.status === 401) { signedOut(); return; }
+  if (r.status !== 200) { setStatus("offline"); return; }
+  const remote = normRemote(r.data.data);
+  const m = merge(remote);
+  applyMerged(m);
+  srv.base = r.data.updatedAt || 0;
+  if (!sameData(normRemote(m), remote)) { srv.dirty = true; await srvFlush(); } else setStatus("cloud");
+  if (done === 0 && !flipped) buildQueue();
+  render();
+}
+function srvSchedule(){
+  if (acct.status !== "in") return;
+  srv.dirty = true; setStatus("saving");
+  clearTimeout(srv.timer); srv.timer = setTimeout(srvFlush, 1200);
+}
+async function srvFlush(){
+  if (srv.saving || !srv.dirty || acct.status !== "in") return;
+  srv.saving = true; srv.dirty = false;
+  const r = await api("PUT", "/api/progress", { data: syncPayload(), base: srv.base });
+  srv.saving = false;
+  if (r.status === 200) { srv.base = r.data.updatedAt; srv.retries = 0; setStatus("cloud"); }
+  else if (r.status === 409 && srv.retries < 3) {
+    /* Un autre appareil a écrit entre-temps : on fusionne, puis on renvoie. */
+    srv.retries++;
+    applyMerged(merge(normRemote(r.data.data)));
+    srv.base = r.data.updatedAt; srv.dirty = true;
+    if (done === 0 && !flipped) buildQueue();
+    render();
+  }
+  else if (r.status === 401) { signedOut(); return; }
+  else { setStatus("offline"); srv.dirty = true; clearTimeout(srv.timer); srv.timer = setTimeout(srvFlush, 15000); return; }
+  if (srv.dirty) { clearTimeout(srv.timer); srv.timer = setTimeout(srvFlush, 300); }
+}
+function signedOut(){
+  acct.status = "out"; acct.email = ""; clearTimeout(srv.timer); srv.dirty = false; srv.base = 0;
+  setStatus("local"); renderAccountBtn(); if (acct.open) renderAccount();
+}
+async function signedIn(email){
+  acct.status = "in"; acct.email = email; renderAccountBtn();
+  await pullAndMerge();
+}
+
+function renderAccountBtn(){
+  const b = $("#account-open"); if (!b) return;
+  b.hidden = !STANDALONE;
+  b.textContent = acct.status === "in" ? "Mon compte" : "Se connecter";
+}
+function acctField(id, label, type, ac, extra = ""){
+  return `<div><label for="${id}">${label}</label><input id="${id}" type="${type}" autocomplete="${ac}" ${extra}></div>`;
+}
+function renderAccount(){
+  const el = $("#account"); if (!el) return;
+  const msg = acct.msg ? `<p class="acct-msg ${acct.msgKind}" role="${acct.msgKind === "bad" ? "alert" : "status"}">${esc(acct.msg)}</p>` : "";
+  const busy = acct.busy ? " disabled" : "";
+  let body;
+  if (acct.view === "recovery-shown") {
+    body = `<h2 id="account-title">Note ta clé de secours</h2>
+      <p class="w-lead">C'est le seul moyen de changer ton mot de passe si tu l'oublies. Elle ne sera plus jamais affichée : écris-la sur papier ou dans un gestionnaire de mots de passe.</p>
+      <p class="rk" id="rk">${esc(acct.recoveryKey)}</p>
+      <div class="row-btns"><button class="btn" data-act="rk-copy">Copier la clé</button><button class="btn primary" data-act="rk-done">J'ai noté ma clé</button></div>`;
+  } else if (acct.status === "in" && acct.view === "delete") {
+    body = `<h2 id="account-title">Supprimer mon compte</h2>
+      <p class="w-lead">Ton compte et ta progression enregistrée seront effacés définitivement. Ta progression restera seulement dans ce navigateur.</p>
+      <form class="acct-form" data-acctform="delete" novalidate>${acctField("acct-pw", "Mot de passe, pour confirmer", "password", "current-password")}
+      ${msg}<div class="row-btns"><button class="btn danger" type="submit"${busy}>${acct.busy ? "Suppression…" : "Supprimer définitivement"}</button><button class="btn" type="button" data-act="acct-view" data-v="profile">Annuler</button></div></form>`;
+  } else if (acct.status === "in") {
+    body = `<h2 id="account-title">Mon compte</h2>
+      <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes. Tes notes de dissertation restent sur chaque appareil.</p>
+      ${msg}<div class="row-btns"><button class="btn" data-act="acct-logout"${busy}>Se déconnecter</button><button class="btn" data-act="acct-view" data-v="delete">Supprimer mon compte</button><button class="btn" data-act="acct-close">Fermer</button></div>`;
+  } else if (acct.view === "recover") {
+    body = `<h2 id="account-title">Mot de passe oublié</h2>
+      <p class="w-lead">Saisis la clé de secours reçue à la création de ton compte, puis choisis un nouveau mot de passe.</p>
+      <form class="acct-form" data-acctform="recover" novalidate>
+        ${acctField("acct-email", "E-mail", "email", "email")}
+        ${acctField("acct-rk", "Clé de secours", "text", "off", 'spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"')}
+        ${acctField("acct-pw", "Nouveau mot de passe (10 caractères minimum)", "password", "new-password")}
+        ${msg}<div class="row-btns"><button class="btn primary" type="submit"${busy}>${acct.busy ? "Vérification…" : "Changer mon mot de passe"}</button><button class="btn" type="button" data-act="acct-view" data-v="login">Retour</button></div>
+      </form>`;
+  } else {
+    const reg = acct.view === "register";
+    body = `<h2 id="account-title">${reg ? "Créer un compte" : "Se connecter"}</h2>
+      <p class="w-lead">Un compte te permet de retrouver ta progression sur tous tes appareils. Ce que tu as déjà fait sur cet appareil y sera ajouté.</p>
+      <div class="seg" role="tablist" aria-label="Connexion ou inscription">
+        <button role="tab" data-act="acct-view" data-v="login" aria-selected="${!reg}">Se connecter</button>
+        <button role="tab" data-act="acct-view" data-v="register" aria-selected="${reg}">Créer un compte</button>
+      </div>
+      <form class="acct-form" data-acctform="${reg ? "register" : "login"}" novalidate>
+        ${acctField("acct-email", "E-mail", "email", "email")}
+        ${acctField("acct-pw", reg ? "Mot de passe (10 caractères minimum)" : "Mot de passe", "password", reg ? "new-password" : "current-password")}
+        ${reg ? acctField("acct-pw2", "Confirme le mot de passe", "password", "new-password") : ""}
+        ${msg}<div class="row-btns"><button class="btn primary" type="submit"${busy}>${acct.busy ? (reg ? "Création…" : "Connexion…") : (reg ? "Créer mon compte" : "Me connecter")}</button>${reg ? "" : `<button class="btn" type="button" data-act="acct-view" data-v="recover">Mot de passe oublié ?</button>`}<button class="btn" type="button" data-act="acct-close">Fermer</button></div>
+      </form>`;
+  }
+  el.innerHTML = body;
+}
+function openAccount(view){
+  acct.open = true; acct.msg = ""; acct.view = view || (acct.status === "in" ? "profile" : "login");
+  $("#account").hidden = false; renderAccount();
+  const t = $("#account-title"); if (t) { t.tabIndex = -1; t.focus(); }
+  try { window.scrollTo({ top: 0 }); } catch (e) {}
+}
+function closeAccount(){ acct.open = false; $("#account").hidden = true; const b = $("#account-open"); if (b) b.focus(); }
+function acctSetMsg(m, kind){ acct.msg = m; acct.msgKind = kind || "bad"; }
+
+async function submitAccount(kind){
+  const email = (($("#acct-email") || {}).value || "").trim().toLowerCase();
+  const pw = ($("#acct-pw") || {}).value || "";
+  const keepEmail = email;
+  const fail = (m) => { acct.busy = false; acctSetMsg(m); renderAccount(); const e = $("#acct-email"); if (e) e.value = keepEmail; };
+  if (kind !== "delete" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Saisis une adresse e-mail valide.");
+  if ((kind === "register" || kind === "recover") && pw.length < 10) return fail("Le mot de passe doit faire au moins 10 caractères.");
+  if (kind === "register" && pw !== (($("#acct-pw2") || {}).value || "")) return fail("Les deux mots de passe ne sont pas identiques.");
+  if ((kind === "login" || kind === "delete") && !pw) return fail("Saisis ton mot de passe.");
+  const rk = kind === "recover" ? (($("#acct-rk") || {}).value || "") : "";
+  if (kind === "recover" && rk.replace(/[^A-Za-z0-9]/g, "").length !== 25) return fail("La clé de secours compte 25 caractères (5 groupes de 5).");
+  acct.busy = true; acct.msg = ""; renderAccount();
+  const key = await deriveKey(kind === "delete" ? acct.email : email, pw);
+  let r;
+  if (kind === "login") r = await api("POST", "/api/auth/login", { email, key });
+  else if (kind === "register") r = await api("POST", "/api/auth/register", { email, key });
+  else if (kind === "recover") r = await api("POST", "/api/auth/recover", { email, key, recoveryKey: rk });
+  else r = await api("POST", "/api/auth/delete", { key });
+  acct.busy = false;
+  if (r.status < 200 || r.status >= 300) return fail(acctErr(r));
+  if (kind === "delete") { signedOut(); acctSetMsg("Ton compte a été supprimé.", "ok"); acct.view = "login"; renderAccount(); toast("Compte supprimé."); return; }
+  if (r.data.recoveryKey) { acct.recoveryKey = r.data.recoveryKey; acct.view = "recovery-shown"; }
+  else acct.view = "profile";
+  await signedIn(r.data.email);
+  acctSetMsg(kind === "register" ? "Compte créé. Ta progression est maintenant synchronisée." : kind === "recover" ? "Mot de passe changé." : "Connecté. Ta progression est synchronisée.", "ok");
+  renderAccount();
+  toast(kind === "register" ? "Compte créé." : "Connecté.");
+}
+async function logoutAccount(){
+  acct.busy = true; renderAccount();
+  if (srv.dirty) await srvFlush();
+  await api("POST", "/api/auth/logout", {});
+  acct.busy = false;
+  /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */
+  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; localSave();
+  signedOut(); done = 0; buildQueue(); render();
+  acct.view = "login"; acctSetMsg("Déconnecté. Ta progression reste enregistrée dans ton compte.", "ok"); renderAccount();
+}
+async function initAccount(){
+  if (!STANDALONE) return;
+  renderAccountBtn();
+  const r = await api("GET", "/api/auth/me");
+  if (r.status === 200) await signedIn(r.data.email);
+  else { acct.status = "out"; renderAccountBtn(); }
+}
+
 /* Accueil et prise en main */
 const WELCOME_KEY = "bristol-eps-welcome";
 function welcomeSeen(){ try { return localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { return false; } }
@@ -1505,7 +1708,7 @@ function renderWelcome(){
       <li>Retourne la carte (bouton ou touche Espace).</li>
       <li>Sois honnête : Raté, Hésité ou Su (touches 1, 2 ou 3).</li>
     </ol>
-    <p class="w-note">Dix nouvelles cartes par séance, dans l'ordre chronologique. Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
+    <p class="w-note">Dix nouvelles cartes par séance, dans l'ordre chronologique. Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
 }
 function showWelcome(focus){ renderWelcome(); $("#welcome").hidden = false; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
@@ -1533,6 +1736,7 @@ $("#f-p").value = NONE_P;
 $("#f-t").innerHTML = TH_ORDER.map(k => `<option value="${k}">${esc(THEMES[k])}</option>`).join("") + `<option value="">${NONE_T}</option>`;
 $("#f-t").value = "";
 document.addEventListener("submit", e => {
+  if (e.target.dataset && e.target.dataset.acctform) { e.preventDefault(); submitAccount(e.target.dataset.acctform); return; }
   if (!e.target.dataset || !e.target.dataset.codeform) return;
   e.preventDefault();
   const v = ($("#access-code").value || "").trim();
@@ -1557,6 +1761,7 @@ $("#add-form").addEventListener("submit", e => {
 localLoad(); buildQueue(); render();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
+initAccount().catch(() => {});
 </script>
 
 </body>
