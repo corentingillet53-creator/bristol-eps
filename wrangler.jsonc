@@ -14,5 +14,7 @@
   "preview_urls": false,
   // Garde les variables ajoutées dans le tableau de bord lors des déploiements.
   "keep_vars": true,
+  // Compteur des retours par code d'accès et par mois.
+  "kv_namespaces": [{ "binding": "QUOTA", "id": "49e3556c30ab46efa24e2238914a5d66" }],
   "observability": { "enabled": true }
 }

@@ -34,17 +34,9 @@ Mets bien les deux premières en **Secret** : elles restent ainsi cachées et ne
 
 Donne un code différent à chaque testeur : tu pourras en retirer un sans gêner les autres. Choisis des codes difficiles à deviner.
 
-## 3. Activer le quota mensuel (recommandé)
+## 3. Quota mensuel
 
-Sans cette étape, le site marche mais ne compte pas les retours : seul ton plafond de dépenses te protège.
-
-1. Dans Cloudflare, ouvre **Storage & Databases → KV** et crée un espace de noms nommé `bristol-quota`.
-2. Copie son **ID** (une suite de lettres et de chiffres ; ce n'est pas un secret).
-3. Cet ID doit être inscrit dans `wrangler.jsonc` : une liaison ajoutée seulement dans le tableau de bord serait effacée au déploiement suivant. Ajoute ce bloc dans le fichier, après la ligne `"keep_vars": true,` :
-
-   ```jsonc
-   "kv_namespaces": [{ "binding": "QUOTA", "id": "COLLE-ICI-L-ID" }],
-   ```
+Déjà en place : l'espace de stockage KV `bristol-quota` compte les retours par code et par mois. Il est déclaré dans `wrangler.jsonc` (une liaison ajoutée seulement dans le tableau de bord serait effacée au déploiement suivant).
 
 ## 4. Vérifier
 
