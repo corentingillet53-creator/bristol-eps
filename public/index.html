@@ -940,11 +940,11 @@ async function serverSample(payload, { signal, onText }){
     res = await fetch("/api/feedback", { method: "POST", signal,
       headers: { "content-type": "application/json", "x-access-code": codeGet() },
       body: JSON.stringify(payload) });
-  } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error" }; }
+  } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
-    const map = { invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config" };
-    throw { code: map[j.error] || "upstream_error", limit: j.limit };
+    const map = { invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
   const left = res.headers.get("x-quota-remaining");
   const reader = res.body.getReader(), dec = new TextDecoder();
@@ -961,7 +961,7 @@ async function serverSample(payload, { signal, onText }){
     }
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", text }; }
   let meta = {}; if (ctl) { try { meta = JSON.parse(ctl); } catch (e) {} }
-  if (meta.error) throw { code: "upstream_error", text };
+  if (meta.error) throw { code: "upstream_error", text, detail: meta.detail || "flux interrompu" };
   if (!text.trim()) throw { code: "empty_completion" };
   return { text, truncated: !!meta.truncated, quotaLeft: left === null ? null : +left };
 }
@@ -1007,7 +1007,7 @@ function fbBlock(s, kind){
     ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas. <button class="linkbtn" data-act="code-change">Changer de code</button></p>` : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
 }
-function fbErr(code){
+function fbErr(code, detail){
   if (code === "cancelled") return "Retour interrompu.";
   if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(code)) { sampleFn = null; return "Le retour de Claude n'est pas autorisé ici. Tu peux l'activer dans les autorisations de la page."; }
   if (code === "rate_limited") return "Trop de demandes pour l'instant. Réessaie dans quelques minutes.";
@@ -1019,7 +1019,10 @@ function fbErr(code){
   if (code === "quota") return "Tu as utilisé tous tes retours de ce mois. Ils se renouvellent le 1er du mois.";
   if (code === "too_short") return "Écris un peu plus avant de demander un retour.";
   if (code === "server_config") return "Le retour de Claude n'est pas encore configuré sur ce site.";
-  return "La connexion a été interrompue. Tu peux réessayer.";
+  if (code === "no_credit") return "Le compte API du site n'a plus de crédit. Ajoute du crédit dans la console Anthropic.";
+  if (code === "bad_api_key") return "La clé d'API du site est refusée par Claude. Vérifie le secret ANTHROPIC_API_KEY.";
+  if (code === "model_unavailable") return "Le modèle Claude configuré n'est pas disponible pour ce compte API.";
+  return "La connexion a été interrompue. Tu peux réessayer." + (detail ? " (Détail : " + detail + ")" : "");
 }
 const INTRO_CRIT = ["Une accroche liée au sujet", "Les termes du sujet définis", "Les bornes chronologiques justifiées", "Le contexte et l'enjeu du sujet", "Une problématique sous forme de question", "L'annonce du plan"];
 async function askFeedback(kind){
@@ -1088,7 +1091,7 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
     fbSave(key, res.text);
   } catch (e) {
     if (fb.ctl !== ctl) return;
-    fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code);
+    fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
   }
   fb.ctl = null;
   render();

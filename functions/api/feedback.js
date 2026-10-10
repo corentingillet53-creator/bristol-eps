@@ -84,7 +84,7 @@ function toTextStream(upstreamBody) {
     } else if (msg.type === "message_delta" && msg.delta && msg.delta.stop_reason === "max_tokens") {
       meta = { truncated: true };
     } else if (msg.type === "error") {
-      meta = { error: "upstream_error" };
+      meta = { error: "upstream_error", detail: `${(msg.error && msg.error.type) || ""} ${(msg.error && msg.error.message) || ""}`.trim().slice(0, 240) };
       console.error("Erreur de l'API Claude pendant le flux :", JSON.stringify(msg.error || msg));
     }
   };
@@ -97,7 +97,7 @@ function toTextStream(upstreamBody) {
       while (!finished && !sent) {
         let done, value;
         try { ({ done, value } = await reader.read()); }
-        catch (e) { meta = { error: "upstream_error" }; done = true; }
+        catch (e) { meta = { error: "upstream_error", detail: "flux de l'API interrompu" }; done = true; }
         if (value) {
           buf += dec.decode(value, { stream: true }).replace(/\r\n/g, "\n");
           let i;
@@ -115,16 +115,40 @@ function toTextStream(upstreamBody) {
   });
 }
 
+// Lit le message d'erreur renvoyé par l'API Claude ({type:"error", error:{type, message}}).
+async function readApiError(res) {
+  const raw = await res.text().catch(() => "");
+  let type = "", message = "";
+  try { const j = JSON.parse(raw); type = (j.error && j.error.type) || ""; message = (j.error && j.error.message) || ""; } catch {}
+  return { status: res.status, type, message: (message || raw).slice(0, 240) };
+}
+
 // GET /api/feedback : vérifie la configuration sans rien révéler de secret.
-export async function onRequestGet({ env }) {
-  return new Response(JSON.stringify({
+// GET /api/feedback?probe=1 : vérifie en plus la clé et le modèle auprès de l'API Claude,
+// avec un comptage de tokens (gratuit, ne consomme pas de crédit).
+export async function onRequestGet({ request, env }) {
+  const out = {
     ok: true,
     apiKey: !!env.ANTHROPIC_API_KEY,
     accessCodes: String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean).length,
     quotaStore: !!env.QUOTA,
     monthlyLimit: parseInt(env.MONTHLY_LIMIT || "30", 10),
     model: env.MODEL || DEFAULT_MODEL,
-  }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+  };
+  const url = new URL(request.url);
+  if (url.searchParams.get("probe") && env.ANTHROPIC_API_KEY) {
+    try {
+      const r = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages/count_tokens", {
+        method: "POST",
+        headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model: out.model, messages: [{ role: "user", content: "Bonjour" }] }),
+      });
+      out.probe = r.ok ? { keyAndModel: "ok" } : { keyAndModel: "erreur", ...(await readApiError(r)) };
+    } catch (e) {
+      out.probe = { keyAndModel: "injoignable", message: String(e).slice(0, 200) };
+    }
+  }
+  return new Response(JSON.stringify(out), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -173,15 +197,18 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (e) {
     console.error("API Claude injoignable :", String(e));
-    return json(502, "upstream_error");
+    return json(502, "upstream_error", { detail: "API Claude injoignable" });
   }
 
   if (!upstream.ok || !upstream.body) {
-    const detail = await upstream.text().catch(() => "");
-    console.error("Réponse de l'API Claude :", upstream.status, detail.slice(0, 500));
-    if (upstream.status === 429 || upstream.status === 529) return json(503, "busy");
-    if (upstream.status === 401 || upstream.status === 403) return json(500, "server_not_configured");
-    return json(502, "upstream_error");
+    const err = await readApiError(upstream);
+    console.error("Réponse de l'API Claude :", err.status, err.type, err.message);
+    const detail = `${err.status} ${err.type} ${err.message}`.trim();
+    if (/credit balance/i.test(err.message)) return json(402, "no_credit", { detail });
+    if (upstream.status === 429 || upstream.status === 529) return json(503, "busy", { detail });
+    if (upstream.status === 401 || upstream.status === 403) return json(500, "bad_api_key", { detail });
+    if (upstream.status === 404 || err.type === "not_found_error") return json(500, "model_unavailable", { detail });
+    return json(502, "upstream_error", { detail });
   }
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
