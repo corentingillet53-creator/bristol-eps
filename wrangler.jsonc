@@ -1,0 +1,15 @@
+// Configuration du Worker Cloudflare « bristol-eps ».
+// Les secrets (ANTHROPIC_API_KEY, ACCESS_CODES) se règlent dans le tableau de bord
+// Cloudflare et ne figurent jamais dans ce fichier.
+{
+  "name": "bristol-eps",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  // Garde les variables ajoutées dans le tableau de bord lors des déploiements.
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}
