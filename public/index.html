@@ -1115,7 +1115,39 @@ const NONE_P = "Sans période", NONE_T = "Sans thème";
 const KEY = "bristol-eps-v1";
 const DAY = 864e5;
 const NEW_MAX = 10;
-const IVL = [0, 0, 1, 3, 7, 15];
+/* ---------- Répétition espacée : FSRS-5 ----------
+   Chaque carte a une stabilité s (en jours : délai après lequel on a 90 % de chances de s'en souvenir)
+   et une difficulté df (1 à 10). La carte revient quand la probabilité de rappel tombe à 90 %.
+   Les boîtes 1 à 5 restent affichées : ce sont des paliers de stabilité. Paramètres par défaut de FSRS-5. */
+const FW = [0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621];
+const F_DECAY = -0.5, F_FACTOR = 19 / 81, F_RET = 0.9, F_MAX_DAYS = 365;
+const G_OF = { rate: 1, hesite: 2, su: 3 };
+const clampD = d => Math.min(10, Math.max(1, d));
+const fD0 = g => clampD(FW[4] - Math.exp(FW[5] * (g - 1)) + 1);
+const fRecall = (days, s) => Math.pow(1 + F_FACTOR * days / s, F_DECAY);
+/* Cartes vues avant FSRS : stabilité estimée d'après leur boîte. */
+const BOX_S = [0, 0.5, 1.5, 4, 9, 20];
+function fsrsState(p){ return p.s > 0 && p.df > 0 ? { s: p.s, df: p.df } : { s: BOX_S[p.b] || 1, df: 5 }; }
+function fsrsNext(p, g, now){
+  if (!p) return { s: FW[g - 1], df: fD0(g) };
+  const st = fsrsState(p), el = Math.max(0, (now - (p.t || now)) / DAY);
+  let s;
+  if (el < 1) s = st.s * Math.exp(FW[17] * (g - 3 + FW[18]));          /* revue dans la journée */
+  else {
+    const r = fRecall(el, st.s);
+    if (g === 1) s = Math.min(st.s, FW[11] * Math.pow(st.df, -FW[12]) * (Math.pow(st.s + 1, FW[13]) - 1) * Math.exp(FW[14] * (1 - r)));
+    else s = st.s * (1 + Math.exp(FW[8]) * (11 - st.df) * Math.pow(st.s, -FW[9]) * (Math.exp(FW[10] * (1 - r)) - 1) * (g === 2 ? FW[15] : 1));
+  }
+  const df = clampD(FW[7] * fD0(4) + (1 - FW[7]) * (st.df - FW[6] * (g - 3) * (10 - st.df) / 9));
+  return { s: Math.min(3650, Math.max(0.1, s)), df };
+}
+/* Intervalle en jours pour 90 % de rappel, plafonné pour que la carte revienne avant le concours. */
+function fsrsDays(s){
+  let d = Math.max(1, Math.round(s / F_FACTOR * (Math.pow(F_RET, 1 / F_DECAY) - 1)));
+  const ex = examDays(); if (ex && ex.daysLeft > 2) d = Math.min(d, ex.daysLeft - 1);
+  return Math.min(d, F_MAX_DAYS);
+}
+const boxOfS = (s, g) => g === 1 || s < 2 ? 1 : s < 4 ? 2 : s < 12 ? 3 : s < 30 ? 4 : 5;
 
 let progress = {}, custom = [], gone = [];
 let games = { frise: { g: 0, t: 0 }, qui: { g: 0, t: 0 } };
@@ -1259,7 +1291,7 @@ function fmtIn(ms){
   return Math.round(h / 24) + " jours";
 }
 function boxes(b){ let s = ""; for (let i = 1; i <= 5; i++) s += `<i class="${i <= b ? "on" : ""}"></i>`; return s; }
-function nextLabel(b){ const nb = b ? Math.min(5, b + 1) : 2; const d = IVL[nb]; return "passe en boîte " + nb + (nb === 5 ? " (maîtrisée)" : "") + " et revient " + (d === 1 ? "demain" : "dans " + d + " jours"); }
+function nextLabel(id){ const n = fsrsNext(progress[id], 3, Date.now()), nb = boxOfS(n.s, 3), d = fsrsDays(n.s); return (progress[id] && progress[id].b === nb ? "reste en boîte " : "passe en boîte ") + nb + (nb === 5 ? " (maîtrisée)" : "") + " et revient " + (d === 1 ? "demain" : "dans " + d + " jours"); }
 
 /* ---------- Stockage ---------- */
 function localLoad(){
@@ -1615,12 +1647,10 @@ function grade(r){
   const gk = "n_" + grpOf(byId(id) || {});
   log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) }, p ? {} : { [gk]: (lg[gk] || 0) + 1 });
   if (!cram || r === "rate") {
-    let b;
-    if (r === "rate") b = 1;
-    else if (r === "hesite") b = p ? Math.max(1, p.b) : 1;
-    else b = p ? Math.min(5, p.b + 1) : 2;
-    const ivl = b === 1 ? 10 * 6e4 : IVL[b] * DAY;
-    progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0) };
+    const g = G_OF[r] || 3, f = fsrsNext(p, g, now), b = boxOfS(f.s, g);
+    /* Ratée : elle revient dans 10 minutes, dans la séance. */
+    const ivl = g === 1 ? 10 * 6e4 : fsrsDays(f.s) * DAY;
+    progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0), s: Math.round(f.s * 100) / 100, df: Math.round(f.df * 100) / 100 };
   }
   persist();
   if (r === "rate") queue.splice(Math.min(3, queue.length), 0, id);
@@ -1695,7 +1725,7 @@ function renderRevise(){
             <button class="btn grade mid" data-g="hesite">Hésité <span class="k">2</span></button>
             <button class="btn grade good" data-g="su">Su <span class="k">3</span></button>
           </div>
-          <p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(b) + "."}</p>`
+          <p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(c.id) + "."}</p>`
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
     </div>`;
 }
@@ -1711,9 +1741,9 @@ function renderReviseSide(){
     <div class="side-card"><h2>Raccourcis</h2><ul class="keys">
       <li><span class="k">Espace</span>Retourner la carte</li>
       <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
-      <li><span class="k">2</span>Hésité : elle reste dans sa boîte</li>
-      <li><span class="k">3</span>Su : elle monte d'une boîte</li></ul></div>
-    <div class="side-card"><h2>Les boîtes</h2><p class="goal-sub">Une carte sue revient après 1, 3, 7 puis 15 jours. Elle est maîtrisée en boîte 5.</p></div>`;
+      <li><span class="k">2</span>Hésité : elle revient plus tôt</li>
+      <li><span class="k">3</span>Su : elle revient de plus en plus tard</li></ul></div>
+    <div class="side-card"><h2>Les boîtes</h2><p class="goal-sub">Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines, et jamais après la date du concours. Elle est maîtrisée en boîte 5, quand tu la retiens au moins un mois.</p></div>`;
 }
 function deckMatch(c){
   const h = normTxt([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)].join(" "));
@@ -5625,7 +5655,7 @@ function renderWelcome(){
     <p class="w-sub">Cinq espaces</p>
     <ul class="w-spaces">
       <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : une séance de cartes par épreuve, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
-      <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard.</span></li>
+      <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard, au moment où tu risques de les oublier.</span></li>
       <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les références et citations à placer en copie, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
       <li class="w-space"><b>S'entraîner</b><span>Frise, quiz « Qui ? », sujets d'écrit 1 et d'écrit 2 avec retour de Claude, annales des concours et méthode des écrits.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
@@ -5640,7 +5670,7 @@ function renderWelcome(){
     <p class="w-note">Dix nouvelles cartes par jour, dans l'ordre chronologique (ou le rythme calculé d'après la date de ton concours). Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
     </div><div>
     <p class="w-sub">Bon à savoir</p>
-    <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Une carte sue revient après 1, 3, 7 puis 15 jours. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
+    <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
     ${installHTML()}
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
