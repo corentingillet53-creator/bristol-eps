@@ -587,7 +587,8 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .outl-empty{font-size:13px;color:var(--muted);margin:4px 0 6px}
 .outl-warn{font-size:13px;color:var(--mid);font-weight:700;margin:4px 0 6px}
 .undo-btn{margin-right:12px;font-size:14px}
-.express-link{margin-top:10px;font-size:14px}
+.express-row{display:flex;flex-wrap:wrap;gap:4px 18px;margin:10px 0 0}
+.express-row .linkbtn{font-size:14px}
 .np-warn{color:var(--mid);margin-top:8px}
 #goal-np{margin-top:6px}
 #panel-revise .bristol{touch-action:pan-y;transition:transform .18s ease-out,box-shadow .12s}
@@ -610,6 +611,18 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .recap-list li{display:flex;align-items:center;gap:6px}
 .recap-list svg.ic{width:18px;height:18px;color:var(--gold)}
 @media (prefers-reduced-motion: reduce){ #panel-revise .bristol{transition:none} }
+.lst{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:22px 24px;min-height:220px;margin:12px 0 16px}
+.lst-ph{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent-text);margin:0 0 12px;font-size:15px}
+.lst-ph svg.ic{width:20px;height:20px}
+.lst-ph b{font-family:var(--f-display);font-size:22px;font-variant-numeric:tabular-nums}
+.lst-q{font-family:var(--f-display);font-weight:700;font-size:24px;line-height:1.25;margin:0}
+.lst-a{font-size:19px;font-weight:700;color:var(--accent-text);margin:16px 0 0;border-top:1px dashed var(--line);padding-top:14px}
+.lst-ctl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lst-ctl .btn{min-height:72px;font-size:19px}
+.lst-row{margin-top:12px}
+.lst-set{margin-top:16px}
+.lst-set summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.lst-l{font-weight:700;font-size:14px;margin:10px 0 6px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -1618,7 +1631,7 @@ function homeTasks(){
   const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
   return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
     bm ? `<li class="task lead-task blanc-task"><span class="task-ic">${icon("clock")}</span><div class="task-tx"><b>Concours blanc en cours</b><span>${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes</span></div><button class="btn primary" data-act="blanc-go">Reprendre</button></li>` : "",
-    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul>${sDone ? "" : `<button class="linkbtn express-link" data-act="express">Pas le temps ? Séance express de 5 minutes</button>`}</div></li>`,
+    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul>${sDone ? "" : `<p class="express-row"><button class="linkbtn" data-act="express">Pas le temps ? Séance express de 5 minutes</button>${canListen() ? `<button class="linkbtn" data-act="listen-home">Réviser en écoutant</button>` : ""}</p>`}</div></li>`,
     task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
       `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
     task(fDone, "line", fDone ? "Frise faite" : "Faire une frise", "Cinq événements à remettre dans l'ordre chronologique.",
@@ -1786,6 +1799,132 @@ function swipeEnd(e){
 }
 document.addEventListener("pointerup", swipeEnd);
 document.addEventListener("pointercancel", swipeEnd);
+/* ---------- Mode écoute : réviser sans écran ----------
+   Le téléphone lit la question (synthèse vocale du système, rien n'est envoyé à un serveur),
+   laisse un temps de réflexion, puis lit la réponse. On note « Su » ou « Raté » au bouton, au clavier
+   ou aux écouteurs (piste suivante / précédente) ; ou bien écoute continue, sans noter. */
+const LISTEN_KEY = "bristol-eps-listen";
+const listen = Object.assign({ mode: "grade", rate: 1, pause: 6 }, (() => { try { const o = JSON.parse(localStorage.getItem(LISTEN_KEY) || "{}"); return { mode: o.mode === "flow" ? "flow" : "grade", rate: [0.85, 1, 1.2].includes(o.rate) ? o.rate : 1, pause: [3, 6, 10].includes(o.pause) ? o.pause : 6 }; } catch (e) { return {}; } })(),
+  { on: false, phase: "", left: 0, timer: null, paused: false, ids: [], idx: 0, gen: 0, n: 0, lock: null });
+const canListen = () => typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance !== "undefined";
+let frVoice = null;
+function pickVoice(){ try { const vs = speechSynthesis.getVoices(); frVoice = vs.find(v => /^fr[-_]FR/i.test(v.lang) && v.localService) || vs.find(v => /^fr[-_]FR/i.test(v.lang)) || vs.find(v => /^fr/i.test(v.lang)) || null; } catch (e) {} }
+if (canListen()) { pickVoice(); try { speechSynthesis.addEventListener("voiceschanged", pickVoice); } catch (e) {} }
+function listenSave(){ try { localStorage.setItem(LISTEN_KEY, JSON.stringify({ mode: listen.mode, rate: listen.rate, pause: listen.pause })); } catch (e) {} }
+/* Sigles lus lettre par lettre ; texte découpé en phrases (certains navigateurs coupent les longues lectures). */
+function sayText(t){ return String(t).replace(/\b(EPS|APSA|APS|CAPEPS|INSEP|UNSS|USEP|BO)\b/g, m => m === "CAPEPS" ? "CAPEPS" : m.split("").join(" ")).replace(/→/g, ", ").replace(/[«»"]/g, "").replace(/\s+/g, " ").trim(); }
+function speak(text, gen){
+  return new Promise(res => {
+    const parts = sayText(text).match(/[^.!?;]+[.!?;]*\s*/g) || [String(text)];
+    let i = 0;
+    const next = () => {
+      if (gen !== listen.gen) return res(false);
+      if (i >= parts.length) return res(true);
+      const u = new SpeechSynthesisUtterance(parts[i++]);
+      u.lang = "fr-FR"; if (frVoice) u.voice = frVoice; u.rate = listen.rate;
+      u.onend = next; u.onerror = () => next();
+      try { speechSynthesis.speak(u); } catch (e) { res(false); listenStop(false); toast("La lecture à voix haute a échoué sur ce navigateur."); }
+    };
+    next();
+  });
+}
+const lwait = ms => new Promise(r => setTimeout(r, ms));
+function listenCard(){ return listen.mode === "flow" ? listen.ids[listen.idx] : queue[0]; }
+async function listenRun(){
+  const gen = ++listen.gen; clearInterval(listen.timer); listen.paused = false;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const id = listenCard();
+  if (!id) { listenStop(true); return; }
+  const c = byId(id); if (!c) { listenNext(); return; }
+  listen.phase = "q"; renderRevise();
+  if (!await speak(c.q, gen)) return;
+  listen.phase = "think"; listen.left = listen.pause; renderRevise();
+  await new Promise(res => {
+    listen.timer = setInterval(() => {
+      if (gen !== listen.gen) { clearInterval(listen.timer); return res(); }
+      listen.left--; const el = $("#lst-left"); if (el) el.textContent = listen.left;
+      if (listen.left <= 0) { clearInterval(listen.timer); res(); }
+    }, 1000);
+  });
+  if (gen !== listen.gen) return;
+  listen.phase = "a"; renderRevise();
+  if (!await speak("Réponse. " + c.a, gen)) return;
+  if (listen.mode === "flow") { listen.phase = "next"; renderRevise(); await lwait(1800); if (gen === listen.gen) listenNext(); return; }
+  listen.phase = "wait"; renderRevise();
+}
+function listenNext(){ listen.idx++; listen.n++; listenRun(); }
+function listenGrade(r){
+  if (!listen.on || listen.mode !== "grade" || !queue.length) return;
+  listen.gen++; try { speechSynthesis.cancel(); } catch (e) {}
+  clearInterval(listen.timer);
+  buzz(r === "su" ? 12 : [12, 40, 12]);
+  listen.n++; grade(r);
+  if (queue.length) listenRun(); else listenStop(true);
+}
+function listenPause(){ if (!listen.on) return; listen.gen++; clearInterval(listen.timer); try { speechSynthesis.cancel(); } catch (e) {} listen.paused = true; renderRevise(); }
+async function listenStart(){
+  if (!canListen()) { toast("La lecture à voix haute n'est pas disponible sur ce navigateur."); return; }
+  if (!queue.length && listen.mode === "grade") { toast("Rien à revoir pour l'instant : choisis l'écoute continue."); return; }
+  listen.on = true; listen.n = 0; listen.idx = 0;
+  if (listen.mode === "flow") {
+    listen.ids = queue.length ? queue.slice() : allCards().filter(inFilter).map(c => c.id);
+    if (!queue.length) for (let i = listen.ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [listen.ids[i], listen.ids[j]] = [listen.ids[j], listen.ids[i]]; }
+  }
+  try { if (navigator.wakeLock) listen.lock = await navigator.wakeLock.request("screen"); } catch (e) { listen.lock = null; }
+  mediaOn();
+  listenRun();
+}
+function listenStop(finished){
+  listen.gen++; clearInterval(listen.timer);
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const n = listen.n;
+  listen.on = false; listen.phase = ""; listen.paused = false;
+  try { if (listen.lock) listen.lock.release(); } catch (e) {} listen.lock = null;
+  mediaOff();
+  if (view === "revise") render(true);
+  if (finished) toast(n ? `Écoute terminée : ${plural(n, "carte")}.` : "Écoute terminée.");
+}
+/* Écouteurs : un son muet garde la session média active pour recevoir les boutons. */
+const SILENT_WAV = "data:audio/wav;base64,UklGRvQHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+let silentAudio = null;
+function mediaOn(){
+  if (!("mediaSession" in navigator)) return;
+  try {
+    if (!silentAudio) { silentAudio = new Audio(SILENT_WAV); silentAudio.loop = true; }
+    silentAudio.play().catch(() => {});
+    if (window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({ title: "Mode écoute", artist: "Bristol EPS", album: eprOf(grp).t });
+    const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+    set("nexttrack", () => listen.mode === "grade" ? listenGrade("su") : listenNext());
+    set("previoustrack", () => listen.mode === "grade" ? listenGrade("rate") : listenRun());
+    set("pause", listenPause); set("play", () => listenRun());
+  } catch (e) {}
+}
+function mediaOff(){
+  try { if (silentAudio) silentAudio.pause(); } catch (e) {}
+  if (!("mediaSession" in navigator)) return;
+  ["nexttrack", "previoustrack", "pause", "play"].forEach(a => { try { navigator.mediaSession.setActionHandler(a, null); } catch (e) {} });
+}
+function listenHTML(){
+  const id = listenCard(), c = id ? byId(id) : null;
+  const ph = listen.paused ? "En pause" : { q: "Question", think: "À toi", a: "Réponse", wait: "Tu savais ?", next: "Carte suivante…" }[listen.phase] || "";
+  const left = listen.mode === "flow" ? listen.ids.length - listen.idx : queue.length;
+  const chip = (attr, v, cur, l) => `<button class="chip" ${attr}="${v}" aria-pressed="${v === cur}">${l}</button>`;
+  return `<div class="sess"><b>Mode écoute${listen.mode === "flow" ? " continue" : ""} : ${esc(eprOf(grp).s.toLowerCase())}</b><span>${plural(left, "carte")}</span></div>
+    <div class="lst" aria-live="polite">
+      <p class="lst-ph">${listen.phase === "think" && !listen.paused ? `${icon("clock")} À toi : <b id="lst-left">${listen.left}</b> s` : esc(ph)}</p>
+      ${c ? `<p class="lst-q">${esc(c.q)}</p>${listen.phase === "a" || listen.phase === "wait" || listen.phase === "next" ? `<p class="lst-a">${esc(c.a)}</p>` : ""}` : ""}
+    </div>
+    <div class="lst-ctl">${listen.mode === "grade"
+      ? `<button class="btn grade bad" data-lst="rate">Raté <span class="k">1</span></button><button class="btn grade good" data-lst="su">Su <span class="k">3</span></button>`
+      : `<button class="btn" data-lst="repeat">Répéter</button><button class="btn primary" data-lst="skip">Carte suivante</button>`}</div>
+    <div class="row-btns lst-row">${listen.paused ? `<button class="btn primary" data-lst="resume">Reprendre <span class="k">Espace</span></button>` : `<button class="btn" data-lst="pause">Pause <span class="k">Espace</span></button>`}${listen.mode === "grade" ? `<button class="btn" data-lst="repeat">Répéter <span class="k">R</span></button>` : ""}<button class="btn" data-lst="stop">Quitter l'écoute</button></div>
+    <details class="lst-set"><summary>Réglages</summary>
+      <p class="lst-l">Vitesse</p><div class="chips">${chip("data-lrate", 0.85, listen.rate, "Lente")}${chip("data-lrate", 1, listen.rate, "Normale")}${chip("data-lrate", 1.2, listen.rate, "Rapide")}</div>
+      <p class="lst-l">Temps de réflexion</p><div class="chips">${[3, 6, 10].map(v => chip("data-lpause", v, listen.pause, v + " s")).join("")}</div>
+      <p class="lst-l">Mode</p><div class="chips">${chip("data-lmode", "grade", listen.mode, "Je note chaque carte")}${chip("data-lmode", "flow", listen.mode, "Écoute continue, sans noter")}</div>
+    </details>
+    <p class="hint">Avec des écouteurs : piste suivante = ${listen.mode === "grade" ? "Su" : "carte suivante"}, piste précédente = ${listen.mode === "grade" ? "Raté" : "répéter"}. L'écran reste allumé pendant l'écoute quand le téléphone le permet.</p>`;
+}
 
 /* ---------- Rendu ---------- */
 function renderFilters(){
@@ -1818,6 +1957,7 @@ function renderGrpSeg(){
 function renderRevise(){
   renderGrpSeg();
   const el = $("#panel-revise");
+  if (listen.on) { el.innerHTML = listenHTML(); return; }
   const c = queue.length ? byId(queue[0]) : null;
   if (!c) {
     const now = Date.now();
@@ -1834,14 +1974,14 @@ function renderRevise(){
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
       <div class="row-btns" style="margin-bottom:16px">${others.map(([e]) => `<button class="btn primary" data-grp="${e.id}">Passer ${e.id === "tx" ? "aux textes officiels" : "à l'" + e.s.toLowerCase()}</button>`).join("")}</div>` : ""}
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
-      <div class="row-btns">${goalMet ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button><button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
+      <div class="row-btns">${goalMet ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
   }
   const p = progress[c.id], b = p ? p.b : 0;
   const left = queue.length;
   el.innerHTML = `
     ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <div class="sess"><b>${cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess"><b>${cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${canListen() ? `<button class="linkbtn undo-btn" data-act="listen">Mode écoute</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
       <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" role="img" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
@@ -5537,6 +5677,7 @@ const INTROS = {
   annales: "Les sujets officiels des écrits depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Ceux des écrits 1 et 2 servent aussi d'entraînement, avec le retour de Claude."
 };
 function setView(v, focus){
+  if (listen.on && v !== "revise") listenStop(false);
   const moved = SEC_OF[v] !== SEC_OF[view];
   view = v; pendingDel = null; refEdit = null; cnEdit = null;
   if (moved) { try { window.scrollTo({ top: 0 }); } catch (e) {} }
@@ -5583,7 +5724,7 @@ document.addEventListener("click", e => {
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
   if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
-  if (d.grp && !d.act) { setGrp(d.grp); done = 0; buildQueue(); render(true); const b = document.querySelector(`#grp-seg [data-grp="${grp}"]`); if (b && !$('[data-act="flip"]')) b.focus({ preventScroll: true }); return; }
+  if (d.grp && !d.act) { if (listen.on) listenStop(false); setGrp(d.grp); done = 0; buildQueue(); render(true); const b = document.querySelector(`#grp-seg [data-grp="${grp}"]`); if (b && !$('[data-act="flip"]')) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
@@ -5649,6 +5790,20 @@ document.addEventListener("click", e => {
   if (d.tab) { setView(d.tab); return; }
   if (d.act === "flip") { flipped = true; render(true); return; }
   if (d.act === "undo") { undoGrade(); return; }
+  if (d.act === "listen") { listen.mode = "grade"; listenSave(); listenStart(); return; }
+  if (d.act === "listen-flow") { listen.mode = "flow"; listenSave(); listenStart(); return; }
+  if (d.act === "listen-home") { const g = busiestGrp(); if (g) setGrp(g); done = 0; buildQueue(); setView("revise"); listen.mode = queue.length ? "grade" : "flow"; listenStart(); return; }
+  if (d.lst) {
+    if (d.lst === "su" || d.lst === "rate") listenGrade(d.lst);
+    else if (d.lst === "pause") listenPause();
+    else if (d.lst === "resume" || d.lst === "repeat") listenRun();
+    else if (d.lst === "skip") listenNext();
+    else if (d.lst === "stop") listenStop(false);
+    return;
+  }
+  if (d.lrate) { listen.rate = +d.lrate; listenSave(); renderRevise(); return; }
+  if (d.lpause) { listen.pause = +d.lpause; listenSave(); renderRevise(); return; }
+  if (d.lmode) { if (listen.mode !== d.lmode) { listen.mode = d.lmode === "flow" ? "flow" : "grade"; listenSave(); if (listen.on) { if (listen.mode === "grade" && !queue.length) { listenStop(false); toast("Rien à noter pour l'instant."); } else listenStart(); } } return; }
   if (d.act === "express") { startExpress(view === "revise" ? grp : busiestGrp()); return; }
   if (d.act === "more-new") { extraNew[grp] = (extraNew[grp] || 0) + 10; done = 0; buildQueue(); render(true); return; }
   if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
@@ -6052,6 +6207,14 @@ document.addEventListener("keydown", e => {
     return;
   }
   if (view !== "revise") return;
+  if (listen.on) {
+    const k = e.key;
+    if (k === "1" || k === "3") { e.preventDefault(); listenGrade(k === "1" ? "rate" : "su"); }
+    else if (k === " " && !e.target.closest("button")) { e.preventDefault(); listen.paused ? listenRun() : listenPause(); }
+    else if (k === "r" || k === "R") { e.preventDefault(); listenRun(); }
+    else if (k === "Escape") { e.preventDefault(); listenStop(false); }
+    return;
+  }
   if ((e.key === "u" || e.key === "U") && lastGrade) { e.preventDefault(); undoGrade(); return; }
   if (!queue.length) return;
   if (!flipped && (e.key === " " || e.key === "Enter")) { if (e.target.closest("button")) return; e.preventDefault(); flipped = true; render(true); return; }
