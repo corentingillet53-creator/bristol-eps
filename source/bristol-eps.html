@@ -514,6 +514,27 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .plan-more summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
 .sect .row-btns{margin-top:14px}
 .w-install{margin-top:8px}.w-inst-how{margin:8px 0 0;font-size:15px}
+.tl-short{display:none}
+#tab-blanc{flex-grow:1.7;white-space:nowrap}
+@media (max-width:600px){ .seg .tl-long{display:none} .seg .tl-short{display:inline} #tab-blanc{flex-grow:1} }
+@media (max-width:520px){ .seg{gap:2px;padding:3px} .seg button{font-size:14px;padding:6px 3px} }
+.blanc-setup .lead{max-width:70ch}
+.blanc-f{border:0;padding:0;margin:0 0 16px}
+.blanc-f legend{font-weight:700;padding:0;margin:0 0 8px}
+.blanc-bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 20px;background:var(--hero);color:var(--hero-ink);border-radius:var(--r-l);padding:12px 18px;margin:0 0 18px}
+@media (max-width:959px){ .blanc-bar{top:64px} }
+.blanc-tl{display:block;font-size:13px;color:var(--hero-sub);font-weight:700}
+.blanc-t{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.blanc-info{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:14px;color:var(--hero-sub)}
+@media (max-width:520px){ .blanc-bar{padding:8px 14px;gap:2px 12px;border-radius:var(--r-m)} .blanc-tl{display:none} .blanc-t{font-size:22px} .blanc-info{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 12px;font-size:13px} }
+.blanc-copy{min-height:60vh;font-size:17px;line-height:1.6}
+.blanc-kpis{grid-template-columns:repeat(3,minmax(0,1fr));margin:14px 0 18px}
+.blanc-copy-ro{margin:16px 0}
+.blanc-copy-ro summary{cursor:pointer;font-weight:700;min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.blanc-copy-txt{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:16px;max-height:70vh;overflow:auto;line-height:1.6}
+.blanc-item{appearance:none;display:grid;gap:4px;width:100%;text-align:left;background:none;border:0;padding:0;color:inherit;cursor:pointer;font:inherit}
+.blanc-list .is{display:flex;gap:10px;align-items:center}
+.btn.danger{background:var(--bad);border-color:transparent;color:var(--paper)}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -669,6 +690,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
         <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
         <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
         <button role="tab" id="tab-annales" data-tab="annales" aria-controls="panel-annales" aria-selected="false" tabindex="-1">Annales</button>
+        <button role="tab" id="tab-blanc" data-tab="blanc" aria-controls="panel-blanc" aria-selected="false" tabindex="-1" aria-label="Concours blanc"><span class="tl-long">Concours blanc</span><span class="tl-short" aria-hidden="true">Blanc</span></button>
         <button role="tab" id="tab-methode" data-tab="methode" aria-controls="panel-methode" aria-selected="false" tabindex="-1">Méthode</button>
       </div>
       <p class="intro" id="intro-train"></p>
@@ -676,6 +698,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
       <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
       <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
       <section id="panel-annales" role="tabpanel" aria-labelledby="tab-annales" hidden></section>
+      <section id="panel-blanc" role="tabpanel" aria-labelledby="tab-blanc" hidden></section>
       <section id="panel-methode" role="tabpanel" aria-labelledby="tab-methode" hidden></section>
     </div>
 
@@ -1347,7 +1370,9 @@ const ACHS = [
   { id: "wint", c: "red", t: "Introduction complète", d: "Cocher les six éléments de la grille sur une introduction.", v: () => [Math.max(0, ...SUBJECTS.map(x => chkGet(x.id).length)), 6] },
   { id: "w10", c: "red", t: "Dix paragraphes", d: "Rédiger un paragraphe argumenté sur 10 sujets différents.", v: () => [writtenBy("p:").length, 10] },
   { id: "wax", c: "red", t: "Sur tous les fronts", d: "Travailler au moins un sujet dans chacun des trois axes.", v: () => [new Set(Object.keys(ach.w).map(k => (subjOf(k) || {}).th).filter(Boolean)).size, 3] },
-  { id: "fb1", c: "red", t: "Regard extérieur", d: "Recevoir un premier retour de Claude.", v: () => [ach.f, 1] }
+  { id: "fb1", c: "red", t: "Regard extérieur", d: "Recevoir un premier retour de Claude.", v: () => [ach.f, 1] },
+  { id: "bl1", c: "ent", t: "Conditions réelles", d: "Rendre une première copie de concours blanc.", v: () => [blancsDone(), 1] },
+  { id: "bl5", c: "ent", t: "Endurance", d: "Rendre cinq copies de concours blanc.", v: () => [blancsDone(), 5] }
 ];
 /* Vérifie les succès ; renvoie ceux qui viennent d'être obtenus. */
 function checkAch(silent){
@@ -1420,7 +1445,8 @@ const ICON = {
   flame: '<path d="M12 3c.6 3.2 5 5.3 5 10.2A5 5 0 0 1 7 13.5c0-2 1-3.6 2.2-4.6.2 1.6.9 2.6 1.9 3.1-.2-3.2.1-6.3.9-9z"/>',
   medal: '<circle cx="12" cy="14.5" r="6"/><path d="M8.5 3h7l-2 5.5h-3z"/>',
   star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
-  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
 };
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
@@ -1477,8 +1503,11 @@ function homeTasks(){
   const subj = subjectOfDay();
   const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
   const fDone = (today.f || 0) > 0;
+  const bm = blancActive();
+  if (bm && blancLeft(bm) > 0 && !bl.iv) bl.iv = setInterval(blancTick, 1000);
   const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
   return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
+    bm ? `<li class="task lead-task blanc-task"><span class="task-ic">${icon("clock")}</span><div class="task-tx"><b>Concours blanc en cours</b><span>${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes</span></div><button class="btn primary" data-act="blanc-go">Reprendre</button></li>` : "",
     `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul></div></li>`,
     task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
       `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
@@ -4751,7 +4780,7 @@ function planWeeks(){
     const full = w % 4 === 3 ? ecr[((w + 1) / 4 - 1) % ecr.length] : null;
     ecr.forEach(e => {
       if (last) return;
-      if (final || e === full) items.push(`${cap(e.s)} : une copie complète en temps réel${e.h ? ` (${e.h} h)` : ""}, puis le retour de Claude.`);
+      if (final || e === full) items.push(`${cap(e.s)} : un concours blanc, copie complète en temps réel${e.h ? ` (${e.h} h)` : ""}, puis la correction de Claude.`);
       else items.push(`${cap(e.s)} : un sujet d'annale, problématique et plan détaillé en 1 h.`);
     });
     if (!last && !final && rel.includes("e2")) items.push("Références : en apprendre cinq et les placer dans un paragraphe.");
@@ -4775,7 +4804,7 @@ function planHTML(){
     <p class="lead">${plural(p.weeks.length, "semaine")} avant l'épreuve. Chaque jour : d'abord les cartes à revoir, puis les nouvelles. Les deux dernières semaines servent à revoir, sans nouvelles cartes.</p>
     <ol class="plan">${head.map(wk).join("")}</ol>
     ${rest.length ? `<details class="plan-more"><summary>Voir les ${rest.length} semaines suivantes</summary><ol class="plan" start="${PLAN_SHOW + 1}">${rest.map(wk).join("")}</ol></details>` : ""}
-    <div class="row-btns"><button class="btn" data-sec="train" data-gotab="annales">Choisir un sujet d'annale</button><button class="btn" data-sec="train" data-gotab="methode">Gestion du temps</button></div>
+    <div class="row-btns"><button class="btn" data-sec="train" data-gotab="blanc">Lancer un concours blanc</button><button class="btn" data-sec="train" data-gotab="annales">Choisir un sujet d'annale</button><button class="btn" data-sec="train" data-gotab="methode">Gestion du temps</button></div>
   </div>`;
 }
 
@@ -4840,6 +4869,209 @@ function icsDownload(form){
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast("Fichier agenda téléchargé : ouvre-le pour ajouter les rappels.");
 }
+/* ---------- Concours blanc : une épreuve complète en temps réel ----------
+   État dans les textes synchronisés : « bm:<id> » (description, JSON), « b:<id> » (copie),
+   « f:b:<id> » (retour de Claude). Le chrono repose sur l'heure de début : il continue
+   si la page est fermée, et la copie est rendue d'office à la fin du temps. */
+const FAM = { "capeps-l3": "cext", "capeps-m2": "cext", "capeps-3": "cext", "capeps-int": "cint", "agreg-ext": "aext", "agreg-int": "aint" };
+const bl = { k: null, src: "ann", h: null, view: null, confirm: null, iv: null };
+function blancEcrits(){
+  const c = concById(prefs.concours), f = c ? FAM[c.id] : null;
+  if (c && c.adm && c.adm.length) return c.adm.map(a => ({ k: f === "cint" ? "ei" : a.hist ? "e1" : "e2", s: c.adm.length > 1 ? (a.hist ? "Écrit 1" : "Écrit 2") : "Écrit", h: +((a.m.match(/(\d+) h/) || [])[1]) || null, f, co: c.t }));
+  return [{ k: "e1", s: "Écrit 1", h: null, f }, { k: "e2", s: "Écrit 2", h: null, f }];
+}
+function blancGet(id){ try { const m = JSON.parse(txGet("bm:" + id) || "null"); return m && m.id === id ? m : null; } catch (e) { return null; } }
+function blancPut(m){ txSet("bm:" + m.id, JSON.stringify(m)); txSaveLocal(); }
+function blancList(){ return Object.keys(texts).filter(k => k.startsWith("bm:")).map(k => blancGet(k.slice(3))).filter(Boolean).sort((a, b) => b.start - a.start); }
+function blancActive(){ return blancList().find(m => m.state === "run") || null; }
+function blancsDone(){ return blancList().filter(m => m.state === "done").length; }
+const blancLeft = m => Math.max(0, m.start + m.dur * 1000 - Date.now());
+function blancSubject(m){
+  if (m.src === "ann") { const a = ANNALES.find(x => x.id === m.sid); return a ? Object.assign(annSubject(a), { a }) : null; }
+  return (m.k === "e1" ? SUBJECTS : SUBJECTS2).find(x => x.id === m.sid) || null;
+}
+function fmtHMS(ms){ const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 3600) + " h " + String(Math.floor(s % 3600 / 60)).padStart(2, "0") + " min " + String(s % 60).padStart(2, "0") + " s"; }
+function fmtClock(t){ const d = new Date(t); return d.getHours() + " h " + String(d.getMinutes()).padStart(2, "0"); }
+const wordCount = t => (t.trim().match(/[^\s]+/g) || []).length;
+/* Repères de temps, sur le modèle de la page Méthode : un sixième pour analyser et bâtir le plan,
+   30 minutes de relecture (10 % pour une épreuve de moins de 3 heures). */
+function blancPhases(m){
+  const d = m.dur * 1000, plan = Math.round(d / 6), rel = m.dur >= 3 * 3600 ? 30 * 6e4 : Math.round(d / 10);
+  return [{ t: "Analyse du sujet et plan", end: m.start + plan }, { t: "Rédaction", end: m.start + d - rel }, { t: "Relecture", end: m.start + d }];
+}
+function blancPhase(m){ const now = Date.now(), ph = blancPhases(m); const p = ph.find(x => now < x.end) || ph[2]; return `${p.t} jusqu'à ${fmtClock(p.end)}`; }
+function blancDraw(e, src){
+  const done = new Set(blancList().filter(m => m.src === "ann").map(m => m.sid));
+  let pool;
+  if (src === "ann") {
+    pool = ANNALES.filter(a => a.e === e.k && (!e.f || a.f === e.f));
+    if (!pool.length) pool = ANNALES.filter(a => a.e === (e.k === "ei" ? "e2" : e.k));
+    const fresh = pool.filter(a => !done.has(a.id)); if (fresh.length) pool = fresh;
+  } else pool = e.k === "e1" ? SUBJECTS : SUBJECTS2;
+  return pool[Math.floor(Math.random() * pool.length)] || null;
+}
+function blancStart(){
+  const es = blancEcrits(), e = es.find(x => x.k === bl.k) || es[0];
+  const h = bl.h || e.h || 4, x = blancDraw(e, bl.src);
+  if (!x) { toast("Aucun sujet disponible pour cet écrit."); return; }
+  const now = Date.now(), id = "b" + now.toString(36);
+  blancPut({ id, k: e.k, s: e.s, co: e.co || "", f: e.f || "", src: bl.src, sid: x.id, dur: h * 3600, start: now, end: 0, state: "run" });
+  bl.view = null; bl.confirm = null; render();
+  const t = $("#blanc-copy"); if (t) t.focus();
+  toast(`C'est parti : ${h} h. Le chrono continue même si tu fermes la page.`);
+}
+function blancSubmit(m, auto){
+  m = Object.assign({}, m, { state: "done", end: auto ? m.start + m.dur * 1000 : Date.now() });
+  blancPut(m); bl.view = m.id; bl.confirm = null;
+  persist();
+  if (view === "blanc") render(); else if (view === "home") renderHome();
+  toast(auto ? "Temps écoulé : ta copie est rendue." : "Copie rendue.");
+}
+/* Fin du temps, y compris quand la page était fermée. */
+function blancCheck(){
+  const m = blancActive(); if (!m) { if (bl.iv) { clearInterval(bl.iv); bl.iv = null; } return null; }
+  if (blancLeft(m) <= 0) { blancSubmit(m, true); return null; }
+  if (!bl.iv) bl.iv = setInterval(blancTick, 1000);
+  return m;
+}
+function blancTick(){
+  const m = blancActive(); if (!m) { clearInterval(bl.iv); bl.iv = null; return; }
+  if (blancLeft(m) <= 0) { blancSubmit(m, true); return; }
+  const t = $("#btmr"); if (t) t.textContent = fmtHMS(blancLeft(m));
+  const p = $("#bphase"); if (p) p.textContent = blancPhase(m);
+  const h = $("#home-blanc-left"); if (h) h.textContent = fmtHMS(blancLeft(m)).replace(/ \d+ s$/, "");
+}
+function blancSubjHTML(m, s){
+  if (!s) return `<p class="lead">Sujet introuvable.</p>`;
+  const a = s.a;
+  return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${a.co}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div><p class="q">${esc(s.t)}</p>
+    ${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
+    ${a && a.e !== "e1" ? `<p class="sj-help">Le dossier du sujet officiel (contexte, documents, épisodes) n'est pas reproduit ici${a.src ? ` : <a href="${esc(a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
+}
+function blancRunHTML(m){
+  const s = blancSubject(m), copy = txGet("b:" + m.id);
+  const conf = bl.confirm;
+  return `<div class="blanc-bar" role="group" aria-label="Concours blanc en cours">
+      <div><span class="blanc-tl">Temps restant</span><span id="btmr" class="blanc-t" role="timer">${fmtHMS(blancLeft(m))}</span></div>
+      <div class="blanc-info"><span id="bphase">${esc(blancPhase(m))}</span><span><span id="bwords">${wordCount(copy)}</span> mots</span></div>
+    </div>
+    ${blancSubjHTML(m, s)}
+    <label for="blanc-copy" class="sj-help" style="display:block">Ta copie, ${savedWhere("e")} au fil de la frappe. Pas de fiches ni de notes : conditions d'examen.</label>
+    <textarea id="blanc-copy" class="sj-notes blanc-copy" data-bid="${m.id}" spellcheck="false" placeholder="Introduction…">${esc(copy)}</textarea>
+    <div class="row-btns actions">${conf === "submit"
+      ? `<button class="btn primary" data-act="blanc-submit" data-ok="1">Confirmer : rendre ma copie</button><button class="btn" data-act="blanc-cancel">Continuer à écrire</button>`
+      : conf === "quit"
+      ? `<button class="btn danger" data-act="blanc-quit" data-ok="1">Confirmer l'abandon</button><button class="btn" data-act="blanc-cancel">Continuer à écrire</button>`
+      : `<button class="btn primary" data-act="blanc-submit">Rendre ma copie</button><button class="btn" data-act="blanc-quit">Abandonner</button>`}</div>`;
+}
+function blancFbHTML(m){
+  const key = "b:" + m.id, mine = fb.sid === key;
+  const text = mine ? fb.text : fbSaved(key), note = mine ? fb.note : "";
+  const busy = mine && (fb.status === "thinking" || fb.status === "streaming");
+  const out = mine && fb.status === "thinking" ? `<p class="fb-note">Claude corrige ta copie… (une à deux minutes pour une copie longue)</p>`
+    : (text ? `<p class="fb-label">Correction de Claude · un regard de correcteur, pas la note du jury</p><div class="fb-body">${mdLite(text)}</div>` : "") + (note ? `<p class="fb-note">${esc(note)}</p>` : "");
+  if (!sampleFn) return out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "";
+  if (STANDALONE && !codeGet()) return `<div class="fb"><form class="code-form" data-codeform="1" novalidate>
+      <label for="access-code">Code d'accès pour la correction par Claude</label>
+      <div class="row-btns"><input id="access-code" type="text" autocomplete="off" spellcheck="false" placeholder="Ton code bêta"><button class="btn" type="submit">Valider le code</button></div>
+    </form><div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
+  return `<div class="fb"><div class="row-btns"><button class="btn${text ? "" : " primary"}" data-act="blanc-fb" data-bid="${m.id}"${busy ? " disabled" : ""}>${text ? "Nouvelle correction" : "Faire corriger ma copie par Claude"}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
+    ${STANDALONE ? `<p class="fb-note">Une correction de copie compte pour deux retours. Ta copie est envoyée à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
+    <div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
+}
+function blancDoneHTML(m){
+  const s = blancSubject(m), copy = txGet("b:" + m.id), used = Math.round((m.end - m.start) / 6e4);
+  return `<div class="row-btns"><button class="btn" data-act="blanc-back">← Tous mes concours blancs</button></div>
+    <div class="kpis blanc-kpis">
+      <div class="kpi"><b>${wordCount(copy)}</b><span>mots</span></div>
+      <div class="kpi"><b>${Math.floor(used / 60)} h ${String(used % 60).padStart(2, "0")}</b><span>utilisées sur ${m.dur / 3600} h</span></div>
+      <div class="kpi"><b>${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))}</b><span>${esc(m.s)}${m.co ? " · " + esc(m.co) : ""}</span></div>
+    </div>
+    ${blancSubjHTML(m, s)}
+    <details class="blanc-copy-ro"><summary>${icon("pen")} Relire ma copie</summary><div class="blanc-copy-txt">${copy.trim() ? esc(copy) : "<em>Copie vide.</em>"}</div></details>
+    ${blancFbHTML(m)}
+    <p class="sj-help">Compare aussi avec ce que relèvent les jurys : onglet Méthode, « Ce que répètent les jurys »${s && s.a ? ", et le rapport de cette session dans l'onglet Annales" : ""}.</p>`;
+}
+function blancHomeHTML(){
+  const es = blancEcrits();
+  if (!bl.k || !es.some(e => e.k === bl.k)) bl.k = es[0].k;
+  const e = es.find(x => x.k === bl.k), hOff = e.h, h = bl.h || hOff || 4;
+  const list = blancList().filter(m => m.state !== "run");
+  const nAnn = ANNALES.filter(a => a.e === e.k && (!e.f || a.f === e.f)).length;
+  return `<div class="blanc-setup">
+    <p class="lead">Le sujet est tiré au sort au moment de commencer. Le chrono continue même si tu fermes la page ; à la fin du temps, la copie est rendue d'office.</p>
+    <fieldset class="blanc-f"><legend>Épreuve</legend><div class="chips">${es.map(x => `<button class="chip" data-blk="${x.k}" aria-pressed="${x.k === bl.k}">${esc(x.s)}${x.h ? ` · ${x.h} h` : ""}</button>`).join("")}</div></fieldset>
+    <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips"><button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort${nAnn ? ` (${nAnn})` : ""}</button><button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement</button></div></fieldset>
+    <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
+    ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button></p>`}
+    <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">Commencer : ${h} h</button></div>
+  </div>
+  ${list.length ? `<div class="sect"><h2>Mes concours blancs</h2><ul class="list blanc-list">${list.map(m => { const s = blancSubject(m), fbk = fbSaved("b:" + m.id); return `<li class="item"><button class="blanc-item" data-blopen="${m.id}"><span class="ip">${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))} · ${esc(m.s)} · ${m.dur / 3600} h${m.state === "quit" ? " · abandonné" : ""}</span><span class="iq">${esc(s ? s.t.slice(0, 160) + (s.t.length > 160 ? "…" : "") : "Sujet introuvable")}</span><span class="is"><span>${wordCount(txGet("b:" + m.id))} mots</span>${fbk ? `<span class="due">Corrigé</span>` : ""}</span></button></li>`; }).join("")}</ul></div>` : ""}`;
+}
+function renderBlanc(){
+  const m = blancCheck();
+  const el = $("#panel-blanc");
+  if (m) el.innerHTML = blancRunHTML(m);
+  else if (bl.view && blancGet(bl.view)) el.innerHTML = blancDoneHTML(blancGet(bl.view));
+  else { bl.view = null; el.innerHTML = blancHomeHTML(); }
+}
+/* Prompt de correction : même texte dans la page (mode Claude) et sur le serveur (functions/api/feedback.js). */
+function promptCopie(o){
+  const e2 = o.epreuve !== "e1";
+  return `Tu es membre du jury ${o.concours ? "du concours « " + o.concours + " »" : "des concours de recrutement des professeurs d'EPS (CAPEPS, agrégation)"} et tu corriges une copie de ${e2 ? "l'épreuve écrite de composition (sciences et intervention en EPS)" : "l'épreuve écrite de dissertation sur l'histoire de l'EPS"}, rédigée en temps limité lors d'un concours blanc.
+Sujet : « ${o.subject} »
+${o.contexte ? "\nContexte et épisodes fournis avec le sujet :\n" + o.contexte + "\n" : ""}
+Durée de l'épreuve : ${o.duree} ; temps utilisé par le candidat : ${o.minutes} minutes.
+
+Copie du candidat :
+"""
+${o.notes}
+"""
+${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${o.jury && o.jury.length ? "\nCe que les rapports de jury de ce concours répètent d'une session à l'autre :\n" + o.jury.map(j => "- " + j).join("\n") + "\n" : ""}
+Corrige cette copie comme un correcteur exigeant et bienveillant, en français, en 650 mots maximum, avec exactement ces titres, chacun sur une ligne qui commence par "## " :
+## Appréciation d'ensemble
+## Traitement du sujet et problématique
+## ${e2 ? "Démonstration, élèves et mises en œuvre" : "Plan, périodisation et démonstration"}
+## Connaissances mobilisées
+## Introduction, conclusion et expression
+## Note indicative
+## Trois priorités pour la prochaine copie
+Sous chaque titre, 1 à 4 puces qui commencent par "- ". Sous « Note indicative », donne une fourchette sur 20 (par exemple « 9 à 11 / 20 ») et une phrase qui la justifie, en rappelant qu'elle ne remplace pas la note d'un jury. Cite de courts passages de la copie quand c'est utile. Signale toute erreur factuelle ou date fausse. Si la copie est inachevée, dis-le et évalue ce qui est écrit. Ne réécris pas la copie.`;
+}
+function blancJury(m){
+  const j = JURYS.find(x => x.f === m.f); if (!j) return [];
+  const want = m.k === "e1" ? "Écrit 1" : m.k === "e2" ? "Écrit 2" : "Écrit";
+  return j.items.filter(i => i[0] === want || (m.k === "ei" && i[0] === "Écrit")).map(i => i[1]).slice(0, 10);
+}
+async function askCopie(m){
+  if (!m || !sampleFn) return;
+  const key = "b:" + m.id, copy = txGet(key).trim(), s = blancSubject(m);
+  if (fb.ctl) fb.ctl.abort();
+  if (copy.length < 200) { Object.assign(fb, { sid: key, status: "error", text: "", note: "Ta copie est trop courte pour une correction (quelques paragraphes au minimum).", ctl: null }); render(); return; }
+  const cards = s && s.c ? s.c.map(byId).filter(Boolean) : [];
+  const o = { epreuve: m.k === "e1" ? "e1" : "e2", concours: m.co || "", subject: s ? s.t : "", contexte: s && s.ctx ? ctxText(s).slice(0, 3000) : "",
+    duree: m.dur / 3600 + " h", minutes: Math.round((m.end - m.start) / 6e4), notes: copy.slice(0, 60000),
+    facts: cards.slice(0, 25).map(c => `[${pLabel(c)}] ${c.q} → ${c.a}`), jury: blancJury(m) };
+  const ctl = new AbortController();
+  Object.assign(fb, { sid: key, status: "thinking", text: "", note: "", ctl });
+  render();
+  const opts = { signal: ctl.signal, cache: false, onText: ({ text }) => {
+    if (fb.ctl !== ctl) return; fb.status = "streaming"; fb.text = text;
+    const el = document.getElementById("blanc-fb"); if (el && bl.view === m.id) el.innerHTML = `<p class="fb-label">Correction de Claude · un regard de correcteur, pas la note du jury</p><div class="fb-body">${mdLite(text)}</div>`;
+  } };
+  if (STANDALONE) opts.payload = Object.assign({ kind: "copie", axe: "Concours blanc" }, o);
+  try {
+    const res = await sampleFn(promptCopie(o), opts);
+    if (fb.ctl !== ctl) return;
+    fb.status = "done"; fb.text = res.text;
+    fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (typeof res.quotaLeft === "number" ? `Il te reste ${res.quotaLeft} retour${res.quotaLeft > 1 ? "s" : ""} ce mois-ci.` : "");
+    fbSave(key, res.text); ach.f++; persist();
+  } catch (e) {
+    if (fb.ctl !== ctl) return;
+    fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
+  }
+  fb.ctl = null; render();
+}
 function renderStats(){
   const cards = allCards();
   const seen = cards.filter(c => progress[c.id]).length;
@@ -4876,14 +5108,15 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","methode","stats","deck","add"];
+const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","blanc","methode","stats","deck","add"];
 const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", methode: "train", stats: "suivi" };
+const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", blanc: "train", methode: "train", stats: "suivi" };
 const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
   sujets: "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude.",
+  blanc: "Une épreuve complète en conditions réelles, puis la correction de Claude.",
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
   annales: "Les sujets officiels des écrits depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Ceux des écrits 1 et 2 servent aussi d'entraînement, avec le retour de Claude."
 };
@@ -4910,6 +5143,7 @@ function render(focusActions){
   if (view === "concours") renderConcours();
   if (view === "refs") renderRefs();
   if (view === "annales") renderAnnales();
+  if (view === "blanc") renderBlanc();
   if (view === "methode") renderMethode();
   if (view === "add") { const t = $("#tab-deck"); if (t) { t.setAttribute("aria-selected", "true"); t.tabIndex = 0; } }
   if (view === "frise") renderFrise();
@@ -4948,6 +5182,24 @@ document.addEventListener("click", e => {
   if (d.act === "me-train") { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.e === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = null; setView("sujets"); return; }
   if (d.anf) { an.f = d.anf; renderAnnales(); const b = document.querySelector(`[data-anf="${d.anf}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.blk) { bl.k = d.blk; bl.h = null; renderBlanc(); const b = $(`[data-blk="${d.blk}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.blsrc) { bl.src = d.blsrc === "sub" ? "sub" : "ann"; renderBlanc(); const b = $(`[data-blsrc="${bl.src}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.blh) { bl.h = +d.blh; renderBlanc(); const b = $(`[data-blh="${d.blh}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.blopen) { bl.view = d.blopen; renderBlanc(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
+  if (d.act === "blanc-start") { if (!blancActive()) blancStart(); return; }
+  if (d.act === "blanc-go") { setView("blanc"); const t = $("#blanc-copy"); if (t) t.focus(); return; }
+  if (d.act === "blanc-cancel") { bl.confirm = null; renderBlanc(); const t = $("#blanc-copy"); if (t) t.focus(); return; }
+  if (d.act === "blanc-submit" || d.act === "blanc-quit") {
+    const m = blancActive(); if (!m) { renderBlanc(); return; }
+    const what = d.act === "blanc-submit" ? "submit" : "quit";
+    if (!d.ok) { bl.confirm = what; renderBlanc(); const b = $(`[data-act="${d.act}"][data-ok]`); if (b) b.focus(); return; }
+    if (what === "submit") blancSubmit(m, false);
+    else { blancPut(Object.assign({}, m, { state: "quit", end: Date.now() })); bl.confirm = null; bl.view = null; renderBlanc(); toast("Concours blanc abandonné. Ta copie reste dans l'historique."); }
+    try { window.scrollTo({ top: 0 }); } catch (e) {}
+    return;
+  }
+  if (d.act === "blanc-back") { bl.view = null; renderBlanc(); return; }
+  if (d.act === "blanc-fb") { askCopie(blancGet(d.bid)); return; }
   if (d.annwork) { const a = ANNALES.find(x => x.id === d.annwork); if (a) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.cur = annSubject(a); sj.epr = sj.cur.epr; sj.axe = "Tous"; sj.shown = false; if (sj.mode !== "intro" && sj.mode !== "para") sj.mode = "plan"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.rfg) { rf.g = d.rfg; renderRefs(); const b = document.querySelector(`[data-rfg="${d.rfg}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.refcopy) { const r = REFS.find(x => x.id === d.refcopy); if (r) { try { navigator.clipboard.writeText(refCite(r)).then(() => toast("Référence copiée."), () => toast("Copie impossible : sélectionne le texte.")); } catch (err) { toast("Copie impossible : sélectionne le texte."); } } return; }
@@ -5019,6 +5271,13 @@ document.addEventListener("input", e => {
   if (e.target.id === "rf-search") { rf.q = e.target.value; renderRefs(); return; }
   if (e.target.id === "deck-search") { dq = e.target.value.trim(); renderFilters(); renderDeck(); return; }
   if (e.target.id === "an-search") { an.q = e.target.value; renderAnnales(); return; }
+  if (e.target.id === "blanc-copy") {
+    const m = blancActive();
+    if (!m || m.id !== e.target.dataset.bid) { renderBlanc(); return; }
+    txSet("b:" + m.id, e.target.value);
+    const w = $("#bwords"); if (w) w.textContent = wordCount(e.target.value);
+    return;
+  }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
@@ -5395,7 +5654,7 @@ $("#add-form").addEventListener("submit", e => {
   toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
 });
 
-localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render();
+localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render(); blancCheck();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});

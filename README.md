@@ -2,6 +2,7 @@
 
 Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offre gratuite) :
 
+- Concours blanc (onglet S'entraîner) : copie stockée avec les textes rédigés ; sa correction par Claude (`kind: "copie"` sur `/api/feedback`) compte pour deux retours dans le quota mensuel.
 - `public/` : le site (fiches, fils rouges, entraînements, suivi), servi tel quel ;
   `public/manifest.webmanifest`, `public/sw.js` et `public/icons/` rendent le site installable et utilisable hors ligne (la page et les polices sont mises en cache, jamais `/api/*`) ;
 - `functions/api/feedback.js` : la fonction serveur qui appelle Claude avec **ta** clé d'API, après avoir vérifié le code d'accès et le quota ;

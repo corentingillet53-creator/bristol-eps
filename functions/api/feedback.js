@@ -13,6 +13,8 @@
 
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_NOTES = 6000;
+const MAX_COPIE = 60000;      // concours blanc : copie complète
+const COPIE_COST = 2;         // une correction de copie compte pour deux retours
 const MAX_FACTS = 25;
 const MAX_FACT_LEN = 500;
 const AXES = new Set(["Transmettre et adapter", "Le geste et l'effort", "Débats et controverses", "Sujet d'annale"]);
@@ -68,6 +70,49 @@ Donne-lui un retour exigeant, bienveillant et concret, en français, en 300 mots
 ## Connaissances mobilisées
 ## À retravailler en priorité
 Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si les notions du sujet sont définies et reliées entre elles, si la démonstration articule le « en quoi » (pourquoi c'est efficace, preuves scientifiques) et le « comment » (mises en œuvre), si les propositions partent des comportements des élèves et du contexte, et si les connaissances sont précises et au service de l'argument. Si les notes sont trop minces pour juger, dis-le et indique quoi ajouter. ` + tail;
+}
+
+/* Concours blanc : correction d'une copie complète (même texte que la page, promptCopie). */
+function buildPromptCopie(o) {
+  const e2 = o.epreuve !== "e1";
+  return `Tu es membre du jury ${o.concours ? "du concours « " + o.concours + " »" : "des concours de recrutement des professeurs d'EPS (CAPEPS, agrégation)"} et tu corriges une copie de ${e2 ? "l'épreuve écrite de composition (sciences et intervention en EPS)" : "l'épreuve écrite de dissertation sur l'histoire de l'EPS"}, rédigée en temps limité lors d'un concours blanc.
+Sujet : « ${o.subject} »
+${o.contexte ? "\nContexte et épisodes fournis avec le sujet :\n" + o.contexte + "\n" : ""}
+Durée de l'épreuve : ${o.duree} ; temps utilisé par le candidat : ${o.minutes} minutes.
+
+Copie du candidat :
+"""
+${o.notes}
+"""
+${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${o.jury && o.jury.length ? "\nCe que les rapports de jury de ce concours répètent d'une session à l'autre :\n" + o.jury.map(j => "- " + j).join("\n") + "\n" : ""}
+Corrige cette copie comme un correcteur exigeant et bienveillant, en français, en 650 mots maximum, avec exactement ces titres, chacun sur une ligne qui commence par "## " :
+## Appréciation d'ensemble
+## Traitement du sujet et problématique
+## ${e2 ? "Démonstration, élèves et mises en œuvre" : "Plan, périodisation et démonstration"}
+## Connaissances mobilisées
+## Introduction, conclusion et expression
+## Note indicative
+## Trois priorités pour la prochaine copie
+Sous chaque titre, 1 à 4 puces qui commencent par "- ". Sous « Note indicative », donne une fourchette sur 20 (par exemple « 9 à 11 / 20 ») et une phrase qui la justifie, en rappelant qu'elle ne remplace pas la note d'un jury. Cite de courts passages de la copie quand c'est utile. Signale toute erreur factuelle ou date fausse. Si la copie est inachevée, dis-le et évalue ce qui est écrit. Ne réécris pas la copie.`;
+}
+function readCopie(body) {
+  const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+  const list = (v, n, max) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).slice(0, n).map((x) => x.trim().slice(0, max)) : []);
+  const o = {
+    epreuve: body.epreuve === "e1" ? "e1" : "e2",
+    concours: str(body.concours, 120),
+    subject: typeof body.subject === "string" ? body.subject.trim() : "",
+    contexte: str(body.contexte, 3000),
+    duree: /^[1-9] h$/.test(body.duree || "") ? body.duree : "",
+    minutes: Math.max(0, Math.min(600, Math.round(Number(body.minutes) || 0))),
+    notes: typeof body.notes === "string" ? body.notes.trim() : "",
+    facts: list(body.facts, MAX_FACTS, MAX_FACT_LEN),
+    jury: list(body.jury, 12, 400),
+  };
+  if (!o.subject || o.subject.length > 2000 || !o.duree) return { error: json(400, "bad_request") };
+  if (o.notes.length < 200) return { error: json(400, "too_short") };
+  if (o.notes.length > MAX_COPIE) return { error: json(413, "too_long") };
+  return { o };
 }
 
 function buildPrompt(kind, subject, axe, notes, facts) {
@@ -233,6 +278,11 @@ export async function onRequestPost({ request, env }) {
 
   let body;
   try { body = await request.json(); } catch { return json(400, "bad_request"); }
+  let prompt, maxTokens = 1200, cost = 1;
+  if (body && body.kind === "copie") {
+    const { o, error } = readCopie(body); if (error) return error;
+    prompt = buildPromptCopie(o); maxTokens = 2400; cost = COPIE_COST;
+  } else {
   const kind = body && (body.kind === "intro" || body.kind === "plan" || body.kind === "para") ? body.kind : null;
   const subject = typeof body.subject === "string" ? body.subject.trim() : "";
   const axe = typeof body.axe === "string" ? body.axe.trim() : "";
@@ -245,13 +295,15 @@ export async function onRequestPost({ request, env }) {
   if (!kind || !subject || subject.length > 2000 || !(e2 ? E2_AXES : AXES).has(axe)) return json(400, "bad_request");
   if (notes.length < 40) return json(400, "too_short");
   if (notes.length > MAX_NOTES) return json(413, "too_long");
+  prompt = e2 ? buildPrompt2(kind, subject, axe, contexte, notes, facts) : buildPrompt(kind, subject, axe, notes, facts);
+  }
 
   const limit = Math.max(1, parseInt(env.MONTHLY_LIMIT || "30", 10) || 30);
   let qkey = null, used = 0;
   if (env.QUOTA) {
     qkey = `q:${code}:${new Date().toISOString().slice(0, 7)}`;
     used = parseInt((await env.QUOTA.get(qkey)) || "0", 10) || 0;
-    if (used >= limit) return json(429, "quota_exceeded", { limit });
+    if (used + cost > limit) return json(429, "quota_exceeded", { limit });
   }
 
   let upstream;
@@ -261,9 +313,9 @@ export async function onRequestPost({ request, env }) {
       headers: apiHeaders(env),
       body: JSON.stringify({
         model: env.MODEL || DEFAULT_MODEL,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         stream: true,
-        messages: [{ role: "user", content: (e2 ? buildPrompt2(kind, subject, axe, contexte, notes, facts) : buildPrompt(kind, subject, axe, notes, facts)) }],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
   } catch (e) {
@@ -284,8 +336,8 @@ export async function onRequestPost({ request, env }) {
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
   if (qkey) {
-    await env.QUOTA.put(qkey, String(used + 1), { expirationTtl: 60 * 60 * 24 * 40 });
-    headers["x-quota-remaining"] = String(Math.max(0, limit - used - 1));
+    await env.QUOTA.put(qkey, String(used + cost), { expirationTtl: 60 * 60 * 24 * 40 });
+    headers["x-quota-remaining"] = String(Math.max(0, limit - used - cost));
   }
   return new Response(toTextStream(upstream.body), { headers });
 }
