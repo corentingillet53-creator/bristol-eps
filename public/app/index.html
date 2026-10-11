@@ -231,6 +231,34 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .grp-row.done .gr-t b{color:var(--muted)}
 .gr-ok{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);flex:none}
 .gr-ok svg.ic{width:18px;height:18px}
+.subnav{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{flex:1 0 auto;white-space:nowrap;padding:6px 14px}
+.home-one{display:grid;gap:12px}
+.ts{background:var(--surface);border:2px solid var(--accent);border-radius:var(--r-xl);padding:22px 22px 18px}
+.ts h2,.tw h2{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1.2;margin:0 0 6px}
+.ts-n{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:0 0 10px}
+.ts-n b{font-family:var(--f-display);font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.ts-n span{color:var(--muted);font-size:15px}
+.ts-parts{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;color:var(--muted)}
+.ts-parts b{color:var(--ink);margin-right:4px}
+.ts-go{width:100%;min-height:56px;font-size:18px}
+.ts-hint{margin:8px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.ts-alt{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px;margin:10px 0 0}
+.ts-lock{margin:12px 0 0;font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.ts.done{display:flex;gap:16px;align-items:flex-start;border-color:var(--line)}
+.ts.done p{margin:0 0 10px;color:var(--muted)}
+.ts-ic{flex:none;width:44px;height:44px;border-radius:var(--r-m);background:var(--soft);color:var(--accent-text);display:grid;place-items:center}
+.ts.done .ts-ic{background:var(--accent);color:var(--accent-ink)}
+.tw{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 14px 14px 16px}
+.tw-tx{flex:1;min-width:0}
+.tw h2{font-size:17px;margin:0}
+.tw p{margin:2px 0 0;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tw .btn{flex:none;min-height:44px}
+.hero-conc{display:flex;flex-wrap:wrap;gap:8px}
+.hero-conc .chip{background:var(--hero-tint);color:var(--hero-ink);border-color:transparent;min-height:44px;font-weight:700}
+.hero-conc .chip:hover{background:var(--hero-fill);color:var(--hero)}
+.qod{margin:0 0 18px}
 .seg-n{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:12px;line-height:18px}
 .grp-seg{margin-bottom:14px}
 @media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .sess-task .task-ic{display:none} .gr-t b,.gr-t span{display:block} }
@@ -802,8 +830,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="vertical">
       <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Aujourd'hui</span></button>
       <button class="nav-btn" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/></svg></span><span class="nl">Réviser</span></button>
-      <button class="nav-btn" role="tab" id="sec-comprendre" data-sec="comprendre" aria-controls="area-comprendre" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3z"/><path d="M21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z"/></svg></span><span class="nl">Apprendre</span></button>
-      <button class="nav-btn" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2"/><path d="M9.5 2.5h5"/><path d="M12 2.5V6"/></svg></span><span class="nl">S'entraîner</span></button>
+      <button class="nav-btn" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/></svg></span><span class="nl">Écrire</span></button>
       <button class="nav-btn" role="tab" id="sec-suivi" data-sec="suivi" aria-controls="area-suivi" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13"/><path d="M10 20V8"/><path d="M16 20v-5"/><path d="M22 20V4"/></svg></span><span class="nl">Progrès</span></button>
     </nav>
     <div class="tools">
@@ -828,27 +855,23 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
 
     <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise" hidden>
       <h1 class="page-h">Réviser</h1>
-      <div class="rev-grid"><div class="rev-main">
+      <div class="seg subnav" role="tablist" aria-label="Réviser" id="nav-revise">
+        <button role="tab" id="tab-revise" data-tab="revise" aria-controls="revise-wrap" aria-selected="true">Séance</button>
+        <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Fiches</button>
+        <button role="tab" id="tab-fils" data-tab="fils" aria-controls="panel-fils" aria-selected="false" tabindex="-1">Fils rouges</button>
+        <button role="tab" id="tab-refs" data-tab="refs" aria-controls="panel-refs" aria-selected="false" tabindex="-1">Références</button>
+        <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="false" tabindex="-1">Frise</button>
+        <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
+      </div>
+      <p class="intro" id="intro-revise"></p>
+      <div class="rev-grid" id="revise-wrap" role="tabpanel" aria-labelledby="tab-revise"><div class="rev-main">
       <div class="seg grp-seg" role="tablist" aria-label="Épreuve" id="grp-seg"></div>
       <details class="fdd" id="fdd-revise"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtrer <span class="fsum" id="fsum-revise"></span></summary><div class="fbar" id="filters-revise"></div></details>
       <section id="panel-revise" aria-live="polite"></section>
       </div><aside class="rev-side" id="revise-side" aria-label="Résumé de la séance"></aside></div>
-    </div>
 
-    <div id="area-comprendre" role="tabpanel" aria-labelledby="sec-comprendre" hidden>
-      <h1 class="page-h">Apprendre</h1>
-      <div class="seg" role="tablist" aria-label="Apprendre">
-        <button role="tab" id="tab-fils" data-tab="fils" aria-controls="panel-fils" aria-selected="true">Fils rouges</button>
-        <button role="tab" id="tab-refs" data-tab="refs" aria-controls="panel-refs" aria-selected="false" tabindex="-1">Références</button>
-        <button role="tab" id="tab-concours" data-tab="concours" aria-controls="panel-concours" aria-selected="false" tabindex="-1">Concours</button>
-        <button role="tab" id="tab-deck" data-tab="deck" aria-controls="panel-deck" aria-selected="false" tabindex="-1">Fiches</button>
-
-      </div>
       <div class="deck-search" id="deck-search-wrap" hidden><label class="sr-only" for="deck-search">Chercher dans toutes les fiches</label><input id="deck-search" type="search" placeholder="Chercher dans toutes les fiches : un nom, une date, une notion…" autocomplete="off"></div>
       <div class="fbar" id="filters-deck" hidden></div>
-      <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils"></section>
-      <section id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden></section>
-      <section id="panel-concours" role="tabpanel" aria-labelledby="tab-concours" hidden></section>
       <section id="panel-deck" role="tabpanel" aria-labelledby="tab-deck" hidden></section>
       <section id="panel-add" role="tabpanel" aria-labelledby="tab-deck" hidden>
       <button class="back" data-tab="deck">← Toutes les fiches</button>
@@ -878,30 +901,34 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
         <div class="row-btns"><button class="btn primary" type="submit">Ajouter au paquet</button></div>
       </form>
       </section>
+      <section id="panel-fils" role="tabpanel" aria-labelledby="tab-fils" hidden></section>
+      <section id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden></section>
+      <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise" hidden></section>
+      <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
     </div>
 
     <div id="area-train" role="tabpanel" aria-labelledby="sec-train" hidden>
-      <h1 class="page-h">S'entraîner</h1>
-      <div class="seg" role="tablist" aria-label="Mode d'entraînement">
-        <button role="tab" id="tab-frise" data-tab="frise" aria-controls="panel-frise" aria-selected="true">Frise</button>
-        <button role="tab" id="tab-qui" data-tab="qui" aria-controls="panel-qui" aria-selected="false" tabindex="-1">Qui ?</button>
-        <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="false" tabindex="-1">Sujets</button>
-        <button role="tab" id="tab-annales" data-tab="annales" aria-controls="panel-annales" aria-selected="false" tabindex="-1">Annales</button>
+      <h1 class="page-h">Écrire</h1>
+      <div class="seg subnav" role="tablist" aria-label="Écrire">
+        <button role="tab" id="tab-sujets" data-tab="sujets" aria-controls="panel-sujets" aria-selected="true">Sujets</button>
         <button role="tab" id="tab-blanc" data-tab="blanc" aria-controls="panel-blanc" aria-selected="false" tabindex="-1" aria-label="Concours blanc"><span class="tl-long">Concours blanc</span><span class="tl-short" aria-hidden="true">Blanc</span></button>
+        <button role="tab" id="tab-annales" data-tab="annales" aria-controls="panel-annales" aria-selected="false" tabindex="-1">Annales</button>
         <button role="tab" id="tab-methode" data-tab="methode" aria-controls="panel-methode" aria-selected="false" tabindex="-1">Méthode</button>
       </div>
       <p class="intro" id="intro-train"></p>
-      <section id="panel-frise" role="tabpanel" aria-labelledby="tab-frise"></section>
-      <section id="panel-qui" role="tabpanel" aria-labelledby="tab-qui" hidden></section>
-      <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets" hidden></section>
-      <section id="panel-annales" role="tabpanel" aria-labelledby="tab-annales" hidden></section>
+      <section id="panel-sujets" role="tabpanel" aria-labelledby="tab-sujets"></section>
       <section id="panel-blanc" role="tabpanel" aria-labelledby="tab-blanc" hidden></section>
+      <section id="panel-annales" role="tabpanel" aria-labelledby="tab-annales" hidden></section>
       <section id="panel-methode" role="tabpanel" aria-labelledby="tab-methode" hidden></section>
     </div>
-
     <div id="area-suivi" role="tabpanel" aria-labelledby="sec-suivi" hidden>
       <h1 class="page-h">Progrès</h1>
-      <section id="panel-stats"></section>
+      <div class="seg subnav" role="tablist" aria-label="Progrès">
+        <button role="tab" id="tab-stats" data-tab="stats" aria-controls="panel-stats" aria-selected="true">Mon suivi</button>
+        <button role="tab" id="tab-concours" data-tab="concours" aria-controls="panel-concours" aria-selected="false" tabindex="-1">Mon concours</button>
+      </div>
+      <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats"></section>
+      <section id="panel-concours" role="tabpanel" aria-labelledby="tab-concours" hidden></section>
     </div>
   </main>
 </div>
@@ -1649,7 +1676,7 @@ function checkAch(silent){
     let ok = false; try { const [v, max] = a.v(); ok = v >= max; } catch (e) {}
     if (ok) { ach.u[a.id] = now; fresh.push(a); }
   }
-  const rk = rankOf(readiness(allCards())), up = rk > ach.r;
+  const rk = rankOf(readiness(relCards())), up = rk > ach.r;
   if (up) ach.r = rk;
   if (!silent && (fresh.length || up)) {
     const msg = fresh.length === 1 ? "Succès obtenu : " + fresh[0].t + "."
@@ -1669,11 +1696,11 @@ function backfillWritten(){
 function axisRows(compact){
   const all = allCards();
   const row = (label, list) => { const v = readiness(list); return `<div class="rd-row"><span>${esc(label)}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></div>`; };
-  if (compact) return EPR.map(g => row(g.s, all.filter(c => GROUP_OF[c.th] === g.id))).join("");
-  return EPR.map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => row(THEMES[k], all.filter(c => c.th === k))).join("")).join("");
+  if (compact) return EPR.filter(g => relHas(g.id)).map(g => row(g.s, all.filter(c => GROUP_OF[c.th] === g.id))).join("");
+  return EPR.filter(g => relHas(g.id)).map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => row(THEMES[k], all.filter(c => c.th === k))).join("")).join("");
 }
 function readinessHTML(){
-  const all = allCards(), pct = readiness(all), rk = rankOf(pct);
+  const all = relCards(), pct = readiness(all), rk = rankOf(pct);
   const next = RANKS[rk + 1];
   const rows = axisRows();
   return `<div class="sect rd"><h2>Niveau de préparation</h2>
@@ -1724,18 +1751,25 @@ function subjectOfDay(){
 }
 const plural = (n, w) => n + " " + w + (n > 1 ? "s" : "");
 function heroHTML(){
-  const g = goalInfo(), st = streaks(), pct = readiness(allCards()), rk = rankOf(pct), myC = concById(prefs.concours);
+  const g = goalInfo(), st = streaks(), myC = concById(prefs.concours);
   const stats = `<div class="hero-stats">
       <div class="hstat"><b>${icon("flame")}${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée</span></div>
-      <div class="hstat"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
     </div>`;
+  if (!g && !myC && !goalEdit) {
+    return `<section class="hero" id="goal" aria-labelledby="hero-title">
+      <div class="hero-top"><div><h2 class="hero-title" id="hero-title">Quel concours prépares-tu ?</h2>
+        <p class="hero-note">Le site règle le compte à rebours sur la date des écrits et ne te montre que ce qui concerne ton concours.</p></div>${stats}</div>
+      <div class="hero-conc">${CONCOURS.map(x => `<button class="chip" data-onb="${x.id}">${esc(x.t)}</button>`).join("")}</div>
+      <p class="hero-date"><button class="linkbtn" data-act="goal-edit">Autre concours : indiquer une date</button></p>
+    </section>`;
+  }
   if (!g || goalEdit) {
     return `<section class="hero" id="goal" aria-labelledby="hero-title">
       <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
         <p class="hero-note">Avec la date, le site calcule chaque jour combien de nouvelles cartes voir pour avoir tout vu deux semaines avant l'épreuve.</p></div>${stats}</div>
       <form class="goal-form" data-goalform="1" novalidate>
         <label class="sr-only" for="exam-date">Date du concours</label>
-        <input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn primary" type="submit">Enregistrer</button>${myC && myC.d && prefs.examDate !== myC.d ? `<button class="btn" type="button" data-act="conc-date" data-id="${myC.id}">Écrits du ${esc(fmtDay(myC.d))}</button>` : ""}${myC ? "" : `<button class="btn" type="button" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button>`}${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit && g ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}
+        <input id="exam-date" type="date" value="${esc(prefs.examDate)}" min="${dayKey()}"><button class="btn primary" type="submit">Enregistrer</button>${myC && myC.d && prefs.examDate !== myC.d ? `<button class="btn" type="button" data-act="conc-date" data-id="${myC.id}">Écrits du ${esc(fmtDay(myC.d))}</button>` : ""}${myC ? "" : `<button class="btn" type="button" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}${prefs.examDate ? `<button class="btn" type="button" data-act="goal-clear">Retirer la date</button>` : ""}${goalEdit ? `<button class="btn" type="button" data-act="goal-cancel">Annuler</button>` : ""}
       </form>
     </section>`;
   }
@@ -1745,74 +1779,66 @@ function heroHTML(){
   if (g.daysLeft < 0) lane = `<p class="hero-note">La date du concours est passée. Mets-la à jour si tu repasses l'épreuve.</p>`;
   else if (g.daysLeft === 0) lane = `<p class="hero-note">C'est le jour du concours. Bon courage !</p>`;
   else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
-  else {
-    const n = Math.min(g.today.n, g.newPerDay), w = Math.round(100 * n / g.newPerDay);
-    lane = `<div><p class="lane-lab"><span>Nouvelles cartes du jour, toutes épreuves</span><b>${n} / ${g.newPerDay}</b></p>
-      <div class="lane" role="progressbar" aria-label="Nouvelles cartes du jour" aria-valuemin="0" aria-valuemax="${g.newPerDay}" aria-valuenow="${n}"><span style="width:${w}%"></span></div>
-      <p class="hero-note">${g.daysLeft <= 14 ? "Phase finale : après tes nouvelles cartes, revois tes points faibles." : "À ce rythme, tu auras tout vu deux semaines avant le concours."}</p></div>`;
-  }
+  else lane = g.daysLeft <= 14 ? `<p class="hero-note">Phase finale : après ta séance, revois tes points faibles.</p>` : "";
   return `<section class="hero" id="goal" aria-label="Objectif concours">
-    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
+    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
     ${lane}
   </section>`;
 }
-function homeTasks(){
-  const now = Date.now(), cards = allCards();
-  const today = log[dayKey()] || { a: 0, n: 0 };
-  const gs = EPR.filter(e => relGroups().includes(e.id)).map(e => [e, grpGoal(e.id)]);
-  const sDone = gs.every(([e, x]) => !x.todo || grpLocked(e.id));
-  const rows = gs.map(([e, x]) => {
-    const parts = [x.due ? plural(x.due, "carte") + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean);
-    if (grpLocked(e.id)) return `<li class="grp-row locked"><span class="gr-t"><b>${esc(e.s)}</b><span>Accès complet</span></span><button class="btn small" data-act="paywall" data-why="ecrit">${icon("lock")} Débloquer</button></li>`;
-    return `<li class="grp-row${x.todo ? "" : " done"}"><span class="gr-t"><b>${esc(e.s)}</b><span>${x.todo ? parts.join(" et ") : "Terminé pour aujourd'hui"}</span></span>${x.todo ? `<button class="btn small${e.id === (gs.find(([, y]) => y.todo) || [{}])[0].id ? " primary" : ""}" data-act="home-start" data-g="${e.id}">Réviser</button>` : `<span class="gr-ok">${icon("check")}</span>`}</li>`;
-  }).join("");
-  const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
-  const subj = subjectOfDay();
-  const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
-  const fDone = (today.f || 0) > 0;
+/* Accueil : le strict nécessaire. Une séance qui enchaîne les écrits de ton concours, un exercice d'écriture. */
+function subjectOfDay2(){
+  const n = SUBJECTS2.length, day = Math.floor(startOfDay().getTime() / DAY);
+  for (let i = 0; i < n; i++) { const x = SUBJECTS2[(day + i) % n]; if (!ach.w["p:" + x.id]) return x; }
+  return SUBJECTS2[day % n];
+}
+function homeSession(){
+  const now = Date.now();
+  const gs = EPR.filter(e => relHas(e.id)).map(e => [e, grpGoal(e.id)]);
+  const open = gs.filter(([e]) => !grpLocked(e.id)), locked = gs.filter(([e]) => grpLocked(e.id));
+  const todo = open.filter(([, x]) => x.todo);
+  const due = todo.reduce((t, [, x]) => t + x.due, 0), fresh = todo.reduce((t, [, x]) => t + x.left, 0), total = due + fresh;
+  const lockLine = locked.length ? `<p class="ts-lock">${icon("lock")} ${locked.map(([e]) => esc(e.s)).join(" et ")} : accès complet. <button class="linkbtn" data-act="paywall" data-why="ecrit">Débloquer</button></p>` : "";
+  if (!total) {
+    const next = relCards().filter(c => !grpLocked(grpOf(c))).map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
+    return `<section class="ts done" aria-labelledby="ts-h"><span class="ts-ic">${icon("check")}</span><div><h2 id="ts-h">Séance du jour terminée</h2>
+      <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes tes cartes sont programmées."} Bravo, c'est la régularité qui fait retenir.</p>
+      ${lockLine}<div class="row-btns"><button class="btn" data-sec="revise">Réviser librement</button></div></div></section>`;
+  }
+  const min = Math.max(1, Math.round((due * 12 + fresh * 30) / 60));
+  const part = ([e, x]) => `<li><b>${esc(e.s)}</b> ${[x.due ? x.due + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean).join(", ")}</li>`;
+  return `<section class="ts" aria-labelledby="ts-h">
+    <h2 id="ts-h">Ta séance du jour</h2>
+    <p class="ts-n"><b>${plural(total, "carte")}</b><span>environ ${min} min</span></p>
+    ${todo.length > 1 || gs.length > 1 ? `<ul class="ts-parts">${todo.map(part).join("")}</ul>` : ""}
+    <button class="btn primary ts-go" data-act="home-start" data-g="${todo[0][0].id}">Commencer ma séance</button>
+    ${todo.length > 1 ? `<p class="ts-hint">Les écrits s'enchaînent l'un après l'autre, sans se mélanger.</p>` : ""}
+    <p class="ts-alt"><button class="linkbtn" data-act="express">Pas le temps ? 5 minutes</button>${canListen() ? `<button class="linkbtn" data-act="listen-home">Réviser en écoutant</button>` : ""}</p>
+    ${lockLine}
+  </section>`;
+}
+function homeTrain(){
   const bm = blancActive();
   if (bm && blancLeft(bm) > 0 && !bl.iv) bl.iv = setInterval(blancTick, 1000);
-  const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
-  return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
-    bm ? `<li class="task lead-task blanc-task"><span class="task-ic">${icon("clock")}</span><div class="task-tx"><b>Concours blanc en cours</b><span>${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes</span></div><button class="btn primary" data-act="blanc-go">Reprendre</button></li>` : "",
-    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul>${sDone ? "" : `<p class="express-row"><button class="linkbtn" data-act="express">Pas le temps ? Séance express de 5 minutes</button>${canListen() ? `<button class="linkbtn" data-act="listen-home">Réviser en écoutant</button>` : ""}</p>`}</div></li>`,
-    task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
-      `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
-    task(fDone, "line", fDone ? "Frise faite" : "Faire une frise", "Cinq événements à remettre dans l'ordre chronologique.",
-      `<button class="btn" data-act="home-frise">${fDone ? "Rejouer" : "Jouer"}</button>`)
-  ].join("") };
-}
-function homeAchHTML(){
-  const recent = ACHS.filter(a => ach.u[a.id]).sort((a, b) => ach.u[b.id] - ach.u[a.id]).slice(0, 3);
-  let best = null, bestR = -1;
-  for (const a of ACHS) {
-    if (ach.u[a.id]) continue;
-    let v = 0, max = 1; try { [v, max] = a.v(); } catch (e) {}
-    const r = Math.min(1, v / max); if (r > bestR) { bestR = r; best = { a, v: Math.min(v, max), max }; }
-  }
-  const nxt = best ? `<div class="next-ach"><span class="medal off">${icon("medal")}</span><div><b>Prochain succès : ${esc(best.a.t)}</b><p>${esc(best.a.d)}</p>${best.max > 1 ? `<span class="ach-bar" aria-hidden="true"><span style="width:${Math.round(100 * best.v / best.max)}%"></span></span><p>${best.a.pct ? best.v + " %" : best.v + " / " + best.max}</p>` : ""}</div></div>` : "";
-  return `<div class="more"><h2>Succès</h2><button class="linkbtn" data-sec="suivi">Voir mes progrès</button></div>
-    ${nxt}
-    ${recent.length ? `<ul class="recent" aria-label="Derniers succès obtenus">${recent.map(a => `<li><span class="medal">${icon("check")}</span>${esc(a.t)}</li>`).join("")}</ul>` : ""}`;
+  const card = (ic, h, sub, btn) => `<section class="tw" aria-labelledby="tw-h"><span class="ts-ic">${icon(ic)}</span><div class="tw-tx"><h2 id="tw-h">${h}</h2><p>${sub}</p></div>${btn}</section>`;
+  if (bm) return card("clock", "Concours blanc en cours", `${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes`, `<button class="btn primary" data-act="blanc-go">Reprendre</button>`);
+  const p = planWeeks(), w0 = p && p.weeks[0];
+  const recent = blancList().some(m => m.start > Date.now() - 7 * DAY);
+  if (w0 && !recent && w0.items.some(i => i.includes("concours blanc"))) return card("clock", "Cette semaine : un concours blanc", "Une copie complète en temps réel, comme le jour J. Garde-toi un créneau.", `<button class="btn" data-tab="blanc">Préparer</button>`);
+  const e1 = relHas("e1"), s = e1 ? subjectOfDay() : subjectOfDay2();
+  const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
+  return card(wDone ? "check" : "pen", wDone ? "Écrit du jour fait" : e1 ? "Un paragraphe argumenté" : "Une partie illustrée", `${esc(s.t)}`, `<button class="btn" data-act="home-write" data-sid="${s.id}">${wDone ? "Un autre" : "Écrire"}</button>`);
 }
 function quoteOfDay(){
-  const qs = QUOTES.filter(x => x.text.length < 260); if (!qs.length) return null;
+  const qs = QUOTES.filter(x => x.text.length < 260).filter(x => { const r = x.ref && REFS.find(y => y.id === x.ref); return r ? relHas(r.g) : relHas("e1"); }); if (!qs.length) return null;
   return qs[Math.floor(startOfDay().getTime() / DAY) % qs.length];
 }
 function renderHome(){
   const el = $("#panel-home"); if (!el) return;
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  const t = homeTasks();
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
-    ${heroHTML()}
+    ${welcomeOpen ? (prefs.concours || prefs.examDate ? heroHTML() : "") : `${heroHTML()}
     ${upgradeBanner()}
-    <div class="home-grid">
-      <div class="home-main"><div class="more"><h2>Au programme</h2><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
-        <ul class="today">${t.html}</ul></div>
-      <div class="home-side">${(() => { const wd = new Date().getDay(); return wd === 0 ? weekHTML(false, true) : wd === 1 ? weekHTML(true, true) : ""; })()}<div class="sect">${homeAchHTML()}</div>
-        ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><div class="more"><h2>À citer aujourd'hui</h2><button class="linkbtn" data-act="home-refs">Toutes les références</button></div><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
-        <div class="side-card"><div class="more"><h2>Niveau par épreuve</h2><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows(true)}</div></div></div>
-    </div>`;
+    <div class="home-one">${homeSession()}${homeTrain()}</div>`}`;
 }
 
 /* ---------- Séance ---------- */
@@ -1851,7 +1877,7 @@ function grade(r){
     const ivl = g === 1 ? 10 * 6e4 : fsrsDays(f.s) * DAY;
     progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0), s: Math.round(f.s * 100) / 100, df: Math.round(f.df * 100) / 100 };
   }
-  log[dk].r = readiness(allCards());
+  log[dk].r = readiness(relCards());
   sessRecord(id, r, before.p);
   lastGrade = Object.assign(before, { r });
   persist();
@@ -1885,7 +1911,7 @@ function sessRecord(id, r, p){
   if (!p) sess.fresh++;
   if (progress[id] && progress[id].b === 5 && (!p || p.b < 5)) sess.up5++;
 }
-function sessRecap(){
+function sessRecap(more){
   const s = sess; if (!s || !s.n || s.grp !== grp) return "";
   const min = Math.max(1, Math.round((s.end - s.start) / 6e4)), pct = Math.round(100 * s.su / s.n);
   const st = streaks(), now = Date.now(), t1 = startOfDay().getTime() + 2 * DAY;
@@ -1900,7 +1926,7 @@ function sessRecap(){
       ${s.up5 ? `<li>${s.up5} carte${s.up5 > 1 ? "s" : ""} maîtrisée${s.up5 > 1 ? "s" : ""} (boîte 5)</li>` : ""}
       ${st.cur ? `<li>${icon("flame")} ${plural(st.cur, "jour")} d'affilée</li>` : ""}
       <li>Demain : ${tomorrow ? plural(tomorrow, "carte") + " à revoir" : "rien à revoir pour cette épreuve"}</li>
-    </ul></div>${saveCardHTML(s.n)}`;
+    </ul></div>${more ? "" : saveCardHTML(s.n)}`;
 }
 function startExpress(g){
   if (g) setGrp(g);
@@ -2091,11 +2117,11 @@ function gsResults(q){
   const words = normTxt(q).split(/\s+/).filter(w => w.length > 1);
   if (!words.length) return null;
   const R = [];
-  const cards = allCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
+  const cards = relCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
   R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
     html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
     act: `data-gscram="${esc(c.id)}"`, lab: "Réviser cette fiche" })) });
-  const refs = REFS.filter(r => gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
+  const refs = REFS.filter(r => relHas(r.g) && gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
   R.push({ k: "refs", t: "Références", n: refs.length, all: refs.length > 5 ? "gs-all-refs" : "", items: refs.slice(0, 5).map(r => ({
     html: `<span class="gs-meta">${esc(r.au)}${r.y ? ", " + r.y : ""}</span><span class="gs-t">${gsHighlight(r.ti, words)}</span>`, act: `data-gsref="${esc(r.id)}"` })) });
   const anns = ANNALES.filter(a => gsMatch([a.t, a.co, String(a.y), a.j || "", a.ju || ""], words));
@@ -2348,7 +2374,7 @@ function renderFilters(){
 }
 function renderGrpSeg(){
   const el = $("#grp-seg"); if (!el) return;
-  el.innerHTML = EPR.map(e => { const x = grpGoal(e.id), on = e.id === grp;
+  el.innerHTML = EPR.filter(e => relHas(e.id)).map(e => { const x = grpGoal(e.id), on = e.id === grp;
     const lab = e.id === "tx" ? `<span class="tl-long">${esc(e.s)}</span><span class="tl-short" aria-hidden="true">Textes</span>` : esc(e.s);
     const lk = grpLocked(e.id);
     return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}${e.id === "tx" || lk ? ` aria-label="${esc(e.s)}${lk ? ", accès complet" : x.todo ? ", " + x.todo + " à faire" : ""}"` : ""}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span>` : x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
@@ -2368,13 +2394,13 @@ function renderRevise(){
     }
     const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
     const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
-    const others = EPR.filter(e => e.id !== grp).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
+    const others = EPR.filter(e => e.id !== grp && relHas(e.id) && !grpLocked(e.id)).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
     el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? "objectif du jour atteint." : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
-      ${done ? sessRecap() : ""}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
+      ${done ? sessRecap(others.length) : ""}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
-      <div class="row-btns" style="margin-bottom:16px">${others.map(([e]) => `<button class="btn primary" data-grp="${e.id}">Passer ${e.id === "tx" ? "aux textes officiels" : "à l'" + e.s.toLowerCase()}</button>`).join("")}</div>` : ""}
+      <div class="row-btns" style="margin-bottom:16px">${others.map(([e, x], i) => `<button class="btn${i ? "" : " primary"}" data-grp="${e.id}">Continuer ${e.id === "tx" ? "avec les textes officiels" : "avec l'" + e.s.toLowerCase()} (${x.todo})</button>`).join("")}</div>` : ""}
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
-      <div class="row-btns">${goalMet ? (isPremium() ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : `<button class="btn primary" data-act="paywall" data-why="new">Continuer sans limite</button>`) : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
+      <div class="row-btns">${goalMet ? (isPremium() ? `<button class="btn${others.length ? "" : " primary"}" data-act="more-new">10 nouvelles cartes de plus</button>` : `<button class="btn primary" data-act="paywall" data-why="new">Continuer sans limite</button>`) : ""}<button class="btn${goalMet || others.length ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
   }
   const p = progress[c.id], b = p ? p.b : 0;
@@ -3081,7 +3107,9 @@ function drawSubject(){
 }
 function renderSujets(){
   const e2 = sj.epr === "e2";
-  const eprChips = `<div class="seg sj-epr" role="tablist" aria-label="Écrit">${[["e1", "Écrit 1 : dissertation"], ["e2", "Écrit 2 : composition"]].map(([k, l]) => `<button role="tab" data-sjepr="${k}" aria-selected="${k === sj.epr}"${k === sj.epr ? "" : ' tabindex="-1"'}>${esc(l)}</button>`).join("")}</div>`;
+  if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
+  const eprList = [["e1", "Écrit 1 : dissertation"], ["e2", "Écrit 2 : composition"]].filter(([k]) => relHas(k));
+  const eprChips = eprList.length < 2 ? "" : `<div class="seg sj-epr" role="tablist" aria-label="Écrit">${eprList.map(([k, l]) => `<button role="tab" data-sjepr="${k}" aria-selected="${k === sj.epr}"${k === sj.epr ? "" : ' tabindex="-1"'}>${esc(l)}</button>`).join("")}</div>`;
   const chips = eprChips + `<div class="chips era-chips" aria-label="Thème des sujets">` + [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? ["AM","EF","EX","DA","IN"] : ["T","G","D"]).map(k => [k, THEMES[k]]))
     .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`;
   const modes = `<div class="modes" role="group" aria-label="Type d'entraînement"><button class="chip" data-sjmode="plan" aria-pressed="${sj.mode === "plan"}">Plan complet</button><button class="chip" data-sjmode="intro" aria-pressed="${sj.mode === "intro"}">Introduction chronométrée</button><button class="chip" data-sjmode="para" aria-pressed="${sj.mode === "para"}">${e2 ? "Partie illustrée" : "Paragraphe argumenté"}</button></div>`;
@@ -3348,6 +3376,7 @@ function concEpHTML(e, c){
 function renderConcours(){
   const el = $("#panel-concours"); if (!el) return;
   const mine = prefs.concours;
+  if (!conc.cur && mine && !conc.list) conc.cur = concById(mine);
   if (!conc.cur) {
     el.innerHTML = `<p class="lead">Les concours de recrutement des professeurs d'EPS, session 2027 : qui peut s'inscrire, les épreuves d'admissibilité et d'admission, et les programmes. Inscriptions sur Cyclades du 1er octobre 2026 (12 h) au 25 novembre 2026 (12 h).</p>
       <div class="fil-list">${CONCOURS.map(c => `<button class="fil-card conc-card${c.id === mine ? " is-mine" : ""}" data-conc="${c.id}">
@@ -3357,10 +3386,10 @@ function renderConcours(){
   }
   const c = conc.cur, isMine = c.id === mine;
   const sect = (title, list) => list.length ? `<div class="sect"><h2>${title}</h2><ul class="ep-list">${list.map(e => concEpHTML(e, c)).join("")}</ul></div>` : "";
-  el.innerHTML = `<button class="back" data-act="conc-back">← Tous les concours</button>
+  el.innerHTML = `<button class="back" data-act="conc-back">${isMine ? "Changer de concours" : "← Tous les concours"}</button>
     <div class="fil-head"><span class="period">${esc(c.tag)}</span><h2>${esc(c.t)}</h2></div>
     <p class="conc-note">${esc(c.note)}</p>
-    <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Mon concours (retirer)" : "C'est mon concours"}</button>${c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Compte à rebours jusqu'aux écrits</button>` : ""}</div>
+    <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Mon concours (retirer)" : "C'est mon concours"}</button>${isMine && c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Revenir à la date des écrits</button>` : ""}</div>
     <dl class="conc-facts">
       <div><dt>Pour qui</dt><dd>${esc(c.qui)}${c.prive ? `<br><span class="opt">${esc(c.prive)}</span>` : ""}</dd></div>
       <div><dt>Écrits 2027</dt><dd>${esc(c.ecrits)}</dd></div>
@@ -3686,6 +3715,7 @@ const QUOTES = [
 const normTxt = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 function refCite(r){ return `${r.au}, ${r.ti}, ${r.y}.`; }
 function refMatches(r){
+  if (!relHas(r.g)) return false;
   if (rf.g !== "tous" && r.g !== rf.g) return false;
   if (!rf.q) return true;
   const qs = QUOTES.filter(x => x.ref === r.id).map(x => x.text).join(" ");
@@ -3707,13 +3737,14 @@ function refHTML(r){
 function renderRefs(){
   const el = $("#panel-refs"); if (!el) return;
   const list = REFS.filter(refMatches);
-  const free = QUOTES.filter(x => !x.ref || !REFS.some(r => r.id === x.ref)).filter(x => (rf.g === "tous" || rf.g === "e1") && (!rf.q || normTxt([x.author, x.text, x.work].join(" ")).includes(normTxt(rf.q))));
-  const chips = [["tous", "Tout"], ["e1", "Écrit 1 : histoire"], ["e2", "Écrit 2 : sciences"]]
+  const free = QUOTES.filter(x => !x.ref || !REFS.some(r => r.id === x.ref)).filter(x => relHas("e1") && (rf.g === "tous" || rf.g === "e1") && (!rf.q || normTxt([x.author, x.text, x.work].join(" ")).includes(normTxt(rf.q))));
+  const chips = [["tous", "Tout"], ["e1", "Écrit 1 : histoire"], ["e2", "Écrit 2 : sciences"]].filter(([k]) => k === "tous" || relHas(k)).length < 3 ? "" : [["tous", "Tout"], ["e1", "Écrit 1 : histoire"], ["e2", "Écrit 2 : sciences"]]
     .map(([k, l]) => `<button class="chip" data-rfg="${k}" aria-pressed="${k === rf.g}">${esc(l)}</button>`).join("");
   const nQ = QUOTES.length;
   const head = document.getElementById("rf-search");
   if (!head) {
     el.innerHTML = `<p class="lead">Les ouvrages et les auteurs à citer dans tes copies, avec l'idée à retenir et l'usage possible. Les citations sont reproduites mot pour mot et vérifiées sur leur source.</p>
+      ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><h2>À citer aujourd'hui</h2><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
       <div class="rf-bar"><label class="sr-only" for="rf-search">Chercher une référence</label><input id="rf-search" type="search" placeholder="Chercher un auteur, un ouvrage, une idée…" value="${esc(rf.q)}" autocomplete="off"><div class="chips" id="rf-chips"></div></div>
       <p class="rf-count" id="rf-count" aria-live="polite"></p><div id="rf-list"></div>`;
   }
@@ -5312,15 +5343,17 @@ function annHTML(a){
 }
 function renderAnnales(){
   const el = $("#panel-annales"); if (!el) return;
-  if (an.f === null) an.f = ANN_FAM_OF_CONC[prefs.concours] || "tous";
+  const fam = ANN_FAM_OF_CONC[prefs.concours];
+  if (an.f === null) an.f = fam || "tous";
   const list = ANNALES.filter(a => (an.f === "tous" || a.f === an.f) && (an.e === "tous" || a.e === an.e || (an.e === "e1" && a.e === "ei"))
     && (!an.q || normTxt(a.t + " " + a.j.join(" ") + " " + a.y).includes(normTxt(an.q))));
   if (!document.getElementById("an-search")) {
     el.innerHTML = `<div class="rf-bar"><label class="sr-only" for="an-search">Chercher dans les annales</label><input id="an-search" type="search" placeholder="Chercher un mot du sujet : effort, mixité, 1967…" autocomplete="off">
       <div class="chips" id="an-fam"></div><div class="chips" id="an-ep"></div></div><p class="rf-count" id="an-count" aria-live="polite"></p><div id="an-list"></div>`;
   }
-  $("#an-fam").innerHTML = ANN_FAM.map(([k, l]) => `<button class="chip" data-anf="${k}" aria-pressed="${k === an.f}">${esc(l)}</button>`).join("");
-  $("#an-ep").innerHTML = [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
+  $("#an-fam").innerHTML = fam && !an.all ? `<button class="linkbtn" data-act="an-all">Voir aussi les annales des autres concours</button>`
+    : ANN_FAM.map(([k, l]) => `<button class="chip" data-anf="${k}" aria-pressed="${k === an.f}">${esc(l)}</button>`).join("") + (fam ? `<button class="linkbtn" data-act="an-mine">Revenir à mon concours</button>` : "");
+  $("#an-ep").innerHTML = an.f === "cint" ? "" : [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
   $("#an-count").textContent = `${list.length} sujet${list.length > 1 ? "s" : ""}`;
   const years = Array.from(new Set(list.map(a => a.y)));
   $("#an-list").innerHTML = list.length ? years.map(y => `<div class="sect"><h2>Session ${y}</h2><ul class="ann-list">${list.filter(a => a.y === y).map(annHTML).join("")}</ul></div>`).join("")
@@ -5404,12 +5437,14 @@ const JURYS = [
 const me = { tab: "e1", f: null };
 function renderMethode(){
   const el = $("#panel-methode"); if (!el) return;
-  if (me.f === null) me.f = ANN_FAM_OF_CONC[prefs.concours] || "cext";
-  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", "Écrit 1 : dissertation"], ["e2", "Écrit 2 : composition"], ["jury", "Ce que répètent les jurys"]].map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
+  const fam = ANN_FAM_OF_CONC[prefs.concours];
+  if (me.f === null) me.f = fam || "cext";
+  if (me.tab !== "jury" && !relHas(me.tab)) me.tab = relHas("e1") ? "e1" : "e2";
+  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", "Écrit 1 : dissertation"], ["e2", "Écrit 2 : composition"], ["jury", "Ce que répètent les jurys"]].filter(([k]) => k === "jury" || relHas(k)).map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
   let body;
   if (me.tab === "jury") {
     const g = JURYS.find(x => x.f === me.f) || JURYS[0];
-    body = `<div class="chips me-fam">${JURYS.map(x => `<button class="chip" data-mef="${x.f}" aria-pressed="${x.f === g.f}">${esc(x.t)}</button>`).join("")}</div>
+    body = `${fam ? "" : `<div class="chips me-fam">${JURYS.map(x => `<button class="chip" data-mef="${x.f}" aria-pressed="${x.f === g.f}">${esc(x.t)}</button>`).join("")}</div>`}
       <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
       ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h2>${ep}</h2><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
   } else {
@@ -5999,7 +6034,7 @@ function blancHomeHTML(){
     <fieldset class="blanc-f"><legend>Épreuve</legend><div class="chips">${es.map(x => `<button class="chip" data-blk="${x.k}" aria-pressed="${x.k === bl.k}">${esc(x.s)}${x.h ? ` · ${x.h} h` : ""}</button>`).join("")}</div></fieldset>
     <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips"><button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort${nAnn ? ` (${nAnn})` : ""}</button><button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement</button></div></fieldset>
     <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
-    ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button></p>`}
+    ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button></p>`}
     <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>
   </div>
   ${blancsDone() ? `<div class="sect"><h2>Ma progression</h2>${blancChartsHTML()}</div>` : ""}
@@ -6070,21 +6105,21 @@ async function askCopie(m){
   fb.ctl = null; render();
 }
 function renderStats(){
-  const cards = allCards();
+  const cards = relCards();
   const seen = cards.filter(c => progress[c.id]).length;
   const reviews = Object.values(progress).reduce((s, p) => s + (p.n || 0), 0);
   const weak = weakCards();
   const pct = (g, t) => t ? Math.round(100 * g / t) + " %" : "–";
-  const byTh = EPR.map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => barRow(THEMES[k], bucket(cards.filter(c => c.th === k)))).join("")).join("")
+  const byTh = EPR.filter(g => relHas(g.id)).map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => barRow(THEMES[k], bucket(cards.filter(c => c.th === k)))).join("")).join("")
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
-  const byP = PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
+  const byP = !relHas("e1") ? "" : PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
-    ${weekHTML(false)}
     ${readinessHTML()}
+    ${planHTML()}
+    ${weekHTML(false)}
     ${heatmapHTML()}
     ${forecastHTML()}
     ${agendaHTML()}
-    ${planHTML()}
     ${blancsDone() ? `<div class="sect span2"><h2>Concours blancs</h2>${blancChartsHTML()}<div class="row-btns"><button class="btn" data-sec="train" data-gotab="blanc">Voir mes concours blancs</button></div></div>` : ""}
     <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
@@ -6095,7 +6130,7 @@ function renderStats(){
     <div class="span2">${achHTML()}</div>
     <p class="legend-row span2"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h2>Par thème</h2>${byTh}</div>
-    <div class="sect"><h2>Par période</h2>${byP}</div>
+    ${byP ? `<div class="sect"><h2>Par période</h2>${byP}</div>` : ""}
     <div class="sect span2"><h2>Points faibles</h2>${weak.length
       ? `<ul class="list">${weak.map(c => `<li class="item"><div class="ip">${esc(thName(c))} · ${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div><div class="is"><span class="due now">Ratée ${progress[c.id].l} fois</span></div></li>`).join("")}</ul>
          <div class="row-btns actions" style="margin-top:14px"><button class="btn primary" data-act="weak-revise">Réviser ces ${weak.length} cartes</button></div>`
@@ -6108,18 +6143,20 @@ function startCram(ids){
 }
 
 const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","blanc","methode","stats","deck","add"];
-const SECS = ["home","revise","comprendre","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", fils: "comprendre", refs: "comprendre", concours: "comprendre", deck: "comprendre", add: "comprendre", frise: "train", qui: "train", sujets: "train", annales: "train", blanc: "train", methode: "train", stats: "suivi" };
-const lastSub = { home: "home", revise: "revise", comprendre: "fils", train: "frise", suivi: "stats" };
+const SECS = ["home","revise","train","suivi"];
+const SEC_OF = { home: "home", revise: "revise", deck: "revise", add: "revise", fils: "revise", refs: "revise", frise: "revise", qui: "revise", sujets: "train", blanc: "train", annales: "train", methode: "train", stats: "suivi", concours: "suivi" };
+const lastSub = { home: "home", revise: "revise", train: "sujets", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
-  sujets: "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude.",
+  get sujets(){ return relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
+    : relHas("e1") ? "Entraîne-toi à la dissertation d'histoire de l'EPS, avec le retour de Claude." : "Entraîne-toi à la composition à partir d'un contexte et d'épisodes de classe, avec le retour de Claude."; },
   blanc: "Une épreuve complète en conditions réelles, puis la correction de Claude.",
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
-  annales: "Les sujets officiels des écrits depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Ceux des écrits 1 et 2 servent aussi d'entraînement, avec le retour de Claude."
+  get annales(){ return (prefs.concours ? "Les sujets officiels de ton concours" : "Les sujets officiels des écrits") + " depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Chacun sert aussi d'entraînement, avec le retour de Claude."; }
 };
 function setView(v, focus){
+  if (["fils", "frise", "qui"].includes(v) && !relHas("e1")) v = "revise";
   if (listen.on && v !== "revise") listenStop(false);
   const moved = SEC_OF[v] !== SEC_OF[view];
   view = v; pendingDel = null; refEdit = null; cnEdit = null;
@@ -6136,7 +6173,11 @@ function render(focusActions){
   const wl = $("#welcome"); if (wl) wl.hidden = !(typeof welcomeOpen !== "undefined" && welcomeOpen && view === "home");
   SECS.forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
   VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
-  $("#intro-train").textContent = INTROS[view] || "";
+  $("#intro-train").textContent = SEC_OF[view] === "train" ? INTROS[view] || "" : "";
+  const ir = $("#intro-revise"); if (ir) ir.textContent = SEC_OF[view] === "revise" ? INTROS[view] || "" : "";
+  const rw = $("#revise-wrap"); if (rw) rw.hidden = view !== "revise";
+  /* Histoire de l'EPS (fils rouges, frise, « Qui ? ») : seulement si le concours a un écrit 1. */
+  ["fils", "frise", "qui"].forEach(k => { const t = $("#tab-" + k); if (t) t.hidden = !relHas("e1"); });
   if (view === "home") renderHome();
   if (view === "revise") { renderRevise(); renderReviseSide(); }
   if (view === "fils") renderFils();
@@ -6171,20 +6212,20 @@ document.addEventListener("click", e => {
   if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
   if (d.grp && !d.act) { if (listen.on) listenStop(false); setGrp(d.grp); done = 0; buildQueue(); render(true); const b = document.querySelector(`#grp-seg [data-grp="${grp}"]`); if (b && !$('[data-act="flip"]')) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
-  if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
+  if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid) || SUBJECTS2.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = s.epr === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
   if (d.onb) {
-    const c = concById(d.onb);
-    prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d && !prefs.examDate ? { examDate: c.d } : {});
-    setGrp(relGroups()[0]); an.f = null; me.f = null; persist(); done = 0; buildQueue(); renderWelcome(); render();
-    toast(c ? `C'est noté : ${c.t}${c.d ? ", compte à rebours réglé sur les écrits" : ""}.` : "Tout le contenu reste affiché.");
-    const b = $(".w-onb .btn, [data-act=welcome-start]"); if (b) b.focus({ preventScroll: true }); return;
+    const c = chooseConcours(d.onb === "none" ? "" : d.onb); renderWelcome();
+    toast(c ? `C'est noté : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
+    const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
   }
-  if (d.onbChange) { conc.cur = null; setView("concours"); return; }
+  if (d.onbChange) { conc.cur = null; conc.list = true; setView("concours"); return; }
   if (d.metab) { me.tab = d.metab; renderMethode(); const b = document.querySelector(`[data-metab="${d.metab}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.mef) { me.f = d.mef; renderMethode(); const b = document.querySelector(`[data-mef="${d.mef}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "me-jury") { me.tab = "jury"; renderMethode(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "me-train") { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.e === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = null; setView("sujets"); return; }
+  if (d.act === "an-all") { an.all = true; an.f = "tous"; renderAnnales(); return; }
+  if (d.act === "an-mine") { an.all = false; an.f = ANN_FAM_OF_CONC[prefs.concours] || "tous"; renderAnnales(); return; }
   if (d.anf) { an.f = d.anf; renderAnnales(); const b = document.querySelector(`[data-anf="${d.anf}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blk) { bl.k = d.blk; bl.h = null; renderBlanc(); const b = $(`[data-blk="${d.blk}"]`); if (b) b.focus({ preventScroll: true }); return; }
@@ -6210,9 +6251,10 @@ document.addEventListener("click", e => {
   if (d.refcopy) { const r = REFS.find(x => x.id === d.refcopy); if (r) { try { navigator.clipboard.writeText(refCite(r)).then(() => toast("Référence copiée."), () => toast("Copie impossible : sélectionne le texte.")); } catch (err) { toast("Copie impossible : sélectionne le texte."); } } return; }
   if (d.act === "home-refs") { setView("refs"); return; }
   if (d.conc) { conc.cur = concById(d.conc); render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-concours .back"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "conc-back") { conc.list = true; }
   if (d.act === "conc-back") { const id = conc.cur && conc.cur.id; conc.cur = null; render(); const b = id && document.querySelector(`[data-conc="${id}"]`); if (b) b.focus(); return; }
   if (d.act === "conc-open") { conc.cur = concById(d.id); setView("concours"); return; }
-  if (d.act === "conc-mine") { const on = prefs.concours !== d.id; prefs = Object.assign({}, prefs, { concours: on ? d.id : "", t: Date.now() }); persist(); render(); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on ? "Concours enregistré : il s'affiche sur l'accueil." : "Concours retiré."); return; }
+  if (d.act === "conc-mine") { const on = prefs.concours !== d.id; const c = chooseConcours(on ? d.id : ""); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on && c ? `C'est ton concours : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}. Le site n'affiche plus que ce qui le concerne.` : "Concours retiré : tout le contenu est affiché."); return; }
   if (d.act === "conc-date") { const c = concById(d.id); if (c && c.d) { prefs = Object.assign({}, prefs, { examDate: c.d, concours: c.id, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); const g = goalInfo(); toast(g && g.newPerDay ? `Compte à rebours réglé sur les écrits : ${g.newPerDay} nouvelles cartes par jour.` : "Compte à rebours réglé sur les écrits."); } return; }
   if (d.act === "conc-grp") { setGrp(d.g); done = 0; theme = "Tous"; period = "Toutes"; buildQueue(); setView("revise"); toast("Séance : " + eprOf(grp).t + "."); return; }
   if (d.act === "conc-rev") { const c = concById(d.id); if (c) setGrp("e1"); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
@@ -6231,7 +6273,7 @@ document.addEventListener("click", e => {
   if (d.act === "install") { if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); ev.userChoice.finally(() => renderWelcome()); } return; }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
-  if (d.act === "welcome-start") { hideWelcome(); setGrp("e1"); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
+  if (d.act === "welcome-start") { hideWelcome(); setGrp(relGroups()[0]); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
   if (d.sec) { if (d.gotab) conc.cur = null; setView(d.gotab || lastSub[d.sec]); return; }
   if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
   if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
@@ -6635,6 +6677,20 @@ function welcomeSeen(){ try { return localStorage.getItem(WELCOME_KEY) === "1"; 
 function welcomeSetSeen(){ try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
 const REL_GRP = { "capeps-int": ["tx", "e2"] };
 const relGroups = () => REL_GRP[prefs.concours] || ["e1", "e2", "tx"];
+const relHas = g => relGroups().includes(g);
+const relCards = () => allCards().filter(c => relHas(grpOf(c)));
+/* Choisir son concours : le site ne montre plus que ce qui le concerne, et la date des écrits est réglée. */
+function chooseConcours(id){
+  const c = concById(id);
+  prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d ? { examDate: c.d } : {});
+  const rel = relGroups(); setGrp(rel.includes(grp) ? grp : rel[0]);
+  an.f = null; an.e = "tous"; an.all = false; me.f = null;
+  if (me.tab !== "jury" && !rel.includes(me.tab)) me.tab = rel.includes("e1") ? "e1" : "e2";
+  sj.epr = rel.includes("e1") ? "e1" : "e2"; sj.cur = null; sj.axe = "Tous"; rf.g = "tous";
+  conc.cur = c || null; conc.list = false; goalEdit = false;
+  persist(); done = 0; buildQueue(); render();
+  return c;
+}
 function onbHTML(){
   const c = concById(prefs.concours);
   if (c) return `<p class="w-mine">Ton concours : <b>${esc(c.t)}</b>${c.d ? `, écrits le ${esc(fmtDay(c.d))}` : ""}. <button class="linkbtn" data-onb-change="1">Changer</button></p>`;
@@ -6650,13 +6706,12 @@ function renderWelcome(){
     <div class="row-btns w-go"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>
     <details class="w-more"${welcomeHelp ? " open" : ""}><summary>Comment ça marche</summary>
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
-    <p class="w-sub">Cinq espaces</p>
+    <p class="w-sub">Quatre espaces</p>
     <ul class="w-spaces">
-      <li class="w-space"><b>Aujourd'hui</b><span>Ton programme du jour : une séance de cartes par épreuve, un paragraphe à rédiger, une frise. Et le compte à rebours si tu as fixé la date du concours.</span></li>
-      <li class="w-space"><b>Réviser</b><span>Les fiches du jour, épreuve par épreuve : écrit 1, écrit 2, textes officiels. Celles que tu rates reviennent vite, celles que tu sais reviennent de plus en plus tard, au moment où tu risques de les oublier.</span></li>
-      <li class="w-space"><b>Apprendre</b><span>Les fils rouges qui relient les faits sur un thème, les références et citations à placer en copie, les concours et leurs épreuves, toutes les fiches, et tes propres cartes.</span></li>
-      <li class="w-space"><b>S'entraîner</b><span>Frise, quiz « Qui ? », sujets d'écrit 1 et d'écrit 2 avec retour de Claude, annales des concours et méthode des écrits.</span></li>
-      <li class="w-space"><b>Progrès</b><span>Ton niveau de préparation par axe, ta régularité et tes succès.</span></li>
+      <li class="w-space"><b>Aujourd'hui</b><span>Le compte à rebours jusqu'à tes écrits, ta séance du jour en un bouton (les écrits s'enchaînent) et un exercice d'écriture.</span></li>
+      <li class="w-space"><b>Réviser</b><span>La séance de cartes, toutes les fiches, la frise, le quiz « Qui ? », les fils rouges et les références à citer. Celles que tu rates reviennent vite, celles que tu sais reviennent au moment où tu risques de les oublier.</span></li>
+      <li class="w-space"><b>Écrire</b><span>Sujets d'entraînement avec retour de Claude, concours blanc chronométré, annales de ton concours et méthode des écrits.</span></li>
+      <li class="w-space"><b>Progrès</b><span>Ton niveau, ton plan jusqu'aux écrits, les rappels, tes succès, ton concours et ton compte.</span></li>
     </ul>
     <div class="w-cols"><div>
     <p class="w-sub">Ta première séance</p>
@@ -6696,8 +6751,8 @@ if (STANDALONE) {
 }
 /* Le bloc de bienvenue ne s'affiche que sur l'accueil. */
 let welcomeOpen = false, welcomeHelp = false;
-function showWelcome(focus){ welcomeOpen = true; welcomeHelp = !!focus; renderWelcome(); $("#welcome").hidden = view !== "home"; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
-function hideWelcome(){ welcomeOpen = false; $("#welcome").hidden = true; welcomeSetSeen(); }
+function showWelcome(focus){ welcomeOpen = true; welcomeHelp = !!focus; renderWelcome(); $("#welcome").hidden = view !== "home"; renderHome(); if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
+function hideWelcome(){ welcomeOpen = false; $("#welcome").hidden = true; welcomeSetSeen(); renderHome(); }
 
 /* Taille du texte */
 const BIG_KEY = "bristol-eps-big";

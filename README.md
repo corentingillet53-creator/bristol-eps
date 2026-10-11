@@ -6,7 +6,7 @@ Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offr
 - Signalements d'erreurs sur les fiches : `functions/api/report.js`, table `reports` (créée au premier signalement), 10 par heure et par adresse. Pour les lire : Cloudflare → D1 → `bristol-db` → Console, `SELECT datetime(created_at/1000,'unixepoch'), card, kind, msg, q FROM reports ORDER BY created_at DESC;`
 - Rappels quotidiens par notification (Progrès › Rappels, compte requis) : `functions/api/push.js` (Web Push chiffré, clés VAPID créées et gardées dans D1, table `push_subs`) ; le cron du Worker (`triggers` dans `wrangler.jsonc`, toutes les 15 minutes) envoie le rappel une fois par jour à l'heure choisie (heure de Paris), seulement si la personne n'a pas encore révisé ; le dimanche, le bilan de la semaine.
 - Répétition espacée : algorithme FSRS-5 (stabilité et difficulté par carte), boîtes 1 à 5 affichées comme paliers de stabilité.
-- Concours blanc (onglet S'entraîner) : copie stockée avec les textes rédigés ; sa correction par Claude (`kind: "copie"` sur `/api/feedback`) compte pour deux retours dans le quota mensuel.
+- Concours blanc (onglet Écrire) : copie stockée avec les textes rédigés ; sa correction par Claude (`kind: "copie"` sur `/api/feedback`) compte pour deux retours dans le quota mensuel.
 - `public/` : le site (fiches, fils rouges, entraînements, suivi), servi tel quel ;
   `public/manifest.webmanifest`, `public/sw.js` et `public/icons/` rendent le site installable et utilisable hors ligne (la page et les polices sont mises en cache, jamais `/api/*`) ;
 - `functions/api/feedback.js` : la fonction serveur qui appelle Claude avec **ta** clé d'API, après avoir vérifié le code d'accès et le quota ;
@@ -55,7 +55,7 @@ Déjà en place : l'espace de stockage KV `bristol-quota` compte les retours par
    - `accessCodes: 0` : aucun code (étape 2) ;
    - `quotaStore: false` : la liaison KV manque (étape 3).
    - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse : `"keyAndModel":"ok"` signifie que tout est bon.
-3. Sur le site, va dans **S'entraîner → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
+3. Sur le site, va dans **Écrire → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
 
 ---
 
