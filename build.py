@@ -38,7 +38,12 @@ img{max-width:100%}
 # L'application est servie sous /app/ ; la racine présente le site (source/landing.html).
 out = here / "public" / "app" / "index.html"
 out.parent.mkdir(parents=True, exist_ok=True)
-out.write_text(head + page + "\n</body>\n</html>\n", encoding="utf-8")
+import datetime, re as _re
+_MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"]
+_d = datetime.date.today()
+_maj = f"{_d.day}{'er' if _d.day == 1 else ''} {_MOIS[_d.month - 1]} {_d.year}"
+page_app = _re.sub(r'const SITE_MAJ = "[^"]*";', f'const SITE_MAJ = "{_maj}";', page, count=1)
+out.write_text(head + page_app + "\n</body>\n</html>\n", encoding="utf-8")
 print("Écrit :", out, f"({out.stat().st_size // 1024} Ko)")
 
 # Page de présentation : chiffres et fiches d'essai tirés de la source, pour rester à jour.

@@ -108,7 +108,7 @@ svg.ic{width:22px;height:22px;flex:none}
   .nav-btn:hover{background:var(--chip);color:var(--ink)}
   .nav-btn[aria-selected="true"]{background:var(--soft)}
   .tools{margin:auto 0 0;flex-direction:column;align-items:stretch;gap:2px;padding-top:16px;border-top:1px solid var(--line)}
-  .tool{justify-content:flex-start;border:0;background:none;color:var(--muted);padding:0 12px;border-radius:var(--r-s);font-weight:400}
+  .tool{justify-content:flex-start;text-align:left;border:0;background:none;color:var(--muted);padding:0 12px;border-radius:var(--r-s);font-weight:400}
   .tool:hover{background:var(--chip);color:var(--ink)}
   .status{padding:6px 12px 10px}
   .main{width:100%;max-width:1200px;padding:44px 48px 72px}
@@ -259,6 +259,35 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .hero-conc .chip{background:var(--hero-tint);color:var(--hero-ink);border-color:transparent;min-height:44px;font-weight:700}
 .hero-conc .chip:hover{background:var(--hero-fill);color:var(--hero)}
 .qod{margin:0 0 18px}
+.pt{max-width:760px}
+.pt-h{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.15;letter-spacing:-.02em;margin:10px 0 8px}
+.pt .period{display:inline-block}
+.pt-how{margin:0 0 18px;padding-left:20px;color:var(--muted)}
+.pt-how li{margin:4px 0}
+.pt-opts{grid-template-columns:minmax(0,1fr)}
+.pt-opt{min-height:52px;white-space:normal;line-height:1.35}
+.pt-fb{font-weight:700;margin:14px 0 0}
+.pt-rows{margin:6px 0 16px}
+.pt-pr{margin:0 0 10px}
+.pt-rev{margin:14px 0 18px}
+.pt-rev summary{cursor:pointer;font-weight:700;min-height:44px;display:inline-flex;align-items:center}
+.pt-rev ol{margin:6px 0 0;padding-left:22px;display:grid;gap:8px}
+.pt-rev li b{display:block;font-size:15px}
+.pt-rev li span{font-size:14px;color:var(--muted)}
+.pt-rev li.pt-ok span{color:var(--ok)}
+.pt .save-card{margin-top:20px}
+.cov-h{font-family:var(--f-display);font-weight:700;font-size:16px;line-height:1.3;margin:18px 0 8px}
+.cov-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.cov-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,150px) auto;gap:6px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 10px 10px 14px}
+.cov-row.empty{grid-template-columns:minmax(0,1fr)}
+.cov-t b{display:block;font-size:15px;line-height:1.3}
+.cov-t span{font-size:13px;color:var(--muted)}
+.cov-row.empty .cov-t span{color:var(--mid)}
+.cov-v{display:grid;grid-template-columns:minmax(0,1fr) 3em;gap:8px;align-items:center}
+.cov-v b{font-family:var(--f-display);font-size:14px;text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:520px){ .cov-row{grid-template-columns:minmax(0,1fr) auto} .cov-v{grid-column:1 / -1;grid-row:2} }
+.trust .sect p{max-width:70ch}
+.trust-list{margin:0;padding-left:20px;display:grid;gap:8px;max-width:72ch}
 .seg-n{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:12px;line-height:18px}
 .grp-seg{margin-bottom:14px}
 @media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .sess-task .task-ic{display:none} .gr-t b,.gr-t span{display:block} }
@@ -851,6 +880,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     <div id="area-home" role="tabpanel" aria-labelledby="sec-home">
       <h1 class="page-h" id="home-title">Accueil</h1>
       <section id="panel-home"></section>
+      <section id="panel-test" aria-label="Test de positionnement" hidden></section>
     </div>
 
     <div id="area-revise" role="tabpanel" aria-labelledby="sec-revise" hidden>
@@ -926,9 +956,11 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
       <div class="seg subnav" role="tablist" aria-label="Progrès">
         <button role="tab" id="tab-stats" data-tab="stats" aria-controls="panel-stats" aria-selected="true">Mon suivi</button>
         <button role="tab" id="tab-concours" data-tab="concours" aria-controls="panel-concours" aria-selected="false" tabindex="-1">Mon concours</button>
+        <button role="tab" id="tab-sources" data-tab="sources" aria-controls="panel-sources" aria-selected="false" tabindex="-1">Le contenu</button>
       </div>
       <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats"></section>
       <section id="panel-concours" role="tabpanel" aria-labelledby="tab-concours" hidden></section>
+      <section id="panel-sources" role="tabpanel" aria-labelledby="tab-sources" hidden></section>
     </div>
   </main>
 </div>
@@ -1821,6 +1853,7 @@ function homeTrain(){
   if (bm && blancLeft(bm) > 0 && !bl.iv) bl.iv = setInterval(blancTick, 1000);
   const card = (ic, h, sub, btn) => `<section class="tw" aria-labelledby="tw-h"><span class="ts-ic">${icon(ic)}</span><div class="tw-tx"><h2 id="tw-h">${h}</h2><p>${sub}</p></div>${btn}</section>`;
   if (bm) return card("clock", "Concours blanc en cours", `${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes`, `<button class="btn primary" data-act="blanc-go">Reprendre</button>`);
+  if (!ptLast() && Object.keys(progress).length < 30) return card("star", "Où en es-tu ?", `Un test de ${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.`, `<button class="btn" data-act="pt-start">Faire le test</button>`);
   const p = planWeeks(), w0 = p && p.weeks[0];
   const recent = blancList().some(m => m.start > Date.now() - 7 * DAY);
   if (w0 && !recent && w0.items.some(i => i.includes("concours blanc"))) return card("clock", "Cette semaine : un concours blanc", "Une copie complète en temps réel, comme le jour J. Garde-toi un créneau.", `<button class="btn" data-tab="blanc">Préparer</button>`);
@@ -1855,12 +1888,12 @@ function buildQueue(){
   }
   const fresh = pool.slice(0, newLimit());
   queue = due.concat(fresh).map(c => c.id);
-  cram = false; flipped = false; express = false; lastGrade = null;
+  cram = false; flipped = false; express = false; lastGrade = null; progLabel = "";
 }
 function cramQueue(){
   const ids = allCards().filter(inFilter).map(c => c.id);
   for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
-  queue = ids; cram = true; flipped = false; express = false; lastGrade = null;
+  queue = ids; cram = true; flipped = false; express = false; lastGrade = null; progLabel = "";
 }
 function grade(r){
   const id = queue[0]; if (!id) return;
@@ -2407,7 +2440,7 @@ function renderRevise(){
   const left = queue.length;
   el.innerHTML = `
     ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <div class="sess"><b>${cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${canListen() ? `<button class="linkbtn undo-btn" data-act="listen">Mode écoute</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess"><b>${progLabel ? "Programme : " + esc(progLabel) : cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${canListen() ? `<button class="linkbtn undo-btn" data-act="listen">Mode écoute</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
       <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" role="img" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
@@ -3357,6 +3390,216 @@ const CONCOURS = [
       ["Les épreuves de l'agrégation interne d'EPS", "https://www.devenirenseignant.gouv.fr/les-epreuves-de-l-agregation-interne-et-du-caerpa-section-education-physique-et-sportive-967"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"]] }
 ];
+/* ---------- Test de positionnement : 12 questions, environ 3 minutes ----------
+   Questions tirées des fiches de ton concours, réparties sur ses thèmes ; quatre réponses, ou « Je ne sais pas ».
+   Une fiche réussie compte comme vue (notée « Hésité » : elle revient vite pour vérifier que tu la sais vraiment). */
+const PT_KEY = "bristol-eps-test", PT_N = 12;
+const pt = { on: false, qs: [], i: 0, pick: null, done: false, applied: 0 };
+function ptLast(){ try { return JSON.parse(localStorage.getItem(PT_KEY) || "null"); } catch (e) { return null; } }
+function ptSave(o){ try { localStorage.setItem(PT_KEY, JSON.stringify(o)); } catch (e) {} }
+function ptBuild(){
+  const ths = EPR.filter(e => relHas(e.id)).flatMap(e => e.th);
+  const ok = c => c.a && c.a.length >= 3 && c.a.length <= (c.th === "PO" ? 230 : 150) && !c.custom;
+  const pools = ths.map(th => shuffle(allCards().filter(c => c.th === th && ok(c)))).filter(p => p.length >= 4);
+  const qs = [];
+  for (let r = 0; qs.length < PT_N && r < 10; r++) for (const p of pools) { if (qs.length >= PT_N) break; const c = p[r]; if (c) qs.push(c); }
+  return shuffle(qs).map(c => {
+    const same = allCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th);
+    /* Des leurres qui ressemblent à la bonne réponse : même premier mot, longueur voisine. */
+    const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
+    const score = x => (w0(x.a) === cw ? 3 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
+    const pool = same.map(x => [x, score(x)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+    const opts = [];
+    for (const x of pool) { if (opts.length >= 3) break; if (!opts.includes(x.a)) opts.push(x.a); }
+    return { id: c.id, opts: shuffle(opts.concat(c.a)), a: c.a, r: null };
+  });
+}
+function ptStart(){ Object.assign(pt, { on: true, qs: ptBuild(), i: 0, pick: null, done: false, applied: 0 }); setView("test"); const b = $("#panel-test .pt-opt"); if (b) b.focus({ preventScroll: true }); }
+function ptAnswer(k){
+  const q = pt.qs[pt.i]; if (!q || q.r !== null) return;
+  q.r = k === "?" ? "?" : q.opts[+k] === q.a ? "ok" : "ko"; q.k = k;
+  renderTest(); const b = $("#panel-test [data-act=pt-next]"); if (b) b.focus({ preventScroll: true });
+}
+function ptNext(){
+  if (pt.i < pt.qs.length - 1) { pt.i++; renderTest(); const b = $("#panel-test .pt-opt"); if (b) b.focus({ preventScroll: true }); return; }
+  ptFinish();
+}
+function ptFinish(){
+  pt.done = true;
+  const now = Date.now(); let n = 0;
+  for (const q of pt.qs) if (q.r === "ok" && !progress[q.id]) {
+    const f = fsrsNext(null, G_OF.hesite, now);
+    progress[q.id] = { b: boxOfS(f.s, G_OF.hesite), d: now + fsrsDays(f.s) * DAY, t: now, n: 1, l: 0, s: Math.round(f.s * 100) / 100, df: Math.round(f.df * 100) / 100 };
+    n++;
+  }
+  pt.applied = n;
+  const by = {};
+  for (const q of pt.qs) { const th = byId(q.id).th; by[th] = by[th] || [0, 0]; by[th][1]++; if (q.r === "ok") by[th][0]++; }
+  ptSave({ t: now, c: prefs.concours || "", ok: pt.qs.filter(q => q.r === "ok").length, n: pt.qs.length, by });
+  persist(); done = 0; buildQueue(); renderTest();
+  const h = $("#pt-res-h"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+}
+function ptPriorities(by){
+  return Object.entries(by).map(([th, [o, n]]) => [th, o / n, n]).sort((a, b) => a[1] - b[1] || b[2] - a[2]).filter(x => x[1] < 1).slice(0, 2).map(x => THEMES[x[0]]);
+}
+function renderTest(){
+  const el = $("#panel-test"); if (!el) return;
+  const myC = concById(prefs.concours);
+  if (!pt.on || !pt.qs.length) {
+    const last = ptLast();
+    el.innerHTML = `<div class="pt"><p class="period">Test de positionnement</p><h2 class="pt-h">Où en es-tu ?</h2>
+      <p class="lead">${PT_N} questions tirées des fiches ${myC ? "de ton concours (" + esc(myC.t) + ")" : "des trois écrits"}, réparties sur tous les thèmes. Environ 3 minutes.</p>
+      <ul class="pt-how"><li>Réponds sans chercher : « Je ne sais pas » vaut mieux qu'une réponse au hasard.</li><li>À la fin : ton niveau par thème et tes priorités.</li><li>Les fiches réussies comptent comme vues : tu ne repars pas de zéro.</li></ul>
+      ${last ? `<p class="hint">Dernier test le ${esc(new Date(last.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : ${last.ok} sur ${last.n}.</p>` : ""}
+      <div class="row-btns"><button class="btn primary" data-act="pt-start">Commencer le test</button><button class="btn" data-sec="home">Plus tard</button></div></div>`;
+    return;
+  }
+  if (pt.done) {
+    const ok = pt.qs.filter(q => q.r === "ok").length, last = ptLast() || { by: {} };
+    const rows = EPR.filter(e => relHas(e.id)).map(e => {
+      const qs = pt.qs.filter(q => grpOf(byId(q.id)) === e.id); if (!qs.length) return "";
+      const o = qs.filter(q => q.r === "ok").length, v = Math.round(100 * o / qs.length);
+      return `<div class="rd-row"><span>${esc(e.s)}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${o} / ${qs.length}</b></div>`;
+    }).join("");
+    const pr = ptPriorities(last.by || {});
+    const verdict = ok >= 10 ? "Très solide : tu peux avancer vite sur les nouvelles fiches." : ok >= 7 ? "De bonnes bases : la régularité fera la différence." : ok >= 4 ? "Des bases à consolider : c'est exactement ce que le site sait faire." : "Tout est à construire, et tu as le temps : une séance par jour suffit.";
+    el.innerHTML = `<div class="pt"><p class="period">Test de positionnement</p><h2 class="pt-h" id="pt-res-h">${ok} bonnes réponses sur ${pt.qs.length}</h2>
+      <p class="lead">${esc(verdict)}</p>
+      <div class="rd-rows pt-rows">${rows}</div>
+      ${pr.length ? `<p class="pt-pr"><b>Tes priorités :</b> ${pr.map(esc).join(" et ")}.</p>` : ""}
+      ${pt.applied ? `<p class="hint">${pt.applied} fiche${pt.applied > 1 ? "s réussies" : " réussie"} ${pt.applied > 1 ? "comptent" : "compte"} déjà comme vue${pt.applied > 1 ? "s" : ""} : ${pt.applied > 1 ? "elles reviendront" : "elle reviendra"} dans quelques jours pour vérifier.</p>` : ""}
+      <details class="pt-rev"><summary>Revoir les réponses</summary><ol>${pt.qs.map(q => { const c = byId(q.id); return `<li class="pt-${q.r === "ok" ? "ok" : "ko"}"><b>${esc(c.q)}</b><span>${q.r === "ok" ? "Juste" : q.r === "?" ? "Je ne savais pas" : "Faux"} · ${esc(c.a)}</span></li>`; }).join("")}</ol></details>
+      <div class="row-btns"><button class="btn primary" data-act="pt-go">Commencer ma séance</button><button class="btn" data-act="pt-prog">Voir mon programme</button></div>
+      ${saveCardHTML(0)}</div>`;
+    return;
+  }
+  const q = pt.qs[pt.i], c = byId(q.id), ans = q.r !== null;
+  el.innerHTML = `<div class="pt">
+    <div class="sess"><b>Test de positionnement</b><span>Question ${pt.i + 1} sur ${pt.qs.length}</span></div>
+    <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * (pt.i + (ans ? 1 : 0)) / pt.qs.length)}%"></span></div>
+    <article class="bristol qui"><div class="band"><span class="period">${esc(thName(c))}</span><span class="band-r">${esc(pLabel(c))}</span></div><p class="q">${esc(c.q)}</p></article>
+    <div class="qui-opts pt-opts" role="group" aria-label="Réponses">${q.opts.map((o, i) => {
+      const cls = !ans ? "" : o === q.a ? " right" : String(i) === q.k ? " wrong" : "";
+      return `<button class="btn qopt pt-opt${cls}" data-pt="${i}"${ans ? " disabled" : ""}>${esc(o)}</button>`; }).join("")}</div>
+    ${ans ? `<p class="pt-fb" role="status">${q.r === "ok" ? "Juste." : q.r === "?" ? "La réponse : " + esc(q.a) : "Pas tout à fait. La réponse : " + esc(q.a)}</p>
+      <div class="actions"><button class="btn primary wide" data-act="pt-next">${pt.i < pt.qs.length - 1 ? "Question suivante" : "Voir mon résultat"} <span class="k">Entrée</span></button></div>`
+      : `<div class="actions"><button class="btn wide" data-pt="?">Je ne sais pas</button></div>`}
+    <p class="hint"><button class="linkbtn" data-act="pt-quit">Arrêter le test</button></p></div>`;
+}
+
+/* ---------- D'où vient le contenu ---------- */
+const SITE_MAJ = "11 octobre 2026";
+function renderSources(){
+  const el = $("#panel-sources"); if (!el) return;
+  const cards = allCards().filter(c => !c.custom), e1 = cards.filter(c => grpOf(c) === "e1"), e2 = cards.filter(c => grpOf(c) === "e2"), tx = cards.filter(c => grpOf(c) === "tx");
+  const ver = c => !!CARD_SRC[c.id];
+  const v1 = e1.filter(ver).length, vtx = tx.filter(ver).length;
+  const years = ANNALES.map(a => a.y), jur = JURYS.reduce((t, j) => t + j.items.length, 0);
+  const srcs = Object.values(SOURCES);
+  const myC = concById(prefs.concours);
+  el.innerHTML = `<div class="trust">
+    <p class="lead">Ce que contient le site, d'où ça vient, et ce qu'il ne fait pas. Contenu mis à jour le ${esc(SITE_MAJ)}.</p>
+    <div class="sect"><h2>Qui est derrière</h2>
+      <p>Bristol EPS est conçu par un professeur d'EPS en collège, lui-même candidat à l'agrégation interne 2027 : il révise avec l'outil qu'il construit. Chaque fiche est relue, et chaque signalement d'erreur est lu et corrigé.</p></div>
+    <div class="sect"><h2>Les fiches</h2><dl class="conc-facts">
+      <div><dt>Écrit 1 : histoire</dt><dd>${e1.length} fiches, dont ${v1} recoupées avec une source en ligne citée au dos. Les autres portent la mention « à vérifier dans tes ouvrages ».</dd></div>
+      <div><dt>Écrit 2 : sciences et intervention</dt><dd>${e2.length} fiches construites à partir des auteurs et travaux qu'elles citent, ceux qu'attendent les jurys.</dd></div>
+      <div><dt>Textes officiels</dt><dd>${tx.length} fiches, dont ${vtx} reliées directement au texte publié au Bulletin officiel ou sur Légifrance.</dd></div>
+      <div><dt>Références et citations</dt><dd>${REFS.length} ouvrages et articles, ${QUOTES.length} citations reproduites mot pour mot et vérifiées sur leur source.</dd></div>
+    </dl>
+    <details class="apsa"><summary>Les ${srcs.length} sources utilisées pour recouper les fiches</summary><ul class="conc-src">${srcs.map(s => `<li><a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.l)}</a></li>`).join("")}</ul></details></div>
+    <div class="sect"><h2>Les concours, les annales et les jurys</h2><dl class="conc-facts">
+      <div><dt>Concours 2027</dt><dd>Épreuves, dates et programmes relevés le ${esc(CONC_MAJ)} dans la note de service du Bulletin officiel et sur devenirenseignant.gouv.fr. Chaque page de concours cite ses sources.</dd></div>
+      <div><dt>Annales</dt><dd>${ANNALES.length} sujets officiels de ${Math.min(...years)} à ${Math.max(...years)}, avec ce que les jurys en ont dit.</dd></div>
+      <div><dt>Rapports de jury</dt><dd>${jur} remarques tirées des rapports, qui reviennent d'une session à l'autre.</dd></div>
+      <div><dt>Programme</dt><dd>Chaque thème du programme officiel est relié aux fiches qui le traitent. ${myC ? `<button class="linkbtn" data-act="pt-prog">Voir ton programme</button>` : ""}</dd></div>
+    </dl></div>
+    <div class="sect"><h2>Ce que le site ne fait pas</h2><ul class="trust-list">
+      <li><b>Il ne remplace pas tes lectures.</b> Les fiches servent à retenir et à relier ; les ouvrages de référence restent indispensables pour argumenter.</li>
+      <li><b>Les retours de Claude sont indicatifs.</b> Claude, l'IA d'Anthropic, relit tes textes avec les critères des rapports de jury ; la note qu'il donne à un concours blanc est une estimation, pas celle d'un correcteur.</li>
+      <li><b>Les textes officiels font foi.</b> En cas de doute sur une date ou une épreuve, vérifie la source citée.</li>
+    </ul></div>
+    <div class="sect"><h2>Tes données</h2><ul class="trust-list">
+      <li>Ta progression reste sur ton appareil ; avec un compte, elle est aussi sauvegardée pour la retrouver sur ton téléphone.</li>
+      <li>Tes textes ne sont envoyés à Claude que lorsque tu demandes un retour.</li>
+      <li>Ni publicité, ni revente de données.</li>
+    </ul></div>
+    <div class="sect"><h2>Une erreur ?</h2><p>Au dos de chaque fiche, « Signaler une erreur » envoie ton message directement. Les corrections apparaissent dès la mise à jour suivante.</p></div>
+  </div>`;
+}
+
+/* ---------- Couverture du programme : chaque thème du programme officiel et les fiches qui s'y rattachent ----------
+   Rattachement par thème de fiche et par mots-clés (texte sans accents), limité aux périodes du programme quand il y en a. */
+const P1918 = ["1918-1945", "1945-1967", "1967-1981", "1981-2000", "Depuis 2000"], P1967 = ["1967-1981", "1981-2000", "Depuis 2000"];
+const PM_E1_CAPEPS = [{ g: "e1", th: ["T"] }, { g: "e1", th: ["G"] }, { g: "e1", th: ["D"] }];
+const PROG_MAP = {
+  "capeps-l3": [PM_E1_CAPEPS, [{ g: "e2", th: ["EX", "IN"] }, { g: "e2", th: ["AM"] }, { g: "e2", th: ["EF"] }, { g: "e2", th: ["DA"] }]],
+  "capeps-m2": [PM_E1_CAPEPS, [{ g: "e2", th: ["AM"] }, { g: "e2", th: ["EF"] }, { g: "e2", th: ["DA", "EX"] }]],
+  "capeps-int": [[
+    { g: "tx", re: /programme|champs? d.apprentissage|competences generales|socle|attendus/ },
+    { g: "tx", re: /projet pedagogique|projet d.eps|parcours/ },
+    { g: "tx", re: /association sportive|\bas\b|unss|forfait|section sportive|sport-etudes/ },
+    { g: "tx", re: /evalu|ccf|baccalaureat|\bbac\b|brevet|dnb|certifi|\bafl\b|inaptitude/ }]],
+  "agreg-ext": [[
+    { g: "e1", th: ["D"], per: P1918 }, { g: "e1", th: ["G"], per: P1918 }, { g: "e1", th: ["T"], per: P1918 },
+    { g: "e1", re: /loisir|jeunes|jeunesse|plein air|sport de masse|club|federation|sports? de nature|glisse/, per: P1918 }], [
+    { g: "e2", th: ["EX"] }, { g: "e2", th: ["AM"] }, { g: "e2", th: ["EF"] },
+    { g: ["e2", "tx"], re: /continuite|parcours|transition|liaison|cycles? [234]|tout au long/ }]],
+  "agreg-int": [[
+    { g: "e1", re: /eleves?|filles|mixite|diversite|handicap|inaptes?|lecon/, per: P1967 },
+    { g: "e1", re: /jeunes|jeunesse|loisir|pratiques sportives|sports? de nature|glisse|club|federation|fun/, per: P1967 },
+    { g: "e1", re: /savoirs?|contenus|programmes?|evalu|\bbac\b|competences?|apsa/, per: P1967 },
+    { g: "e1", re: /enseignants?|professeurs?|formation des|capeps|agregation|snep|syndica|inspect|staps|corporation/, per: P1967 }], [
+    { g: "e2", th: ["EF", "AM"] },
+    { g: ["e2", "tx"], re: /parcours|evalu|competences?|cycles? [234]/ },
+    { g: "e2", th: ["DA"], re: /qualites physiques|endurance|force|vitesse|souplesse/ },
+    { g: "e2", th: ["IN", "EX"] }]]
+};
+function progCards(m){
+  const gs = [].concat(m.g);
+  return allCards().filter(c => {
+    if (!gs.includes(grpOf(c)) || (m.per && !m.per.includes(c.p))) return false;
+    if (m.th && m.th.includes(c.th)) return true;
+    return !!(m.re && m.re.test(normTxt(c.q + " " + c.a + " " + (c.x || ""))));
+  });
+}
+function coverageHTML(c, opts){
+  const map = PROG_MAP[c.id]; if (!c.prog.length) return "";
+  opts = opts || {};
+  const now = Date.now();
+  const blocks = c.prog.map((b, bi) => {
+    const rows = b.i.map((label, ii) => {
+      const m = map && map[bi] && map[bi][ii], list = m ? progCards(m) : [];
+      if (!list.length) return `<li class="cov-row empty"><div class="cov-t"><b>${esc(label)}</b><span>Fiches en préparation</span></div></li>`;
+      const seen = list.filter(x => progress[x.id]).length, mast = list.filter(x => progress[x.id] && progress[x.id].b === 5).length, v = readiness(list);
+      const g = [].concat(m.g)[0], lk = grpLocked(g);
+      return `<li class="cov-row"><div class="cov-t"><b>${esc(label)}</b><span>${plural(list.length, "fiche")} · ${seen} vue${seen > 1 ? "s" : ""} · ${mast} maîtrisée${mast > 1 ? "s" : ""}</span></div>
+        <span class="cov-v"><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></span>
+        ${lk ? `<button class="btn small" data-act="paywall" data-why="ecrit" aria-label="Débloquer : ${esc(label)}">${icon("lock")}</button>` : `<button class="btn small" data-act="prog-rev" data-c="${c.id}" data-b="${bi}" data-i="${ii}" aria-label="Réviser : ${esc(label)}">Réviser</button>`}</li>`;
+    }).join("");
+    return `<h3 class="cov-h">${esc(b.t)}</h3>${b.lead ? `<p class="opt">${esc(b.lead)}</p>` : ""}<ul class="cov-list">${rows}</ul>`;
+  }).join("");
+  const src = c.src && c.src[0];
+  return `<div class="sect cov${opts.span ? " span2" : ""}">${opts.title === false ? "" : `<h2>${opts.mine ? "Ton programme 2027" : "Programme"}</h2>`}
+    <p class="lead">Chaque thème du programme officiel, les fiches qui s'y rattachent et ton niveau sur chacun.</p>
+    ${blocks}
+    <p class="conc-maj">Fiches rattachées par thème et par mots-clés ; une fiche peut servir plusieurs thèmes.${src ? ` <a href="${esc(src[1])}" target="_blank" rel="noopener">${esc(src[0])}</a>.` : ""}</p></div>`;
+}
+let progLabel = "";
+const PROG_LBL = (cid, bi, ii) => { const c = concById(cid); return c && c.prog[bi] ? c.prog[bi].i[ii] : ""; };
+function startProg(cid, bi, ii){
+  const m = PROG_MAP[cid] && PROG_MAP[cid][bi] && PROG_MAP[cid][bi][ii]; if (!m) return;
+  const now = Date.now(), list = progCards(m).filter(c => !grpLocked(grpOf(c)));
+  const due = list.filter(c => progress[c.id] && progress[c.id].d <= now), fresh = list.filter(c => !progress[c.id]), rest = list.filter(c => progress[c.id] && progress[c.id].d > now);
+  const ids = due.concat(fresh, shuffle(rest)).slice(0, 20).map(c => c.id);
+  if (!ids.length) return;
+  setGrp(grpOf(byId(ids[0])));
+  queue = ids; cram = false; flipped = false; express = false; lastGrade = null; done = 0;
+  progLabel = PROG_LBL(cid, bi, ii);
+  setView("revise");
+  const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true });
+}
+
 const conc = { cur: null };
 const concById = id => CONCOURS.find(c => c.id === id) || null;
 function fmtDay(iso){ return new Date(iso + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); }
@@ -3398,8 +3641,8 @@ function renderConcours(){
     </dl>
     ${sect("Épreuves d'admissibilité", c.adm)}
     ${sect("Épreuves d'admission", c.admi)}
-    ${c.prog.length ? `<div class="sect"><h2>Programme</h2><div class="prog-grid">${c.prog.map(p => `<div class="prog"><h3>${esc(p.t)}</h3>${p.lead ? `<p class="opt">${esc(p.lead)}</p>` : ""}<ol>${p.i.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>`).join("")}</div>
-      ${c.apsa.length ? `<details class="apsa"><summary>Listes d'APSA</summary>${c.apsa.map(a => `<p>${esc(a)}</p>`).join("")}</details>` : ""}</div>` : ""}
+    ${coverageHTML(c, { mine: isMine })}
+    ${c.apsa.length ? `<div class="sect"><details class="apsa"><summary>Listes d'APSA</summary>${c.apsa.map(a => `<p>${esc(a)}</p>`).join("")}</details></div>` : ""}
     ${c.chiffres ? `<div class="sect"><h2>La session 2026 en chiffres</h2><p class="lead">${esc(c.chiffres)}</p></div>` : ""}
     <div class="sect"><h2>Sources</h2><ul class="conc-src">${c.src.map(([l, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a></li>`).join("")}</ul>
       <p class="conc-maj">Relevé le ${CONC_MAJ}. Les textes officiels font foi : vérifie-les avant ton inscription.</p></div>`;
@@ -6115,6 +6358,8 @@ function renderStats(){
   const byP = !relHas("e1") ? "" : PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
     ${readinessHTML()}
+    ${(() => { const c = concById(prefs.concours); return c ? coverageHTML(c, { mine: true, span: true }) : ""; })()}
+    ${(() => { const t = ptLast(); return `<div class="sect pt-box"><h2>Test de positionnement</h2>${t ? `<p class="lead">Le ${esc(new Date(t.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : <b>${t.ok} sur ${t.n}</b>.${ptPriorities(t.by || {}).length ? " Priorités : " + ptPriorities(t.by).map(esc).join(" et ") + "." : ""}</p>` : `<p class="lead">${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.</p>`}<div class="row-btns"><button class="btn" data-act="pt-start">${t ? "Refaire le test" : "Faire le test"}</button></div></div>`; })()}
     ${planHTML()}
     ${weekHTML(false)}
     ${heatmapHTML()}
@@ -6142,9 +6387,9 @@ function startCram(ids){
   try { window.scrollTo({ top: 0 }); } catch (e) {}
 }
 
-const VIEWS = ["home","revise","fils","refs","concours","frise","qui","sujets","annales","blanc","methode","stats","deck","add"];
+const VIEWS = ["home","test","sources","revise","fils","refs","concours","frise","qui","sujets","annales","blanc","methode","stats","deck","add"];
 const SECS = ["home","revise","train","suivi"];
-const SEC_OF = { home: "home", revise: "revise", deck: "revise", add: "revise", fils: "revise", refs: "revise", frise: "revise", qui: "revise", sujets: "train", blanc: "train", annales: "train", methode: "train", stats: "suivi", concours: "suivi" };
+const SEC_OF = { home: "home", test: "home", sources: "suivi", revise: "revise", deck: "revise", add: "revise", fils: "revise", refs: "revise", frise: "revise", qui: "revise", sujets: "train", blanc: "train", annales: "train", methode: "train", stats: "suivi", concours: "suivi" };
 const lastSub = { home: "home", revise: "revise", train: "sujets", suivi: "stats" };
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
@@ -6161,7 +6406,7 @@ function setView(v, focus){
   const moved = SEC_OF[v] !== SEC_OF[view];
   view = v; pendingDel = null; refEdit = null; cnEdit = null;
   if (moved) { try { window.scrollTo({ top: 0 }); } catch (e) {} }
-  lastSub[SEC_OF[v]] = v;
+  if (v !== "test") lastSub[SEC_OF[v]] = v;
   if (v === "revise" && !queue.length) buildQueue();
   render();
   if (v === "add") $("#f-q").focus();
@@ -6182,6 +6427,8 @@ function render(focusActions){
   if (view === "revise") { renderRevise(); renderReviseSide(); }
   if (view === "fils") renderFils();
   if (view === "concours") renderConcours();
+  if (view === "test") renderTest();
+  if (view === "sources") renderSources();
   if (view === "refs") renderRefs();
   if (view === "annales") renderAnnales();
   if (view === "blanc") renderBlanc();
@@ -6214,6 +6461,15 @@ document.addEventListener("click", e => {
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-write") { const s = SUBJECTS.find(x => x.id === d.sid) || SUBJECTS2.find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = s.epr === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
+  if (d.act === "pt-intro") { pt.on = false; setView("test"); const b = $("[data-act=pt-start]"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "pt-start") { if (welcomeOpen) hideWelcome(); ptStart(); return; }
+  if (d.pt !== undefined) { ptAnswer(d.pt); return; }
+  if (d.act === "pt-next") { ptNext(); return; }
+  if (d.act === "pt-quit") { pt.on = false; setView("home"); return; }
+  if (d.act === "pt-go") { pt.on = false; const g = relGroups().find(x => !grpLocked(x) && grpGoal(x).todo) || freeGrp(); setGrp(g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "pt-prog") { pt.on = false; setView("stats"); const c = $("#panel-stats .cov"); if (c) try { c.scrollIntoView({ block: "start" }); } catch (e) {} return; }
+  if (d.act === "prog-rev") { startProg(d.c, +d.b, +d.i); return; }
+  if (d.act === "go-sources") { if (welcomeOpen) hideWelcome(); setView("sources"); return; }
   if (d.onb) {
     const c = chooseConcours(d.onb === "none" ? "" : d.onb); renderWelcome();
     toast(c ? `C'est noté : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
@@ -6424,6 +6680,13 @@ document.addEventListener("keydown", e => {
   if (t.dataset.sec) setView(lastSub[t.dataset.sec], "#" + t.id);
   else setView(t.dataset.tab, "#" + t.id);
 }, true);
+document.addEventListener("keydown", e => {
+  if (view !== "test" || !pt.on || pt.done || gs.open || pw.open || e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input, textarea, select")) return;
+  const q = pt.qs[pt.i]; if (!q) return;
+  if (q.r === null && /^[1-4]$/.test(e.key) && +e.key <= q.opts.length) { e.preventDefault(); ptAnswer(String(+e.key - 1)); }
+  else if (q.r === null && (e.key === "0" || e.key === "?")) { e.preventDefault(); ptAnswer("?"); }
+  else if (q.r !== null && e.key === "Enter" && !e.target.closest("button, a")) { e.preventDefault(); ptNext(); }
+});
 document.addEventListener("keydown", e => {
   if (e.target.id !== "ref-input") return;
   if (e.key === "Enter") { e.preventDefault(); saveRef(e.target.dataset.rid, e.target.value); }
@@ -6703,7 +6966,7 @@ function renderWelcome(){
   const n = allCards().length;
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
     ${onbHTML()}
-    <div class="row-btns w-go"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>
+    <div class="row-btns w-go">${ptLast() ? `<button class="btn primary" data-act="welcome-start">Commencer ma première séance</button>` : `<button class="btn primary" data-act="pt-start">Faire le test de positionnement (3 min)</button><button class="btn" data-act="welcome-start">Commencer directement</button>`}<button class="btn" data-act="welcome-close">Fermer</button></div>
     <details class="w-more"${welcomeHelp ? " open" : ""}><summary>Comment ça marche</summary>
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
     <p class="w-sub">Quatre espaces</p>
@@ -6711,8 +6974,9 @@ function renderWelcome(){
       <li class="w-space"><b>Accueil</b><span>Le compte à rebours jusqu'à tes écrits, ta séance du jour en un bouton (les écrits s'enchaînent) et un exercice d'écriture.</span></li>
       <li class="w-space"><b>Réviser</b><span>La séance de cartes, toutes les fiches, la frise, le quiz « Qui ? », les fils rouges et les références à citer. Celles que tu rates reviennent vite, celles que tu sais reviennent au moment où tu risques de les oublier.</span></li>
       <li class="w-space"><b>Écrire</b><span>Sujets d'entraînement avec retour de Claude, concours blanc chronométré, annales de ton concours et méthode des écrits.</span></li>
-      <li class="w-space"><b>Progrès</b><span>Ton niveau, ton plan jusqu'aux écrits, les rappels, tes succès, ton concours et ton compte.</span></li>
+      <li class="w-space"><b>Progrès</b><span>Ton niveau, ta couverture du programme, ton plan jusqu'aux écrits, les rappels, tes succès, ton concours et d'où vient le contenu.</span></li>
     </ul>
+    <p><button class="linkbtn" data-act="go-sources">D'où vient le contenu ?</button></p>
     <div class="w-cols"><div>
     <p class="w-sub">Ta première séance</p>
     <ol class="w-steps">
