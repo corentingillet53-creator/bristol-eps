@@ -11,7 +11,7 @@ import { getPlan } from "./plan.js";
 //   Usage raisonnable (facultatif, valeurs par défaut entre parenthèses) :
 //   BUDGET_CENTS (200)        coût réel maximal par abonné et par mois, en centimes
 //   DAILY_SHORT (25), DAILY_COPIES (3)  retours courts et corrections de copie par jour
-//   MIN_INTERVAL_S (15)       délai minimal entre deux demandes d'un même abonné
+//   MIN_INTERVAL_S (60)       délai minimal entre deux demandes d'un même abonné
 //   GLOBAL_DAILY_CENTS (1000) coupe-circuit : dépense totale maximale par jour
 //   PRICE_IN, PRICE_OUT (2, 10) prix du modèle en dollars par million de jetons
 //   MODEL              (facultatif)           modèle Claude, par défaut claude-sonnet-5-5
@@ -339,7 +339,7 @@ async function fairUseCheck(env, who, isCopie) {
   const kv = env.QUOTA, get = async (k) => parseInt((await kv.get(k)) || "0", 10) || 0;
   const global = await get("g:" + day);
   if (global >= num(env.GLOBAL_DAILY_CENTS, 1000) * 10000) return { error: json(503, "paused") };
-  const last = await get("r:" + who), gap = num(env.MIN_INTERVAL_S, 15) * 1000;
+  const last = await get("r:" + who), gap = num(env.MIN_INTERVAL_S, 60) * 1000;
   if (last && now - last < gap) return { error: json(429, "slow_down", { retryAfter: Math.ceil((gap - (now - last)) / 1000) }) };
   const dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`, dn = await get(dk);
   if (dn >= (isCopie ? num(env.DAILY_COPIES, 3) : num(env.DAILY_SHORT, 25))) return { error: json(429, "daily_limit") };

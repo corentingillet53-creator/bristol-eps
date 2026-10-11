@@ -38,7 +38,7 @@ Dans Cloudflare : **Workers & Pages → bristol-eps → Settings → Variables a
 | `ACCESS_CODES` | tes codes bêta séparés par des virgules, par exemple `EPS-ALICE-7Q2,EPS-BRUNO-K9F` | **Secret** |
 | `BUDGET_CENTS` | coût réel maximal par abonné et par mois, en centimes (usage raisonnable invisible) | Texte (facultatif, 200 par défaut) |
 | `DAILY_SHORT` / `DAILY_COPIES` | retours courts et corrections de copie par jour et par abonné | Texte (facultatif, 25 et 3) |
-| `MIN_INTERVAL_S` | délai minimal entre deux demandes d'un même abonné, en secondes | Texte (facultatif, 15) |
+| `MIN_INTERVAL_S` | délai minimal entre deux demandes d'un même abonné, en secondes | Texte (facultatif, 60) |
 | `GLOBAL_DAILY_CENTS` | coupe-circuit : dépense totale maximale par jour, en centimes | Texte (facultatif, 1000) |
 | `PRICE_IN` / `PRICE_OUT` | prix du modèle en dollars par million de jetons, pour le calcul du coût | Texte (facultatif, 2 et 10) |
 | `ANTHROPIC_WORKSPACE_ID` | ID de l'espace de travail de la console, **seulement** si ta clé n'est rattachée à aucun espace de travail | Texte (facultatif) |

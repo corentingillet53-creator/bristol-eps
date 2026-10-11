@@ -3221,7 +3221,7 @@ async function serverSample(payload, { signal, onText }){
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
     const map = { premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
-    throw { code: map[j.error] || "upstream_error", limit: j.limit, retryAfter: j.retryAfter, detail: j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
+    throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.error === "slow_down" ? String(j.retryAfter || "") : j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
   const high = res.headers.get("x-usage-high") === "1";
   const reader = res.body.getReader(), dec = new TextDecoder();
@@ -3289,7 +3289,7 @@ function fbErr(code, detail){
   if (code === "bad_code") { codeSet(""); return "Ce code d'accès n'est pas valide. Vérifie-le, puis saisis-le à nouveau."; }
   if (code === "quota") return "Tu as atteint la limite d'usage raisonnable de ce mois. Elle se renouvelle le 1er du mois.";
   if (code === "daily") return "Tu as atteint la limite d'usage raisonnable de la journée. Elle se renouvelle demain.";
-  if (code === "slow") return "Laisse quelques secondes entre deux demandes, puis réessaie.";
+  if (code === "slow") return "Une minute entre deux demandes : prends ce temps pour relire le retour précédent." + (detail && /^\d+$/.test(String(detail)) ? ` Prochain retour possible dans ${detail} s.` : "");
   if (code === "paused") return "Les retours de Claude sont momentanément suspendus. Réessaie un peu plus tard.";
   if (code === "too_short") return "Écris un peu plus avant de demander un retour.";
   if (code === "server_config") return "Le retour de Claude n'est pas encore configuré sur ce site.";
