@@ -80,7 +80,14 @@ Les visiteurs peuvent créer un compte (bouton « Se connecter ») pour retrouve
 
 Chaque modification envoyée sur la branche `main` est déployée automatiquement.
 
-Si tu modifies `source/bristol-eps.html`, fabrique d'abord la nouvelle page avec : `python3 build.py`
+Si tu modifies `source/bristol-eps.html` ou `source/landing.html`, fabrique d'abord les pages avec : `python3 build.py`. Le script réécrit aussi `public/_headers` (en-têtes de sécurité) : la politique de contenu n'autorise que les scripts du site, reconnus par leur empreinte. Une page modifiée sans relancer `build.py` resterait bloquée par le navigateur.
+
+## Sécurité
+
+- **En-têtes** (`public/_headers`, écrit par `build.py`) : politique de contenu stricte (aucun script extérieur ni injecté), HTTPS imposé (HSTS), pas d'affichage dans un cadre, pas de caméra, micro ni localisation.
+- **API** : JSON et même origine exigés sur toutes les requêtes qui modifient quelque chose ; corps limité à 256 Ko pour les retours de Claude.
+- **Comptes** : cookie de session `HttpOnly`, `Secure`, `SameSite=Lax` ; 10 essais par heure et par compte ; par connexion internet, 10 inscriptions et 30 échecs de connexion par heure (adresse IP conservée seulement hachée, 2 heures). Les sessions expirées sont effacées chaque nuit.
+- **Coûts** : usage raisonnable par abonné et plafond global quotidien (voir le tableau des variables).
 
 ## Bon à savoir
 

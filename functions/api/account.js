@@ -92,16 +92,30 @@ async function readJson(request) {
   try { return { body: await request.json() }; } catch { return { error: err(400, "bad_request") }; }
 }
 
-async function tooManyAttempts(env, kind, email) {
+async function tooManyAttempts(env, kind, email, max = MAX_ATTEMPTS_PER_HOUR) {
   if (!env.QUOTA) return false;
   const k = `rl:${kind}:${email}:${new Date().toISOString().slice(0, 13)}`;
-  return (parseInt((await env.QUOTA.get(k)) || "0", 10) || 0) >= MAX_ATTEMPTS_PER_HOUR;
+  return (parseInt((await env.QUOTA.get(k)) || "0", 10) || 0) >= max;
+}
+/* Limites par adresse IP (en plus des limites par compte) : création de comptes en série,
+   essais de mots de passe sur beaucoup d'adresses. L'IP n'est conservée que hachée, 2 heures. */
+const MAX_REGISTER_PER_IP = 10, MAX_FAILS_PER_IP = 30;
+async function ipKey(request) {
+  const ip = request.headers.get("cf-connecting-ip") || "";
+  return ip ? "ip" + (await sha256Hex("bristol-ip:", ip)).slice(0, 24) : "";
 }
 async function countAttempt(env, kind, email) {
   if (!env.QUOTA) return;
   const k = `rl:${kind}:${email}:${new Date().toISOString().slice(0, 13)}`;
   const n = (parseInt((await env.QUOTA.get(k)) || "0", 10) || 0) + 1;
   await env.QUOTA.put(k, String(n), { expirationTtl: 60 * 60 * 2 });
+}
+
+/* Ménage quotidien (appelé par le cron) : sessions expirées. */
+export async function purgeExpiredSessions(env, now = Date.now()) {
+  if (!env.DB) return 0;
+  const r = await env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now).run();
+  return (r && r.meta && r.meta.changes) || 0;
 }
 
 async function createSession(env, userId) {
@@ -133,6 +147,11 @@ async function register(request, env) {
   const email = normEmail(body.email), key = body.key;
   if (!validEmail(email)) return err(400, "bad_email");
   if (!validKey(key)) return err(400, "bad_key");
+  const ip = await ipKey(request);
+  if (ip) {
+    if (await tooManyAttempts(env, "register", ip, MAX_REGISTER_PER_IP)) return err(429, "too_many_ip");
+    await countAttempt(env, "register", ip);
+  }
   const exists = await env.DB.prepare("SELECT 1 FROM users WHERE email = ?").bind(email).first();
   if (exists) return err(409, "email_taken");
   const id = crypto.randomUUID();
@@ -149,8 +168,10 @@ async function login(request, env) {
   const email = normEmail(body.email), key = body.key;
   if (!validEmail(email) || !validKey(key)) return err(400, "bad_request");
   if (await tooManyAttempts(env, "login", email)) return err(429, "too_many_attempts");
+  const ip = await ipKey(request);
+  if (ip && await tooManyAttempts(env, "fail", ip, MAX_FAILS_PER_IP)) return err(429, "too_many_ip");
   const user = await env.DB.prepare("SELECT id, email, key_salt, key_hash FROM users WHERE email = ?").bind(email).first();
-  if (!user || !(await checkKey(user, key))) { await countAttempt(env, "login", email); return err(401, "bad_credentials"); }
+  if (!user || !(await checkKey(user, key))) { await countAttempt(env, "login", email); if (ip) await countAttempt(env, "fail", ip); return err(401, "bad_credentials"); }
   const cookie = await createSession(env, user.id);
   return json(200, { email: user.email }, { "set-cookie": cookie });
 }
@@ -172,8 +193,10 @@ async function recover(request, env) {
   const email = normEmail(body.email), key = body.key, rc = normRecovery(body.recoveryKey);
   if (!validEmail(email) || !validKey(key) || rc.length !== 25) return err(400, "bad_request");
   if (await tooManyAttempts(env, "recover", email)) return err(429, "too_many_attempts");
+  const ip = await ipKey(request);
+  if (ip && await tooManyAttempts(env, "fail", ip, MAX_FAILS_PER_IP)) return err(429, "too_many_ip");
   const user = await env.DB.prepare("SELECT id, email, recovery_hash FROM users WHERE email = ?").bind(email).first();
-  if (!user || !safeEqual(await sha256Hex(rc), user.recovery_hash)) { await countAttempt(env, "recover", email); return err(401, "bad_recovery"); }
+  if (!user || !safeEqual(await sha256Hex(rc), user.recovery_hash)) { await countAttempt(env, "recover", email); if (ip) await countAttempt(env, "fail", ip); return err(401, "bad_recovery"); }
   const salt = randomHex(16);
   const recovery = newRecoveryKey();
   await env.DB.batch([

@@ -82,3 +82,55 @@ assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
 lout = here / "public" / "index.html"
 lout.write_text(land, encoding="utf-8")
 print("Écrit :", lout, {k: v for k, v in vals.items() if not k.endswith("JSON")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
+
+# En-têtes de sécurité (public/_headers). La politique de contenu (CSP) n'autorise que les
+# scripts du site : les deux pages ont des scripts en ligne, autorisés par leur empreinte
+# sha256, recalculée à chaque construction. Une seule règle « /* » : Cloudflare fusionne les
+# en-têtes de règles qui se recouvrent, et deux CSP fusionnées bloqueraient la page.
+import base64, hashlib
+def _script_hashes(html):
+    out = []
+    for attrs, body in re.findall(r"<script\b([^>]*)>(.*?)</script>", html, re.S):
+        if "src=" in attrs or re.search(r'type="(?!text/javascript|module)', attrs): continue
+        out.append("'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'")
+    return out
+_app_html = out.read_text(encoding="utf-8")
+hashes = sorted(set(_script_hashes(_app_html) + _script_hashes(land)))
+csp = "; ".join([
+    "default-src 'self'",
+    "script-src 'self' " + " ".join(hashes),
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob:",
+    "media-src 'self' data: blob:",
+    # Le service worker met en cache les polices Google : il lui faut ces deux origines.
+    "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "frame-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+])
+headers = f"""# Fichier écrit par build.py : ne pas modifier à la main.
+/*
+  Content-Security-Policy: {csp}
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=3600
+"""
+(here / "public" / "_headers").write_text(headers, encoding="utf-8")
+print("Écrit : public/_headers", f"({len(hashes)} scripts en ligne autorisés)")

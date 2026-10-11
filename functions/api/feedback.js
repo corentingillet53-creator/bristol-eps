@@ -405,8 +405,23 @@ export async function onRequestGet({ request, env }) {
   return new Response(JSON.stringify(out), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 }
 
+/* Même origine et JSON uniquement (défense contre les requêtes forgées depuis un autre site),
+   et corps limité : une copie complète tient largement dans 256 Ko. */
+const MAX_BODY = 256 * 1024;
+function badRequestShape(request) {
+  if (!(request.headers.get("content-type") || "").includes("application/json")) return json(415, "json_required");
+  const origin = request.headers.get("origin");
+  if (origin) {
+    try { if (new URL(origin).host !== new URL(request.url).host) return json(403, "bad_origin"); }
+    catch { return json(403, "bad_origin"); }
+  }
+  if ((parseInt(request.headers.get("content-length") || "0", 10) || 0) > MAX_BODY) return json(413, "too_long");
+  return null;
+}
+
 export async function onRequestPost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY) return json(500, "server_not_configured");
+  const shape = badRequestShape(request); if (shape) return shape;
 
   // Accès : un compte abonné (cookie de session), ou à défaut un code d'accès bêta.
   let who = null;
@@ -422,7 +437,12 @@ export async function onRequestPost({ request, env }) {
   }
 
   let body;
-  try { body = await request.json(); } catch { return json(400, "bad_request"); }
+  try {
+    const raw = await request.text();
+    if (raw.length > MAX_BODY) return json(413, "too_long");
+    body = JSON.parse(raw);
+  } catch { return json(400, "bad_request"); }
+  if (!body || typeof body !== "object") return json(400, "bad_request");
   let prompt, maxTokens = 1200, isCopie = false;
   if (body && body.kind === "copie") {
     const { o, error } = readCopie(body); if (error) return error;
