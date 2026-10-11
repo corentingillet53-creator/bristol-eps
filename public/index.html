@@ -112,7 +112,7 @@ svg.ic{width:22px;height:22px;flex:none}
   .tool:hover{background:var(--chip);color:var(--ink)}
   .status{padding:6px 12px 10px}
   .main{width:100%;max-width:1200px;padding:44px 48px 72px}
-  .seg{max-width:560px}
+  .seg{max-width:680px}
   #area-train > section,#area-train > .intro{max-width:880px}
   .welcome{padding:32px 36px}
 }
@@ -559,6 +559,22 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .blanc-item{appearance:none;display:grid;gap:4px;width:100%;text-align:left;background:none;border:0;padding:0;color:inherit;cursor:pointer;font:inherit}
 .blanc-list .is{display:flex;gap:10px;align-items:center}
 .btn.danger{background:var(--bad);border-color:transparent;color:var(--paper)}
+.bc-grid2{display:grid;gap:8px 32px}
+@media (min-width:900px){ .bc-grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+.bc-h{font-size:16px;font-weight:700;margin:0 0 4px;color:var(--muted)}
+.bc{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:2px;height:190px}
+.bc li,.bc-words li{display:flex;flex-direction:column;gap:6px;min-width:0}
+.bc-track{position:relative;flex:1;border-bottom:1px solid var(--line);min-height:0}
+.bc-grid{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--line)}
+.bc-range{position:absolute;left:50%;transform:translateX(-50%);width:12px;border-radius:6px;background:var(--bar);box-shadow:0 0 0 2px var(--surface)}
+.bc-v{position:absolute;left:0;right:0;text-align:center;font-size:13px;font-weight:700;color:var(--ink);line-height:1;white-space:nowrap}
+.bc-none{position:absolute;bottom:4px;left:0;right:0;text-align:center;color:var(--muted)}
+.bc-words{height:150px}
+.bc-wrap{display:flex;gap:6px}
+.bc-wrap .bc{flex:1}
+.bc-y{position:relative;width:20px;margin:10px 0 calc(2.6em + 6px);font-size:12px;color:var(--muted)}
+.bc-y span{position:absolute;right:0;transform:translateY(50%);line-height:1}
+.blanc-setup{margin-bottom:36px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -5016,6 +5032,33 @@ function blancDoneHTML(m){
     ${blancFbHTML(m)}
     <p class="sj-help">Compare aussi avec ce que relèvent les jurys : onglet Méthode, « Ce que répètent les jurys »${s && s.a ? ", et le rapport de cette session dans l'onglet Annales" : ""}.</p>`;
 }
+/* Note indicative : fourchette « 9 à 11 / 20 » (ou note seule) lue dans la rubrique de la correction. */
+function blancNote(m){
+  const t = fbSaved("b:" + m.id); if (!t) return null;
+  const i = t.search(/note indicative/i), sec = i >= 0 ? t.slice(i, i + 600) : t;
+  const num = x => parseFloat(x.replace(",", "."));
+  let r = sec.match(/(\d{1,2}(?:[.,]\d+)?)\s*(?:à|-|–|et)\s*(\d{1,2}(?:[.,]\d+)?)\s*\/\s*20/);
+  if (r) { const a = num(r[1]), b = num(r[2]); if (a >= 0 && b <= 20 && a <= b) return [a, b]; }
+  r = sec.match(/(\d{1,2}(?:[.,]\d+)?)\s*\/\s*20/);
+  if (r) { const a = num(r[1]); if (a >= 0 && a <= 20) return [a, a]; }
+  return null;
+}
+const fmtN = x => String(Math.round(x * 10) / 10).replace(".", ",");
+function blancChartsHTML(){
+  const done = blancList().filter(m => m.state === "done").sort((a, b) => a.start - b.start).slice(-12);
+  if (!done.length) return "";
+  const lab = m => { const d = new Date(m.start); return pad2(d.getDate()) + "/" + pad2(d.getMonth() + 1) + "<br>" + (m.k === "e1" ? "É1" : m.k === "e2" ? "É2" : "Écrit"); };
+  const long = m => new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) + ", " + m.s;
+  const notes = done.map(blancNote), words = done.map(m => wordCount(txGet("b:" + m.id)));
+  const nN = notes.filter(Boolean).length, maxW = Math.max(1, ...words);
+  const cols = `style="grid-template-columns:repeat(${done.length},minmax(0,1fr))"`;
+  const noteChart = nN ? `<div class="bc-wrap"><div class="bc-y" aria-hidden="true"><span style="bottom:100%">20</span><span style="bottom:50%">10</span><span style="bottom:0">0</span></div><ol class="bc bc-note" ${cols} aria-label="Note indicative par copie">${done.map((m, i) => { const n = notes[i];
+      return `<li aria-label="${esc(long(m))} : ${n ? (n[0] === n[1] ? fmtN(n[0]) : fmtN(n[0]) + " à " + fmtN(n[1])) + " sur 20" : "pas encore corrigée"}"><div class="bc-track" aria-hidden="true">${[5, 10, 15, 20].map(g => `<span class="bc-grid" style="bottom:${g * 5}%"></span>`).join("")}${n ? `<span class="bc-range" style="bottom:calc(${n[0] * 5}% - 4px);height:calc(${(n[1] - n[0]) * 5}% + 8px)"></span><span class="bc-v" style="bottom:calc(${n[1] * 5}% + 10px)">${n[0] === n[1] ? fmtN(n[0]) : fmtN(n[0]) + "–" + fmtN(n[1])}</span>` : `<span class="bc-none">–</span>`}</div><span class="fc-d" aria-hidden="true">${lab(m)}</span></li>`; }).join("")}</ol></div>
+      <p class="fc-note">Fourchette sur 20 donnée par la correction de Claude : un repère pour suivre ta progression, pas une note de jury.</p>`
+    : `<p class="lead">Fais corriger une copie pour voir apparaître ta note indicative.</p>`;
+  const wordChart = `<ol class="fc bc-words" ${cols} aria-label="Nombre de mots par copie">${done.map((m, i) => `<li aria-label="${esc(long(m))} : ${words[i]} mots en ${Math.round((m.end - m.start) / 6e4)} minutes"><div class="fc-track" aria-hidden="true"><span class="fc-v">${words[i]}</span><span class="fc-bar" style="height:${words[i] ? Math.max(3, Math.round(100 * words[i] / maxW)) : 0}%"></span></div><span class="fc-d" aria-hidden="true">${lab(m)}</span></li>`).join("")}</ol>`;
+  return `<div class="bc-grid2"><div><h3 class="bc-h">Note indicative</h3>${noteChart}</div><div><h3 class="bc-h">Mots par copie</h3>${wordChart}</div></div>`;
+}
 function blancHomeHTML(){
   const es = blancEcrits();
   if (!bl.k || !es.some(e => e.k === bl.k)) bl.k = es[0].k;
@@ -5030,6 +5073,7 @@ function blancHomeHTML(){
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button></p>`}
     <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">Commencer : ${h} h</button></div>
   </div>
+  ${blancsDone() ? `<div class="sect"><h2>Ma progression</h2>${blancChartsHTML()}</div>` : ""}
   ${list.length ? `<div class="sect"><h2>Mes concours blancs</h2><ul class="list blanc-list">${list.map(m => { const s = blancSubject(m), fbk = fbSaved("b:" + m.id); return `<li class="item"><button class="blanc-item" data-blopen="${m.id}"><span class="ip">${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))} · ${esc(m.s)} · ${m.dur / 3600} h${m.state === "quit" ? " · abandonné" : ""}</span><span class="iq">${esc(s ? s.t.slice(0, 160) + (s.t.length > 160 ? "…" : "") : "Sujet introuvable")}</span><span class="is"><span>${wordCount(txGet("b:" + m.id))} mots</span>${fbk ? `<span class="due">Corrigé</span>` : ""}</span></button></li>`; }).join("")}</ul></div>` : ""}`;
 }
 function renderBlanc(){
@@ -5111,6 +5155,7 @@ function renderStats(){
     ${forecastHTML()}
     ${agendaHTML()}
     ${planHTML()}
+    ${blancsDone() ? `<div class="sect span2"><h2>Concours blancs</h2>${blancChartsHTML()}<div class="row-btns"><button class="btn" data-sec="train" data-gotab="blanc">Voir mes concours blancs</button></div></div>` : ""}
     <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
