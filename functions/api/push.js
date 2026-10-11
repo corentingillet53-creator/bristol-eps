@@ -108,7 +108,7 @@ export function weeklyMessage(data, day) {
   }
   const body = !days ? "Pas de révision cette semaine. Une séance de 10 minutes suffit pour reprendre le fil."
     : `${days} jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""} sur 7, ${answers} réponse${answers > 1 ? "s" : ""}, ${fresh} nouvelle${fresh > 1 ? "s" : ""} carte${fresh > 1 ? "s" : ""}. ${days >= 5 ? "Très belle régularité !" : days >= 3 ? "Bon rythme : vise un jour de plus." : "Essaie de réviser un jour sur deux."}`;
-  return { title: "Ta semaine sur Bristol EPS", body, url: "/?depuis=bilan", tag: "bristol-bilan" };
+  return { title: "Ta semaine sur Bristol EPS", body, url: "/app/?depuis=bilan", tag: "bristol-bilan" };
 }
 
 // Message du jour d'après la progression synchronisée ; null si la personne a déjà révisé.
@@ -121,7 +121,7 @@ export function dailyMessage(data, day, now = Date.now(), sunday = false) {
   return {
     title: "Bristol EPS",
     body: due ? `${due} carte${due > 1 ? "s" : ""} à revoir aujourd'hui. Dix minutes suffisent pour garder le rythme.` : "Ta séance du jour t'attend : quelques nouvelles cartes pour avancer.",
-    url: "/?depuis=rappel", tag: "bristol-rappel",
+    url: "/app/?depuis=rappel", tag: "bristol-rappel",
   };
 }
 
@@ -190,7 +190,7 @@ async function test(request, env) {
   await ensurePush(env);
   const row = await env.DB.prepare("SELECT endpoint, p256dh, auth, origin FROM push_subs WHERE user_id = ? AND endpoint = ?").bind(user.id, String((body && body.endpoint) || "")).first();
   if (!row) return err(404, "not_subscribed");
-  const st = await sendPush(env, row, { title: "Bristol EPS", body: "Les rappels fonctionnent : tu recevras le prochain à l'heure choisie.", url: "/", tag: "bristol-test" });
+  const st = await sendPush(env, row, { title: "Bristol EPS", body: "Les rappels fonctionnent : tu recevras le prochain à l'heure choisie.", url: "/app/", tag: "bristol-test" });
   return st >= 200 && st < 300 ? json(200, { ok: true }) : err(502, "push_failed", { status: st });
 }
 

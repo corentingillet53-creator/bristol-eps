@@ -292,7 +292,7 @@ async function authConfig(request, env) {
 }
 
 async function googleStart(request, env) {
-  if (!googleEnabled(env)) return redirect("/?connexion=erreur&raison=google_indisponible");
+  if (!googleEnabled(env)) return redirect("/app/?connexion=erreur&raison=google_indisponible");
   const state = randomHex(16);
   const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
   const challenge = b64url(await crypto.subtle.digest("SHA-256", enc.encode(verifier)));
@@ -312,7 +312,7 @@ function decodeJwtPayload(jwt) {
 
 async function googleCallback(request, env) {
   // Le détail (code d'erreur Google, jamais un secret) aide à diagnostiquer la configuration.
-  const fail = (raison, detail) => redirect(`/?connexion=erreur&raison=${raison}${detail ? "&detail=" + encodeURIComponent(String(detail).slice(0, 80)) : ""}`, [oauthCookie("", 0)]);
+  const fail = (raison, detail) => redirect(`/app/?connexion=erreur&raison=${raison}${detail ? "&detail=" + encodeURIComponent(String(detail).slice(0, 80)) : ""}`, [oauthCookie("", 0)]);
   if (!googleEnabled(env)) return fail("google_indisponible");
   const url = new URL(request.url);
   if (url.searchParams.get("error")) return fail("google_annule");
@@ -362,7 +362,7 @@ async function googleCallback(request, env) {
     }
   }
   const session = await createSession(env, user.id);
-  return redirect(linked ? "/?connexion=google&lie=1" : "/?connexion=google", [session, oauthCookie("", 0)]);
+  return redirect(linked ? "/app/?connexion=google&lie=1" : "/app/?connexion=google", [session, oauthCookie("", 0)]);
 }
 
 const ROUTES = {

@@ -10,7 +10,8 @@ Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offr
   `public/manifest.webmanifest`, `public/sw.js` et `public/icons/` rendent le site installable et utilisable hors ligne (la page et les polices sont mises en cache, jamais `/api/*`) ;
 - `functions/api/feedback.js` : la fonction serveur qui appelle Claude avec **ta** clé d'API, après avoir vérifié le code d'accès et le quota ;
 - `worker.js` et `wrangler.jsonc` : le point d'entrée et la configuration du Worker ;
-- `source/bristol-eps.html` et `build.py` : la source de la page et le script qui fabrique `public/index.html`.
+- `source/bristol-eps.html` et `build.py` : la source de l'application et le script qui fabrique `public/app/index.html` (servie sous `/app/`) ;
+- `source/landing.html` : la page de présentation servie à la racine (`public/index.html`), complétée par `build.py` avec les chiffres et les fiches d'essai tirés de la source ; les captures sont dans `public/img/`. Un visiteur qui a déjà utilisé l'application sur l'appareil est renvoyé vers `/app/` (`/?accueil` pour voir la présentation).
 
 Sur ce site, le retour de Claude ne touche plus à tes limites personnelles : il est facturé à l'usage sur ton compte API, environ 1 centime par retour avec Claude Sonnet 5.5.
 

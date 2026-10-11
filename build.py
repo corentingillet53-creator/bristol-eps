@@ -35,7 +35,45 @@ img{max-width:100%}
 </head>
 <body>
 """
-out = here / "public" / "index.html"
+# L'application est servie sous /app/ ; la racine présente le site (source/landing.html).
+out = here / "public" / "app" / "index.html"
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(head + page + "\n</body>\n</html>\n", encoding="utf-8")
 print("Écrit :", out, f"({out.stat().st_size // 1024} Ko)")
+
+# Page de présentation : chiffres et fiches d'essai tirés de la source, pour rester à jour.
+import json, re
+def block(name, opener="["):
+    i = page.index(f"const {name} = {opener}")
+    j = page.index("\n];" if opener == "[" else "\n};", i)
+    return page[i:j]
+base = block("BASE")
+cards = re.findall(r'\{id:"([^"]+)",th:"(\w+)",p:"([^"]*)",q:"((?:[^"\\]|\\.)*)",a:"((?:[^"\\]|\\.)*)"', base)
+GROUP = {}
+for gid, ths in re.findall(r'\{ id: "(e1|e2|tx)", t: "[^"]+", s: "[^"]+", th: \[([^\]]+)\]', page):
+    for th in re.findall(r'"?(\w+)"?', ths): GROUP[th] = gid
+ti = page.index("const THEMES = {")
+themes = dict(re.findall(r'\b([A-Z]{1,2}):\s*"([^"]+)"', page[ti:page.index("};", ti)]))
+count = {g: sum(1 for c in cards if GROUP.get(c[1]) == g) for g in ("e1", "e2", "tx")}
+ann = re.findall(r'"id": "an\d+",[^}]*?"y": (\d{4})', block("ANNALES"), re.S)
+years = [int(y) for y in ann]
+subj = len(re.findall(r'\{\s*id:\s*"s\d+"', page)) + len(re.findall(r'\{id:"t\d+",epr', page))
+demo_ids = ["n02", "am02", "b05", "ex06", "b03", "am01"]
+EPR_S = {"e1": "Écrit 1", "e2": "Écrit 2", "tx": "Textes officiels"}
+unesc = lambda t: json.loads('"' + t + '"')
+demo = [{"q": unesc(c[3]), "a": unesc(c[4]), "p": c[2], "th": themes.get(c[1], c[1]), "e": EPR_S.get(GROUP.get(c[1]), "")} for i in demo_ids for c in cards if c[0] == i]
+conc = []
+for cid, t, tag in re.findall(r'\{ id: "((?:capeps|agreg)-[a-z0-9]+)", t: "([^"]+)", tag: "([^"]+)"', page):
+    seg = page[page.index(f'{{ id: "{cid}"'):][:2000]
+    ec = re.search(r'ecrits: "([^"]+)", d: "(\d{4}-\d{2}-\d{2})"', seg)
+    if ec: conc.append({"t": t, "tag": tag, "ecrits": ec.group(1), "d": ec.group(2)})
+vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["tx"],
+        "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
+        "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
+        "DEMO_JSON": json.dumps(demo, ensure_ascii=False), "CONC_JSON": json.dumps(conc, ensure_ascii=False)}
+land = (here / "source" / "landing.html").read_text(encoding="utf-8")
+for k, v in vals.items(): land = land.replace("{{" + k + "}}", str(v))
+assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
+lout = here / "public" / "index.html"
+lout.write_text(land, encoding="utf-8")
+print("Écrit :", lout, {k: v for k, v in vals.items() if not k.endswith("JSON")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")

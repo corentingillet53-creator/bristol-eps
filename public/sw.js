@@ -3,14 +3,14 @@
    - les polices Google : copie en cache, rafraîchie en arrière-plan ;
    - les icônes et le manifeste : cache d'abord ;
    - /api/* : jamais mis en cache (comptes, progression, retour de Claude). */
-const PAGE = "bristol-page-v1", STATIC = "bristol-static-v1", FONTS = "bristol-fonts-v1";  // v2 : rappels par notification
+const PAGE = "bristol-page-v2", STATIC = "bristol-static-v1", FONTS = "bristol-fonts-v1";  // v2 : application sous /app/, page de présentation à la racine
 const KEEP = [PAGE, STATIC, FONTS];
 const PRECACHE = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/favicon-32.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
     const s = await caches.open(STATIC); await s.addAll(PRECACHE);
-    try { const r = await fetch("/", { cache: "no-store" }); if (r.ok) await (await caches.open(PAGE)).put("/", r); } catch (err) {}
+    try { const r = await fetch("/app/", { cache: "no-store" }); if (r.ok) await (await caches.open(PAGE)).put("/app/", r); } catch (err) {}
     await self.skipWaiting();
   })());
 });
@@ -33,12 +33,14 @@ self.addEventListener("fetch", e => {
   if (req.mode === "navigate" && same) {
     e.respondWith((async () => {
       const cache = await caches.open(PAGE);
+      /* Une copie par page : l'application (/app/) et la présentation (/). */
+      const key = url.pathname.startsWith("/app") ? "/app/" : "/";
       try {
         const r = await withTimeout(fetch(req), 5000);
-        if (r.ok && r.type === "basic") cache.put("/", r.clone());
+        if (r.ok && r.type === "basic" && !r.redirected) cache.put(key, r.clone());
         return r;
       } catch (err) {
-        return (await cache.match("/")) || new Response("Hors ligne : ouvre Bristol EPS une première fois avec une connexion.", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } });
+        return (await cache.match(key)) || (await cache.match("/app/")) || new Response("Hors ligne : ouvre Bristol EPS une première fois avec une connexion.", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } });
       }
     })());
     return;
@@ -75,10 +77,10 @@ self.addEventListener("push", e => {
 });
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const url = new URL((e.notification.data && e.notification.data.url) || "/", self.location.origin).href;
+  const url = new URL((e.notification.data && e.notification.data.url) || "/app/", self.location.origin).href;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const w = all.find(c => new URL(c.url).origin === self.location.origin);
+    const w = all.find(c => new URL(c.url).pathname.startsWith("/app"));
     if (w) { await w.focus(); return; }
     await self.clients.openWindow(url);
   })());

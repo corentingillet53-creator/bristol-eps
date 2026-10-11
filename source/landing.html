@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bristol EPS : réviser les écrits du CAPEPS et de l'agrégation d'EPS</title>
+<meta name="description" content="Fiches à répétition espacée, annales avec les rapports de jury, sujets corrigés par Claude et concours blancs en temps réel, pour les écrits du CAPEPS et de l'agrégation d'EPS.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1412" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bristol EPS : réviser les écrits du CAPEPS et de l'agrégation d'EPS">
+<meta property="og:description" content="Un peu chaque jour : fiches, annales, sujets corrigés et concours blancs.">
+<meta property="og:image" content="/img/revise.webp">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<script>
+/* Déjà utilisateur sur cet appareil : directement dans l'application (« ?accueil » pour voir cette page). */
+try { if (!/[?&]accueil/.test(location.search) && (localStorage.getItem("bristol-eps-v1") || localStorage.getItem("bristol-eps-welcome"))) location.replace("/app/" + location.search + location.hash); } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap">
+<style>
+:root{
+  --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#56645d; --line:#dde4df; --chip:#e8ede9;
+  --accent:#0b7a53; --accent-deep:#075c3e; --accent-text:#09694a; --soft:#e1f2e9; --gold:#e5a00d;
+  --bad:#b53a2d; --bad-soft:#fbe4e0; --ok-soft:#e1f2e9;
+  --lane:rgba(255,255,255,.22);
+  --f-display:"Bricolage Grotesque",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
+    --accent:#137450; --accent-deep:#0d5a3d; --accent-text:#5fdaa7; --soft:#163a2b; --bad:#f07d70; --bad-soft:#3d1d19; --ok-soft:#163a2b; --lane:rgba(255,255,255,.14); color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 18px/1.55 var(--f-body)}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--accent-text)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;font:700 17px/1 var(--f-body);text-decoration:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-deep)}
+
+/* En-tête */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;font:800 21px/1 var(--f-display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:17px}
+.top .btn{min-height:44px;padding:0 18px;font-size:15px}
+
+/* Ouverture : le titre, et une vraie fiche sur la piste */
+.hero{display:grid;gap:40px;padding:28px 0 72px;align-items:center}
+@media (min-width:980px){ .hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:56px;padding:40px 0 96px} }
+h1{font:800 clamp(44px,5.4vw,74px)/.95 var(--f-display);font-stretch:78%;font-variation-settings:"wdth" 78;letter-spacing:-.03em;margin:0 0 26px;text-wrap:balance}
+.lead{font-size:20px;color:var(--muted);max-width:34em;margin:0 0 30px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.ctas .quiet{font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.free{font-size:15px;color:var(--muted);margin:18px 0 0}
+
+.track{position:relative;background:var(--accent);border-radius:32px;padding:56px 28px;overflow:hidden;min-height:420px;display:flex;align-items:center;justify-content:center}
+.track svg.lanes{position:absolute;inset:0;width:100%;height:100%}
+.card{position:relative;width:100%;max-width:440px;background:var(--surface);border-radius:22px;padding:22px 24px 24px;box-shadow:0 30px 60px -28px rgba(0,0,0,.55)}
+.card-band{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:13px;color:var(--muted);margin:0 0 14px}
+.card-band b{color:var(--accent-text);background:var(--soft);border-radius:999px;padding:3px 10px;font-size:12px}
+.card-q{font:700 24px/1.22 var(--f-display);margin:0;min-height:3.6em}
+.card-a{margin:16px 0 0;padding-top:14px;border-top:1px dashed var(--line);font-weight:700;color:var(--accent-text);font-size:18px}
+.card-act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.card-act .btn{min-height:56px}
+.card-act .wide{grid-column:1 / -1}
+.btn.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.btn.good{background:var(--ok-soft);border-color:transparent;color:var(--accent-text)}
+.card-note{position:relative;color:#fff;font-size:14px;margin:18px 0 0;text-align:center}
+.card-box{position:relative;display:flex;flex-direction:column;align-items:center;width:100%}
+
+/* Dates des écrits */
+.dates{padding:8px 0 80px}
+h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings:"wdth" 82;letter-spacing:-.025em;margin:0 0 14px;text-wrap:balance}
+.sub{color:var(--muted);max-width:40em;margin:0 0 28px}
+.dt{width:100%;border-collapse:collapse;font-size:17px}
+.dt th,.dt td{text-align:left;padding:16px 12px;border-bottom:1px solid var(--line);vertical-align:baseline}
+.dt th{font-size:14px;color:var(--muted);font-weight:700}
+.dt td:first-child{font-weight:700}
+.dt .tag{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.dt .j{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dt .j small{font:700 14px var(--f-body);color:var(--muted)}
+.dates .note{font-size:15px;color:var(--muted);margin:16px 0 0}
+@media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
+
+/* Contenu : quatre usages, chacun avec une vraie capture */
+.feat{padding:24px 0 40px}
+.row{display:grid;gap:28px;align-items:center;padding:44px 0;border-top:1px solid var(--line)}
+@media (min-width:980px){ .row{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:64px} .row.flip{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)} .row.flip .txt{order:2} }
+.row h3{font:800 32px/1.05 var(--f-display);font-variation-settings:"wdth" 85;letter-spacing:-.02em;margin:0 0 12px}
+.row p{margin:0 0 14px;max-width:34em}
+.row ul{margin:0;padding-left:20px;max-width:34em}
+.row li{margin:6px 0}
+.shot{border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 50px -30px rgba(0,0,0,.35);background:var(--surface)}
+
+/* Une séance */
+.how{padding:72px 0}
+.steps{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:18px;counter-reset:s}
+@media (min-width:860px){ .steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px} }
+.steps li{counter-increment:s;padding:22px 0 0;border-top:3px solid var(--accent)}
+.steps li::before{content:counter(s);display:block;font:800 44px/1 var(--f-display);color:var(--accent-text);margin-bottom:10px}
+.steps b{display:block;font:700 20px/1.25 var(--f-display);margin-bottom:6px}
+.steps p{margin:0;color:var(--muted)}
+.how .after{margin:30px 0 0;max-width:46em}
+
+/* Questions */
+.faq{padding:24px 0 72px}
+.faq details{border-bottom:1px solid var(--line);max-width:820px}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;padding:20px 0;font:700 20px/1.3 var(--f-display)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font:400 28px/1 var(--f-body);color:var(--accent-text)}
+.faq details[open] summary::after{content:"−"}
+.faq details p{margin:0 0 20px;color:var(--muted);max-width:44em}
+
+.end{background:var(--accent);color:#fff;border-radius:32px;padding:56px 32px;margin:0 0 56px;position:relative;overflow:hidden}
+.end h2{color:#fff;max-width:16em}
+.end p{max-width:36em;margin:0 0 26px}
+.end .btn.primary{background:#fff;color:var(--accent-deep);border-color:#fff}
+.foot{padding:0 0 40px;color:var(--muted);font-size:15px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+@media (max-width:640px){ body{font-size:17px} .wrap{padding:0 16px} .track{padding:40px 16px;min-height:380px;border-radius:24px} .card-q{font-size:21px} .end{padding:40px 22px;border-radius:24px} }
+@media (prefers-reduced-motion: no-preference){ .card.turn{animation:turn .32s ease-out} @keyframes turn{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</a>
+    <a class="btn" href="/app/">Ouvrir l'application</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="h-hero">
+      <div>
+        <h1 id="h-hero">Les écrits du CAPEPS et de l'agrégation d'EPS, un peu chaque jour.</h1>
+        <p class="lead">Des fiches qui reviennent juste avant que tu les oublies, les annales avec ce qu'en disent les jurys, des sujets corrigés par Claude et des concours blancs en temps réel.</p>
+        <div class="ctas"><a class="btn primary" href="/app/">Commencer à réviser</a><a class="quiet" href="#contenu">Voir ce qu'il y a dedans</a></div>
+        <p class="free">Gratuit pendant la bêta, sans inscription. Un compte sert seulement à retrouver ta progression sur tous tes appareils.</p>
+      </div>
+      <div class="track" aria-label="Essai d'une fiche">
+        <svg class="lanes" viewBox="0 0 600 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g fill="none" stroke="var(--lane)" stroke-width="2">
+            <path d="M-40 380 H380 A170 170 0 0 0 380 40 H-40"/>
+            <path d="M-40 410 H380 A200 200 0 0 0 380 10 H-40"/>
+            <path d="M-40 440 H380 A230 230 0 0 0 380 -20 H-40"/>
+            <path d="M-40 470 H380 A260 260 0 0 0 380 -50 H-40"/>
+            <path d="M-40 350 H380 A140 140 0 0 0 380 70 H-40"/>
+          </g>
+          <g stroke="var(--lane)" stroke-width="4"><path d="M120 350 V470"/></g>
+        </svg>
+        <div class="card-box">
+          <article class="card" id="demo" aria-live="polite"></article>
+          <p class="card-note">Essaie : ce sont de vraies fiches du site.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dates" aria-labelledby="h-dates">
+      <h2 id="h-dates">Session 2027 : les écrits approchent</h2>
+      <p class="sub">Choisis ton concours dans l'application : le compte à rebours, les épreuves, les annales et le plan de révision s'y règlent.</p>
+      <table class="dt">
+        <thead><tr><th scope="col">Concours</th><th scope="col">Écrits</th><th scope="col">Dans</th></tr></thead>
+        <tbody id="dates-body"></tbody>
+      </table>
+      <p class="note" id="dates-note">Dates relevées dans les textes officiels ; seule ta convocation fait foi.</p>
+    </section>
+
+    <section class="feat" id="contenu" aria-labelledby="h-feat">
+      <h2 id="h-feat">Ce qu'il y a dedans</h2>
+      <p class="sub">Les trois écrits sont séparés : l'histoire de l'EPS, les sciences et l'intervention, et les textes officiels. Tu choisis ton concours, le site n'affiche que ce qui te concerne.</p>
+
+      <div class="row">
+        <div class="txt">
+          <h3>Réviser sans rien oublier</h3>
+          <p>{{CARDS}} fiches : {{E1}} pour l'écrit 1, {{E2}} pour l'écrit 2 et {{TX}} sur les textes officiels. Chacune revient au moment où tu risques de l'oublier, puis de plus en plus tard.</p>
+          <ul><li>Une séance par écrit, avec un objectif du jour calculé d'après la date de ton concours.</li><li>Sur chaque fiche d'histoire, la source qui a servi à la vérifier, avec tes notes et tes références.</li><li>Une séance express de 5 minutes, ou un mode écoute pour réviser dans le train.</li></ul>
+        </div>
+        <figure class="shot" style="margin:0"><img src="/img/revise.webp" width="1600" height="1000" alt="Une séance de révision : la question, la réponse retournée et les boutons Raté, Hésité, Su." loading="lazy"></figure>
+      </div>
+
+      <div class="row flip">
+        <div class="txt">
+          <h3>S'entraîner comme le jour J</h3>
+          <p>{{ANN}} sujets d'annales de {{ANN_MIN}} à {{ANN_MAX}}, avec ce que les rapports de jury ont relevé, et {{SUBJ}} sujets d'entraînement.</p>
+          <ul><li>Plan, introduction chronométrée ou paragraphe argumenté, avec le retour de Claude.</li><li>Concours blanc : un sujet tiré au sort, la durée de l'épreuve, la correction et une note indicative.</li><li>La méthode de chaque écrit et ce que les jurys répètent d'une session à l'autre.</li></ul>
+        </div>
+        <figure class="shot" style="margin:0"><img src="/img/blanc.webp" width="1600" height="1000" alt="Un concours blanc en cours : le temps restant, le sujet, la copie et son plan détecté automatiquement." loading="lazy"></figure>
+      </div>
+
+      <div class="row">
+        <div class="txt">
+          <h3>Comprendre et citer juste</h3>
+          <p>{{FILS}} fils rouges relient les faits sur un thème, de la fin du XIXe siècle à aujourd'hui. {{REFS}} références à placer en copie, chacune avec son idée clé et la façon de l'utiliser.</p>
+          <ul><li>La frise et le quiz « Qui ? » pour fixer dates et auteurs.</li><li>Les épreuves d'admissibilité et d'admission de chaque concours, et leurs programmes.</li><li>Une recherche unique dans tout le site, tes propres textes compris.</li></ul>
+        </div>
+        <figure class="shot" style="margin:0"><img src="/img/fils.webp" width="1600" height="1000" alt="Un fil rouge : la question, le récit de synthèse et la frise des étapes." loading="lazy"></figure>
+      </div>
+
+      <div class="row flip">
+        <div class="txt">
+          <h3>Tenir jusqu'aux écrits</h3>
+          <p>Le site découpe les semaines qui restent : nouvelles fiches, sujets d'annales, copies complètes en temps réel, puis deux semaines de révision finale.</p>
+          <ul><li>Les cartes à revoir sur 7 jours et ton niveau par écrit.</li><li>Un rappel chaque jour sur ton téléphone, et le bilan de ta semaine le dimanche.</li><li>Installable comme une application, et utilisable sans connexion.</li></ul>
+        </div>
+        <figure class="shot" style="margin:0"><img src="/img/progres.webp" width="1600" height="1000" alt="La page Progrès : bilan de la semaine, niveau de préparation et régularité." loading="lazy"></figure>
+      </div>
+    </section>
+
+    <section class="how" aria-labelledby="h-how">
+      <h2 id="h-how">Une séance, en trois gestes</h2>
+      <ol class="steps">
+        <li><b>Lis la question</b><p>Cherche la réponse dans ta tête avant de regarder. C'est cet effort qui fait retenir.</p></li>
+        <li><b>Retourne la carte</b><p>La réponse s'affiche, avec un complément et la source.</p></li>
+        <li><b>Dis si tu savais</b><p>Raté, hésité ou su : la carte revient dans dix minutes, dans quelques jours ou dans quelques semaines.</p></li>
+      </ol>
+      <p class="after">Le calcul repose sur l'algorithme de répétition espacée FSRS : chaque carte revient quand ta probabilité de t'en souvenir tombe à 90 %, et jamais après la date de ton concours.</p>
+    </section>
+
+    <section class="faq" aria-labelledby="h-faq">
+      <h2 id="h-faq">Questions fréquentes</h2>
+      <details><summary>Faut-il créer un compte ?</summary><p>Non. Ta progression est enregistrée dans ton navigateur dès la première carte. Un compte, gratuit, sert à la retrouver sur ton téléphone et ton ordinateur, et à recevoir le rappel quotidien.</p></details>
+      <details><summary>Quels concours sont couverts ?</summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d'EPS. Les oraux ne sont pas encore traités.</p></details>
+      <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper. Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
+      <details><summary>Que devient ce que j'écris ?</summary><p>Tes plans, introductions et copies restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la correction ; le site ne le garde pas à cette occasion.</p></details>
+      <details><summary>Le retour de Claude est-il gratuit ?</summary><p>Pendant la bêta, il est réservé aux testeurs qui ont un code d'accès. Les fiches, les annales, les sujets et le concours blanc sont accessibles à tous.</p></details>
+      <details><summary>Ça marche sur téléphone ?</summary><p>Oui, et le site s'installe comme une application : sur Android, via le menu du navigateur ; sur iPhone, dans Safari, avec Partager puis « Sur l'écran d'accueil ». Les révisions fonctionnent ensuite sans connexion.</p></details>
+    </section>
+
+    <section class="end" aria-labelledby="h-end">
+      <h2 id="h-end">Ta première séance prend cinq minutes.</h2>
+      <p>Choisis ton concours, réponds à quelques fiches, et le site prépare la suite jusqu'aux écrits.</p>
+      <a class="btn primary" href="/app/">Commencer à réviser</a>
+    </section>
+  </main>
+  <footer class="foot"><span>Bristol EPS, conçu par un enseignant d'EPS.</span><a href="/app/">Ouvrir l'application</a></footer>
+</div>
+<script>
+const DEMO = {{DEMO_JSON}};
+const CONC = {{CONC_JSON}};
+const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let i = 0, shown = false;
+const card = document.getElementById("demo");
+function draw(turn){
+  const c = DEMO[i % DEMO.length];
+  card.innerHTML = `<p class="card-band"><b>${esc(c.th)}</b><span>${esc(c.e)}${c.p ? ", " + esc(c.p) : ""}</span></p>
+    <p class="card-q">${esc(c.q)}</p>${shown ? `<p class="card-a">${esc(c.a)}</p>` : ""}
+    <div class="card-act">${shown ? `<button class="btn bad" data-k="next">Raté</button><button class="btn good" data-k="next">Su</button>` : `<button class="btn primary wide" data-k="flip">Voir la réponse</button>`}</div>`;
+  if (turn) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
+}
+card.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.k === "flip") shown = true; else { shown = false; i++; }
+  draw(true);
+  const nb = card.querySelector("button"); if (nb) nb.focus({ preventScroll: true });
+});
+draw(false);
+/* Compte à rebours jusqu'aux premiers écrits de chaque concours. */
+const today = new Date(); today.setHours(0, 0, 0, 0);
+document.getElementById("dates-body").innerHTML = CONC.map(c => {
+  const n = Math.round((new Date(c.d + "T00:00:00") - today) / 864e5);
+  return `<tr><td>${esc(c.t)}<span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
+}).join("");
+if (Date.now() < INSC_END) document.getElementById("dates-note").textContent = "Inscriptions sur Cyclades jusqu'au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
+</script>
+</body>
+</html>
