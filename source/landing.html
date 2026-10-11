@@ -94,6 +94,19 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 @media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
 
 /* Contenu : quatre usages, chacun avec une vraie capture */
+.why{padding:8px 0 64px}
+.cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.cmp{width:100%;border-collapse:collapse;min-width:680px;font-size:16px}
+.cmp th,.cmp td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cmp thead th{font-size:14px;color:var(--muted)}
+.cmp thead th.me{color:var(--accent-text);font-size:16px}
+.cmp tbody th{font-weight:700;width:26%}
+.cmp td.me{background:var(--soft);font-weight:700}
+.cmp td.n{color:var(--muted)}
+.cmp td.y::before{content:"✓ ";color:var(--accent-text);font-weight:800}
+@media (max-width:640px){ .cmp{min-width:0} .cmp thead{display:none} .cmp,.cmp tbody,.cmp tr,.cmp th,.cmp td{display:block;width:auto} .cmp tr{border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:0 0 12px;background:var(--surface)} .cmp th,.cmp td{border:0;padding:4px 0} .cmp tbody th{width:auto;font-size:17px;margin-bottom:4px} .cmp td::before{content:attr(data-l) " : ";font-weight:700;color:var(--ink)} .cmp td.y::before{content:"✓ " attr(data-l) " : ";color:var(--accent-text)} .cmp td.me{background:none} }
+.why .note{font-size:16px;color:var(--muted);margin:18px 0 0;max-width:46em}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .feat{padding:24px 0 40px}
 .row{display:grid;gap:28px;align-items:center;padding:44px 0;border-top:1px solid var(--line)}
 @media (min-width:980px){ .row{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:64px} .row.flip{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)} .row.flip .txt{order:2} }
@@ -155,7 +168,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
     <section class="hero" aria-labelledby="h-hero">
       <div>
         <h1 id="h-hero">Les écrits du CAPEPS et de l'agrégation d'EPS, un peu chaque jour.</h1>
-        <p class="lead">Des fiches qui reviennent juste avant que tu les oublies, les annales avec ce qu'en disent les jurys, des sujets corrigés par Claude et des concours blancs en temps réel.</p>
+        <p class="lead">Tes cours te donnent le contenu. Bristol te le fait retenir, t'entraîne au format exact de ton concours et corrige tes textes en une minute, selon ce que demandent les rapports de jury.</p>
         <div class="ctas"><a class="btn primary" href="/app/">Commencer à réviser</a><a class="quiet" href="#contenu">Voir ce qu'il y a dedans</a></div>
         <p class="free">Gratuit pour commencer, sans inscription. Accès complet : 49 € pour toute la session 2027, ou 9,90 € par mois.</p>
       </div>
@@ -187,6 +200,22 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       <p class="note" id="dates-note">Dates relevées dans les textes officiels ; seule ta convocation fait foi.</p>
     </section>
 
+    <section class="why" aria-labelledby="h-why">
+      <h2 id="h-why">Le complément de tes cours, pas un de plus</h2>
+      <p class="sub">Chaque ressource fait bien une partie du travail. Bristol réunit au même endroit ce qui manque d'habitude : retenir, s'entraîner au bon format, être corrigé tout de suite.</p>
+      <div class="cmp-wrap" role="region" aria-label="Comparatif des ressources" tabindex="0"><table class="cmp">
+        <thead><tr><th scope="col"><span class="sr-only">Ce dont tu as besoin</span></th><th scope="col" class="me">Bristol EPS</th><th scope="col">Cours (fac, INSPÉ)</th><th scope="col">Cartes à faire soi-même</th><th scope="col">IA généraliste</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Le contenu du programme, vérifié et sourcé</th><td data-l="Bristol EPS" class="me y">Oui, source au dos des fiches</td><td data-l="Cours (fac, INSPÉ)" class="y">Oui</td><td data-l="Cartes à faire soi-même" class="n">À saisir toi-même</td><td data-l="IA généraliste" class="n">Non vérifié</td></tr>
+          <tr><th scope="row">Retenir sans y penser jusqu'aux écrits</th><td data-l="Bristol EPS" class="me y">Dose du jour calculée d'après la date</td><td data-l="Cours (fac, INSPÉ)" class="n">À organiser seul</td><td data-l="Cartes à faire soi-même" class="y">Oui</td><td data-l="IA généraliste" class="n">Non</td></tr>
+          <tr><th scope="row">S'entraîner au format de ton concours</th><td data-l="Bristol EPS" class="me y">Format 2026 du bac+3, annales, concours blanc</td><td data-l="Cours (fac, INSPÉ)" class="y">Quelques devoirs</td><td data-l="Cartes à faire soi-même" class="n">Non</td><td data-l="IA généraliste" class="n">Format approximatif</td></tr>
+          <tr><th scope="row">Être corrigé selon les attentes du jury</th><td data-l="Bristol EPS" class="me y">En une minute, grille du rapport à l'appui</td><td data-l="Cours (fac, INSPÉ)" class="n">Quelques copies, plus tard</td><td data-l="Cartes à faire soi-même" class="n">Non</td><td data-l="IA généraliste" class="n">Retour générique</td></tr>
+          <tr><th scope="row">Savoir où tu en es</th><td data-l="Bristol EPS" class="me y">Niveau par thème du programme</td><td data-l="Cours (fac, INSPÉ)" class="n">Rarement</td><td data-l="Cartes à faire soi-même" class="n">Par paquet</td><td data-l="IA généraliste" class="n">Non</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Les rapports de jury sont le fil conducteur : chaque sujet affiche ce que le jury attend, avec la page du rapport, et les retours de Claude suivent sa grille.</p>
+    </section>
+
     <section class="feat" id="contenu" aria-labelledby="h-feat">
       <h2 id="h-feat">Ce qu'il y a dedans</h2>
       <p class="sub">Les trois écrits sont séparés : l'histoire de l'EPS, les sciences et l'intervention, et les textes officiels. Tu choisis ton concours, le site n'affiche que ce qui te concerne.</p>
@@ -204,7 +233,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
         <div class="txt">
           <h3>S'entraîner comme le jour J</h3>
           <p>{{ANN}} sujets d'annales de {{ANN_MIN}} à {{ANN_MAX}}, avec ce que les rapports de jury ont relevé, et {{SUBJ}} sujets d'entraînement.</p>
-          <ul><li>Plan, introduction chronométrée ou paragraphe argumenté, avec le retour de Claude.</li><li>Concours blanc : un sujet tiré au sort, la durée de l'épreuve, la correction et une note indicative.</li><li>La méthode de chaque écrit et ce que les jurys répètent d'une session à l'autre.</li></ul>
+          <ul><li>Au format exact de ton concours : au CAPEPS externe, questions à l'écrit 1 et étude d'épisodes à l'écrit 2, comme en 2026.</li><li>À côté de chaque sujet, ce que le jury attend, page du rapport à l'appui ; le retour de Claude suit la même grille.</li><li>Concours blanc : un sujet tiré au sort, la durée de l'épreuve, la correction et une note indicative.</li><li>La méthode de chaque écrit et ce que les jurys répètent d'une session à l'autre.</li></ul>
         </div>
         <figure class="shot" style="margin:0"><img src="/img/blanc.webp" width="1600" height="1000" alt="Un concours blanc en cours : le temps restant, le sujet, la copie et son plan détecté automatiquement." loading="lazy"></figure>
       </div>
@@ -252,6 +281,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       <h2 id="h-faq">Questions fréquentes</h2>
       <details><summary>Faut-il créer un compte ?</summary><p>Non. Ta progression est enregistrée dans ton navigateur dès la première carte. Un compte, gratuit, sert à la retrouver sur ton téléphone et ton ordinateur, et à recevoir le rappel quotidien.</p></details>
       <details><summary>Quels concours sont couverts ?</summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d'EPS. Les oraux ne sont pas encore traités.</p></details>
+      <details><summary>Pourquoi pas simplement une IA généraliste ?</summary><p>Une IA généraliste ne connaît ni le format de ton concours, ni la grille du jury, et elle invente parfois des dates ou des références. Ici, Claude corrige avec le sujet, les fiches vérifiées qui s'y rapportent et les critères du rapport du jury, et il signale ce qui reste à vérifier. Et le site te fait aussi retenir, chaque jour, ce que tu dois savoir.</p></details>
       <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper. Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
       <details><summary>Que devient ce que j'écris ?</summary><p>Tes plans, introductions et copies restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la correction ; le site ne le garde pas à cette occasion.</p></details>
       <details><summary>Que comprend la version gratuite ?</summary><p>Cinq nouvelles fiches par jour sur un écrit, avec leurs révisions, les annales et les rapports de jury, la méthode, les sujets d'entraînement, la frise, les fils rouges et les références. L'accès complet ouvre tous les écrits sans limite, les retours de Claude, le concours blanc corrigé, le plan jusqu'aux écrits, les rappels et le mode écoute.</p></details>

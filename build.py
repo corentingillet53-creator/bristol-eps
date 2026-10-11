@@ -62,7 +62,7 @@ themes = dict(re.findall(r'\b([A-Z]{1,2}):\s*"([^"]+)"', page[ti:page.index("};"
 count = {g: sum(1 for c in cards if GROUP.get(c[1]) == g) for g in ("e1", "e2", "tx")}
 ann = re.findall(r'"id": "an\d+",[^}]*?"y": (\d{4})', block("ANNALES"), re.S)
 years = [int(y) for y in ann]
-subj = len(re.findall(r'\{\s*id:\s*"s\d+"', page)) + len(re.findall(r'\{id:"t\d+",epr', page))
+subj = len(re.findall(r'\{\s*id:\s*"s\d+"', page)) + len(re.findall(r'\{id:"t\d+",epr', page)) + len(re.findall(r'\{id:"[qm]\d+",epr', page))
 demo_ids = ["n02", "am02", "b05", "ex06", "b03", "am01"]
 EPR_S = {"e1": "Écrit 1", "e2": "Écrit 2", "tx": "Textes officiels"}
 unesc = lambda t: json.loads('"' + t + '"')
