@@ -23,6 +23,8 @@
 // Liaisons : DB (D1, obligatoire), QUOTA (KV, pour limiter les tentatives).
 // Variables Google : GOOGLE_CLIENT_ID (texte), GOOGLE_CLIENT_SECRET (secret).
 
+import { getPlan } from "./plan.js";
+
 const SESSION_COOKIE = "bsess";
 const SESSION_DAYS = 60;
 const MAX_PROGRESS_BYTES = 256 * 1024;
@@ -162,7 +164,7 @@ async function logout(request, env) {
 async function me(request, env) {
   const user = await currentUser(request, env);
   if (!user) return err(401, "not_signed_in");
-  return json(200, { email: user.email, hasPassword: !!user.key_hash, google: !!user.google_sub });
+  return json(200, { email: user.email, hasPassword: !!user.key_hash, google: !!user.google_sub, premium: await getPlan(env, user.id) });
 }
 
 async function recover(request, env) {
@@ -190,6 +192,8 @@ async function deleteAccount(request, env) {
   const ok = user.key_hash ? (validKey(body.key) && (await checkKey(user, body.key))) : body.confirm === "SUPPRIMER";
   if (!ok) return err(401, user.key_hash ? "bad_credentials" : "bad_confirm");
   await ensureTexts(env);
+  // L'abonnement mensuel éventuel est résilié chez Stripe avant d'effacer le compte.
+  try { const { cancelBilling } = await import("./billing.js"); await cancelBilling(env, user.id); } catch (e) {}
   await env.DB.batch([
     env.DB.prepare("DELETE FROM texts WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM progress WHERE user_id = ?").bind(user.id),
@@ -198,6 +202,7 @@ async function deleteAccount(request, env) {
   ]);
   // Rappels par notification : la table n'existe que si quelqu'un s'est abonné.
   try { await env.DB.prepare("DELETE FROM push_subs WHERE user_id = ?").bind(user.id).run(); } catch (e) {}
+  try { await env.DB.prepare("DELETE FROM subscriptions WHERE user_id = ?").bind(user.id).run(); } catch (e) {}
   return json(200, { ok: true }, { "set-cookie": sessionCookie("", 0) });
 }
 

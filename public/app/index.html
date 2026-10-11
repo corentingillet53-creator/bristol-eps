@@ -685,6 +685,50 @@ html.gs-on{overflow:hidden}
 .week-c h2{font-family:var(--f-display);font-size:19px;margin:0 0 6px}
 .week-c .kpi{padding:10px 12px;background:var(--paper);border:0}
 .week-c .kpi b{font-size:20px}
+/* Abonnement */
+.pw-panel{position:relative;width:100%;max-width:640px;max-height:88vh;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:0 30px 60px -20px rgba(0,0,0,.4);padding:28px 28px 24px}
+.pw-panel h2{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.1;letter-spacing:-.02em;margin:0 40px 8px 0}
+.pw-x{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+.pw-why{color:var(--accent-text);font-weight:700;margin:0 0 12px}
+.pw-list{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:6px}
+.pw-list li{display:flex;gap:8px;align-items:flex-start}
+.pw-list svg.ic{width:20px;height:20px;color:var(--accent-text);flex:none;margin-top:2px}
+.pw-plans{display:grid;gap:10px}
+@media (min-width:600px){ .pw-plans{grid-template-columns:1fr 1fr} }
+.pw-plan{appearance:none;display:grid;gap:4px;text-align:left;border:2px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);padding:16px;cursor:pointer;font:inherit}
+.pw-plan:hover:not([disabled]){border-color:var(--accent)}
+.pw-plan.best{border-color:var(--accent);background:var(--soft)}
+.pw-plan[disabled]{opacity:.55;cursor:not-allowed}
+.pw-name{font-weight:700}
+.pw-price{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.02em}
+.pw-price small{font-family:var(--f-body);font-size:15px;font-weight:400;color:var(--muted)}
+.pw-sub{font-size:14px;color:var(--muted)}
+.pw-note{font-size:14px;color:var(--muted);margin:12px 0 0}
+.pw-msg{color:var(--bad);font-weight:700;margin:10px 0 0}
+.pw-code{display:grid;gap:6px;margin-top:12px}
+.pw-code label{margin:0}
+.up-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--r-l);padding:12px 16px;margin:0 0 24px}
+.up-banner p{margin:0}
+.up-tool svg.ic{color:var(--gold)}
+.save-card{background:var(--soft);border-radius:var(--r-l);padding:16px 18px;margin:0 0 18px;max-width:520px}
+.save-card .save-h{font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--ink);margin:0 0 4px}
+.save-card p{color:var(--ink);margin:0 0 12px}
+.lock h2{display:flex;align-items:center;gap:10px}
+.lock h2 svg.ic{width:26px;height:26px;color:var(--gold)}
+.lock-peek{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:6px}
+.lock-peek li{background:var(--paper);border-radius:var(--r-m);padding:10px 14px;color:var(--ink)}
+.seg-lock svg.ic{width:15px;height:15px;vertical-align:-2px;color:var(--gold)}
+.grp-row.locked .gr-t span{color:var(--muted)}
+.grp-row .btn svg.ic,.fb .btn svg.ic,.btn svg.ic{width:18px;height:18px}
+.plan-lock{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-l);padding:14px 16px;margin-top:10px}
+.plan-lock p{margin:0;display:flex;gap:8px;align-items:center}
+.plan-lock svg.ic{color:var(--gold)}
+.plan-box{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border-radius:var(--r-m);padding:12px 14px;margin:12px 0}
+.plan-box p{margin:0}
+.plan-box.ok svg.ic{width:18px;height:18px;color:var(--accent-text);vertical-align:-3px}
+.w-go{margin-top:6px}
+.w-more{margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
+.w-more > summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -766,6 +810,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
       <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span class="tlab" id="status-txt">Sur cet appareil</span></span>
       <button class="tool" id="account-open" type="button" data-act="account-open" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="tlab" id="account-label">Se connecter</span></button>
       <button class="tool" id="gs-open" type="button" data-act="gs-open" aria-keyshortcuts="/ Control+K"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span class="tlab">Rechercher</span></button>
+      <button class="tool desk-only up-tool" id="upgrade-btn" type="button" data-act="paywall" data-why="menu" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg><span class="tlab">Accès complet</span></button>
       <button class="tool desk-only" id="theme-btn" type="button" data-act="theme-cycle"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/></svg><span class="tlab" id="theme-label">Thème : automatique</span></button>
       <button class="tool" id="help-open" type="button" data-act="help-open"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.4"/><path d="M12 17h.01"/></svg><span class="tlab">Aide</span></button>
       <button class="tool" id="textsize" type="button" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 8.5 5 14 19"/><path d="M5 14.5h7"/><path d="M18 8v7"/><path d="M14.5 11.5h7"/></svg><span class="tlab">Texte plus grand</span></button>
@@ -861,6 +906,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
   </main>
 </div>
 <div class="gs" id="gsearch" hidden></div>
+<div class="gs pw" id="paywall" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -1419,6 +1465,7 @@ function setStatus(mode){
 function persist(){
   checkAch();
   localSave();
+  if (STANDALONE && acct.status !== "in") renderAccountBtn();
   if (STANDALONE) { srvSchedule(); return; }
   if (!store.ref) return;
   store.dirty = true; setStatus("saving");
@@ -1494,9 +1541,12 @@ function grpGoal(g){
   const ex = examDays();
   const auto = !ex ? NEW_MAX : ex.daysLeft <= 0 || !(unseen + n) ? 0 : Math.min(25, Math.max(2, Math.ceil((unseen + n) / ex.learnDays)));
   /* Objectif choisi à la main : il remplace le calcul d'après la date. */
-  const target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : auto;
-  const now = Date.now(), due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
-  const left = Math.max(0, Math.min(unseen, target + (extraNew[g] || 0) - n));
+  let target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : auto;
+  /* Version découverte : un seul écrit, quelques nouvelles fiches par jour. */
+  const locked = typeof grpLocked === "function" && grpLocked(g);
+  if (typeof isPremium === "function" && !isPremium()) target = locked || (ex && ex.daysLeft <= 0) ? 0 : FREE_NEW;
+  const now = Date.now(), due = locked ? 0 : cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const left = locked ? 0 : Math.max(0, Math.min(unseen, target + (isPremium() ? extraNew[g] || 0 : 0) - n));
   return { g, unseen, n, target, auto, left, due, todo: due + left };
 }
 function goalInfo(){
@@ -1661,7 +1711,8 @@ const ICON = {
   medal: '<circle cx="12" cy="14.5" r="6"/><path d="M8.5 3h7l-2 5.5h-3z"/>',
   star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
-  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>'
 };
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
@@ -1709,10 +1760,11 @@ function homeTasks(){
   const now = Date.now(), cards = allCards();
   const today = log[dayKey()] || { a: 0, n: 0 };
   const gs = EPR.filter(e => relGroups().includes(e.id)).map(e => [e, grpGoal(e.id)]);
-  const sDone = gs.every(([, x]) => !x.todo);
+  const sDone = gs.every(([e, x]) => !x.todo || grpLocked(e.id));
   const rows = gs.map(([e, x]) => {
     const parts = [x.due ? plural(x.due, "carte") + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean);
-    return `<li class="grp-row${x.todo ? "" : " done"}"><span class="gr-t"><b>${esc(e.s)}</b><span>${x.todo ? parts.join(" et ") : "Terminé pour aujourd'hui"}</span></span>${x.todo ? `<button class="btn small${e.id === gs.find(([, y]) => y.todo)[0].id ? " primary" : ""}" data-act="home-start" data-g="${e.id}">Réviser</button>` : `<span class="gr-ok">${icon("check")}</span>`}</li>`;
+    if (grpLocked(e.id)) return `<li class="grp-row locked"><span class="gr-t"><b>${esc(e.s)}</b><span>Accès complet</span></span><button class="btn small" data-act="paywall" data-why="ecrit">${icon("lock")} Débloquer</button></li>`;
+    return `<li class="grp-row${x.todo ? "" : " done"}"><span class="gr-t"><b>${esc(e.s)}</b><span>${x.todo ? parts.join(" et ") : "Terminé pour aujourd'hui"}</span></span>${x.todo ? `<button class="btn small${e.id === (gs.find(([, y]) => y.todo) || [{}])[0].id ? " primary" : ""}" data-act="home-start" data-g="${e.id}">Réviser</button>` : `<span class="gr-ok">${icon("check")}</span>`}</li>`;
   }).join("");
   const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
   const subj = subjectOfDay();
@@ -1753,6 +1805,7 @@ function renderHome(){
   const t = homeTasks();
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${heroHTML()}
+    ${upgradeBanner()}
     <div class="home-grid">
       <div class="home-main"><div class="more"><h2>Au programme</h2><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
         <ul class="today">${t.html}</ul></div>
@@ -1847,7 +1900,7 @@ function sessRecap(){
       ${s.up5 ? `<li>${s.up5} carte${s.up5 > 1 ? "s" : ""} maîtrisée${s.up5 > 1 ? "s" : ""} (boîte 5)</li>` : ""}
       ${st.cur ? `<li>${icon("flame")} ${plural(st.cur, "jour")} d'affilée</li>` : ""}
       <li>Demain : ${tomorrow ? plural(tomorrow, "carte") + " à revoir" : "rien à revoir pour cette épreuve"}</li>
-    </ul></div>`;
+    </ul></div>${saveCardHTML(s.n)}`;
 }
 function startExpress(g){
   if (g) setGrp(g);
@@ -2040,7 +2093,7 @@ function gsResults(q){
   const R = [];
   const cards = allCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
   R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
-    html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span><span class="gs-a">${gsHighlight(c.a, words, 220)}</span>${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
+    html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
     act: `data-gscram="${esc(c.id)}"`, lab: "Réviser cette fiche" })) });
   const refs = REFS.filter(r => gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
   R.push({ k: "refs", t: "Références", n: refs.length, all: refs.length > 5 ? "gs-all-refs" : "", items: refs.slice(0, 5).map(r => ({
@@ -2098,6 +2151,145 @@ function gsClose(restore){
   if (restore !== false && gs.opener && gs.opener.focus) try { gs.opener.focus(); } catch (e) {}
 }
 function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } catch (e) {} }
+
+/* ---------- Abonnement : version découverte et accès complet (site) ----------
+   Découverte : un écrit (le premier de ton concours), 5 nouvelles fiches par jour et leurs révisions,
+   annales, méthode, sujets sans correction, frise, « Qui ? », fils rouges, références, recherche.
+   Accès complet : tous les écrits sans limite, Claude, concours blanc, plan complet, rappels, écoute.
+   Dans Claude (artefact), tout est ouvert : c'est l'aperçu du propriétaire. */
+const PLAN_KEY = "bristol-eps-plan", INTENT_KEY = "bristol-eps-intent";
+const FREE_NEW = 5;
+const bill = { cfg: null };
+function planCache(){ try { return JSON.parse(localStorage.getItem(PLAN_KEY) || "null"); } catch (e) { return null; } }
+function planSet(p){ acct.premium = p || { active: false }; try { if (p) localStorage.setItem(PLAN_KEY, JSON.stringify(p)); else localStorage.removeItem(PLAN_KEY); } catch (e) {} }
+function isPremium(){
+  if (!STANDALONE) return true;
+  if (acct.status === "out") return false;
+  const p = acct.premium || planCache();
+  return !!(p && p.active && (!p.until || p.until > Date.now()));
+}
+const freeGrp = () => relGroups()[0];
+const grpLocked = g => !isPremium() && g !== freeGrp();
+function intentGet(){ try { return sessionStorage.getItem(INTENT_KEY) || ""; } catch (e) { return ""; } }
+function intentSet(v){ try { if (v) sessionStorage.setItem(INTENT_KEY, v); else sessionStorage.removeItem(INTENT_KEY); } catch (e) {} }
+async function billCfg(){
+  if (bill.cfg) return bill.cfg;
+  const r = await api("GET", "/api/billing/config");
+  bill.cfg = r.status === 200 ? r.data : { enabled: false, pass: { label: "49 €", until: "2027-07-31" }, mensuel: { label: "9,90 €" } };
+  return bill.cfg;
+}
+const PW_WHY = {
+  ecrit: "Les autres écrits font partie de l'accès complet.",
+  new: `En version découverte : ${FREE_NEW} nouvelles fiches par jour sur un écrit.`,
+  claude: "Les retours et corrections de Claude font partie de l'accès complet.",
+  blanc: "Le concours blanc et sa correction font partie de l'accès complet.",
+  plan: "Le plan complet jusqu'aux écrits fait partie de l'accès complet.",
+  rappel: "Les rappels sur ton téléphone font partie de l'accès complet.",
+  ecoute: "Le mode écoute fait partie de l'accès complet.",
+  menu: ""
+};
+const pw = { open: false, why: "", code: false, busy: false, msg: "", opener: null };
+async function paywall(why){
+  if (!STANDALONE) return;
+  Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", opener: document.activeElement });
+  await billCfg();
+  renderPaywall();
+  document.documentElement.classList.add("gs-on");
+  const b = $("#paywall [data-pwplan]") || $("#paywall button"); if (b) b.focus();
+}
+function closePaywall(){
+  pw.open = false; const el = $("#paywall"); if (el) { el.hidden = true; el.innerHTML = ""; }
+  document.documentElement.classList.remove("gs-on");
+  if (pw.opener && pw.opener.focus) try { pw.opener.focus(); } catch (e) {}
+}
+function untilTxt(iso){ return new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); }
+function renderPaywall(){
+  const el = $("#paywall"); if (!el || !pw.open) return;
+  const c = bill.cfg || {}, on = !!c.enabled, n = allCards().length, dis = pw.busy || !on ? " disabled" : "";
+  el.hidden = false;
+  el.innerHTML = `<div class="pw-panel" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <button class="pw-x" data-act="pw-close" aria-label="Fermer">×</button>
+    <h2 id="pw-title">Prépare tous tes écrits, sans limite</h2>
+    ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
+    <ul class="pw-list">
+      <li>${icon("check")} Les trois écrits : ${n} fiches, autant de nouvelles par jour que tu veux</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes</li>
+      <li>${icon("check")} Le concours blanc chronométré, corrigé avec une note indicative</li>
+      <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, et les rappels</li>
+      <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
+    </ul>
+    <div class="pw-plans">
+      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "49 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, écrits et oraux compris.</span></button>
+      <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "9,90 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
+    </div>
+    ${!on ? `<p class="pw-note">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
+      : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée.</p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail.</p>`}
+    ${pw.code ? `<form class="pw-code" data-pwcode="1" novalidate><label for="pw-code-in">Code d'accès</label><div class="row-btns"><input id="pw-code-in" autocomplete="off" spellcheck="false" placeholder="Ton code"><button class="btn" type="submit"${pw.busy ? " disabled" : ""}>Activer</button></div></form>`
+      : `<p><button class="linkbtn" data-act="pw-code">J'ai un code d'accès</button></p>`}
+    ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
+  </div>`;
+}
+async function pwCheckout(plan){
+  if (acct.status !== "in") {
+    intentSet("plan:" + plan); closePaywall();
+    openAccount("register", "Crée ton compte, ou connecte-toi, pour continuer vers le paiement. Ta progression y sera gardée.");
+    return;
+  }
+  pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
+  const r = await api("POST", "/api/billing/checkout", { plan });
+  if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
+  pw.busy = false;
+  pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
+  if (!pw.open) await paywall("menu"); else renderPaywall();
+}
+async function pwRedeem(code){
+  if (acct.status !== "in") { intentSet("code:" + code); closePaywall(); openAccount("register", "Crée ton compte, ou connecte-toi, pour activer ton code."); return; }
+  pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
+  const r = await api("POST", "/api/billing/code", { code });
+  pw.busy = false;
+  if (r.status === 200) { planSet(r.data.premium); closePaywall(); done = 0; buildQueue(); render(); toast("Accès complet activé. Bonnes révisions !"); return; }
+  pw.msg = r.status === 429 ? "Trop d'essais. Réessaie dans une heure." : "Ce code n'est pas valide.";
+  if (pw.open) renderPaywall(); else paywall("menu");
+}
+/* Après connexion : reprendre ce que la personne voulait faire (payer, activer un code). */
+async function intentResume(){
+  const it = intentGet(); if (!it || acct.status !== "in") return;
+  intentSet("");
+  if (isPremium()) { toast("Tu as déjà l'accès complet."); return; }
+  if (it.startsWith("plan:")) await pwCheckout(it.slice(5));
+  else if (it.startsWith("code:")) await pwRedeem(it.slice(5));
+}
+/* Retour de la page de paiement : l'accès s'ouvre dès que Stripe a confirmé (quelques secondes). */
+async function billingReturn(){
+  let st = ""; try { const u = new URL(location.href); st = u.searchParams.get("abonnement") || ""; if (st) { u.searchParams.delete("abonnement"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); } } catch (e) {}
+  if (st === "annule") { toast("Paiement annulé : rien n'a été débité."); return; }
+  if (st !== "ok") return;
+  for (let i = 0; i < 6; i++) {
+    const r = await api("GET", "/api/auth/me");
+    if (r.status === 200) { planSet(r.data.premium); if (isPremium()) break; }
+    await new Promise(res => setTimeout(res, 2000));
+  }
+  done = 0; buildQueue(); render();
+  toast(isPremium() ? "Bienvenue dans l'accès complet : tous les écrits sont ouverts." : "Paiement reçu : l'accès s'ouvre dans un instant. Recharge la page si besoin.", 6000);
+}
+function lockHTML(g){
+  const e = eprOf(g), list = allCards().filter(c => grpOf(c) === g), f = eprOf(freeGrp());
+  return `<div class="empty lock"><h2>${icon("lock")} ${esc(e.t)}</h2>
+    <p>${list.length} fiches t'attendent sur cet écrit. En version découverte, tu révises ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p>
+    <ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>
+    <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">Débloquer tous les écrits</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
+}
+function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button class="btn" data-act="paywall" data-why="claude">${icon("lock")} Avoir le retour de Claude</button></div><p class="fb-note">Réservé à l'accès complet.</p></div>`; }
+function upgradeBanner(){
+  if (!STANDALONE || isPremium()) return "";
+  const f = eprOf(freeGrp());
+  return `<div class="up-banner"><p><b>Version découverte</b> : ${FREE_NEW} nouvelles fiches par jour sur ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p><button class="btn small primary" data-act="paywall" data-why="menu">Débloquer tout</button></div>`;
+}
+function saveCardHTML(n){
+  if (!STANDALONE || acct.status === "in") return "";
+  return `<div class="save-card"><p class="save-h">Garde ${n ? "ces " + plural(n, "carte") : "ta progression"}</p><p>Crée ton compte en dix secondes : ta progression est sauvegardée et tu la retrouves sur ton téléphone.</p>
+    <div class="row-btns">${acct.google ? `<a class="btn primary g-btn" href="/api/auth/google/start">Continuer avec Google</a>` : ""}<button class="btn${acct.google ? "" : " primary"}" data-act="save-progress">Avec mon e-mail</button></div></div>`;
+}
 
 /* ---------- Thème : automatique (réglage du téléphone), clair ou sombre ---------- */
 const THEME_KEY = "bristol-eps-theme";
@@ -2158,12 +2350,14 @@ function renderGrpSeg(){
   const el = $("#grp-seg"); if (!el) return;
   el.innerHTML = EPR.map(e => { const x = grpGoal(e.id), on = e.id === grp;
     const lab = e.id === "tx" ? `<span class="tl-long">${esc(e.s)}</span><span class="tl-short" aria-hidden="true">Textes</span>` : esc(e.s);
-    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}${e.id === "tx" ? ` aria-label="${esc(e.s)}${x.todo ? ", " + x.todo + " à faire" : ""}"` : ""}>${lab}${x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
+    const lk = grpLocked(e.id);
+    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}${e.id === "tx" || lk ? ` aria-label="${esc(e.s)}${lk ? ", accès complet" : x.todo ? ", " + x.todo + " à faire" : ""}"` : ""}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span>` : x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
 }
 function renderRevise(){
   renderGrpSeg();
   const el = $("#panel-revise");
   if (listen.on) { el.innerHTML = listenHTML(); return; }
+  if (grpLocked(grp)) { el.innerHTML = lockHTML(grp); return; }
   const c = queue.length ? byId(queue[0]) : null;
   if (!c) {
     const now = Date.now();
@@ -2180,7 +2374,7 @@ function renderRevise(){
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
       <div class="row-btns" style="margin-bottom:16px">${others.map(([e]) => `<button class="btn primary" data-grp="${e.id}">Passer ${e.id === "tx" ? "aux textes officiels" : "à l'" + e.s.toLowerCase()}</button>`).join("")}</div>` : ""}
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
-      <div class="row-btns">${goalMet ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
+      <div class="row-btns">${goalMet ? (isPremium() ? `<button class="btn primary" data-act="more-new">10 nouvelles cartes de plus</button>` : `<button class="btn primary" data-act="paywall" data-why="new">Continuer sans limite</button>`) : ""}<button class="btn${goalMet ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
   }
   const p = progress[c.id], b = p ? p.b : 0;
@@ -2221,10 +2415,10 @@ function renderReviseSide(){
       <div><b>${x.left}</b><span>nouvelles</span></div>
       <div><b>${x.n}</b><span>découvertes</span></div></div>
       <p class="goal-sub" style="margin-top:10px">${today.a || 0} réponse${(today.a || 0) > 1 ? "s" : ""} aujourd'hui, toutes épreuves confondues.</p></div>
-    <div class="side-card"><h2>Objectif quotidien</h2>
+    ${!isPremium() ? `<div class="side-card"><h2>Objectif quotidien</h2><p class="goal-sub">Version découverte : ${FREE_NEW} nouvelles fiches par jour sur un écrit.</p><button class="btn small primary" data-act="paywall" data-why="new">Réviser sans limite</button></div>` : `<div class="side-card"><h2>Objectif quotidien</h2>
       <label for="goal-np" class="goal-sub" style="font-weight:400">Nouvelles cartes par jour et par épreuve</label>
       <select id="goal-np"><option value="0"${prefs.np ? "" : " selected"}>Automatique${prefs.examDate ? " (d'après la date : " + x.auto + ")" : " (" + NEW_MAX + ")"}</option>${NP_OPTS.map(v => `<option value="${v}"${prefs.np === v ? " selected" : ""}>${v}</option>`).join("")}</select>
-      ${npWarn(x)}</div>
+      ${npWarn(x)}</div>`}
     <div class="side-card"><h2>Raccourcis</h2><ul class="keys">
       <li><span class="k">Espace</span>Retourner la carte</li>
       <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
@@ -2239,7 +2433,8 @@ function deckMatch(c){
 }
 function renderDeck(){
   const now = Date.now();
-  const cards = dq ? allCards().filter(deckMatch) : allCards().filter(inFilter);
+  if (!dq && grpLocked(grp)) { $("#panel-deck").innerHTML = lockHTML(grp); return; }
+  const cards = dq ? allCards().filter(c => deckMatch(c) && !grpLocked(grpOf(c))) : allCards().filter(inFilter);
   const keys = TH_ORDER.concat([""]);
   const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
   if (!groups.length) { $("#panel-deck").innerHTML = dq ? `<div class="empty"><h2>Aucune fiche trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>` : `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes avec « Ajouter une carte ».</p></div>`; return; }
@@ -2696,7 +2891,7 @@ async function serverSample(payload, { signal, onText }){
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
-    const map = { invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    const map = { premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
     throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
   const left = res.headers.get("x-quota-remaining");
@@ -2748,18 +2943,14 @@ function fbBlock(s, kind){
   const key = fbKey(s, kind), what = kindTxt(s, kind)[1];
   const busy = fb.sid === key && (fb.status === "thinking" || fb.status === "streaming");
   const has = (fb.sid === key && fb.text) || fbSaved(key);
-  if (STANDALONE && !codeGet()) {
-    return `<div class="fb"><form class="code-form" data-codeform="1" novalidate>
-      <label for="access-code">Code d'accès pour le retour de Claude</label>
-      <div class="row-btns"><input id="access-code" type="text" autocomplete="off" spellcheck="false" placeholder="Ton code bêta"><button class="btn" type="submit">Valider le code</button></div>
-    </form><div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
-  }
+  if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (has ? `<div id="sj-fb" class="fb-out">${fbInner(s, kind)}</div>` : "");
   return `<div class="fb"><div class="row-btns"><button class="btn" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas. <button class="linkbtn" data-act="code-change">Changer de code</button></p>` : ""}
+    ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
 }
 function fbErr(code, detail){
   if (code === "cancelled") return "Retour interrompu.";
+  if (code === "premium") { setTimeout(() => paywall("claude"), 0); return "Les retours de Claude font partie de l'accès complet."; }
   if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(code)) { sampleFn = null; return "Le retour de Claude n'est pas autorisé ici. Tu peux l'activer dans les autorisations de la page."; }
   if (code === "rate_limited") return "Trop de demandes pour l'instant. Réessaie dans quelques minutes.";
   if (code === "session_expired") return "Ta session a expiré. Reconnecte-toi à Claude, puis réessaie.";
@@ -5405,10 +5596,11 @@ function planHTML(){
     <div class="row-btns"><button class="btn primary" data-act="plan-date">Indiquer la date</button></div></div>`;
   const fmt = d => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
   const wk = x => `<li class="plan-w${x.final ? " fin" : ""}"><div class="plan-h"><b>Semaine ${x.w + 1}</b><span>${x.a.getTime() === x.b.getTime() ? esc(fmt(x.a)) : esc(fmt(x.a)) + " – " + esc(fmt(x.b))}</span>${x.last ? `<span class="plan-tag">Dernière ligne droite</span>` : x.final ? `<span class="plan-tag">Révision finale</span>` : ""}</div><ul>${x.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></li>`;
-  const head = p.weeks.slice(0, PLAN_SHOW), rest = p.weeks.slice(PLAN_SHOW);
+  const head = p.weeks.slice(0, isPremium() ? PLAN_SHOW : 1), rest = isPremium() ? p.weeks.slice(PLAN_SHOW) : [];
   return `<div class="sect span2"><h2>Ton plan jusqu'aux écrits</h2>
     <p class="lead">${plural(p.weeks.length, "semaine")} avant l'épreuve. Chaque jour : d'abord les cartes à revoir, puis les nouvelles. Les deux dernières semaines servent à revoir, sans nouvelles cartes.</p>
     <ol class="plan">${head.map(wk).join("")}</ol>
+    ${isPremium() ? "" : `<div class="plan-lock"><p>${icon("lock")} Les ${p.weeks.length - 1} semaines suivantes, jusqu'aux écrits, sont dans l'accès complet.</p><button class="btn primary small" data-act="paywall" data-why="plan">Voir mon plan complet</button></div>`}
     ${rest.length ? `<details class="plan-more"><summary>Voir les ${rest.length} semaines suivantes</summary><ol class="plan" start="${PLAN_SHOW + 1}">${rest.map(wk).join("")}</ol></details>` : ""}
     <div class="row-btns"><button class="btn" data-sec="train" data-gotab="blanc">Lancer un concours blanc</button><button class="btn" data-sec="train" data-gotab="annales">Choisir un sujet d'annale</button><button class="btn" data-sec="train" data-gotab="methode">Gestion du temps</button></div>
   </div>`;
@@ -5432,6 +5624,7 @@ function pushHTML(){
   let inner;
   if (!pushSupported()) inner = `<p class="lead">${isIOS() && !isInstalled() ? "Sur iPhone ou iPad, installe d'abord l'application (Safari : Partager, puis « Sur l'écran d'accueil »), puis active le rappel depuis l'application." : "Ton navigateur ne gère pas les notifications."}</p>`;
   else if (acct.status !== "in") inner = `<p class="lead">Connecte-toi pour recevoir un rappel chaque jour, sur tous tes appareils.</p><div class="row-btns"><button class="btn" data-act="account-open">Se connecter</button></div>`;
+  else if (!isPremium()) inner = `<p class="lead">Un rappel à l'heure de ton choix les jours où tu n'as pas révisé, et le bilan de ta semaine.</p><div class="row-btns"><button class="btn" data-act="paywall" data-why="rappel">${icon("lock")} Activer les rappels</button></div>`;
   else if (Notification.permission === "denied") inner = `<p class="lead">Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du navigateur, puis reviens ici.</p>`;
   else {
     if (!push.checked) pushCheck();
@@ -5750,10 +5943,7 @@ function blancFbHTML(m){
   const out = mine && fb.status === "thinking" ? `<p class="fb-note">Claude corrige ta copie… (une à deux minutes pour une copie longue)</p>`
     : (text ? `<p class="fb-label">Correction de Claude · un regard de correcteur, pas la note du jury</p><div class="fb-body">${mdLite(text)}</div>` : "") + (note ? `<p class="fb-note">${esc(note)}</p>` : "");
   if (!sampleFn) return out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "";
-  if (STANDALONE && !codeGet()) return `<div class="fb"><form class="code-form" data-codeform="1" novalidate>
-      <label for="access-code">Code d'accès pour la correction par Claude</label>
-      <div class="row-btns"><input id="access-code" type="text" autocomplete="off" spellcheck="false" placeholder="Ton code bêta"><button class="btn" type="submit">Valider le code</button></div>
-    </form><div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
+  if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "");
   return `<div class="fb"><div class="row-btns"><button class="btn${text ? "" : " primary"}" data-act="blanc-fb" data-bid="${m.id}"${busy ? " disabled" : ""}>${text ? "Nouvelle correction" : "Faire corriger ma copie par Claude"}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
     ${STANDALONE ? `<p class="fb-note">Une correction de copie compte pour deux retours. Ta copie est envoyée à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
     <div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
@@ -5810,7 +6000,7 @@ function blancHomeHTML(){
     <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips"><button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort${nAnn ? ` (${nAnn})` : ""}</button><button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement</button></div></fieldset>
     <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="comprendre" data-gotab="concours">Choisir mon concours</button></p>`}
-    <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">Commencer : ${h} h</button></div>
+    <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>
   </div>
   ${blancsDone() ? `<div class="sect"><h2>Ma progression</h2>${blancChartsHTML()}</div>` : ""}
   ${list.length ? `<div class="sect"><h2>Mes concours blancs</h2><ul class="list blanc-list">${list.map(m => { const s = blancSubject(m), fbk = fbSaved("b:" + m.id); return `<li class="item"><button class="blanc-item" data-blopen="${m.id}"><span class="ip">${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))} · ${esc(m.s)} · ${m.dur / 3600} h${m.state === "quit" ? " · abandonné" : ""}</span><span class="iq">${esc(s ? s.t.slice(0, 160) + (s.t.length > 160 ? "…" : "") : "Sujet introuvable")}</span><span class="is"><span>${wordCount(txGet("b:" + m.id))} mots</span>${fbk ? `<span class="due">Corrigé</span>` : ""}</span></button></li>`; }).join("")}</ul></div>` : ""}`;
@@ -5969,6 +6159,7 @@ function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = 
 /* ---------- Événements ---------- */
 document.addEventListener("click", e => {
   if (gs.open && e.target.id === "gsearch") { gsClose(); return; }
+  if (pw.open && e.target.id === "paywall") { closePaywall(); return; }
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
   if (d.act === "focus") { setFocus(!focusMode); return; }
@@ -6000,7 +6191,7 @@ document.addEventListener("click", e => {
   if (d.blsrc) { bl.src = d.blsrc === "sub" ? "sub" : "ann"; renderBlanc(); const b = $(`[data-blsrc="${bl.src}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blh) { bl.h = +d.blh; renderBlanc(); const b = $(`[data-blh="${d.blh}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blopen) { bl.view = d.blopen; renderBlanc(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
-  if (d.act === "blanc-start") { if (!blancActive()) blancStart(); return; }
+  if (d.act === "blanc-start") { if (!isPremium()) { paywall("blanc"); return; } if (!blancActive()) blancStart(); return; }
   if (d.act === "blanc-go") { setView("blanc"); const t = $("#blanc-copy"); if (t) t.focus(); return; }
   if (d.act === "blanc-cancel") { bl.confirm = null; renderBlanc(); const t = $("#blanc-copy"); if (t) t.focus(); return; }
   if (d.act === "blanc-submit" || d.act === "blanc-quit") {
@@ -6025,7 +6216,13 @@ document.addEventListener("click", e => {
   if (d.act === "conc-date") { const c = concById(d.id); if (c && c.d) { prefs = Object.assign({}, prefs, { examDate: c.d, concours: c.id, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); const g = goalInfo(); toast(g && g.newPerDay ? `Compte à rebours réglé sur les écrits : ${g.newPerDay} nouvelles cartes par jour.` : "Compte à rebours réglé sur les écrits."); } return; }
   if (d.act === "conc-grp") { setGrp(d.g); done = 0; theme = "Tous"; period = "Toutes"; buildQueue(); setView("revise"); toast("Séance : " + eprOf(grp).t + "."); return; }
   if (d.act === "conc-rev") { const c = concById(d.id); if (c) setGrp("e1"); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
-  if (d.act === "account-open") { openAccount(); return; }
+  if (d.act === "account-open") { openAccount(acct.status !== "in" && Object.keys(progress).length ? "register" : undefined); return; }
+  if (d.act === "save-progress") { openAccount("register"); return; }
+  if (d.act === "paywall") { paywall(d.why || "menu"); return; }
+  if (d.act === "pw-close") { closePaywall(); return; }
+  if (d.act === "pw-code") { pw.code = true; renderPaywall(); const i = $("#pw-code-in"); if (i) i.focus(); return; }
+  if (d.pwplan) { pwCheckout(d.pwplan); return; }
+  if (d.act === "billing-portal") { (async () => { const r = await api("POST", "/api/billing/portal", {}); if (r.status === 200 && r.data.url) location.href = r.data.url; else toast("Le portail d'abonnement n'est pas disponible pour l'instant."); })(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
   if (d.act === "acct-logout") { logoutAccount(); return; }
@@ -6045,6 +6242,7 @@ document.addEventListener("click", e => {
   if (d.act === "flip") { flipped = true; render(true); return; }
   if (d.act === "gs-open") { gsOpen(); return; }
   if (d.act === "gs-close") { gsClose(); return; }
+  if (d.gscram && grpLocked(grpOf(byId(d.gscram) || {}))) { gsClose(false); paywall("ecrit"); return; }
   if (d.gscram) { const id = d.gscram; gsGo(() => { const c = byId(id); if (c) setGrp(grpOf(c)); startCram([id]); }); return; }
   if (d.gsref) { const id = d.gsref, q = gs.q; gsGo(() => { rf.q = q; rf.g = "tous"; rf.open = id; setView("refs"); }); return; }
   if (d.gsann) { const a = ANNALES.find(x => x.id === d.gsann), q = gs.q; gsGo(() => { an.q = q; an.e = "tous"; if (a) an.f = a.f; setView("annales"); }); return; }
@@ -6062,6 +6260,7 @@ document.addEventListener("click", e => {
   if (d.report) { reportOpen = d.report; render(); const t = $("#rep-msg"); if (t) t.focus(); return; }
   if (d.act === "report-cancel") { const id = reportOpen; reportOpen = null; render(); const b = id && document.querySelector(`[data-report="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "undo") { undoGrade(); return; }
+  if ((d.act === "listen" || d.act === "listen-flow" || d.act === "listen-home") && !isPremium()) { paywall("ecoute"); return; }
   if (d.act === "listen") { listen.mode = "grade"; listenSave(); listenStart(); return; }
   if (d.act === "listen-flow") { listen.mode = "flow"; listenSave(); listenStart(); return; }
   if (d.act === "listen-home") { const g = busiestGrp(); if (g) setGrp(g); done = 0; buildQueue(); setView("revise"); listen.mode = queue.length ? "grade" : "flow"; listenStart(); return; }
@@ -6077,6 +6276,7 @@ document.addEventListener("click", e => {
   if (d.lpause) { listen.pause = +d.lpause; listenSave(); renderRevise(); return; }
   if (d.lmode) { if (listen.mode !== d.lmode) { listen.mode = d.lmode === "flow" ? "flow" : "grade"; listenSave(); if (listen.on) { if (listen.mode === "grade" && !queue.length) { listenStop(false); toast("Rien à noter pour l'instant."); } else listenStart(); } } return; }
   if (d.act === "express") { startExpress(view === "revise" ? grp : busiestGrp()); return; }
+  if (d.act === "more-new" && !isPremium()) { paywall("new"); return; }
   if (d.act === "more-new") { extraNew[grp] = (extraNew[grp] || 0) + 10; done = 0; buildQueue(); render(true); return; }
   if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
   if (d.act === "refresh") { done = 0; buildQueue(); render(true); return; }
@@ -6156,6 +6356,11 @@ document.addEventListener("change", e => {
 });
 /* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
 document.addEventListener("keydown", e => {
+  if (pw.open) {
+    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closePaywall(); return; }
+    if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#paywall button:not([disabled]), #paywall input")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
+    return;
+  }
   if (gs.open) {
     if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); gsClose(); return; }
     if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#gsearch input, #gsearch button")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
@@ -6262,21 +6467,36 @@ async function srvFlush(){
 }
 function signedOut(){
   acct.status = "out"; acct.email = ""; clearTimeout(srv.timer); srv.dirty = false; srv.base = 0;
+  if (typeof planSet === "function") planSet(null);
   if (typeof push !== "undefined") { push.checked = false; push.sub = null; push.msg = ""; }
   setStatus("local"); renderAccountBtn(); if (acct.open) renderAccount();
 }
 async function signedIn(email, info){
-  acct.status = "in"; acct.email = email; renderAccountBtn();
+  acct.status = "in"; acct.email = email;
   if (info) { acct.hasPassword = info.hasPassword !== false; acct.viaGoogle = !!info.google; }
+  if (!info || !("premium" in info)) { const m = await api("GET", "/api/auth/me"); if (m.status === 200) info = Object.assign({}, info, { premium: m.data.premium }); }
+  planSet(info && info.premium);
+  renderAccountBtn();
   await pullAndMerge();
   await txPull();
-  if (view === "stats") renderStats();
+  done = 0; buildQueue(); render();
+  intentResume();
 }
 
+function planBlock(){
+  const p = acct.premium || {};
+  if (isPremium()) {
+    const u = p.until ? new Date(p.until).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+    const what = p.plan === "pass" ? "Pass session" : p.plan === "mensuel" ? "Abonnement mensuel" : "Accès bêta";
+    return `<div class="plan-box ok"><p><b>${icon("check")} Accès complet</b> : ${what}${u ? (p.plan === "mensuel" ? `, prochaine échéance le ${u}` : `, jusqu'au ${u}`) : ""}.</p>${p.portal ? `<button class="btn small" data-act="billing-portal">Gérer mon abonnement</button>` : ""}</div>`;
+  }
+  return `<div class="plan-box"><p><b>Version découverte</b> : ${FREE_NEW} nouvelles fiches par jour sur un écrit.</p><button class="btn small primary" data-act="paywall" data-why="menu">Passer à l'accès complet</button></div>`;
+}
 function renderAccountBtn(){
   const b = $("#account-open"); if (!b) return;
   b.hidden = !STANDALONE;
-  const l = $("#account-label"); if (l) l.textContent = acct.status === "in" ? "Mon compte" : "Se connecter";
+  const l = $("#account-label"); if (l) l.textContent = acct.status === "in" ? "Mon compte" : Object.keys(progress).length ? "Sauvegarder ma progression" : "Se connecter";
+  const u = $("#upgrade-btn"); if (u) u.hidden = !STANDALONE || isPremium();
 }
 function acctField(id, label, type, ac, extra = ""){
   return `<div><label for="${id}">${label}</label><input id="${id}" type="${type}" autocomplete="${ac}" ${extra}></div>`;
@@ -6299,6 +6519,7 @@ function renderAccount(){
   } else if (acct.status === "in") {
     body = `<h2 id="account-title">Mon compte</h2>
       <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>${acct.viaGoogle ? " (compte Google)" : ""}. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes. Tes notes de dissertation restent sur chaque appareil.</p>
+      ${planBlock()}
       ${msg}<div class="row-btns"><button class="btn" data-act="acct-logout"${busy}>Se déconnecter</button><button class="btn" data-act="acct-view" data-v="delete">Supprimer mon compte</button><button class="btn" data-act="acct-close">Fermer</button></div>`;
   } else if (acct.view === "recover") {
     body = `<h2 id="account-title">Mot de passe oublié</h2>
@@ -6312,7 +6533,7 @@ function renderAccount(){
   } else {
     const reg = acct.view === "register";
     body = `<h2 id="account-title">${reg ? "Créer un compte" : "Se connecter"}</h2>
-      <p class="w-lead">Un compte te permet de retrouver ta progression sur tous tes appareils. Ce que tu as déjà fait sur cet appareil y sera ajouté.</p>
+      <p class="w-lead">${intentGet() ? "Une étape avant le paiement : ton compte garde ta progression et ton accès." : "Sauvegarde ta progression et retrouve-la sur tous tes appareils. Ce que tu as déjà fait ici y est ajouté."}</p>
       <div class="seg" role="tablist" aria-label="Connexion ou inscription">
         <button role="tab" data-act="acct-view" data-v="login" aria-selected="${!reg}">Se connecter</button>
         <button role="tab" data-act="acct-view" data-v="register" aria-selected="${reg}">Créer un compte</button>
@@ -6321,14 +6542,13 @@ function renderAccount(){
       <form class="acct-form" data-acctform="${reg ? "register" : "login"}" novalidate>
         ${acctField("acct-email", "E-mail", "email", "email")}
         ${acctField("acct-pw", reg ? "Mot de passe (10 caractères minimum)" : "Mot de passe", "password", reg ? "new-password" : "current-password")}
-        ${reg ? acctField("acct-pw2", "Confirme le mot de passe", "password", "new-password") : ""}
         ${msg}<div class="row-btns"><button class="btn primary" type="submit"${busy}>${acct.busy ? (reg ? "Création…" : "Connexion…") : (reg ? "Créer mon compte" : "Me connecter")}</button>${reg ? "" : `<button class="btn" type="button" data-act="acct-view" data-v="recover">Mot de passe oublié ?</button>`}<button class="btn" type="button" data-act="acct-close">Fermer</button></div>
       </form>`;
   }
   el.innerHTML = body;
 }
-function openAccount(view){
-  acct.open = true; acct.msg = ""; acct.view = view || (acct.status === "in" ? "profile" : "login");
+function openAccount(view, msg){
+  acct.open = true; acct.msg = msg || ""; acct.msgKind = msg ? "ok" : ""; acct.view = view || (acct.status === "in" ? "profile" : "login");
   $("#account").hidden = false; renderAccount();
   const t = $("#account-title"); if (t) { t.tabIndex = -1; t.focus(); }
   try { window.scrollTo({ top: 0 }); } catch (e) {}
@@ -6344,7 +6564,6 @@ async function submitAccount(kind){
   const fail = (m) => { acct.busy = false; acctSetMsg(m); renderAccount(); const e = $("#acct-email"); if (e) e.value = keepEmail; };
   if (kind !== "delete" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Saisis une adresse e-mail valide.");
   if ((kind === "register" || kind === "recover") && pw.length < 10) return fail("Le mot de passe doit faire au moins 10 caractères.");
-  if (kind === "register" && pw !== (($("#acct-pw2") || {}).value || "")) return fail("Les deux mots de passe ne sont pas identiques.");
   if ((kind === "login" || (kind === "delete" && acct.hasPassword)) && !pw) return fail("Saisis ton mot de passe.");
   const rk = kind === "recover" ? (($("#acct-rk") || {}).value || "") : "";
   if (kind === "recover" && rk.replace(/[^A-Za-z0-9]/g, "").length !== 25) return fail("La clé de secours compte 25 caractères (5 groupes de 5).");
@@ -6356,6 +6575,8 @@ async function submitAccount(kind){
   else if (kind === "recover") r = await api("POST", "/api/auth/recover", { email, key, recoveryKey: rk });
   else r = await api("POST", "/api/auth/delete", acct.hasPassword ? { key } : { confirm: confirmTxt });
   acct.busy = false;
+  /* E-mail déjà inscrit : on bascule sur la connexion, l'adresse reste remplie. */
+  if (kind === "register" && r.data && r.data.error === "email_taken") { acct.view = "login"; renderAccount(); const e = $("#acct-email"); if (e) e.value = email; acctSetMsg("Un compte existe déjà avec cet e-mail : saisis ton mot de passe pour te connecter.", "ok"); renderAccount(); const e2 = $("#acct-email"); if (e2) e2.value = email; const p2 = $("#acct-pw"); if (p2) p2.focus(); return; }
   if (r.status < 200 || r.status >= 300) return fail(acctErr(r));
   if (kind === "delete") { signedOut(); acctSetMsg("Ton compte a été supprimé.", "ok"); acct.view = "login"; renderAccount(); toast("Compte supprimé."); return; }
   if (r.data.recoveryKey) { acct.recoveryKey = r.data.recoveryKey; acct.view = "recovery-shown"; }
@@ -6390,7 +6611,9 @@ async function initAccount(){
   acct.google = cfg.status === 200 && !!cfg.data.google;
   const r = await api("GET", "/api/auth/me");
   if (r.status === 200) await signedIn(r.data.email, r.data);
-  else { acct.status = "out"; renderAccountBtn(); }
+  else if (r.status === 401) { acct.status = "out"; planSet(null); renderAccountBtn(); done = 0; buildQueue(); render(); }
+  /* Hors ligne : on garde l'accès connu (planCache) jusqu'au retour du réseau. */
+  billingReturn();
   if (ret && ret.c === "google" && acct.status === "in") {
     if (welcomeSeen() === false) hideWelcome();
     if (ret.lie) { openAccount("profile"); acctSetMsg("Ton compte est maintenant relié à Google. Pour ta sécurité, l'ancien mot de passe est désactivé : connecte-toi désormais avec Google.", "ok"); renderAccount(); }
@@ -6424,6 +6647,8 @@ function renderWelcome(){
   const n = allCards().length;
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
     ${onbHTML()}
+    <div class="row-btns w-go"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>
+    <details class="w-more"${welcomeHelp ? " open" : ""}><summary>Comment ça marche</summary>
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
     <p class="w-sub">Cinq espaces</p>
     <ul class="w-spaces">
@@ -6447,7 +6672,7 @@ function renderWelcome(){
     </div></div>
     ${installHTML()}
     <div class="w-disp"><p class="w-sub">Affichage</p>${themeChipsHTML()}</div>
-    <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
+    </details>`;
 }
 /* ---------- Application installable et hors ligne (site uniquement) ---------- */
 let installEvt = null;
@@ -6470,8 +6695,8 @@ if (STANDALONE) {
   }
 }
 /* Le bloc de bienvenue ne s'affiche que sur l'accueil. */
-let welcomeOpen = false;
-function showWelcome(focus){ welcomeOpen = true; renderWelcome(); $("#welcome").hidden = view !== "home"; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
+let welcomeOpen = false, welcomeHelp = false;
+function showWelcome(focus){ welcomeOpen = true; welcomeHelp = !!focus; renderWelcome(); $("#welcome").hidden = view !== "home"; if (focus) { const h = $("#welcome-title"); h.tabIndex = -1; h.focus(); } }
 function hideWelcome(){ welcomeOpen = false; $("#welcome").hidden = true; welcomeSetSeen(); }
 
 /* Taille du texte */
@@ -6514,6 +6739,7 @@ document.addEventListener("submit", e => {
     const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
     return;
   }
+  if (e.target.dataset && e.target.dataset.pwcode) { e.preventDefault(); const v = (($("#pw-code-in") || {}).value || "").trim(); if (v) pwRedeem(v); return; }
   if (e.target.dataset && e.target.dataset.reportform) { e.preventDefault(); reportSend(e.target); return; }
   if (e.target.dataset && e.target.dataset.icsform) { e.preventDefault(); icsDownload(e.target); return; }
   if (e.target.dataset && e.target.dataset.acctform) { e.preventDefault(); submitAccount(e.target.dataset.acctform); return; }

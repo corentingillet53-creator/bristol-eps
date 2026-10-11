@@ -51,6 +51,9 @@ a{color:var(--accent-text)}
 .brand{display:flex;align-items:center;gap:10px;font:800 21px/1 var(--f-display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
 .brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:17px}
 .top .btn{min-height:44px;padding:0 18px;font-size:15px}
+.top-r{display:flex;align-items:center;gap:18px}
+.top-link{font-weight:700;color:var(--ink);text-decoration:none}
+.top-link:hover{text-decoration:underline}
 
 /* Ouverture : le titre, et une vraie fiche sur la piste */
 .hero{display:grid;gap:40px;padding:28px 0 72px;align-items:center}
@@ -100,6 +103,19 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 .row li{margin:6px 0}
 .shot{border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 50px -30px rgba(0,0,0,.35);background:var(--surface)}
 
+/* Tarifs */
+.price{padding:56px 0 24px}
+.plans{display:grid;gap:16px;margin-top:26px}
+@media (min-width:900px){ .plans{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch} }
+.plan-c{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:24px}
+.plan-c.best{border:2px solid var(--accent);background:var(--soft)}
+.plan-n{font:700 18px/1.2 var(--f-display);margin:0}
+.plan-p{font:800 40px/1 var(--f-display);letter-spacing:-.02em;margin:4px 0}
+.plan-p small{font:400 16px var(--f-body);color:var(--muted)}
+.plan-d{color:var(--muted);font-size:15px;margin:0 0 6px}
+.plan-c ul{margin:0 0 18px;padding-left:20px;flex:1}
+.plan-c li{margin:4px 0}
+.plan-c .btn{align-self:flex-start}
 /* Une séance */
 .how{padding:72px 0}
 .steps{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:18px;counter-reset:s}
@@ -132,7 +148,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 <div class="wrap">
   <header class="top">
     <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</a>
-    <a class="btn" href="/app/">Ouvrir l'application</a>
+    <span class="top-r"><a class="top-link" href="#tarifs">Tarifs</a><a class="btn" href="/app/">Ouvrir l'application</a></span>
   </header>
 
   <main>
@@ -141,7 +157,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
         <h1 id="h-hero">Les écrits du CAPEPS et de l'agrégation d'EPS, un peu chaque jour.</h1>
         <p class="lead">Des fiches qui reviennent juste avant que tu les oublies, les annales avec ce qu'en disent les jurys, des sujets corrigés par Claude et des concours blancs en temps réel.</p>
         <div class="ctas"><a class="btn primary" href="/app/">Commencer à réviser</a><a class="quiet" href="#contenu">Voir ce qu'il y a dedans</a></div>
-        <p class="free">Gratuit pendant la bêta, sans inscription. Un compte sert seulement à retrouver ta progression sur tous tes appareils.</p>
+        <p class="free">Gratuit pour commencer, sans inscription. Accès complet : 49 € pour toute la session 2027, ou 9,90 € par mois.</p>
       </div>
       <div class="track" aria-label="Essai d'une fiche">
         <svg class="lanes" viewBox="0 0 600 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -212,6 +228,16 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       </div>
     </section>
 
+    <section class="price" id="tarifs" aria-labelledby="h-price">
+      <h2 id="h-price">Commence gratuitement, passe à l'accès complet quand tu veux</h2>
+      <div class="plans">
+        <div class="plan-c"><p class="plan-n">Découverte</p><p class="plan-p">Gratuit</p><p class="plan-d">Sans inscription.</p><ul><li>Cinq nouvelles fiches par jour sur un écrit</li><li>Les annales et les rapports de jury</li><li>La méthode, les sujets, la frise et les fils rouges</li></ul><a class="btn" href="/app/">Commencer</a></div>
+        <div class="plan-c best"><p class="plan-n">Pass session 2027</p><p class="plan-p">49 €</p><p class="plan-d">En une fois, jusqu'au 31 juillet 2027, écrits et oraux compris.</p><ul><li>Les trois écrits, sans limite</li><li>Les retours de Claude et le concours blanc corrigé</li><li>Le plan jusqu'aux écrits, les rappels, le mode écoute</li></ul><a class="btn primary" href="/app/">Commencer</a></div>
+        <div class="plan-c"><p class="plan-n">Mensuel</p><p class="plan-p">9,90 €<small> par mois</small></p><p class="plan-d">Sans engagement, résiliable à tout moment.</p><ul><li>Le même accès complet</li><li>Pratique pour quelques mois de préparation</li></ul><a class="btn" href="/app/">Commencer</a></div>
+      </div>
+      <p class="sub" style="margin-top:18px">Tu choisis ta formule depuis l'application, après avoir essayé. Paiement sécurisé par Stripe.</p>
+    </section>
+
     <section class="how" aria-labelledby="h-how">
       <h2 id="h-how">Une séance, en trois gestes</h2>
       <ol class="steps">
@@ -228,7 +254,8 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       <details><summary>Quels concours sont couverts ?</summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d'EPS. Les oraux ne sont pas encore traités.</p></details>
       <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper. Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
       <details><summary>Que devient ce que j'écris ?</summary><p>Tes plans, introductions et copies restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la correction ; le site ne le garde pas à cette occasion.</p></details>
-      <details><summary>Le retour de Claude est-il gratuit ?</summary><p>Pendant la bêta, il est réservé aux testeurs qui ont un code d'accès. Les fiches, les annales, les sujets et le concours blanc sont accessibles à tous.</p></details>
+      <details><summary>Que comprend la version gratuite ?</summary><p>Cinq nouvelles fiches par jour sur un écrit, avec leurs révisions, les annales et les rapports de jury, la méthode, les sujets d'entraînement, la frise, les fils rouges et les références. L'accès complet ouvre tous les écrits sans limite, les retours de Claude, le concours blanc corrigé, le plan jusqu'aux écrits, les rappels et le mode écoute.</p></details>
+      <details><summary>Comment résilier ?</summary><p>Le pass session se paie une fois : rien n'est prélevé ensuite. L'abonnement mensuel se résilie en un clic depuis « Mon compte », sans engagement ; l'accès reste ouvert jusqu'à la fin du mois payé.</p></details>
       <details><summary>Ça marche sur téléphone ?</summary><p>Oui, et le site s'installe comme une application : sur Android, via le menu du navigateur ; sur iPhone, dans Safari, avec Partager puis « Sur l'écran d'accueil ». Les révisions fonctionnent ensuite sans connexion.</p></details>
     </section>
 

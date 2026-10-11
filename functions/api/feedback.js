@@ -1,3 +1,5 @@
+import { currentUser } from "./account.js";
+import { getPlan } from "./plan.js";
 // Bristol EPS — fonction serveur du retour de Claude (Cloudflare Pages Functions).
 // Elle reçoit le sujet, le texte du candidat et les faits utiles, vérifie le code
 // d'accès et le quota, construit le prompt ici (jamais dans le navigateur), puis
@@ -272,9 +274,18 @@ export async function onRequestGet({ request, env }) {
 export async function onRequestPost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY) return json(500, "server_not_configured");
 
-  const code = String(request.headers.get("x-access-code") || "").trim();
-  const codes = String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (!code || !codes.includes(code)) return json(401, "invalid_code");
+  // Accès : un compte abonné (cookie de session), ou à défaut un code d'accès bêta.
+  let who = null;
+  if (env.DB) {
+    const user = await currentUser(request, env).catch(() => null);
+    if (user && (await getPlan(env, user.id)).active) who = "u:" + user.id;
+  }
+  if (!who) {
+    const code = String(request.headers.get("x-access-code") || "").trim();
+    const codes = String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (code && codes.includes(code)) who = code;
+    else return json(code ? 401 : 402, code ? "invalid_code" : "premium_required");
+  }
 
   let body;
   try { body = await request.json(); } catch { return json(400, "bad_request"); }
@@ -301,7 +312,7 @@ export async function onRequestPost({ request, env }) {
   const limit = Math.max(1, parseInt(env.MONTHLY_LIMIT || "30", 10) || 30);
   let qkey = null, used = 0;
   if (env.QUOTA) {
-    qkey = `q:${code}:${new Date().toISOString().slice(0, 7)}`;
+    qkey = `q:${who}:${new Date().toISOString().slice(0, 7)}`;
     used = parseInt((await env.QUOTA.get(qkey)) || "0", 10) || 0;
     if (used + cost > limit) return json(429, "quota_exceeded", { limit });
   }
