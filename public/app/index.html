@@ -2291,7 +2291,7 @@ function intentSet(v){ try { if (v) sessionStorage.setItem(INTENT_KEY, v); else 
 async function billCfg(){
   if (bill.cfg) return bill.cfg;
   const r = await api("GET", "/api/billing/config");
-  bill.cfg = r.status === 200 ? r.data : { enabled: false, pass: { label: "49 €", until: "2027-07-31" }, mensuel: { label: "9,90 €" } };
+  bill.cfg = r.status === 200 ? r.data : { enabled: false, pass: { label: "80 €", until: "2027-07-31" }, mensuel: { label: "15 €" } };
   return bill.cfg;
 }
 const PW_WHY = {
@@ -2329,14 +2329,14 @@ function renderPaywall(){
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
       <li>${icon("check")} Les trois écrits : ${n} fiches, autant de nouvelles par jour que tu veux</li>
-      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes, sans compteur</li>
       <li>${icon("check")} Le concours blanc chronométré, corrigé avec une note indicative</li>
       <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, et les rappels</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
     <div class="pw-plans">
-      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "49 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, écrits et oraux compris.</span></button>
-      <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "9,90 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
+      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, écrits et oraux compris.</span></button>
+      <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
     ${!on ? `<p class="pw-note">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
       : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée.</p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail.</p>`}
@@ -3220,10 +3220,10 @@ async function serverSample(payload, { signal, onText }){
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
-    const map = { premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
-    throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
+    const map = { premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    throw { code: map[j.error] || "upstream_error", limit: j.limit, retryAfter: j.retryAfter, detail: j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
-  const left = res.headers.get("x-quota-remaining");
+  const high = res.headers.get("x-usage-high") === "1";
   const reader = res.body.getReader(), dec = new TextDecoder();
   let text = "", ctl = "", seenCtl = false;
   try {
@@ -3240,7 +3240,7 @@ async function serverSample(payload, { signal, onText }){
   let meta = {}; if (ctl) { try { meta = JSON.parse(ctl); } catch (e) {} }
   if (meta.error) throw { code: "upstream_error", text, detail: meta.detail || "flux interrompu" };
   if (!text.trim()) throw { code: "empty_completion" };
-  return { text, truncated: !!meta.truncated, quotaLeft: left === null ? null : +left };
+  return { text, truncated: !!meta.truncated, usageHigh: high };
 }
 const fb = { sid: null, status: "idle", text: "", note: "", ctl: null };
 function mdLite(t){
@@ -3287,7 +3287,10 @@ function fbErr(code, detail){
   if (code === "empty_completion") return "Aucune réponse reçue. Simplifie ton texte, puis réessaie.";
   if (code === "prompt_too_large") return "Ton texte est trop long. Raccourcis-le, puis réessaie.";
   if (code === "bad_code") { codeSet(""); return "Ce code d'accès n'est pas valide. Vérifie-le, puis saisis-le à nouveau."; }
-  if (code === "quota") return "Tu as utilisé tous tes retours de ce mois. Ils se renouvellent le 1er du mois.";
+  if (code === "quota") return "Tu as atteint la limite d'usage raisonnable de ce mois. Elle se renouvelle le 1er du mois.";
+  if (code === "daily") return "Tu as atteint la limite d'usage raisonnable de la journée. Elle se renouvelle demain.";
+  if (code === "slow") return "Laisse quelques secondes entre deux demandes, puis réessaie.";
+  if (code === "paused") return "Les retours de Claude sont momentanément suspendus. Réessaie un peu plus tard.";
   if (code === "too_short") return "Écris un peu plus avant de demander un retour.";
   if (code === "server_config") return "Le retour de Claude n'est pas encore configuré sur ce site.";
   if (code === "no_credit") return "Le compte API du site n'a plus de crédit. Ajoute du crédit dans la console Anthropic.";
@@ -3373,7 +3376,7 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
-      : (typeof res.quotaLeft === "number" ? `Il te reste ${res.quotaLeft} retour${res.quotaLeft > 1 ? "s" : ""} ce mois-ci.` : "");
+      : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
     fbSave(key, res.text);
     ach.f++; persist();
   } catch (e) {
@@ -6721,7 +6724,7 @@ async function askCopie(m){
     const res = await sampleFn(promptCopie(o), opts);
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
-    fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (typeof res.quotaLeft === "number" ? `Il te reste ${res.quotaLeft} retour${res.quotaLeft > 1 ? "s" : ""} ce mois-ci.` : "");
+    fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
     fbSave(key, res.text); ach.f++; persist();
   } catch (e) {
     if (fb.ctl !== ctl) return;

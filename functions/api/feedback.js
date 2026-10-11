@@ -8,7 +8,12 @@ import { getPlan } from "./plan.js";
 // Variables à définir dans Cloudflare (Settings > Variables and Secrets) :
 //   ANTHROPIC_API_KEY  (secret, obligatoire)  ta clé d'API Claude
 //   ACCESS_CODES       (obligatoire)          codes bêta séparés par des virgules
-//   MONTHLY_LIMIT      (facultatif, 30)       retours par code et par mois
+//   Usage raisonnable (facultatif, valeurs par défaut entre parenthèses) :
+//   BUDGET_CENTS (200)        coût réel maximal par abonné et par mois, en centimes
+//   DAILY_SHORT (25), DAILY_COPIES (3)  retours courts et corrections de copie par jour
+//   MIN_INTERVAL_S (15)       délai minimal entre deux demandes d'un même abonné
+//   GLOBAL_DAILY_CENTS (1000) coupe-circuit : dépense totale maximale par jour
+//   PRICE_IN, PRICE_OUT (2, 10) prix du modèle en dollars par million de jetons
 //   MODEL              (facultatif)           modèle Claude, par défaut claude-sonnet-5-5
 //   ANTHROPIC_WORKSPACE_ID (facultatif)       ID d'espace de travail, si la clé n'y est pas rattachée
 // Liaison KV facultative mais recommandée (Settings > Bindings) : QUOTA
@@ -16,7 +21,6 @@ import { getPlan } from "./plan.js";
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_NOTES = 6000;
 const MAX_COPIE = 60000;      // concours blanc : copie complète
-const COPIE_COST = 2;         // une correction de copie compte pour deux retours
 const MAX_FACTS = 25;
 const MAX_FACT_LEN = 500;
 const AXES = new Set(["Transmettre et adapter", "Le geste et l'effort", "Débats et controverses", "Sujet d'annale"]);
@@ -256,7 +260,7 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
 
 // Transforme le flux SSE de l'API Claude en texte brut. En fin de flux, un caractère
 // séparateur (U+001E) suivi d'un petit JSON signale une réponse coupée ou une erreur.
-function toTextStream(upstreamBody) {
+function toTextStream(upstreamBody, onDone) {
   const reader = upstreamBody.getReader();
   const dec = new TextDecoder();
   const enc = new TextEncoder();
@@ -264,14 +268,21 @@ function toTextStream(upstreamBody) {
   let meta = null;
   let finished = false;
 
-  let sent = false;
+  let sent = false, full = "";
+  const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
   const handle = (evt, ctrl) => {
     const data = evt.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("");
     if (!data) return;
     let msg;
     try { msg = JSON.parse(data); } catch { return; }
+    if (msg.type === "message_start" && msg.message && msg.message.usage) {
+      const u = msg.message.usage;
+      usage.input = u.input_tokens || 0; usage.cacheRead = u.cache_read_input_tokens || 0; usage.cacheWrite = u.cache_creation_input_tokens || 0;
+    }
+    if (msg.type === "message_delta" && msg.usage && typeof msg.usage.output_tokens === "number") usage.output = msg.usage.output_tokens;
     if (msg.type === "content_block_delta" && msg.delta && msg.delta.type === "text_delta" && msg.delta.text) {
       ctrl.enqueue(enc.encode(msg.delta.text));
+      full += msg.delta.text;
       sent = true;
     } else if (msg.type === "message_delta" && msg.delta && msg.delta.stop_reason === "max_tokens") {
       meta = { truncated: true };
@@ -299,12 +310,51 @@ function toTextStream(upstreamBody) {
           if (buf.trim()) handle(buf, ctrl);
           if (meta) ctrl.enqueue(enc.encode("\u001e" + JSON.stringify(meta)));
           finished = true;
+          if (onDone) { try { await onDone({ usage, text: full, meta }); } catch (e) { console.error("Comptage de l'usage :", String(e)); } }
           ctrl.close();
         }
       }
     },
     cancel() { try { reader.cancel(); } catch {} },
   });
+}
+
+
+/* ---------- Usage raisonnable ----------
+   Personne ne voit de compteur : un vrai candidat n'atteint jamais ces limites, un usage détourné est arrêté.
+   Clés KV : c:<qui>:<mois> (coût en micro-dollars), d:<qui>:<jour>:<type> (nombre), r:<qui> (dernière demande),
+   g:<jour> (dépense totale du jour, coupe-circuit). */
+const num = (v, d) => { const n = parseInt(v, 10); return Number.isFinite(n) && n >= 0 ? n : d; };
+async function sha256(t) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function costMicro(env, u) {
+  const pin = Number(env.PRICE_IN) || 2, pout = Number(env.PRICE_OUT) || 10;
+  // micro-dollars = jetons × prix par million ; lecture du cache à 5 %, écriture à 125 %.
+  return Math.round(u.input * pin + u.cacheRead * pin * 0.05 + u.cacheWrite * pin * 1.25 + u.output * pout);
+}
+async function fairUseCheck(env, who, isCopie) {
+  const now = Date.now(), iso = new Date(now).toISOString(), day = iso.slice(0, 10), month = iso.slice(0, 7);
+  const kv = env.QUOTA, get = async (k) => parseInt((await kv.get(k)) || "0", 10) || 0;
+  const global = await get("g:" + day);
+  if (global >= num(env.GLOBAL_DAILY_CENTS, 1000) * 10000) return { error: json(503, "paused") };
+  const last = await get("r:" + who), gap = num(env.MIN_INTERVAL_S, 15) * 1000;
+  if (last && now - last < gap) return { error: json(429, "slow_down", { retryAfter: Math.ceil((gap - (now - last)) / 1000) }) };
+  const dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`, dn = await get(dk);
+  if (dn >= (isCopie ? num(env.DAILY_COPIES, 3) : num(env.DAILY_SHORT, 25))) return { error: json(429, "daily_limit") };
+  const spent = await get(`c:${who}:${month}`), budget = num(env.BUDGET_CENTS, 200) * 10000;
+  if (spent >= budget) return { error: json(429, "quota_exceeded") };
+  await kv.put("r:" + who, String(now), { expirationTtl: 120 });
+  await kv.put(dk, String(dn + 1), { expirationTtl: 60 * 60 * 48 });
+  return { high: spent >= budget * 0.8 };
+}
+async function fairUseRecord(env, who, micro) {
+  const iso = new Date().toISOString(), day = iso.slice(0, 10), month = iso.slice(0, 7);
+  const kv = env.QUOTA, get = async (k) => parseInt((await kv.get(k)) || "0", 10) || 0;
+  const ck = `c:${who}:${month}`, gk = "g:" + day;
+  await kv.put(ck, String((await get(ck)) + micro), { expirationTtl: 60 * 60 * 24 * 40 });
+  await kv.put(gk, String((await get(gk)) + micro), { expirationTtl: 60 * 60 * 24 * 3 });
 }
 
 // En-têtes de l'API Claude. ANTHROPIC_WORKSPACE_ID n'est utile que si la clé
@@ -333,7 +383,9 @@ export async function onRequestGet({ request, env }) {
     apiKey: !!env.ANTHROPIC_API_KEY,
     accessCodes: String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean).length,
     quotaStore: !!env.QUOTA,
-    monthlyLimit: parseInt(env.MONTHLY_LIMIT || "30", 10),
+    budgetCents: num(env.BUDGET_CENTS, 200),
+    dailyShort: num(env.DAILY_SHORT, 25),
+    dailyCopies: num(env.DAILY_COPIES, 3),
     model: env.MODEL || DEFAULT_MODEL,
     workspaceId: !!String(env.ANTHROPIC_WORKSPACE_ID || "").trim(),
   };
@@ -371,10 +423,10 @@ export async function onRequestPost({ request, env }) {
 
   let body;
   try { body = await request.json(); } catch { return json(400, "bad_request"); }
-  let prompt, maxTokens = 1200, cost = 1;
+  let prompt, maxTokens = 1200, isCopie = false;
   if (body && body.kind === "copie") {
     const { o, error } = readCopie(body); if (error) return error;
-    prompt = buildPromptCopie(o); maxTokens = 2400; cost = COPIE_COST;
+    prompt = buildPromptCopie(o); maxTokens = 2400; isCopie = true;
   } else {
   const kind = body && (body.kind === "intro" || body.kind === "plan" || body.kind === "para") ? body.kind : null;
   const subject = typeof body.subject === "string" ? body.subject.trim() : "";
@@ -393,21 +445,22 @@ export async function onRequestPost({ request, env }) {
     : e2 ? buildPrompt2(kind, subject, axe, contexte, notes, facts) : buildPrompt(kind, subject, axe, notes, facts);
   }
 
-  const limit = Math.max(1, parseInt(env.MONTHLY_LIMIT || "30", 10) || 30);
-  let qkey = null, used = 0;
+  const model = env.MODEL || DEFAULT_MODEL;
+  const cacheKey = "h:" + (await sha256(model + "|" + prompt));
+  // Même sujet, même texte : on renvoie le retour déjà produit, sans nouvel appel.
   if (env.QUOTA) {
-    qkey = `q:${who}:${new Date().toISOString().slice(0, 7)}`;
-    used = parseInt((await env.QUOTA.get(qkey)) || "0", 10) || 0;
-    if (used + cost > limit) return json(429, "quota_exceeded", { limit });
+    const hit = await env.QUOTA.get(cacheKey);
+    if (hit) return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1" } });
   }
-
+  const fair = env.QUOTA ? await fairUseCheck(env, who, isCopie) : null;
+  if (fair && fair.error) return fair.error;
   let upstream;
   try {
     upstream = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages", {
       method: "POST",
       headers: apiHeaders(env),
       body: JSON.stringify({
-        model: env.MODEL || DEFAULT_MODEL,
+        model,
         max_tokens: maxTokens,
         stream: true,
         messages: [{ role: "user", content: prompt }],
@@ -430,9 +483,11 @@ export async function onRequestPost({ request, env }) {
   }
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
-  if (qkey) {
-    await env.QUOTA.put(qkey, String(used + cost), { expirationTtl: 60 * 60 * 24 * 40 });
-    headers["x-quota-remaining"] = String(Math.max(0, limit - used - cost));
-  }
-  return new Response(toTextStream(upstream.body), { headers });
+  if (fair && fair.high) headers["x-usage-high"] = "1";
+  const onDone = env.QUOTA ? async ({ usage, text, meta }) => {
+    const micro = costMicro(env, usage);
+    await fairUseRecord(env, who, micro);
+    if (text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
+  } : null;
+  return new Response(toTextStream(upstream.body, onDone), { headers });
 }

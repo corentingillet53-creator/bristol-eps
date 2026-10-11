@@ -10,7 +10,7 @@
 // Réglages Cloudflare (Settings > Variables and Secrets), jamais dans ce dépôt :
 //   STRIPE_SECRET_KEY (secret), STRIPE_WEBHOOK_SECRET (secret),
 //   STRIPE_PRICE_PASS et STRIPE_PRICE_MONTHLY (identifiants « price_… » des tarifs créés dans Stripe),
-//   facultatifs : PRICE_PASS_LABEL (« 49 € »), PRICE_MONTHLY_LABEL (« 9,90 € »), PASS_UNTIL (« 2027-07-31 »).
+//   facultatifs : PRICE_PASS_LABEL (« 80 € »), PRICE_MONTHLY_LABEL (« 15 € »), PASS_UNTIL (« 2027-07-31 »).
 import { json, err, readJson, currentUser } from "./account.js";
 import { getPlan, setPlan, passUntil, ensureSubs } from "./plan.js";
 
@@ -30,7 +30,7 @@ async function stripe(env, method, path, params) {
 
 async function config(request, env) {
   const until = new Date(passUntil(env)).toISOString().slice(0, 10);
-  return json(200, { enabled: enabled(env), codes: !!env.ACCESS_CODES, pass: { label: env.PRICE_PASS_LABEL || "49 €", until }, mensuel: { label: env.PRICE_MONTHLY_LABEL || "9,90 €" } });
+  return json(200, { enabled: enabled(env), codes: !!env.ACCESS_CODES, pass: { label: env.PRICE_PASS_LABEL || "80 €", until }, mensuel: { label: env.PRICE_MONTHLY_LABEL || "15 €" } });
 }
 
 async function checkout(request, env) {
