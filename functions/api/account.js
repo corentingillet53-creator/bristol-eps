@@ -17,6 +17,9 @@
 //   ses champs (aud, iss, exp, email_verified) sont vérifiés ; un compte existant
 //   avec la même adresse est relié automatiquement.
 //
+// - les textes rédigés (copies, introductions, retours de Claude) sont stockés à part,
+//   une ligne par texte (table texts), fusionnés au plus récent par clé.
+//
 // Liaisons : DB (D1, obligatoire), QUOTA (KV, pour limiter les tentatives).
 // Variables Google : GOOGLE_CLIENT_ID (texte), GOOGLE_CLIENT_SECRET (secret).
 
@@ -24,6 +27,11 @@ const SESSION_COOKIE = "bsess";
 const SESSION_DAYS = 60;
 const MAX_PROGRESS_BYTES = 256 * 1024;
 const MAX_ATTEMPTS_PER_HOUR = 10;
+const MAX_TEXT_CHARS = 80000;          // une copie de 6 h tient largement
+const MAX_TEXT_ITEMS = 40;             // textes par envoi
+const MAX_TEXTS_PER_USER = 3000;
+const MAX_TEXTS_BODY = 2 * 1024 * 1024;
+const TEXT_KEY = /^[A-Za-z0-9:_.-]{1,80}$/;
 const enc = new TextEncoder();
 
 function json(status, body, headers = {}) {
@@ -181,7 +189,9 @@ async function deleteAccount(request, env) {
   if (!user) return err(401, "not_signed_in");
   const ok = user.key_hash ? (validKey(body.key) && (await checkKey(user, body.key))) : body.confirm === "SUPPRIMER";
   if (!ok) return err(401, user.key_hash ? "bad_credentials" : "bad_confirm");
+  await ensureTexts(env);
   await env.DB.batch([
+    env.DB.prepare("DELETE FROM texts WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM progress WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
@@ -213,6 +223,49 @@ async function putProgress(request, env) {
     "INSERT INTO progress (user_id, data, updated_at) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at"
   ).bind(user.id, JSON.stringify(body.data), updatedAt).run();
   return json(200, { updatedAt });
+}
+
+
+// ---------- Textes rédigés ----------
+// La table est créée à la première utilisation (même schéma que migrations/0003_textes.sql).
+let textsReady = false;
+async function ensureTexts(env) {
+  if (textsReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS texts (user_id TEXT NOT NULL, k TEXT NOT NULL, v TEXT NOT NULL, t INTEGER NOT NULL, PRIMARY KEY (user_id, k))").run();
+  textsReady = true;
+}
+
+async function getTexts(request, env) {
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  await ensureTexts(env);
+  const since = Math.max(0, Number(new URL(request.url).searchParams.get("since")) || 0);
+  const { results } = await env.DB.prepare("SELECT k, v, t FROM texts WHERE user_id = ? AND t > ? ORDER BY t").bind(user.id, since).all();
+  return json(200, { items: results || [] });
+}
+
+// Chaque texte porte l'heure de sa dernière modification (t) : le plus récent gagne.
+async function putTexts(request, env) {
+  const raw = await request.clone().text().catch(() => "");
+  if (raw.length > MAX_TEXTS_BODY) return err(413, "too_large");
+  const { body, error } = await readJson(request); if (error) return error;
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  const items = body && Array.isArray(body.items) ? body.items : null;
+  if (!items || !items.length || items.length > MAX_TEXT_ITEMS) return err(400, "bad_request");
+  const now = Date.now();
+  for (const it of items) {
+    if (!it || typeof it.k !== "string" || !TEXT_KEY.test(it.k) || typeof it.v !== "string" || it.v.length > MAX_TEXT_CHARS) return err(400, "bad_request");
+    const t = Number(it.t); if (!Number.isFinite(t) || t <= 0) return err(400, "bad_request");
+    it.t = Math.min(Math.floor(t), now + 60000);     // pas de date dans le futur
+  }
+  await ensureTexts(env);
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM texts WHERE user_id = ?").bind(user.id).first();
+  if ((row ? row.n : 0) + items.length > MAX_TEXTS_PER_USER) return err(413, "too_many_texts");
+  await env.DB.batch(items.map((it) => env.DB.prepare(
+    "INSERT INTO texts (user_id, k, v, t) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, k) DO UPDATE SET v = excluded.v, t = excluded.t WHERE excluded.t > texts.t"
+  ).bind(user.id, it.k, it.v, it.t)));
+  return json(200, { ok: true });
 }
 
 
@@ -319,13 +372,15 @@ const ROUTES = {
   "POST /api/auth/delete": deleteAccount,
   "GET /api/progress": getProgress,
   "PUT /api/progress": putProgress,
+  "GET /api/texts": getTexts,
+  "PUT /api/texts": putTexts,
   "GET /api/auth/config": authConfig,
   "GET /api/auth/google/start": googleStart,
   "GET /api/auth/google/callback": googleCallback,
 };
 
 export function isAccountRoute(pathname) {
-  return pathname.startsWith("/api/auth/") || pathname === "/api/progress";
+  return pathname.startsWith("/api/auth/") || pathname === "/api/progress" || pathname === "/api/texts";
 }
 
 export async function handleAccount(request, env) {

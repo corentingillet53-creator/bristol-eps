@@ -1275,6 +1275,7 @@ async function connect(){
   const uid = await user.id();
   if (!uid) return;
   const ref = db.doc("data/users/" + uid + "/progress");
+  txConnect(db, uid);
   const snap = await ref.get();
   const remote = snap.exists ? clone(snap.data()) : { progress: {}, custom: [], gone: [] };
   const m = merge(remote);
@@ -1395,10 +1396,9 @@ function checkAch(silent){
 }
 /* Textes déjà rédigés sur cet appareil avant l'arrivée des succès. */
 function backfillWritten(){
-  try {
-    const o = JSON.parse(localStorage.getItem(NOTES_KEY) || "{}");
-    for (const [k, v] of Object.entries(o)) if (!k.startsWith("c:") && typeof v === "string" && v.trim().length >= WRITE_MIN && subjOf(k) && !ach.w[k]) ach.w[k] = Date.now();
-  } catch (e) {}
+  let n = 0;
+  for (const [k, e] of Object.entries(texts)) if (!k.startsWith("c:") && !k.startsWith("f:") && e.v.trim().length >= WRITE_MIN && subjOf(k) && !ach.w[k]) { ach.w[k] = Date.now(); n++; }
+  return n > 0;
 }
 function axisRows(compact){
   const all = allCards();
@@ -2011,9 +2011,108 @@ Donne-lui un retour exigeant, bienveillant et concret, en français, en 300 mots
 Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si les notions du sujet sont définies et reliées entre elles, si la démonstration articule le « en quoi » (pourquoi c'est efficace, preuves scientifiques) et le « comment » (mises en œuvre), si les propositions partent des comportements des élèves et du contexte, et si les connaissances sont précises et au service de l'argument. Si les notes sont trop minces pour juger, dis-le et indique quoi ajouter. ` + tail;
 }
 const sj = { axe: "Tous", cur: null, shown: false, mode: "plan", epr: "e1" };
-const NOTES_KEY = "bristol-eps-notes";
-function noteGet(id){ try { return (JSON.parse(localStorage.getItem(NOTES_KEY) || "{}")[id]) || ""; } catch (e) { return ""; } }
-function noteSet(id, v){ try { const o = JSON.parse(localStorage.getItem(NOTES_KEY) || "{}"); o[id] = v; localStorage.setItem(NOTES_KEY, JSON.stringify(o)); } catch (e) {} }
+/* ---------- Textes rédigés : introductions, paragraphes, plans, copies, retours de Claude ----------
+   Stockés à part de la progression (une entrée par texte, avec l'heure de modification) :
+   sur le site, envoyés à /api/texts ; dans Claude, dans un document « texts » du compte.
+   Fusion texte par texte : la version la plus récente gagne. */
+const NOTES_KEY = "bristol-eps-notes", FB_KEY = "bristol-eps-fb", TEXTS_KEY = "bristol-eps-texts";
+let texts = {};
+const tx = { dirty: new Set(), timer: null, ltimer: null, saving: false, ref: null, warned: false };
+const TX_BATCH_CHARS = 1500000, TX_BATCH_ITEMS = 40;
+function txValid(e){ return e && typeof e.v === "string" && Number.isFinite(e.t) && e.t > 0; }
+function txLoad(){
+  try { const o = JSON.parse(localStorage.getItem(TEXTS_KEY) || "{}"); texts = {}; for (const [k, e] of Object.entries(o || {})) if (txValid(e)) texts[k] = e; } catch (e) { texts = {}; }
+  /* Reprise des textes enregistrés par les versions précédentes (un objet par type, sans date). */
+  let moved = false;
+  const take = (key, pre) => { try { const o = JSON.parse(localStorage.getItem(key) || "null"); if (!o) return; for (const [k, v] of Object.entries(o)) if (typeof v === "string" && v && !texts[pre + k]) { texts[pre + k] = { v, t: 1 }; tx.dirty.add(pre + k); } localStorage.removeItem(key); moved = true; } catch (e) {} };
+  take(NOTES_KEY, ""); take(FB_KEY, "f:");
+  if (moved) txSaveLocal();
+}
+function txSaveLocal(){
+  clearTimeout(tx.ltimer); tx.ltimer = null;
+  try { localStorage.setItem(TEXTS_KEY, JSON.stringify(texts)); }
+  catch (e) { if (!tx.warned) { tx.warned = true; toast("Mémoire du navigateur pleine : connecte-toi pour garder tes textes dans ton compte."); } }
+}
+function txGet(k){ return texts[k] ? texts[k].v : ""; }
+function txSet(k, v){
+  if (txGet(k) === v) return;
+  texts[k] = { v, t: Math.max(Date.now(), texts[k] ? texts[k].t + 1 : 0) };
+  tx.dirty.add(k);
+  /* La frappe ne réécrit pas tout le stockage à chaque touche. */
+  if (!tx.ltimer) tx.ltimer = setTimeout(txSaveLocal, 400);
+  txSchedule();
+}
+const noteGet = txGet, noteSet = txSet;
+const fbSaved = sid => txGet("f:" + sid), fbSave = (sid, t) => { txSet("f:" + sid, t); txSaveLocal(); };
+function txSynced(){ return STANDALONE ? acct.status === "in" : !!tx.ref; }
+function txSchedule(delay){
+  if (!txSynced() || !tx.dirty.size) return;
+  clearTimeout(tx.timer); tx.timer = setTimeout(txFlush, delay == null ? 2000 : delay);
+}
+/* Le site reçoit les textes par lots ; dans Claude, tout le document est réécrit. */
+async function txFlush(){
+  clearTimeout(tx.timer); tx.timer = null;
+  if (tx.saving || !tx.dirty.size || !txSynced()) return;
+  tx.saving = true; setStatus("saving");
+  let ok = true;
+  try {
+    if (!STANDALONE) { await tx.ref.set({ items: texts, v: 1 }); tx.dirty.clear(); }
+    else {
+      while (tx.dirty.size && ok) {
+        const batch = []; let size = 0;
+        for (const k of tx.dirty) { const e = texts[k]; if (!e) { tx.dirty.delete(k); continue; } if (batch.length && (batch.length >= TX_BATCH_ITEMS || size + e.v.length > TX_BATCH_CHARS)) break; batch.push({ k, v: e.v, t: e.t }); size += e.v.length; }
+        if (!batch.length) break;
+        const r = await api("PUT", "/api/texts", { items: batch });
+        if (r.status === 200) batch.forEach(b => { if (texts[b.k] && texts[b.k].t === b.t) tx.dirty.delete(b.k); });
+        else if (r.status === 401) { ok = false; signedOut(); }
+        else { ok = false; if (r.status === 413 && !tx.warned) { tx.warned = true; toast("Trop de textes enregistrés dans ton compte : les nouveaux restent sur cet appareil."); } }
+      }
+    }
+  } catch (e) { ok = false; }
+  tx.saving = false;
+  if (!ok) { setStatus("offline"); if (txSynced()) tx.timer = setTimeout(txFlush, 15000); return; }
+  if (!(STANDALONE ? srv.dirty || srv.saving : store.dirty || store.saving)) setStatus("cloud");
+  if (tx.dirty.size) txSchedule(300);
+}
+/* Fusion : chaque texte garde sa version la plus récente ; ce qui manque d'un côté est envoyé. */
+function txMerge(remote){
+  let changed = false;
+  for (const [k, e] of Object.entries(remote || {})) {
+    if (!txValid(e)) continue;
+    const l = texts[k];
+    if (!l || e.t > l.t) { texts[k] = { v: e.v, t: e.t }; tx.dirty.delete(k); changed = true; }
+    else if (l.t > e.t) tx.dirty.add(k);
+  }
+  for (const k of Object.keys(texts)) if (!(k in (remote || {}))) tx.dirty.add(k);
+  if (changed) {
+    txSaveLocal();
+    if (backfillWritten()) persist();
+    /* Pas de nouveau rendu pendant que la personne écrit. */
+    if (document.activeElement && document.activeElement.id === "sj-notes") return;
+    if (view === "sujets" || view === "home") render();
+  }
+}
+async function txPull(){
+  if (!STANDALONE || acct.status !== "in") return;
+  const r = await api("GET", "/api/texts");
+  if (r.status !== 200) return;
+  const remote = {}; for (const it of r.data.items || []) remote[it.k] = { v: it.v, t: it.t };
+  txMerge(remote);
+  txSchedule(0);
+}
+async function txConnect(db, uid){
+  try {
+    tx.ref = db.doc("data/users/" + uid + "/texts");
+    const snap = await tx.ref.get();
+    txMerge(snap.exists ? clone(snap.data()).items || {} : {});
+    txSchedule(0);
+  } catch (e) { tx.ref = null; }
+}
+function txReset(){ texts = {}; tx.dirty.clear(); clearTimeout(tx.timer); txSaveLocal(); }
+/* Fermeture de l'onglet ou passage en arrière-plan : rien ne doit se perdre. */
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") { if (tx.ltimer) txSaveLocal(); if (tx.dirty.size) txFlush(); } });
+window.addEventListener("pagehide", () => { if (tx.ltimer) txSaveLocal(); });
+function savedWhere(g){ return "enregistré" + (g || "") + (txSynced() ? " dans ton compte, sur tous tes appareils" : " sur cet appareil" + (STANDALONE ? " (connecte-toi pour le retrouver ailleurs)" : "")); }
 /* ---------- Retour de Claude sur le plan ---------- */
 /* Deux modes : dans Claude (la page appelle Claude avec le compte de la personne)
    ou sur ton propre site (la page appelle /api/feedback, qui utilise ta clé d'API). */
@@ -2057,9 +2156,6 @@ async function serverSample(payload, { signal, onText }){
   return { text, truncated: !!meta.truncated, quotaLeft: left === null ? null : +left };
 }
 const fb = { sid: null, status: "idle", text: "", note: "", ctl: null };
-const FB_KEY = "bristol-eps-fb";
-function fbSaved(sid){ try { return (JSON.parse(localStorage.getItem(FB_KEY) || "{}")[sid]) || ""; } catch (e) { return ""; } }
-function fbSave(sid, t){ try { const o = JSON.parse(localStorage.getItem(FB_KEY) || "{}"); o[sid] = t; localStorage.setItem(FB_KEY, JSON.stringify(o)); } catch (e) {} }
 function mdLite(t){
   const lines = esc(t).split("\n"); let out = "", inList = false;
   for (let l of lines) {
@@ -2259,19 +2355,19 @@ function renderSujets(){
           <div class="row-btns">${tm.running ? `<button class="btn" data-act="tm-pause">Pause</button>` : `<button class="btn primary" data-act="tm-start">${started ? "Reprendre" : tm.left <= 0 ? "Recommencer" : "Démarrer"}</button>`}<button class="btn" data-act="tm-reset">Réinitialiser</button></div>
           ${tm.running || started ? "" : `<div class="chips" role="group" aria-label="Durée">${[15, 20, 30].map(m => `<button class="chip" data-tdur="${m}" aria-pressed="${tm.dur === m * 60}">${m} min</button>`).join("")}</div>`}
         </div>
-        <label for="sj-notes" class="sj-help" style="display:block">Ton introduction. Elle reste sur cet appareil.</label>
+        <label for="sj-notes" class="sj-help" style="display:block">Ton introduction, ${savedWhere("e")}.</label>
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="${isE2(s) ? "Enjeu, définition et mise en relation des notions, problématique, contexte et élèves, annonce du plan…" : "Accroche, définition des termes, bornes chronologiques, enjeu, problématique, annonce du plan…"}">${esc(noteGet(key))}</textarea>
         <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isE2(s) ? INTRO2_CRIT : INTRO_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "intro")}`;
     } else if (sj.mode === "para") {
       const key = "p:" + s.id, chk = chkGet("p-" + s.id);
       work = `<p class="sj-help">${isE2(s) ? "Choisis un épisode. Analyse ce que font les élèves, explique-le avec des connaissances précises, puis propose une mise en œuvre concrète et justifiée dans l'APSA." : "Choisis une idée qui répond au sujet et développe-la en un paragraphe. Appuie-toi sur un exemple précis, avec sa date et ses acteurs."}</p>
-        <label for="sj-notes" class="sj-help" style="display:block">${isE2(s) ? "Ta partie illustrée" : "Ton paragraphe"}. Il reste sur cet appareil.</label>
+        <label for="sj-notes" class="sj-help" style="display:block">${isE2(s) ? "Ta partie illustrée" : "Ton paragraphe"}, ${savedWhere()}.</label>
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="${isE2(s) ? "Comportements observés. Interprétation (auteur, date). Principe d'intervention. Situation, consignes, critères de réussite. Effets attendus et lien au sujet." : "Idée directrice. Argument. Exemple précis et daté. Nuance ou limite. Retour au sujet."}">${esc(noteGet(key))}</textarea>
         <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isE2(s) ? ILLU_CRIT : PARA_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="p-${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "para")}`;
     } else {
-      work = `<label for="sj-notes" class="sj-help" style="display:block">Tes idées : problématique, plan, exemples. Elles restent sur cet appareil.</label>
+      work = `<label for="sj-notes" class="sj-help" style="display:block">Tes idées : problématique, plan, exemples. Texte ${savedWhere()}.</label>
         <textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="${isE2(s) ? "Notions et liens entre elles…&#10;Problématique…&#10;I. … (épisode, APSA)&#10;II. …" : "Problématique…&#10;I. …&#10;II. …"}">${esc(noteGet(s.id))}</textarea>
         ${fbBlock(s, "plan")}`;
     }
@@ -4955,7 +5051,7 @@ document.addEventListener("change", e => {
   if (e.target.dataset && e.target.dataset.chk !== undefined) {
     const sid = e.target.dataset.sid, i = +e.target.dataset.chk;
     const cur = new Set(chkGet(sid)); if (e.target.checked) cur.add(i); else cur.delete(i);
-    noteSet("c:" + sid, JSON.stringify(Array.from(cur).sort()));
+    noteSet("c:" + sid, JSON.stringify(Array.from(cur).sort())); txSaveLocal();
     if (checkAch().length) persist();
     return;
   }
@@ -5069,6 +5165,7 @@ async function signedIn(email, info){
   acct.status = "in"; acct.email = email; renderAccountBtn();
   if (info) { acct.hasPassword = info.hasPassword !== false; acct.viaGoogle = !!info.google; }
   await pullAndMerge();
+  await txPull();
 }
 
 function renderAccountBtn(){
@@ -5166,10 +5263,11 @@ async function submitAccount(kind){
 async function logoutAccount(){
   acct.busy = true; renderAccount();
   if (srv.dirty) await srvFlush();
+  if (tx.dirty.size) await txFlush();
   await api("POST", "/api/auth/logout", {});
   acct.busy = false;
   /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */
-  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); ach = normAch(); mine = normMine(); localSave();
+  progress = {}; custom = []; gone = []; games = normGames(); refs = {}; log = {}; prefs = normPrefs(); ach = normAch(); mine = normMine(); localSave(); txReset();
   signedOut(); done = 0; buildQueue(); render();
   acct.view = "login"; acctSetMsg("Déconnecté. Ta progression reste enregistrée dans ton compte.", "ok"); renderAccount();
 }
@@ -5258,7 +5356,7 @@ if (STANDALONE) {
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if (!$("#welcome").hidden) renderWelcome(); });
   window.addEventListener("appinstalled", () => { installEvt = null; if (!$("#welcome").hidden) renderWelcome(); toast("Bristol EPS est installé."); });
   window.addEventListener("offline", () => { setStatus("offline"); toast("Hors ligne : tes révisions restent enregistrées ici."); });
-  window.addEventListener("online", () => { if (acct.status === "in") pullAndMerge().catch(() => {}); else setStatus("local"); });
+  window.addEventListener("online", () => { if (acct.status === "in") pullAndMerge().then(txPull).catch(() => {}); else setStatus("local"); });
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
   }
@@ -5321,7 +5419,7 @@ $("#add-form").addEventListener("submit", e => {
   toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
 });
 
-localLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render();
+localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});

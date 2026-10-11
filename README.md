@@ -57,7 +57,7 @@ Déjà en place : l'espace de stockage KV `bristol-quota` compte les retours par
 
 Les visiteurs peuvent créer un compte (bouton « Se connecter ») pour retrouver leur progression sur tous leurs appareils.
 
-- **Données** : base D1 `bristol-db` (tables `users`, `sessions`, `progress`, schéma dans `migrations/`).
+- **Données** : base D1 `bristol-db` (tables `users`, `sessions`, `progress` et `texts` pour les textes rédigés, créée automatiquement à la première utilisation ; schéma dans `migrations/`).
 - **Mots de passe** : jamais envoyés ni stockés. Le navigateur en dérive une clé (PBKDF2-SHA256, 310 000 itérations) ; le serveur n'en garde qu'une empreinte salée.
 - **Mot de passe oublié** : une clé de secours est affichée une seule fois à l'inscription. Il n'y a pas encore de récupération par e-mail.
 - **Synchronisé** : progression des fiches, cartes perso, références, scores Frise et « Qui ? », date du concours, calendrier de régularité et succès. Les textes rédigés (plans, introductions, paragraphes) restent sur chaque appareil.
