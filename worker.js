@@ -1,9 +1,11 @@
 // Point d'entrée du Worker Cloudflare :
 // - /api/feedback : retour de Claude (fonction serveur) ;
-// - /api/auth/* et /api/progress : comptes et progression synchronisée ;
+// - /api/auth/*, /api/progress, /api/texts : comptes et données synchronisées ;
+// - /api/push/* : abonnement aux rappels quotidiens (envoyés par le cron, scheduled) ;
 // - tout le reste est servi depuis le dossier public (fichiers statiques).
 import { onRequestGet, onRequestPost } from "./functions/api/feedback.js";
 import { isAccountRoute, handleAccount } from "./functions/api/account.js";
+import { isPushRoute, handlePush, runDaily } from "./functions/api/push.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -14,6 +16,11 @@ export default {
       return new Response("Méthode non autorisée", { status: 405, headers: { allow: "GET, POST" } });
     }
     if (isAccountRoute(url.pathname)) return handleAccount(request, env);
+    if (isPushRoute(url.pathname)) return handlePush(request, env);
     return env.ASSETS.fetch(request);
+  },
+  // Toutes les 15 minutes (wrangler.jsonc, triggers) : rappels quotidiens.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runDaily(env, new Date(event.scheduledTime)).catch((e) => console.error("Rappels :", String(e && e.stack || e))));
   },
 };

@@ -20,5 +20,7 @@
   "kv_namespaces": [{ "binding": "QUOTA", "id": "49e3556c30ab46efa24e2238914a5d66" }],
   // Comptes utilisateurs et progression synchronisée (schéma : migrations/).
   "d1_databases": [{ "binding": "DB", "database_name": "bristol-db", "database_id": "00f08cde-346f-42f4-9d4e-ad6f6930032a", "migrations_dir": "migrations" }],
+  // Rappels quotidiens par notification : vérification toutes les 15 minutes.
+  "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true }
 }

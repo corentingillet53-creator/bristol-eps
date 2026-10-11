@@ -196,6 +196,8 @@ async function deleteAccount(request, env) {
     env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
   ]);
+  // Rappels par notification : la table n'existe que si quelqu'un s'est abonné.
+  try { await env.DB.prepare("DELETE FROM push_subs WHERE user_id = ?").bind(user.id).run(); } catch (e) {}
   return json(200, { ok: true }, { "set-cookie": sessionCookie("", 0) });
 }
 
@@ -394,3 +396,6 @@ export async function handleAccount(request, env) {
   try { return await fn(request, env); }
   catch (e) { console.error("Erreur compte :", String(e && e.stack || e)); return err(500, "server_error"); }
 }
+
+// Utilisés par les notifications (push.js).
+export { json, err, readJson, currentUser };

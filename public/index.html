@@ -575,6 +575,9 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .bc-y{position:relative;width:20px;margin:10px 0 calc(2.6em + 6px);font-size:12px;color:var(--muted)}
 .bc-y span{position:absolute;right:0;transform:translateY(50%);line-height:1}
 .blanc-setup{margin-bottom:36px}
+.push-box{margin:0 0 22px}
+.push-on{display:flex;gap:8px;align-items:center;font-weight:700;margin:0 0 6px}
+.push-on svg.ic{color:var(--accent-text);width:20px;height:20px;flex:none}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -4878,13 +4881,83 @@ function planHTML(){
   </div>`;
 }
 
+/* ---------- Rappel quotidien par notification (site, compte requis) ---------- */
+const PUSH_HM_KEY = "bristol-eps-push-hm";
+const push = { checked: false, sub: null, busy: false, msg: "" };
+const pushSupported = () => STANDALONE && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+function pushHm(){ try { return localStorage.getItem(PUSH_HM_KEY) || "19:00"; } catch (e) { return "19:00"; } }
+function quarter(v){ const m = /^(\d{1,2}):(\d{2})/.exec(v || ""); if (!m) return "19:00"; let t = Math.round((+m[1] * 60 + +m[2]) / 15) * 15; t = Math.min(t, 23 * 60 + 45); return pad2(Math.floor(t / 60)) + ":" + pad2(t % 60); }
+const fmtHm = hm => hm.replace(":", " h ");
+function swReady(){ return Promise.race([navigator.serviceWorker.ready, new Promise((_, rej) => setTimeout(() => rej(new Error("sw")), 6000))]); }
+async function pushCheck(){
+  if (!pushSupported() || push.checked) return;
+  push.checked = true;
+  try { const reg = await swReady(); push.sub = await reg.pushManager.getSubscription(); } catch (e) { push.sub = null; }
+  if (view === "stats") renderStats();
+}
+function pushHTML(){
+  let inner;
+  if (!pushSupported()) inner = `<p class="lead">${isIOS() && !isInstalled() ? "Sur iPhone ou iPad, installe d'abord l'application (Safari : Partager, puis « Sur l'écran d'accueil »), puis active le rappel depuis l'application." : "Ton navigateur ne gère pas les notifications."}</p>`;
+  else if (acct.status !== "in") inner = `<p class="lead">Connecte-toi pour recevoir un rappel chaque jour, sur tous tes appareils.</p><div class="row-btns"><button class="btn" data-act="account-open">Se connecter</button></div>`;
+  else if (Notification.permission === "denied") inner = `<p class="lead">Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du navigateur, puis reviens ici.</p>`;
+  else {
+    if (!push.checked) pushCheck();
+    const hm = pushHm(), on = !!push.sub, b = push.busy ? " disabled" : "";
+    inner = `${on ? `<p class="push-on">${icon("check")} Rappel chaque jour à ${esc(fmtHm(hm))}, seulement si tu n'as pas encore révisé.</p>` : `<p class="lead">Une notification à l'heure de ton choix, seulement les jours où tu n'as pas encore révisé.</p>`}
+      <label class="ics-time"><span>Heure du rappel</span><input id="push-hm" type="time" step="900" value="${esc(hm)}"></label>
+      <div class="row-btns">${on ? `<button class="btn" data-act="push-save"${b}>Changer l'heure</button><button class="btn" data-act="push-test"${b}>Envoyer un test</button><button class="btn" data-act="push-off"${b}>Désactiver</button>` : `<button class="btn primary" data-act="push-on"${b}>Activer le rappel quotidien</button>`}</div>
+      ${push.msg ? `<p class="fb-note" role="status">${esc(push.msg)}</p>` : ""}`;
+  }
+  return `<div class="push-box"><h3 class="bc-h">Notification quotidienne</h3>${inner}</div>`;
+}
+async function pushSubscribe(hm){
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error(perm === "denied" ? "Notifications refusées : autorise-les dans les réglages du navigateur." : "Autorisation non donnée.");
+  const reg = await swReady();
+  const k = await api("GET", "/api/push/key"); if (k.status !== 200) throw new Error("Serveur des rappels indisponible. Réessaie plus tard.");
+  const appKey = Uint8Array.from(atob(k.data.key.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(k.data.key.length / 4) * 4, "=")), c => c.charCodeAt(0));
+  let sub = await reg.pushManager.getSubscription();
+  try { if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey }); }
+  catch (e) { if (sub) await sub.unsubscribe(); sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey }); }
+  const j = sub.toJSON();
+  const r = await api("POST", "/api/push/subscribe", { endpoint: j.endpoint, keys: j.keys, hm });
+  if (r.status !== 200) throw new Error(r.status === 401 ? "Session expirée : reconnecte-toi." : "Abonnement refusé par le serveur.");
+  push.sub = sub;
+}
+async function pushAction(act){
+  if (push.busy) return;
+  const hm = quarter(($("#push-hm") || {}).value);
+  push.busy = true; push.msg = ""; renderStats();
+  try {
+    if (act === "push-on" || act === "push-save") {
+      await pushSubscribe(hm);
+      try { localStorage.setItem(PUSH_HM_KEY, hm); } catch (e) {}
+      push.msg = act === "push-on" ? `C'est noté : rappel chaque jour à ${fmtHm(hm)}.` : `Nouvelle heure : ${fmtHm(hm)}.`;
+    } else if (act === "push-test") {
+      const r = await api("POST", "/api/push/test", { endpoint: push.sub && push.sub.endpoint });
+      push.msg = r.status === 200 ? "Notification envoyée : elle arrive dans quelques secondes." : r.status === 404 ? "Cet appareil n'est plus abonné : réactive le rappel." : "L'envoi a échoué. Réessaie dans un instant.";
+      if (r.status === 404) push.sub = null;
+    } else if (act === "push-off") {
+      await pushUnsubscribe();
+      push.msg = "Rappel désactivé sur cet appareil.";
+    }
+  } catch (e) { push.msg = e && e.message && e.message !== "sw" ? e.message : "Impossible d'activer les notifications ici."; }
+  push.busy = false; renderStats();
+}
+async function pushUnsubscribe(){
+  const sub = push.sub || (pushSupported() ? await swReady().then(r => r.pushManager.getSubscription()).catch(() => null) : null);
+  if (!sub) return;
+  try { await api("POST", "/api/push/unsubscribe", { endpoint: sub.endpoint }); } catch (e) {}
+  try { await sub.unsubscribe(); } catch (e) {}
+  push.sub = null;
+}
 /* ---------- Rappels dans l'agenda (.ics) ---------- */
 const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);      /* 25 novembre 2026, 12 h à Paris */
 function agendaHTML(){
-  if (!STANDALONE) return `<div class="sect"><h2>Rappels dans ton agenda</h2><p class="lead">L'export vers ton agenda est disponible sur le site Bristol EPS.</p></div>`;
+  if (!STANDALONE) return `<div class="sect"><h2>Rappels</h2><p class="lead">Les rappels par notification et l'export vers ton agenda sont disponibles sur le site Bristol EPS.</p></div>`;
   const myC = concById(prefs.concours), insc = Date.now() < INSC_END;
   const exLab = prefs.examDate ? `${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} : ${esc(fmtDay(prefs.examDate))}, rappel la veille` : "Date du concours (à indiquer d'abord)";
-  return `<div class="sect"><h2>Rappels dans ton agenda</h2>
+  return `<div class="sect"><h2>Rappels</h2>${pushHTML()}<h3 class="bc-h">Dans ton agenda</h3>
     <p class="lead">Un fichier à ouvrir avec Google Agenda, Apple Calendrier ou Outlook.</p>
     <form class="ics-form" data-icsform="1">
       <label class="chk"><input type="checkbox" name="exam"${prefs.examDate ? " checked" : " disabled"}> ${exLab}</label>
@@ -5259,6 +5332,7 @@ function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = fals
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "push-on" || d.act === "push-save" || d.act === "push-test" || d.act === "push-off") { pushAction(d.act); return; }
   if (d.act === "plan-date") { goalEdit = true; setView("home"); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
@@ -5493,6 +5567,7 @@ async function srvFlush(){
 }
 function signedOut(){
   acct.status = "out"; acct.email = ""; clearTimeout(srv.timer); srv.dirty = false; srv.base = 0;
+  if (typeof push !== "undefined") { push.checked = false; push.sub = null; push.msg = ""; }
   setStatus("local"); renderAccountBtn(); if (acct.open) renderAccount();
 }
 async function signedIn(email, info){
@@ -5500,6 +5575,7 @@ async function signedIn(email, info){
   if (info) { acct.hasPassword = info.hasPassword !== false; acct.viaGoogle = !!info.google; }
   await pullAndMerge();
   await txPull();
+  if (view === "stats") renderStats();
 }
 
 function renderAccountBtn(){
@@ -5598,6 +5674,8 @@ async function logoutAccount(){
   acct.busy = true; renderAccount();
   if (srv.dirty) await srvFlush();
   if (tx.dirty.size) await txFlush();
+  /* Appareil partagé : plus de rappels au nom de ce compte. */
+  await pushUnsubscribe().catch(() => {});
   await api("POST", "/api/auth/logout", {});
   acct.busy = false;
   /* Sur un appareil partagé, on ne laisse pas la progression du compte derrière soi. */

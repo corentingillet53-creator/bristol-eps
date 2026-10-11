@@ -2,6 +2,8 @@
 
 Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offre gratuite) :
 
+- Rappels quotidiens par notification (Progrès › Rappels, compte requis) : `functions/api/push.js` (Web Push chiffré, clés VAPID créées et gardées dans D1, table `push_subs`) ; le cron du Worker (`triggers` dans `wrangler.jsonc`, toutes les 15 minutes) envoie le rappel une fois par jour à l'heure choisie (heure de Paris), seulement si la personne n'a pas encore révisé.
+- Répétition espacée : algorithme FSRS-5 (stabilité et difficulté par carte), boîtes 1 à 5 affichées comme paliers de stabilité.
 - Concours blanc (onglet S'entraîner) : copie stockée avec les textes rédigés ; sa correction par Claude (`kind: "copie"` sur `/api/feedback`) compte pour deux retours dans le quota mensuel.
 - `public/` : le site (fiches, fils rouges, entraînements, suivi), servi tel quel ;
   `public/manifest.webmanifest`, `public/sw.js` et `public/icons/` rendent le site installable et utilisable hors ligne (la page et les polices sont mises en cache, jamais `/api/*`) ;
