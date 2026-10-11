@@ -5,7 +5,7 @@
 // Limite : 10 signalements par heure et par adresse (empreinte, l'adresse n'est pas stockée).
 import { json, err, readJson, currentUser } from "./account.js";
 
-const KINDS = new Set(["fait", "date", "source", "orthographe", "autre"]);
+const KINDS = new Set(["fait", "date", "source", "orthographe", "autre", "relecture"]);
 const CARD = /^[A-Za-z0-9_-]{1,40}$/;
 let ready = false;
 async function ensureReports(env) {

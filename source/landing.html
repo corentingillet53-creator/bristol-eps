@@ -96,6 +96,12 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 @media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
 
 /* Contenu : quatre usages, chacun avec une vraie capture */
+.appr{padding:8px 0 64px}
+.appr-g{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:8px 0 0}
+.appr-g > div{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 22px}
+.appr-g h3{font:800 21px/1.15 var(--f-display);margin:0 0 8px}
+.appr-g p{margin:0;font-size:16px;color:var(--muted)}
+.appr .note{font-size:16px;color:var(--muted);margin:18px 0 0;max-width:46em}
 .why{padding:8px 0 64px}
 .cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
 .cmp{width:100%;border-collapse:collapse;min-width:680px;font-size:16px}
@@ -218,6 +224,16 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       <p class="note">Les rapports de jury sont le fil conducteur : chaque sujet affiche ce que le jury attend, avec la page du rapport, et les retours de Claude suivent sa grille.</p>
     </section>
 
+    <section class="appr" aria-labelledby="h-appr">
+      <h2 id="h-appr">Fondé sur la recherche, ancré dans les textes</h2>
+      <div class="appr-g">
+        <div><h3>Ce que la recherche dit d'apprendre</h3><p>Se tester plutôt que relire, et espacer les révisions : les deux techniques que la littérature juge les plus efficaces (Roediger et Karpicke, 2006 ; Cepeda et al., 2006 ; Dunlosky et al., 2013). Chaque fiche se travaille ainsi, au rythme calculé pour la date de tes écrits.</p></div>
+        <div><h3>Les textes officiels et les jurys</h3><p>Le programme de ton concours relié aux fiches, thème par thème. Les attentes des rapports de jury à côté de chaque sujet, page par page pour le CAPEPS externe 2026. Les sujets officiels depuis 2015, avec ce qu'en ont dit les jurys.</p></div>
+        <div><h3>L'IA à sa juste place</h3><p>Claude ne rédige jamais à ta place : tu écris, il relit, avec le sujet, des fiches vérifiées et les critères du rapport du jury. Les fiches, les sujets et la méthode sont rédigés, sourcés et relus, pas générés à la volée.</p></div>
+      </div>
+      <p class="note">Formateurs, membres de jury, agrégés : le contenu est ouvert à la relecture, depuis la page « Approche et sources » de l'application.</p>
+    </section>
+
     <section class="feat" id="contenu" aria-labelledby="h-feat">
       <h2 id="h-feat">Ce qu'il y a dedans</h2>
       <p class="sub">Les trois écrits sont séparés : l'histoire de l'EPS, les sciences et l'intervention, et les textes officiels. Tu choisis ton concours, le site n'affiche que ce qui te concerne.</p>
@@ -284,7 +300,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
       <details><summary>Faut-il créer un compte ?</summary><p>Non. Ta progression est enregistrée dans ton navigateur dès la première carte. Un compte, gratuit, sert à la retrouver sur ton téléphone et ton ordinateur, et à recevoir le rappel quotidien.</p></details>
       <details><summary>Quels concours sont couverts ?</summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d'EPS. Les oraux ne sont pas encore traités.</p></details>
       <details><summary>Pourquoi pas simplement une IA généraliste ?</summary><p>Une IA généraliste ne connaît ni le format de ton concours, ni la grille du jury, et elle invente parfois des dates ou des références. Ici, Claude corrige avec le sujet, les fiches vérifiées qui s'y rapportent et les critères du rapport du jury, et il signale ce qui reste à vérifier. Et le site te fait aussi retenir, chaque jour, ce que tu dois savoir.</p></details>
-      <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper. Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
+      <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper, avec l'historiographie de référence de la période (Arnaud, Thibault, Attali et Saint-Martin…). Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
       <details><summary>Que devient ce que j'écris ?</summary><p>Tes plans, introductions et copies restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la correction ; le site ne le garde pas à cette occasion.</p></details>
       <details><summary>Que comprend la version gratuite ?</summary><p>Cinq nouvelles fiches par jour sur un écrit, avec leurs révisions, les annales et les rapports de jury, la méthode, les sujets d'entraînement, la frise, les fils rouges et les références. L'accès complet ouvre tous les écrits sans limite, les retours de Claude, le concours blanc corrigé, le plan jusqu'aux écrits, les rappels et le mode écoute.</p></details>
       <details><summary>Comment résilier ?</summary><p>Le pass session se paie une fois : rien n'est prélevé ensuite. L'abonnement mensuel se résilie en un clic depuis « Mon compte », sans engagement ; l'accès reste ouvert jusqu'à la fin du mois payé.</p></details>
