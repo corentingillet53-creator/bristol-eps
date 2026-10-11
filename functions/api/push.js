@@ -93,12 +93,29 @@ async function sendPush(env, sub, message) {
 function parisNow(now = new Date()) {
   const p = Object.fromEntries(new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
     .formatToParts(now).map((x) => [x.type, x.value]));
-  return { day: `${p.year}-${p.month}-${p.day}`, hm: `${p.hour}:${String(Math.floor(+p.minute / 15) * 15).padStart(2, "0")}` };
+  const sunday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(now) === "Sun";
+  return { day: `${p.year}-${p.month}-${p.day}`, hm: `${p.hour}:${String(Math.floor(+p.minute / 15) * 15).padStart(2, "0")}`, sunday };
+}
+
+// Bilan du dimanche : les 7 derniers jours (dimanche compris), d'après le journal synchronisé.
+export function weeklyMessage(data, day) {
+  const log = (data || {}).log || {}, t = new Date(day + "T12:00:00Z");
+  let days = 0, answers = 0, fresh = 0;
+  for (let i = 0; i < 7; i++) {
+    const k = new Date(t.getTime() - i * 864e5).toISOString().slice(0, 10), x = log[k] || {};
+    if ((x.a || 0) > 0) days++;
+    answers += x.a || 0; fresh += x.n || 0;
+  }
+  const body = !days ? "Pas de révision cette semaine. Une séance de 10 minutes suffit pour reprendre le fil."
+    : `${days} jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""} sur 7, ${answers} réponse${answers > 1 ? "s" : ""}, ${fresh} nouvelle${fresh > 1 ? "s" : ""} carte${fresh > 1 ? "s" : ""}. ${days >= 5 ? "Très belle régularité !" : days >= 3 ? "Bon rythme : vise un jour de plus." : "Essaie de réviser un jour sur deux."}`;
+  return { title: "Ta semaine sur Bristol EPS", body, url: "/?depuis=bilan", tag: "bristol-bilan" };
 }
 
 // Message du jour d'après la progression synchronisée ; null si la personne a déjà révisé.
-export function dailyMessage(data, day, now = Date.now()) {
+// Le dimanche, le bilan de la semaine remplace le rappel (même si la personne a révisé).
+export function dailyMessage(data, day, now = Date.now(), sunday = false) {
   const d = data || {};
+  if (sunday) return weeklyMessage(d, day);
   if (((d.log || {})[day] || {}).a > 0) return null;
   const due = Object.values(d.progress || {}).filter((p) => p && p.d && p.d <= now).length;
   return {
@@ -111,7 +128,7 @@ export function dailyMessage(data, day, now = Date.now()) {
 export async function runDaily(env, now = new Date()) {
   if (!env.DB) return { sent: 0 };
   await ensurePush(env);
-  const { day, hm } = parisNow(now);
+  const { day, hm, sunday } = parisNow(now);
   const { results } = await env.DB.prepare(
     "SELECT s.endpoint, s.user_id, s.p256dh, s.auth, s.origin, p.data FROM push_subs s LEFT JOIN progress p ON p.user_id = s.user_id WHERE s.hm <= ? AND s.last_day < ? LIMIT 200"
   ).bind(hm, day).all();
@@ -119,7 +136,7 @@ export async function runDaily(env, now = new Date()) {
   for (const s of results || []) {
     await env.DB.prepare("UPDATE push_subs SET last_day = ? WHERE endpoint = ?").bind(day, s.endpoint).run();
     let data = null; try { data = s.data ? JSON.parse(s.data) : null; } catch (e) {}
-    const msg = dailyMessage(data, day, now.getTime());
+    const msg = dailyMessage(data, day, now.getTime(), sunday);
     if (!msg) continue;
     const st = await sendPush(env, s, msg);
     if (st >= 200 && st < 300) sent++;

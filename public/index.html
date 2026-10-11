@@ -647,6 +647,44 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .lst-set{margin-top:16px}
 .lst-set summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
 .lst-l{font-weight:700;font-size:14px;margin:10px 0 6px}
+/* Recherche globale */
+.gs{position:fixed;inset:0;z-index:60;background:rgba(10,20,15,.45);display:flex;justify-content:center;align-items:flex-start;padding:min(10vh,80px) 16px 16px}
+.gs[hidden]{display:none}
+html.gs-on{overflow:hidden}
+.gs-panel{width:100%;max-width:720px;max-height:80vh;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:0 30px 60px -20px rgba(0,0,0,.4);overflow:hidden}
+.gs-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.gs-ic{color:var(--muted);display:flex}
+.gs-top input{border:0;background:transparent;font-size:18px;min-height:44px;padding:0;flex:1}
+.gs-top input:focus{outline:none}
+.gs-panel:focus-within .gs-top{box-shadow:inset 0 -2px 0 var(--accent)}
+.gs-results{overflow:auto;padding:6px 10px 14px}
+.gs-empty{color:var(--muted);padding:14px 6px;margin:0}
+.gs-g{margin-top:8px}
+.gs-h{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 6px 4px;font-weight:700}
+.gs-h span{font-weight:400}
+.gs-g ul{list-style:none;margin:0;padding:0}
+.gs-item{appearance:none;display:grid;gap:2px;width:100%;text-align:left;background:none;border:0;border-radius:var(--r-m);padding:10px 8px;color:var(--ink);font:inherit;cursor:pointer}
+.gs-item:hover,.gs-item:focus-visible{background:var(--chip)}
+.gs-meta{font-size:12px;color:var(--muted);font-weight:700}
+.gs-t{font-weight:700}
+.gs-a{font-size:14px;color:var(--muted)}
+.gs-note{font-size:13px;color:var(--accent-text)}
+.gs-item mark{background:var(--soft);color:inherit;border-radius:3px;padding:0 1px}
+.gs-all{margin:2px 8px 0;font-size:14px}
+@media (max-width:959px){ .desk-only{display:none!important} }
+.w-disp{margin-top:8px}
+.report-form{display:grid;gap:6px;max-width:520px;margin-top:6px;padding:12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.report-form label{margin:0;font-size:14px}
+.hm-j{background:transparent!important;box-shadow:inset 0 0 0 2px var(--gold)}
+.joker-note{display:flex;gap:6px;align-items:flex-start;font-size:14px;color:var(--muted);margin:10px 0 0}
+.joker-note svg.ic{width:18px;height:18px;color:var(--gold);flex:none;margin-top:1px}
+.week-msg{margin:0 0 12px;color:var(--muted)}
+.week-kpis{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.week-next{font-size:14px;color:var(--muted);margin:12px 0 0}
+.week-c{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px;margin:0 0 20px}
+.week-c h2{font-family:var(--f-display);font-size:19px;margin:0 0 6px}
+.week-c .kpi{padding:10px 12px;background:var(--paper);border:0}
+.week-c .kpi b{font-size:20px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -727,6 +765,8 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     <div class="tools">
       <span class="status" id="status" data-mode="local" role="status"><span class="dot" aria-hidden="true"></span><span class="tlab" id="status-txt">Sur cet appareil</span></span>
       <button class="tool" id="account-open" type="button" data-act="account-open" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="tlab" id="account-label">Se connecter</span></button>
+      <button class="tool" id="gs-open" type="button" data-act="gs-open" aria-keyshortcuts="/ Control+K"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span class="tlab">Rechercher</span></button>
+      <button class="tool desk-only" id="theme-btn" type="button" data-act="theme-cycle"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/></svg><span class="tlab" id="theme-label">Thème : automatique</span></button>
       <button class="tool" id="help-open" type="button" data-act="help-open"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.4"/><path d="M12 17h.01"/></svg><span class="tlab">Aide</span></button>
       <button class="tool" id="textsize" type="button" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 8.5 5 14 19"/><path d="M5 14.5h7"/><path d="M18 8v7"/><path d="M14.5 11.5h7"/></svg><span class="tlab">Texte plus grand</span></button>
     </div>
@@ -820,6 +860,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     </div>
   </main>
 </div>
+<div class="gs" id="gsearch" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -1321,7 +1362,7 @@ function srcHTML(c){
   const note = cnEdit === c.id
     ? `<span class="cn-edit"><label class="sr-only" for="cn-input">Ma note sur cette fiche</label><textarea id="cn-input" data-cid="${esc(c.id)}" rows="3" placeholder="Un lien avec un autre fait, un moyen mnémotechnique, une nuance…">${esc(cn)}</textarea><span class="row-btns"><button class="btn small" data-cnsave="${esc(c.id)}">Enregistrer</button><button class="btn small" data-cncancel="1">Annuler</button></span></span>`
     : `<span>Ma note : ${cn ? `<span class="cn-txt">${esc(cn)}</span>` : "aucune"} <button class="linkbtn" data-cnedit="${esc(c.id)}">${cn ? "Modifier" : "Ajouter"}</button></span>`;
-  return `<div class="src">${src}${ref}${note}</div>`;
+  return `<div class="src">${src}${ref}${note}${reportHTML(c)}</div>`;
 }
 function saveRef(id, v){
   v = String(v || "").trim().slice(0, 300);
@@ -1465,15 +1506,42 @@ function goalInfo(){
   const newPerDay = gs.reduce((t, x) => t + x.target, 0);
   return { daysLeft: ex.daysLeft, unseen: gs.reduce((t, x) => t + x.unseen, 0), newPerDay, today: Object.assign({}, today, { n: gs.reduce((t, x) => t + Math.min(x.n, x.target), 0) }), newLeft: gs.reduce((t, x) => t + x.left, 0), groups: gs };
 }
+/* Séries avec joker : un jour manqué isolé ne casse pas la série, une fois par période de 7 jours.
+   Deux jours manqués d'affilée la cassent. Le joker ne compte pas comme un jour de révision. */
+const JOKER_GAP = 7;
 function streaks(){
   const active = d => ((log[dayKey(d)] || {}).a || 0) > 0;
-  let cur = 0; const d = startOfDay();
-  if (!active(d)) d.setDate(d.getDate() - 1);
-  while (active(d)) { cur++; d.setDate(d.getDate() - 1); }
+  let cur = 0, lastJ = null; const jokers = [];
+  const d = startOfDay();
+  if (!active(d)) d.setDate(d.getDate() - 1);      /* aujourd'hui n'est pas fini */
+  for (let i = 0; i < 4000; i++) {
+    if (active(d)) cur++;
+    else {
+      const prev = new Date(d); prev.setDate(prev.getDate() - 1);
+      if ((cur > 0 || i === 0) && active(prev) && (lastJ === null || i - lastJ >= JOKER_GAP)) { jokers.push(dayKey(d)); lastJ = i; }
+      else break;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+  if (!cur) jokers.length = 0;
+  /* Meilleure série : même règle, du premier jour du journal à aujourd'hui. */
   const days = Object.keys(log).filter(k => (log[k].a || 0) > 0).sort();
-  let best = 0, run = 0, prev = null;
-  for (const k of days) { const t = new Date(k + "T00:00:00"); run = prev && Math.round((t - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; }
-  return { cur, best: Math.max(best, cur) };
+  let best = 0;
+  if (days.length) {
+    const t = new Date(days[0] + "T00:00:00"), end = startOfDay(); let run = 0, lj = null, idx = 0;
+    for (; t <= end; t.setDate(t.getDate() + 1), idx++) {
+      if (active(t)) { run++; best = Math.max(best, run); continue; }
+      const nx = new Date(t); nx.setDate(nx.getDate() + 1);
+      if (t.getTime() === end.getTime()) break;                      /* aujourd'hui, pas encore fini */
+      if (run > 0 && active(nx) && (lj === null || idx - lj >= JOKER_GAP)) { lj = idx; continue; }
+      run = 0; lj = null;
+    }
+  }
+  /* Joker disponible : aucun joker utilisé dans les 6 derniers jours de la série en cours. */
+  const lastUsed = jokers.length ? jokers[0] : null;
+  const ready = !lastUsed || Math.round((startOfDay() - new Date(lastUsed + "T00:00:00")) / DAY) >= JOKER_GAP;
+  const back = lastUsed ? new Date(new Date(lastUsed + "T00:00:00").getTime() + JOKER_GAP * DAY) : null;
+  return { cur, best: Math.max(best, cur), jokers, ready, back };
 }
 function newLimit(){ return grpGoal(grp).left; }
 function renderGoal(){ if (view === "home") renderHome(); }
@@ -1688,7 +1756,7 @@ function renderHome(){
     <div class="home-grid">
       <div class="home-main"><div class="more"><h2>Au programme</h2><span class="meta">${t.n} sur 3 fait${t.n > 1 ? "s" : ""}</span></div>
         <ul class="today">${t.html}</ul></div>
-      <div class="home-side"><div class="sect">${homeAchHTML()}</div>
+      <div class="home-side">${(() => { const wd = new Date().getDay(); return wd === 0 ? weekHTML(false, true) : wd === 1 ? weekHTML(true, true) : ""; })()}<div class="sect">${homeAchHTML()}</div>
         ${(() => { const x = quoteOfDay(); return x ? `<div class="side-card qod"><div class="more"><h2>À citer aujourd'hui</h2><button class="linkbtn" data-act="home-refs">Toutes les références</button></div><blockquote>« ${esc(x.text)} »</blockquote><p class="qod-a">${esc(x.author)}, ${esc(x.work)}</p></div>` : ""; })()}
         <div class="side-card"><div class="more"><h2>Niveau par épreuve</h2><button class="linkbtn" data-sec="suivi">Détails</button></div><div class="rd-rows">${axisRows(true)}</div></div></div>
     </div>`;
@@ -1730,6 +1798,7 @@ function grade(r){
     const ivl = g === 1 ? 10 * 6e4 : fsrsDays(f.s) * DAY;
     progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0), s: Math.round(f.s * 100) / 100, df: Math.round(f.df * 100) / 100 };
   }
+  log[dk].r = readiness(allCards());
   sessRecord(id, r, before.p);
   lastGrade = Object.assign(before, { r });
   persist();
@@ -1948,6 +2017,119 @@ function listenHTML(){
       <p class="lst-l">Mode</p><div class="chips">${chip("data-lmode", "grade", listen.mode, "Je note chaque carte")}${chip("data-lmode", "flow", listen.mode, "Écoute continue, sans noter")}</div>
     </details>
     <p class="hint">Avec des écouteurs : piste suivante = ${listen.mode === "grade" ? "Su" : "carte suivante"}, piste précédente = ${listen.mode === "grade" ? "Raté" : "répéter"}. L'écran reste allumé pendant l'écoute quand le téléphone le permet.</p>`;
+}
+/* ---------- Recherche globale : un seul champ pour tout le site ----------
+   Fiches (et tes notes), références, annales, fils rouges, méthode et rapports de jury,
+   concours, et tes propres textes. Raccourcis : « / » ou Ctrl+K. */
+const gs = { open: false, q: "", opener: null, timer: null };
+function gsMatch(fields, words){ const h = normTxt(fields.join(" ")); return words.every(w => h.includes(w)); }
+function gsHighlight(t, words, max){
+  let s = String(t || ""); if (max && s.length > max) s = s.slice(0, max) + "…";
+  let out = esc(s);
+  for (const w of words) {
+    if (w.length < 2) continue;
+    const n = normTxt(s), i = n.indexOf(w); if (i < 0) continue;
+    const raw = s.slice(i, i + w.length);
+    out = out.replace(esc(raw), "<mark>" + esc(raw) + "</mark>");
+  }
+  return out;
+}
+function gsResults(q){
+  const words = normTxt(q).split(/\s+/).filter(w => w.length > 1);
+  if (!words.length) return null;
+  const R = [];
+  const cards = allCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
+  R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
+    html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span><span class="gs-a">${gsHighlight(c.a, words, 220)}</span>${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
+    act: `data-gscram="${esc(c.id)}"`, lab: "Réviser cette fiche" })) });
+  const refs = REFS.filter(r => gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
+  R.push({ k: "refs", t: "Références", n: refs.length, all: refs.length > 5 ? "gs-all-refs" : "", items: refs.slice(0, 5).map(r => ({
+    html: `<span class="gs-meta">${esc(r.au)}${r.y ? ", " + r.y : ""}</span><span class="gs-t">${gsHighlight(r.ti, words)}</span>`, act: `data-gsref="${esc(r.id)}"` })) });
+  const anns = ANNALES.filter(a => gsMatch([a.t, a.co, String(a.y), a.j || "", a.ju || ""], words));
+  R.push({ k: "ann", t: "Annales", n: anns.length, all: anns.length > 5 ? "gs-all-ann" : "", items: anns.slice(0, 5).map(a => ({
+    html: `<span class="gs-meta">${esc(a.co)}, ${a.y} · ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}</span><span class="gs-t">${gsHighlight(a.t, words, 200)}</span>`, act: `data-gsann="${esc(a.id)}"` })) });
+  const fils = FILS.filter(f => gsMatch([f.t, f.q, f.i, (f.k || []).join(" "), (f.d || []).join(" "), f.p || ""], words));
+  R.push({ k: "fils", t: "Fils rouges", n: fils.length, items: fils.slice(0, 5).map(f => ({ html: `<span class="gs-t">${gsHighlight(f.t, words)}</span><span class="gs-a">${gsHighlight(f.q, words)}</span>`, act: `data-gsfil="${esc(f.id)}"` })) });
+  const meth = [];
+  for (const [k, m] of Object.entries(METHODE)) for (const st of m.steps || []) if (gsMatch([st.t, st.d, st.p || ""], words)) meth.push({ html: `<span class="gs-meta">${esc(m.t)}</span><span class="gs-t">${gsHighlight(st.t, words)}</span><span class="gs-a">${gsHighlight(st.d, words, 180)}</span>`, act: `data-gsmeth="${k}"` });
+  for (const j of JURYS) for (const it of j.items) if (gsMatch([it[0], it[1], j.t], words)) meth.push({ html: `<span class="gs-meta">Rapports de jury · ${esc(j.t)}, ${esc(it[0])}</span><span class="gs-t">${gsHighlight(it[1], words)}</span>`, act: `data-gsmeth="jury"` });
+  R.push({ k: "meth", t: "Méthode et jurys", n: meth.length, items: meth.slice(0, 5) });
+  const conc = CONCOURS.filter(c => gsMatch([c.t, c.tag, c.note || "", c.qui || "", (c.adm || []).map(a => a.t + " " + a.d).join(" "), (c.admi || []).map(a => a.t + " " + a.d).join(" ")], words));
+  R.push({ k: "conc", t: "Concours", n: conc.length, items: conc.slice(0, 5).map(c => ({ html: `<span class="gs-t">${gsHighlight(c.t, words)}</span><span class="gs-a">${esc(c.tag)}</span>`, act: `data-gsconc="${esc(c.id)}"` })) });
+  const mine = [];
+  for (const [k, e] of Object.entries(texts)) {
+    if (/^(c:|f:|bm:)/.test(k) || !e.v.trim() || !normTxt(e.v).includes(words[0]) || !gsMatch([e.v], words)) continue;
+    if (k.startsWith("b:")) { const m = blancGet(k.slice(2)); if (m) mine.push({ html: `<span class="gs-meta">Concours blanc · ${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</span><span class="gs-a">${gsHighlight(gsExcerpt(e.v, words[0]), words)}</span>`, act: `data-gsblanc="${esc(m.id)}"` }); continue; }
+    const id = k.replace(/^[ip]:/, ""), s = SUBJECTS.find(x => x.id === id) || SUBJECTS2.find(x => x.id === id) || (ANNALES.find(x => x.id === id) && annSubject(ANNALES.find(x => x.id === id)));
+    if (!s) continue;
+    const kind = k.startsWith("i:") ? "Introduction" : k.startsWith("p:") ? (isE2(s) ? "Partie illustrée" : "Paragraphe") : "Plan";
+    mine.push({ html: `<span class="gs-meta">${kind} · ${esc(s.t.slice(0, 80))}${s.t.length > 80 ? "…" : ""}</span><span class="gs-a">${gsHighlight(gsExcerpt(e.v, words[0]), words)}</span>`, act: `data-gstext="${esc(k)}"` });
+  }
+  R.push({ k: "mine", t: "Mes textes", n: mine.length, items: mine.slice(0, 5) });
+  return R.filter(g => g.n);
+}
+function gsExcerpt(t, w){ const n = normTxt(t), i = Math.max(0, n.indexOf(w) - 60); return (i ? "…" : "") + t.slice(i, i + 200).replace(/\s+/g, " ") + (t.length > i + 200 ? "…" : ""); }
+function gsRender(){
+  const box = $("#gs-results"); if (!box) return;
+  const R = gsResults(gs.q);
+  if (!R) { box.innerHTML = `<p class="gs-empty">Cherche un auteur, une date, une loi, une notion, ou un mot de tes propres textes.</p>`; return; }
+  if (!R.length) { box.innerHTML = `<p class="gs-empty" role="status">Aucun résultat pour « ${esc(gs.q)} ».</p>`; return; }
+  const total = R.reduce((t, g) => t + g.n, 0);
+  box.innerHTML = `<p class="sr-only" role="status">${plural(total, "résultat")}</p>` + R.map(g => `<section class="gs-g" aria-label="${esc(g.t)}"><h3 class="gs-h">${esc(g.t)} <span>${g.n}</span></h3><ul>${g.items.map(it => `<li><button class="gs-item" ${it.act}${it.lab ? ` title="${esc(it.lab)}"` : ""}>${it.html}</button></li>`).join("")}</ul>${g.all ? `<button class="linkbtn gs-all" data-gsall="${g.all}">Voir les ${g.n}</button>` : ""}</section>`).join("");
+}
+function gsOpen(){
+  const el = $("#gsearch"); if (!el || gs.open) return;
+  gs.open = true; gs.opener = document.activeElement;
+  el.hidden = false;
+  el.innerHTML = `<div class="gs-panel" role="dialog" aria-modal="true" aria-labelledby="gs-title">
+    <div class="gs-top"><h2 id="gs-title" class="sr-only">Rechercher dans le site</h2>
+      <label class="sr-only" for="gs-input">Rechercher</label>
+      <span class="gs-ic" aria-hidden="true">${icon("search")}</span><input id="gs-input" type="search" autocomplete="off" spellcheck="false" placeholder="Rechercher : Hébert, 1967, mixité, motivation…" value="${esc(gs.q)}">
+      <button class="btn small" data-act="gs-close">Fermer</button></div>
+    <div id="gs-results" class="gs-results"></div></div>`;
+  gsRender();
+  document.documentElement.classList.add("gs-on");
+  const i = $("#gs-input"); i.focus(); i.select();
+}
+function gsClose(restore){
+  const el = $("#gsearch"); if (!el || !gs.open) return;
+  gs.open = false; el.hidden = true; el.innerHTML = "";
+  document.documentElement.classList.remove("gs-on");
+  if (restore !== false && gs.opener && gs.opener.focus) try { gs.opener.focus(); } catch (e) {}
+}
+function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } catch (e) {} }
+
+/* ---------- Thème : automatique (réglage du téléphone), clair ou sombre ---------- */
+const THEME_KEY = "bristol-eps-theme";
+const THEME_LAB = { auto: "automatique", light: "clair", dark: "sombre" };
+function themeGet(){ try { const t = localStorage.getItem(THEME_KEY); return THEME_LAB[t] ? t : "auto"; } catch (e) { return "auto"; } }
+function themeSet(t){
+  if (!THEME_LAB[t]) t = "auto";
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+  if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  const l = $("#theme-label"); if (l) l.textContent = "Thème : " + THEME_LAB[t];
+  const w = $("#welcome"); if (w && !w.hidden) renderWelcome();
+}
+themeSet(themeGet());
+function themeChipsHTML(){ const cur = themeGet(); return `<div class="chips" role="group" aria-label="Thème">${Object.entries(THEME_LAB).map(([k, l]) => `<button class="chip" data-theme-set="${k}" aria-pressed="${k === cur}">${l[0].toUpperCase() + l.slice(1)}</button>`).join("")}</div>`; }
+
+/* ---------- Signaler une erreur sur une fiche (site) ---------- */
+let reportOpen = null;
+const REPORT_KINDS = [["fait", "Fait inexact"], ["date", "Date ou chiffre faux"], ["source", "Source ou référence"], ["orthographe", "Faute de français"], ["autre", "Autre"]];
+function reportHTML(c){
+  if (!STANDALONE || c.custom) return "";
+  if (reportOpen !== c.id) return `<span><button class="linkbtn" data-report="${esc(c.id)}">Signaler une erreur</button></span>`;
+  return `<form class="report-form" data-reportform="${esc(c.id)}" novalidate>
+    <label for="rep-kind">Type d'erreur</label><select id="rep-kind">${REPORT_KINDS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select>
+    <label for="rep-msg">Ce qui ne va pas (et la correction, si tu la connais)</label><textarea id="rep-msg" rows="3" maxlength="1000" placeholder="Ex. : la loi date de 1880, pas de 1882 (source : …)"></textarea>
+    <div class="row-btns"><button class="btn small primary" type="submit">Envoyer</button><button class="btn small" type="button" data-act="report-cancel">Annuler</button></div></form>`;
+}
+async function reportSend(form){
+  const id = form.dataset.reportform, c = byId(id), msg = ($("#rep-msg") || {}).value || "", kind = ($("#rep-kind") || {}).value || "autre";
+  if (msg.trim().length < 5) { toast("Décris l'erreur en quelques mots."); return; }
+  const r = await api("POST", "/api/report", { card: id, kind, msg: msg.trim(), q: c ? c.q : "" });
+  if (r.status === 200) { reportOpen = null; render(); toast("Merci : signalement envoyé, il sera vérifié."); }
+  else toast(r.status === 429 ? "Trop de signalements pour l'instant. Réessaie plus tard." : "Envoi impossible. Réessaie dans un instant.");
 }
 
 /* ---------- Rendu ---------- */
@@ -5090,15 +5272,15 @@ function heatmapHTML(){
   const dow = (today.getDay() + 6) % 7;               /* lundi = 0 */
   const start = new Date(today); start.setDate(start.getDate() - dow - (WEEKS - 1) * 7);
   const lvl = a => a <= 0 ? 0 : a < 10 ? 1 : a < 25 ? 2 : a < 50 ? 3 : 4;
+  const st = streaks(), jk = new Set(st.jokers);
   let cells = "", active = 0, total = 0;
   for (let i = 0; i < WEEKS * 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     if (d > today) { cells += `<span class="hm-cell hm-out"></span>`; continue; }
     const a = (log[dayKey(d)] || {}).a || 0; if (a) { active++; total += a; }
     const lab = d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" }) + " : " + (a ? a + " réponse" + (a > 1 ? "s" : "") : "aucune révision");
-    cells += `<span class="hm-cell hm-${lvl(a)}" title="${esc(lab)}"></span>`;
+    cells += `<span class="hm-cell hm-${lvl(a)}${!a && jk.has(dayKey(d)) ? " hm-j" : ""}" title="${esc(lab)}${!a && jk.has(dayKey(d)) ? " (joker)" : ""}"></span>`;
   }
-  const st = streaks();
   return `<div class="sect rd"><h2>Régularité</h2>
     <div class="kpis hm-kpis">
       <div class="kpi"><b>${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée en ce moment</span></div>
@@ -5107,8 +5289,54 @@ function heatmapHTML(){
     </div>
     <div class="hm-wrap"><div class="hm-days" aria-hidden="true"><span>lun.</span><span></span><span>mer.</span><span></span><span>ven.</span><span></span><span>dim.</span></div>
       <div class="hm" role="img" aria-label="Calendrier des 12 dernières semaines : ${active} jours de révision, ${total} réponses au total.">${cells}</div></div>
-    <p class="legend-row hm-legend"><span>Moins</span><i class="hm-cell hm-0"></i><i class="hm-cell hm-1"></i><i class="hm-cell hm-2"></i><i class="hm-cell hm-3"></i><i class="hm-cell hm-4"></i><span>Plus (50 réponses et plus)</span></p>
+    <p class="legend-row hm-legend"><span>Moins</span><i class="hm-cell hm-0"></i><i class="hm-cell hm-1"></i><i class="hm-cell hm-2"></i><i class="hm-cell hm-3"></i><i class="hm-cell hm-4"></i><span>Plus (50 réponses et plus)</span>${st.jokers.length ? `<i class="hm-cell hm-0 hm-j"></i><span>Joker</span>` : ""}</p>
+    <p class="joker-note">${icon("star")} ${jokerTxt(st)}</p>
   </div>`;
+}
+function jokerTxt(st){
+  const base = "Un jour manqué par semaine ne casse pas ta série.";
+  if (st.ready) return base + " Joker disponible.";
+  return base + ` Joker utilisé, de nouveau disponible le ${st.back.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}.`;
+}
+/* ---------- Bilan de la semaine ---------- */
+/* Semaine du lundi au dimanche ; « last » : la semaine précédente, complète. */
+function weekRange(last){
+  const t = startOfDay(), dow = (t.getDay() + 6) % 7, mon = new Date(t); mon.setDate(t.getDate() - dow - (last ? 7 : 0));
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  return { mon, sun, end: last ? sun : t };
+}
+function weekStats(last){
+  const { mon, sun, end } = weekRange(last), keys = [];
+  for (const d = new Date(mon); d <= end; d.setDate(d.getDate() + 1)) keys.push(dayKey(d));
+  const L = keys.map(k => log[k] || {});
+  const lo = mon.getTime(), hi = sun.getTime() + DAY;
+  const inW = ts => ts >= lo && ts < hi;
+  /* Niveau : dernier relevé de la semaine comparé au dernier relevé d'avant. */
+  const rOf = k => (log[k] || {}).r;
+  const before = Object.keys(log).filter(k => k < keys[0] && rOf(k) != null).sort().pop();
+  const inside = keys.filter(k => rOf(k) != null).pop();
+  return {
+    mon, sun, days: L.filter(x => (x.a || 0) > 0).length, span: keys.length,
+    answers: L.reduce((t, x) => t + (x.a || 0), 0), fresh: L.reduce((t, x) => t + (x.n || 0), 0),
+    mastered: allCards().filter(c => progress[c.id] && progress[c.id].b === 5 && inW(progress[c.id].t || 0)).length,
+    written: Object.values(ach.w).filter(inW).length,
+    blancs: blancList().filter(m => m.state === "done" && inW(m.end)).length,
+    lvl: inside ? rOf(inside) : null, dLvl: inside && before ? rOf(inside) - rOf(before) : null
+  };
+}
+function weekHTML(last, compact){
+  const w = weekStats(last), fmt = d => d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const t0 = startOfDay().getTime() + (last ? 0 : DAY), rel = relGroups();
+  const nextDue = allCards().filter(c => rel.includes(grpOf(c)) && progress[c.id] && progress[c.id].d < t0 + 7 * DAY).length;
+  const kpi = (v, l) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  const title = last ? `Ta semaine du ${fmt(w.mon)} au ${fmt(w.sun)}` : "Ta semaine";
+  const msg = !w.days ? "Pas de révision cette semaine : une séance de 10 minutes suffit pour reprendre le fil."
+    : w.days >= 5 ? "Très belle régularité : c'est elle qui fait retenir sur la durée."
+    : w.days >= 3 ? "Bon rythme. Vise un jour de plus la semaine prochaine." : "C'est un début : essaie de réviser un jour sur deux.";
+  return `<div class="${compact ? "week week-c" : "sect span2 week"}"><h2>${esc(title)}</h2>
+    <p class="week-msg">${esc(msg)}</p>
+    <div class="kpis week-kpis">${kpi(`${w.days}/${w.span}`, "jours actifs")}${kpi(w.answers, "réponses")}${kpi(w.fresh, "nouvelles cartes")}${kpi(w.mastered, "en boîte 5")}${w.written || w.blancs ? kpi(w.written + w.blancs, "textes rédigés") : ""}${w.dLvl != null ? kpi((w.dLvl >= 0 ? "+" : "") + w.dLvl + " pts", "niveau de préparation") : ""}</div>
+    <p class="week-next">${last ? "Cette semaine" : "Les 7 prochains jours"} : ${nextDue ? plural(nextDue, "carte") + " à revoir" : "aucune carte à revoir pour l'instant"}.${compact ? ` <button class="linkbtn" data-sec="suivi">Voir mes progrès</button>` : ""}</p></div>`;
 }
 /* ---------- Charge à venir et plan de révision ---------- */
 function forecastHTML(){
@@ -5208,7 +5436,7 @@ function pushHTML(){
   else {
     if (!push.checked) pushCheck();
     const hm = pushHm(), on = !!push.sub, b = push.busy ? " disabled" : "";
-    inner = `${on ? `<p class="push-on">${icon("check")} Rappel chaque jour à ${esc(fmtHm(hm))}, seulement si tu n'as pas encore révisé.</p>` : `<p class="lead">Une notification à l'heure de ton choix, seulement les jours où tu n'as pas encore révisé.</p>`}
+    inner = `${on ? `<p class="push-on">${icon("check")} Rappel chaque jour à ${esc(fmtHm(hm))}, seulement si tu n'as pas encore révisé ; le dimanche, le bilan de ta semaine.</p>` : `<p class="lead">Une notification à l'heure de ton choix, seulement les jours où tu n'as pas encore révisé, et le bilan de ta semaine le dimanche.</p>`}
       <label class="ics-time"><span>Heure du rappel</span><input id="push-hm" type="time" step="900" value="${esc(hm)}"></label>
       <div class="row-btns">${on ? `<button class="btn" data-act="push-save"${b}>Changer l'heure</button><button class="btn" data-act="push-test"${b}>Envoyer un test</button><button class="btn" data-act="push-off"${b}>Désactiver</button>` : `<button class="btn primary" data-act="push-on"${b}>Activer le rappel quotidien</button>`}</div>
       ${push.msg ? `<p class="fb-note" role="status">${esc(push.msg)}</p>` : ""}`;
@@ -5661,6 +5889,7 @@ function renderStats(){
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
   const byP = PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
+    ${weekHTML(false)}
     ${readinessHTML()}
     ${heatmapHTML()}
     ${forecastHTML()}
@@ -5739,6 +5968,7 @@ function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = 
 
 /* ---------- Événements ---------- */
 document.addEventListener("click", e => {
+  if (gs.open && e.target.id === "gsearch") { gsClose(); return; }
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
   if (d.act === "focus") { setFocus(!focusMode); return; }
@@ -5813,6 +6043,24 @@ document.addEventListener("click", e => {
   if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
   if (d.tab) { setView(d.tab); return; }
   if (d.act === "flip") { flipped = true; render(true); return; }
+  if (d.act === "gs-open") { gsOpen(); return; }
+  if (d.act === "gs-close") { gsClose(); return; }
+  if (d.gscram) { const id = d.gscram; gsGo(() => { const c = byId(id); if (c) setGrp(grpOf(c)); startCram([id]); }); return; }
+  if (d.gsref) { const id = d.gsref, q = gs.q; gsGo(() => { rf.q = q; rf.g = "tous"; rf.open = id; setView("refs"); }); return; }
+  if (d.gsann) { const a = ANNALES.find(x => x.id === d.gsann), q = gs.q; gsGo(() => { an.q = q; an.e = "tous"; if (a) an.f = a.f; setView("annales"); }); return; }
+  if (d.gsfil) { const f = FILS.find(x => x.id === d.gsfil); gsGo(() => { fil.cur = f || null; setView("fils"); }); return; }
+  if (d.gsmeth) { const k = d.gsmeth; gsGo(() => { me.tab = k; setView("methode"); }); return; }
+  if (d.gsconc) { const id = d.gsconc; gsGo(() => { conc.cur = id; setView("concours"); }); return; }
+  if (d.gsblanc) { const id = d.gsblanc; gsGo(() => { bl.view = id; setView("blanc"); }); return; }
+  if (d.gstext) { const k = d.gstext, id = k.replace(/^[ip]:/, ""); gsGo(() => {
+      const a = ANNALES.find(x => x.id === id), s = SUBJECTS.find(x => x.id === id) || SUBJECTS2.find(x => x.id === id) || (a && annSubject(a));
+      if (!s) return; sj.cur = s; sj.epr = s.epr || (SUBJECTS2.includes(s) ? "e2" : "e1"); sj.axe = "Tous"; sj.shown = false;
+      sj.mode = k.startsWith("i:") ? "intro" : k.startsWith("p:") ? "para" : "plan"; setView("sujets"); }); return; }
+  if (d.gsall) { const k = d.gsall, q = gs.q; gsGo(() => { if (k === "gs-all-cards") { dq = q.trim(); const i = $("#deck-search"); if (i) i.value = dq; setView("deck"); } else if (k === "gs-all-refs") { rf.q = q; rf.g = "tous"; setView("refs"); } else { an.q = q; an.e = "tous"; an.f = "tous"; setView("annales"); } }); return; }
+  if (d.act === "theme-cycle") { const order = ["auto", "light", "dark"]; themeSet(order[(order.indexOf(themeGet()) + 1) % 3]); toast("Thème : " + THEME_LAB[themeGet()] + "."); return; }
+  if (d.themeSet) { themeSet(d.themeSet); const b = document.querySelector(`[data-theme-set="${d.themeSet}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.report) { reportOpen = d.report; render(); const t = $("#rep-msg"); if (t) t.focus(); return; }
+  if (d.act === "report-cancel") { const id = reportOpen; reportOpen = null; render(); const b = id && document.querySelector(`[data-report="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "undo") { undoGrade(); return; }
   if (d.act === "listen") { listen.mode = "grade"; listenSave(); listenStart(); return; }
   if (d.act === "listen-flow") { listen.mode = "flow"; listenSave(); listenStart(); return; }
@@ -5868,6 +6116,7 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("input", e => {
+  if (e.target.id === "gs-input") { gs.q = e.target.value; clearTimeout(gs.timer); gs.timer = setTimeout(gsRender, 120); return; }
   if (e.target.id === "rf-search") { rf.q = e.target.value; renderRefs(); return; }
   if (e.target.id === "deck-search") { dq = e.target.value.trim(); renderFilters(); renderDeck(); return; }
   if (e.target.id === "an-search") { an.q = e.target.value; renderAnnales(); return; }
@@ -5907,6 +6156,13 @@ document.addEventListener("change", e => {
 });
 /* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
 document.addEventListener("keydown", e => {
+  if (gs.open) {
+    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); gsClose(); return; }
+    if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#gsearch input, #gsearch button")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
+    if (e.key === "ArrowDown" && e.target.id === "gs-input") { const b = $("#gs-results .gs-item"); if (b) { e.preventDefault(); b.focus(); } }
+    return;
+  }
+  if (((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !e.target.closest("input, textarea, select"))) { if (!focusMode && !listen.on) { e.preventDefault(); e.stopImmediatePropagation(); gsOpen(); return; } }
   if (e.key === "Escape" && focusMode) { e.preventDefault(); e.stopImmediatePropagation(); setFocus(false); return; }
 }, true);
 document.addEventListener("keydown", e => {
@@ -6190,6 +6446,7 @@ function renderWelcome(){
     <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
     ${installHTML()}
+    <div class="w-disp"><p class="w-sub">Affichage</p>${themeChipsHTML()}</div>
     <div class="row-btns"><button class="btn primary" data-act="welcome-start">Commencer ma première séance</button><button class="btn" data-act="welcome-close">Fermer</button></div>`;
 }
 /* ---------- Application installable et hors ligne (site uniquement) ---------- */
@@ -6257,6 +6514,7 @@ document.addEventListener("submit", e => {
     const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
     return;
   }
+  if (e.target.dataset && e.target.dataset.reportform) { e.preventDefault(); reportSend(e.target); return; }
   if (e.target.dataset && e.target.dataset.icsform) { e.preventDefault(); icsDownload(e.target); return; }
   if (e.target.dataset && e.target.dataset.acctform) { e.preventDefault(); submitAccount(e.target.dataset.acctform); return; }
   if (!e.target.dataset || !e.target.dataset.codeform) return;

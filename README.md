@@ -2,7 +2,8 @@
 
 Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offre gratuite) :
 
-- Rappels quotidiens par notification (Progrès › Rappels, compte requis) : `functions/api/push.js` (Web Push chiffré, clés VAPID créées et gardées dans D1, table `push_subs`) ; le cron du Worker (`triggers` dans `wrangler.jsonc`, toutes les 15 minutes) envoie le rappel une fois par jour à l'heure choisie (heure de Paris), seulement si la personne n'a pas encore révisé.
+- Signalements d'erreurs sur les fiches : `functions/api/report.js`, table `reports` (créée au premier signalement), 10 par heure et par adresse. Pour les lire : Cloudflare → D1 → `bristol-db` → Console, `SELECT datetime(created_at/1000,'unixepoch'), card, kind, msg, q FROM reports ORDER BY created_at DESC;`
+- Rappels quotidiens par notification (Progrès › Rappels, compte requis) : `functions/api/push.js` (Web Push chiffré, clés VAPID créées et gardées dans D1, table `push_subs`) ; le cron du Worker (`triggers` dans `wrangler.jsonc`, toutes les 15 minutes) envoie le rappel une fois par jour à l'heure choisie (heure de Paris), seulement si la personne n'a pas encore révisé ; le dimanche, le bilan de la semaine.
 - Répétition espacée : algorithme FSRS-5 (stabilité et difficulté par carte), boîtes 1 à 5 affichées comme paliers de stabilité.
 - Concours blanc (onglet S'entraîner) : copie stockée avec les textes rédigés ; sa correction par Claude (`kind: "copie"` sur `/api/feedback`) compte pour deux retours dans le quota mensuel.
 - `public/` : le site (fiches, fils rouges, entraînements, suivi), servi tel quel ;
