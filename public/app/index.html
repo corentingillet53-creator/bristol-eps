@@ -184,7 +184,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 textarea{min-height:96px;resize:vertical;line-height:1.55}
 .err{color:var(--bad);font-size:14px;margin:0}
 
-/* ---------- Accueil « Aujourd'hui » ---------- */
+/* ---------- Accueil ---------- */
 .hero{background:var(--hero);color:var(--hero-ink);border-radius:var(--r-xl);padding:24px 24px 22px;margin:0 0 28px;display:grid;gap:20px}
 .hero-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:18px 24px}
 .hero-j{font-family:var(--f-display);font-weight:800;font-size:clamp(64px,14vw,96px);line-height:.85;letter-spacing:-.045em;font-variation-settings:"wdth" 80;margin:0;font-variant-numeric:tabular-nums}
@@ -828,7 +828,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
   <header class="side">
     <p class="brand"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</p>
     <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="vertical">
-      <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Aujourd'hui</span></button>
+      <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Accueil</span></button>
       <button class="nav-btn" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/></svg></span><span class="nl">Réviser</span></button>
       <button class="nav-btn" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/></svg></span><span class="nl">Écrire</span></button>
       <button class="nav-btn" role="tab" id="sec-suivi" data-sec="suivi" aria-controls="area-suivi" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13"/><path d="M10 20V8"/><path d="M16 20v-5"/><path d="M22 20V4"/></svg></span><span class="nl">Progrès</span></button>
@@ -849,7 +849,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
     <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
 
     <div id="area-home" role="tabpanel" aria-labelledby="sec-home">
-      <h1 class="page-h" id="home-title">Aujourd'hui</h1>
+      <h1 class="page-h" id="home-title">Accueil</h1>
       <section id="panel-home"></section>
     </div>
 
@@ -1728,7 +1728,7 @@ function achHTML(){
   return `<div class="sect"><h2>Succès <span class="ach-n">${got} / ${ACHS.length}</span></h2>${groups}</div>`;
 }
 
-/* ---------- Aujourd'hui ---------- */
+/* ---------- Accueil ---------- */
 const ICON = {
   cards: '<rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
@@ -6708,7 +6708,7 @@ function renderWelcome(){
     <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
     <p class="w-sub">Quatre espaces</p>
     <ul class="w-spaces">
-      <li class="w-space"><b>Aujourd'hui</b><span>Le compte à rebours jusqu'à tes écrits, ta séance du jour en un bouton (les écrits s'enchaînent) et un exercice d'écriture.</span></li>
+      <li class="w-space"><b>Accueil</b><span>Le compte à rebours jusqu'à tes écrits, ta séance du jour en un bouton (les écrits s'enchaînent) et un exercice d'écriture.</span></li>
       <li class="w-space"><b>Réviser</b><span>La séance de cartes, toutes les fiches, la frise, le quiz « Qui ? », les fils rouges et les références à citer. Celles que tu rates reviennent vite, celles que tu sais reviennent au moment où tu risques de les oublier.</span></li>
       <li class="w-space"><b>Écrire</b><span>Sujets d'entraînement avec retour de Claude, concours blanc chronométré, annales de ton concours et méthode des écrits.</span></li>
       <li class="w-space"><b>Progrès</b><span>Ton niveau, ton plan jusqu'aux écrits, les rappels, tes succès, ton concours et ton compte.</span></li>
