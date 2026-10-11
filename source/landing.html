@@ -90,6 +90,8 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 .dt .tag{display:block;font-weight:400;font-size:14px;color:var(--muted)}
 .dt .j{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dt .j small{font:700 14px var(--f-body);color:var(--muted)}
+.dt-go{font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px}
+.dt-go:hover{color:var(--accent-text)}
 .dates .note{font-size:15px;color:var(--muted);margin:16px 0 0}
 @media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
 
@@ -192,7 +194,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 
     <section class="dates" aria-labelledby="h-dates">
       <h2 id="h-dates">Session 2027 : les écrits approchent</h2>
-      <p class="sub">Choisis ton concours dans l'application : le compte à rebours, les épreuves, les annales et le plan de révision s'y règlent.</p>
+      <p class="sub">Choisis ton concours : tout le site se règle dessus, des épreuves au format des sujets, des attentes du jury aux annales et au plan de révision.</p>
       <table class="dt">
         <thead><tr><th scope="col">Concours</th><th scope="col">Écrits</th><th scope="col">Dans</th></tr></thead>
         <tbody id="dates-body"></tbody>
@@ -322,7 +324,7 @@ draw(false);
 const today = new Date(); today.setHours(0, 0, 0, 0);
 document.getElementById("dates-body").innerHTML = CONC.map(c => {
   const n = Math.round((new Date(c.d + "T00:00:00") - today) / 864e5);
-  return `<tr><td>${esc(c.t)}<span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
+  return `<tr><td><a class="dt-go" href="/app/?concours=${encodeURIComponent(c.id)}">${esc(c.t)}</a><span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
 }).join("");
 if (Date.now() < INSC_END) document.getElementById("dates-note").textContent = "Inscriptions sur Cyclades jusqu'au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
 </script>

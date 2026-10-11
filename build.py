@@ -71,7 +71,7 @@ conc = []
 for cid, t, tag in re.findall(r'\{ id: "((?:capeps|agreg)-[a-z0-9]+)", t: "([^"]+)", tag: "([^"]+)"', page):
     seg = page[page.index(f'{{ id: "{cid}"'):][:2000]
     ec = re.search(r'ecrits: "([^"]+)", d: "(\d{4}-\d{2}-\d{2})"', seg)
-    if ec: conc.append({"t": t, "tag": tag, "ecrits": ec.group(1), "d": ec.group(2)})
+    if ec: conc.append({"id": cid, "t": t, "tag": tag, "ecrits": ec.group(1), "d": ec.group(2)})
 vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["tx"],
         "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
         "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),

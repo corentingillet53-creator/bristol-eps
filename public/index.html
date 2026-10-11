@@ -90,6 +90,8 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 .dt .tag{display:block;font-weight:400;font-size:14px;color:var(--muted)}
 .dt .j{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dt .j small{font:700 14px var(--f-body);color:var(--muted)}
+.dt-go{font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px}
+.dt-go:hover{color:var(--accent-text)}
 .dates .note{font-size:15px;color:var(--muted);margin:16px 0 0}
 @media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
 
@@ -192,7 +194,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 
     <section class="dates" aria-labelledby="h-dates">
       <h2 id="h-dates">Session 2027 : les écrits approchent</h2>
-      <p class="sub">Choisis ton concours dans l'application : le compte à rebours, les épreuves, les annales et le plan de révision s'y règlent.</p>
+      <p class="sub">Choisis ton concours : tout le site se règle dessus, des épreuves au format des sujets, des attentes du jury aux annales et au plan de révision.</p>
       <table class="dt">
         <thead><tr><th scope="col">Concours</th><th scope="col">Écrits</th><th scope="col">Dans</th></tr></thead>
         <tbody id="dates-body"></tbody>
@@ -299,7 +301,7 @@ h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings
 </div>
 <script>
 const DEMO = [{"q": "Que prévoit la loi Falloux (1850) pour la gymnastique ?", "a": "Elle en fait une matière facultative de l'enseignement primaire.", "p": "Avant 1880", "th": "Repères institutionnels", "e": "Écrit 1"}, {"q": "Que postule la théorie du schéma de Schmidt (1975) ?", "a": "Le sujet construit des programmes moteurs généralisés, paramétrés grâce à un schéma de rappel et contrôlés par un schéma de reconnaissance.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2"}, {"q": "Quel courant étranger fonde la gymnastique sur l'anatomie et la physiologie ?", "a": "La gymnastique suédoise de Pehr Henrik Ling.", "p": "Avant 1880", "th": "Le geste et l'effort", "e": "Écrit 1"}, {"q": "Qu'est-ce que l'expérience optimale ou « flow » (Csikszentmihalyi) ?", "a": "Un état d'absorption totale dans l'activité, quand le défi est à la hauteur des compétences.", "p": "", "th": "Émotions, motivation et interactions", "e": "Écrit 2"}, {"q": "Quelle école, fondée en 1852, devient le centre de la gymnastique militaire en France ?", "a": "L'École normale militaire de gymnastique de Joinville-le-Pont.", "p": "Avant 1880", "th": "Repères institutionnels", "e": "Écrit 1"}, {"q": "Quelles sont les trois étapes de l'apprentissage moteur selon Fitts et Posner (1967) ?", "a": "L'étape cognitive, l'étape associative, puis l'étape autonome.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2"}];
-const CONC = [{"t": "CAPEPS externe", "tag": "Bac+3, nouveau concours", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"t": "CAPEPS externe transitoire", "tag": "Bac+5, dernière session en 2027", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"t": "CAPEPS interne", "tag": "Pour les agents publics en poste", "ecrits": "29 janvier 2027", "d": "2027-01-29"}, {"t": "Troisième concours du CAPEPS", "tag": "Pour une reconversion depuis le privé", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"t": "Agrégation externe d'EPS", "tag": "Bac+5", "ecrits": "Entre le 17 février et le 5 mars 2027 (dates de l'EPS pas encore publiées)", "d": "2027-02-17"}, {"t": "Agrégation interne d'EPS", "tag": "Pour les enseignants titulaires", "ecrits": "Entre le 25 et le 29 janvier 2027 (dates de l'EPS pas encore publiées)", "d": "2027-01-25"}];
+const CONC = [{"id": "capeps-l3", "t": "CAPEPS externe", "tag": "Bac+3, nouveau concours", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "capeps-m2", "t": "CAPEPS externe transitoire", "tag": "Bac+5, dernière session en 2027", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "capeps-int", "t": "CAPEPS interne", "tag": "Pour les agents publics en poste", "ecrits": "29 janvier 2027", "d": "2027-01-29"}, {"id": "capeps-3", "t": "Troisième concours du CAPEPS", "tag": "Pour une reconversion depuis le privé", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "agreg-ext", "t": "Agrégation externe d'EPS", "tag": "Bac+5", "ecrits": "Entre le 17 février et le 5 mars 2027 (dates de l'EPS pas encore publiées)", "d": "2027-02-17"}, {"id": "agreg-int", "t": "Agrégation interne d'EPS", "tag": "Pour les enseignants titulaires", "ecrits": "Entre le 25 et le 29 janvier 2027 (dates de l'EPS pas encore publiées)", "d": "2027-01-25"}];
 const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 let i = 0, shown = false;
@@ -322,7 +324,7 @@ draw(false);
 const today = new Date(); today.setHours(0, 0, 0, 0);
 document.getElementById("dates-body").innerHTML = CONC.map(c => {
   const n = Math.round((new Date(c.d + "T00:00:00") - today) / 864e5);
-  return `<tr><td>${esc(c.t)}<span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
+  return `<tr><td><a class="dt-go" href="/app/?concours=${encodeURIComponent(c.id)}">${esc(c.t)}</a><span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
 }).join("");
 if (Date.now() < INSC_END) document.getElementById("dates-note").textContent = "Inscriptions sur Cyclades jusqu'au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
 </script>

@@ -280,6 +280,22 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .att-box p{margin:0 0 6px}
 #sj-wc{font-weight:700;color:var(--ink)}
 .w-pos{font-size:17px;margin:-4px 0 16px;max-width:60ch}
+.conc-chip{display:none}
+@media (min-width:960px){
+  .conc-chip:not([hidden]){display:grid;grid-template-columns:1fr auto;gap:0 8px;align-items:center;text-align:left;margin:-14px 0 18px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+  .conc-chip:hover{border-color:var(--accent)}
+  .cc-l{grid-column:1;font-size:12px;color:var(--muted);font-weight:700}
+  .cc-t{grid-column:1;font-weight:700;font-size:15px;line-height:1.25}
+  .cc-x{grid-column:2;grid-row:1 / span 2;font-size:13px;color:var(--accent-text);font-weight:700}
+}
+html.gate .nav,html.gate #panel-home,html.gate #panel-test,html.gate .conc-chip{display:none!important}
+html.gate .main{padding-bottom:40px}
+html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.w-d{font-size:13px;color:var(--accent-text)!important;font-weight:700!important}
+.w-help{margin:6px 0 12px}
+.w-help summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;color:var(--accent-text)}
+.w-help ul{margin:4px 0 8px;padding-left:20px;display:grid;gap:6px}
+.hero-c .linkbtn{color:var(--hero-ink);font-weight:400;font-size:14px;margin-left:6px}
 .seg-n{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:12px;line-height:18px}
 .grp-seg{margin-bottom:14px}
 @media (max-width:520px){ .task{gap:12px;padding:12px} .task-ic{width:40px;height:40px} .task .btn{padding:10px 14px} .sess-task .task-ic{display:none} .gr-t b,.gr-t span{display:block} }
@@ -444,8 +460,9 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .qod-a{margin:0;font-size:13px;color:var(--muted)}
 @media (min-width:1100px){ .ref-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
-.sj-epr{max-width:600px}
-.sj-epr button{white-space:nowrap}
+.sj-epr{max-width:600px;flex:1 1 100%;min-width:0}
+.chips > .chips{flex:1 1 100%}
+.sj-epr button{white-space:normal;line-height:1.25}
 .sj-ctx{margin:16px 0 0;display:grid;gap:4px 14px;grid-template-columns:auto minmax(0,1fr);font-size:15px}
 .sj-ctx dt{font-weight:700;color:var(--accent-text);white-space:nowrap}
 .sj-ctx dd{margin:0 0 6px;color:var(--ink)}
@@ -848,6 +865,7 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
 <div class="app">
   <header class="side">
     <p class="brand"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</p>
+    <button class="conc-chip" id="conc-chip" type="button" data-act="conc-change" hidden><span class="cc-l">Mon concours</span><span class="cc-t"></span><span class="cc-x">Changer</span></button>
     <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="vertical">
       <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Accueil</span></button>
       <button class="nav-btn" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/></svg></span><span class="nl">Réviser</span></button>
@@ -1492,7 +1510,7 @@ function setGrp(g){
 }
 function themeOk(c){ if (grpOf(c) !== grp) return false; return theme === "Tous" || theme.startsWith("g:") ? true : theme === "Mes cartes" ? !!c.custom : theme === "Favoris" ? isFav(c.id) : c.th === theme; }
 function themeLabel(v){ return v === "Favoris" ? "Mes favoris" : v === "Tous" || v.startsWith("g:") ? "Tous les thèmes" : v === "Mes cartes" ? "Mes cartes" : v.startsWith("g:") ? (eprOf(v.slice(2)) || {}).t || v : THEMES[v] || v; }
-function inFilter(c){ return themeOk(c) && (period === "Toutes" || grp !== "e1" || c.p === period); }
+function inFilter(c){ return themeOk(c) && inConc(c) && (period === "Toutes" || grp !== "e1" || c.p === period); }
 
 function fmtIn(ms){
   const m = Math.max(1, Math.round(ms / 6e4));
@@ -1586,7 +1604,7 @@ function examDays(){
    « 10 de plus » ajoute un supplément pour la journée. */
 let extraNew = {};
 function grpGoal(g){
-  const cards = allCards().filter(c => grpOf(c) === g);
+  const cards = allCards().filter(c => grpOf(c) === g && inConc(c));
   const unseen = cards.filter(c => !progress[c.id]).length;
   const n = (log[dayKey()] || {})["n_" + g] || 0;
   const ex = examDays();
@@ -1718,7 +1736,7 @@ function backfillWritten(){
   return n > 0;
 }
 function axisRows(compact){
-  const all = allCards();
+  const all = relCards();
   const row = (label, list) => { const v = readiness(list); return `<div class="rd-row"><span>${esc(label)}</span><span class="rd-bar" aria-hidden="true"><span style="width:${v}%"></span></span><b>${v} %</b></div>`; };
   if (compact) return EPR.filter(g => relHas(g.id)).map(g => row(g.s, all.filter(c => GROUP_OF[c.th] === g.id))).join("");
   return EPR.filter(g => relHas(g.id)).map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => row(THEMES[k], all.filter(c => c.th === k))).join("")).join("");
@@ -1790,7 +1808,7 @@ function heroHTML(){
   }
   if (!g || goalEdit) {
     return `<section class="hero" id="goal" aria-labelledby="hero-title">
-      <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
+      <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)} <button class="linkbtn" data-act="conc-change">Changer</button></p>` : ""}<h2 class="hero-title" id="hero-title">${g ? "Modifier la date du concours" : "Quand passes-tu le concours ?"}</h2>
         <p class="hero-note">Avec la date, le site calcule chaque jour combien de nouvelles cartes voir pour avoir tout vu deux semaines avant l'épreuve.</p></div>${stats}</div>
       <form class="goal-form" data-goalform="1" novalidate>
         <label class="sr-only" for="exam-date">Date du concours</label>
@@ -1806,7 +1824,7 @@ function heroHTML(){
   else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
   else lane = g.daysLeft <= 14 ? `<p class="hero-note">Phase finale : après ta séance, revois tes points faibles.</p>` : "";
   return `<section class="hero" id="goal" aria-label="Objectif concours">
-    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)}</p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
+    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)} <button class="linkbtn" data-act="conc-change">Changer</button></p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
     ${lane}
   </section>`;
 }
@@ -2325,7 +2343,7 @@ async function billingReturn(){
   toast(isPremium() ? "Bienvenue dans l'accès complet : tous les écrits sont ouverts." : "Paiement reçu : l'accès s'ouvre dans un instant. Recharge la page si besoin.", 6000);
 }
 function lockHTML(g){
-  const e = eprOf(g), list = allCards().filter(c => grpOf(c) === g), f = eprOf(freeGrp());
+  const e = eprOf(g), list = allCards().filter(c => grpOf(c) === g && inConc(c)), f = eprOf(freeGrp());
   return `<div class="empty lock"><h2>${icon("lock")} ${esc(e.t)}</h2>
     <p>${list.length} fiches t'attendent sur cet écrit. En version découverte, tu révises ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p>
     <ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>
@@ -2393,7 +2411,7 @@ function renderFilters(){
     + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "")
     + (inG.some(c => isFav(c.id)) || theme === "Favoris" ? opt("Favoris", "Mes favoris", inG.filter(c => isFav(c.id)).length) : "");
   const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
-  const pOpts = [["Toutes", "Toutes les périodes"]].concat(PERIODS.map(x => [x, x]));
+  const pOpts = [["Toutes", concPer() ? "Toute la période du programme" : "Toutes les périodes"]].concat((concPer() || PERIODS).map(x => [x, x]));
   $(target).innerHTML =
     gSel + `<div><label for="fa-${p}">Thème</label><select id="fa-${p}" data-fsel="theme">${tHTML}</select></div>` +
     (grp === "e1" ? `<div><label for="fp-${p}">Période</label><select id="fp-${p}" data-fsel="period">${pOpts.map(([v, l]) => `<option value="${esc(v)}"${v === period ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>` : "");
@@ -2647,16 +2665,18 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.f
 const fr = { era: "all", items: [], picks: [], checked: false, good: 0, total: 0 };
 const qz = { item: null, opts: [], ans: null, good: 0, total: 0, last: null };
 
+function friseEras(){ const y0 = CY0[prefs.concours] || 0; return ERAS.filter(e => !y0 || e[0] === "all" || (e[2] >= y0 && !(e[3] >= 9999 && e[2] - y0 < 10))).map(e => e[0] === "all" && y0 ? ["all", "Depuis " + y0, y0, 9999] : e); }
 function newFrise(){
-  const era = ERAS.find(e => e[0] === fr.era);
-  const pool = shuffle(EVENTS.filter(e => e.y >= era[2] && e.y <= era[3]));
+  const eras = friseEras(), era = eras.find(e => e[0] === fr.era) || eras[0], y0 = CY0[prefs.concours] || 0;
+  fr.era = era[0];
+  const pool = shuffle(EVENTS.filter(e => e.y >= Math.max(era[2], y0) && e.y <= era[3]));
   const used = new Set(), items = [];
   for (const e of pool) { if (!used.has(e.y)) { used.add(e.y); items.push(e); } if (items.length === 5) break; }
   fr.items = items; fr.picks = []; fr.checked = false;
 }
 function renderFrise(){
   if (!fr.items.length) newFrise();
-  const chips = ERAS.map(([k, l]) => `<button class="chip" data-era="${k}" aria-pressed="${k === fr.era}">${esc(l)}</button>`).join("");
+  const chips = friseEras().map(([k, l]) => `<button class="chip" data-era="${k}" aria-pressed="${k === fr.era}">${esc(l)}</button>`).join("");
   let body;
   if (!fr.checked) {
     body = `<p class="lead">Touche les événements du plus ancien au plus récent. Touche un événement déjà numéroté pour reprendre à partir de lui.</p>
@@ -3031,7 +3051,7 @@ Donne-lui un retour exigeant, bienveillant et concret, en français, en 300 mots
 ## À retravailler en priorité
 Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si les notions du sujet sont définies et reliées entre elles, si la démonstration articule le « en quoi » (pourquoi c'est efficace, preuves scientifiques) et le « comment » (mises en œuvre), si les propositions partent des comportements des élèves et du contexte, et si les connaissances sont précises et au service de l'argument. Si les notes sont trop minces pour juger, dis-le et indique quoi ajouter. ` + tail;
 }
-const sj = { axe: "Tous", cur: null, shown: false, mode: "plan", epr: "e1" };
+const sj = { axe: "Tous", cur: null, shown: false, mode: "plan", epr: "e1", src: "own" };
 /* ---------- Textes rédigés : introductions, paragraphes, plans, copies, retours de Claude ----------
    Stockés à part de la progression (une entrée par texte, avec l'heure de modification) :
    sur le site, envoyés à /api/texts ; dans Claude, dans un document « texts » du compte.
@@ -3336,11 +3356,12 @@ function chkGet(sid){ try { return JSON.parse(noteGet("c:" + sid) || "[]"); } ca
 
 function drawSubject(){
   if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
-  tmReset();
   const b3 = isB3Conc();
   tm.dur = b3 ? (sj.epr === "e2" ? 15 : 10) * 60 : Math.max(15 * 60, tm.dur); tmReset();
-  const base = b3 ? (sj.epr === "e2" ? SUBJECTS_B2 : SUBJECTS_B1) : sj.epr === "e2" ? SUBJECTS2 : SUBJECTS;
-  const pool = base.filter(s => sj.axe === "Tous" || s.th === sj.axe);
+  const P = sjPools(sj.epr);
+  if (sj.src === "ann" && !P.ann.length) sj.src = "own";
+  if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
+  const pool = sj.src === "ann" ? P.ann.map(annSubject) : P.own.filter(s => sj.axe === "Tous" || s.th === sj.axe);
   const others = pool.filter(s => !sj.cur || s.id !== sj.cur.id);
   const list = others.length ? others : pool;
   sj.cur = list[Math.floor(Math.random() * list.length)] || null; sj.shown = false;
@@ -3349,10 +3370,14 @@ function renderSujets(){
   const e2 = sj.epr === "e2";
   if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
-  const eprList = [["e1", b3 ? "Écrit 1 : questions" : "Écrit 1 : dissertation"], ["e2", b3 ? "Écrit 2 : épisodes" : "Écrit 2 : composition"]].filter(([k]) => relHas(k));
+  const P = sjPools(sj.epr);
+  if (sj.src === "ann" && !P.ann.length) sj.src = "own";
+  if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
+  const eprList = [["e1", sjPools("e1").l], ["e2", sjPools("e2").l]].filter(([k]) => relHas(k));
   const eprChips = eprList.length < 2 ? "" : `<div class="seg sj-epr" role="tablist" aria-label="Écrit">${eprList.map(([k, l]) => `<button role="tab" data-sjepr="${k}" aria-selected="${k === sj.epr}"${k === sj.epr ? "" : ' tabindex="-1"'}>${esc(l)}</button>`).join("")}</div>`;
-  const chips = eprChips + `<div class="chips era-chips" aria-label="Thème des sujets">` + [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"]).map(k => [k, THEMES[k]]))
-    .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`;
+  const srcChips = P.own.length && P.ann.length ? `<div class="chips sj-src" role="group" aria-label="Source des sujets"><button class="chip" data-sjsrc="own" aria-pressed="${sj.src === "own"}">Sujets d'entraînement (${P.own.length})</button><button class="chip" data-sjsrc="ann" aria-pressed="${sj.src === "ann"}">Annales officielles (${P.ann.length})</button></div>` : "";
+  const chips = eprChips + srcChips + (sj.src === "ann" ? "" : `<div class="chips era-chips" aria-label="Thème des sujets">` + [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"]).map(k => [k, THEMES[k]]))
+    .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`);
   const ML = b3 ? (e2 ? { intro: "Introduction : la notion", para: "Partie sur un épisode", plan: "Préparation" } : { plan: "Problématique et plan", intro: "Problématique chronométrée", para: "Paragraphe argumenté" })
     : { plan: "Plan complet", intro: "Introduction chronométrée", para: e2 ? "Partie illustrée" : "Paragraphe argumenté" };
   const MO = b3 && e2 ? ["intro", "para", "plan"] : ["plan", "intro", "para"];
@@ -3362,6 +3387,10 @@ function renderSujets(){
     body = e2 ? `<p class="lead">${SUBJECTS_B2.length} sujets au format du CAPEPS externe 2026 : une notion, quatre épisodes, une introduction de 300 mots qui caractérise la notion, puis deux parties qui analysent des comportements d'élèves et proposent des principes d'intervention. ${sj.mode === "intro" ? "Ici : l'introduction, chronométrée." : sj.mode === "para" ? "Ici : une partie sur un épisode, notée comme au concours (analyse sur 5, propositions sur 3)." : "Ici : préparer le choix des épisodes, des comportements et des connaissances."}</p>`
       : `<p class="lead">${SUBJECTS_B1.length} sujets au format du CAPEPS externe 2026 : une thématique et deux questions d'aide à la problématisation. ${sj.mode === "intro" ? "Ici : la problématique, concise, sans définition des termes ni annonce de plan, comme le demande le jury." : sj.mode === "para" ? "Ici : un paragraphe argumenté qui croise les ruptures et les débats d'une époque." : "Ici : ta problématique et ton plan, avec la grille du jury 2026."}</p>`;
     body += `<div class="row-btns actions"><button class="btn primary" data-act="sj-draw">Tirer un sujet</button></div>${juryBoxHTML(sj.epr)}`;
+  } else if (!sj.cur && sj.src === "ann") {
+    const ys = P.ann.map(a => a.y);
+    body = `<p class="lead">${P.ann.length} sujets officiels de ton concours${ys.length ? `, de ${Math.min(...ys)} à ${Math.max(...ys)}` : ""}. Tire-en un au sort : travaille le plan, l'introduction ou une partie, avec le retour de Claude, puis compare avec ce qu'en a dit le jury.</p>
+      <div class="row-btns actions"><button class="btn primary" data-act="sj-draw">Tirer un sujet officiel</button></div>${juryBoxHTML(sj.epr)}`;
   } else if (!sj.cur) {
     body = e2 ? (sj.mode === "para"
       ? `<p class="lead">Tire un sujet et rédige une partie illustrée : analyse les comportements d'élèves d'un épisode, explique-les avec des connaissances scientifiques, puis propose et justifie une mise en œuvre concrète dans l'APSA.</p>`
@@ -3408,7 +3437,7 @@ function renderSujets(){
       ${juryBoxHTML(s.epr)}
       ${work}
       ${sj.shown
-        ? `${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
+        ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
@@ -3617,11 +3646,11 @@ function ptSave(o){ try { localStorage.setItem(PT_KEY, JSON.stringify(o)); } cat
 function ptBuild(){
   const ths = EPR.filter(e => relHas(e.id)).flatMap(e => e.th);
   const ok = c => c.a && c.a.length >= 3 && c.a.length <= (c.th === "PO" ? 230 : 150) && !c.custom;
-  const pools = ths.map(th => shuffle(allCards().filter(c => c.th === th && ok(c)))).filter(p => p.length >= 4);
+  const pools = ths.map(th => shuffle(concCards().filter(c => c.th === th && ok(c)))).filter(p => p.length >= 4);
   const qs = [];
   for (let r = 0; qs.length < PT_N && r < 10; r++) for (const p of pools) { if (qs.length >= PT_N) break; const c = p[r]; if (c) qs.push(c); }
   return shuffle(qs).map(c => {
-    const same = allCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th);
+    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th);
     /* Des leurres qui ressemblent à la bonne réponse : même premier mot, longueur voisine. */
     const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
     const score = x => (w0(x.a) === cw ? 3 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
@@ -3802,6 +3831,29 @@ function coverageHTML(c, opts){
     ${blocks}
     <p class="conc-maj">Fiches rattachées par thème et par mots-clés ; une fiche peut servir plusieurs thèmes.${src ? ` <a href="${esc(src[1])}" target="_blank" rel="noopener">${esc(src[0])}</a>.` : ""}</p></div>`;
 }
+/* ---------- Profil du concours : ce que le site montre pour chaque concours ----------
+   Périodes de l'écrit 1, format et sources des sujets de chaque écrit. */
+const CPER = { "agreg-ext": P1918, "agreg-int": P1967 };
+const CY0 = { "agreg-ext": 1918, "agreg-int": 1967 };
+const concPer = () => CPER[prefs.concours] || null;
+function inConc(c){ const per = concPer(); return !!c.custom || grpOf(c) !== "e1" || !per || !c.p || per.includes(c.p); }
+const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
+const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
+const CPROF = {
+  "capeps-l3": { e1: { l: "Écrit 1 : questions", own: () => SUBJECTS_B1, ann: a => a.co === "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : épisodes", own: () => SUBJECTS_B2, ann: a => a.co === "CAPEPS externe bac+3" } },
+  "capeps-m2": { e1: { l: "Écrit 1 : dissertation", own: () => SUBJECTS, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" } },
+  "capeps-int": { e2: { l: "Écrit : étude de cas", own: () => [], ann: a => a.f === "cint" } },
+  "agreg-ext": { e1: { l: "Écrit 1 : APSA et civilisations", own: () => [], ann: a => a.f === "aext" }, e2: { l: "Écrit 2 : développement de la personne", own: () => [], ann: a => a.f === "aext" } },
+  "agreg-int": { e1: { l: "Écrit 1 : dissertation ou commentaire", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "aint" } }
+};
+CPROF["capeps-3"] = CPROF["capeps-l3"];
+function sjPools(e){
+  const x = (CPROF[prefs.concours] || {})[e];
+  if (!x) return { l: e === "e2" ? "Écrit 2 : composition" : "Écrit 1 : dissertation", own: e === "e2" ? SUBJECTS2 : SUBJECTS, ann: ANNALES.filter(a => annE(a, e)) };
+  return { l: x.l, own: x.own(), ann: ANNALES.filter(a => annE(a, e) && x.ann(a)).sort((a, b) => b.y - a.y) };
+}
+const concShort = c => ({ "capeps-l3": "CAPEPS externe", "capeps-m2": "CAPEPS transitoire", "capeps-int": "CAPEPS interne", "capeps-3": "3e concours", "agreg-ext": "Agrég. externe", "agreg-int": "Agrég. interne" })[c] || "";
+
 let progLabel = "";
 const PROG_LBL = (cid, bi, ii) => { const c = concById(cid); return c && c.prog[bi] ? c.prog[bi].i[ii] : ""; };
 function startProg(cid, bi, ii){
@@ -5923,7 +5975,7 @@ function renderMethode(){
   if (me.f === null) me.f = fam || "cext";
   if (me.tab !== "jury" && !relHas(me.tab)) me.tab = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
-  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", b3 ? "Écrit 1 : réponse argumentée" : "Écrit 1 : dissertation"], ["e2", b3 ? "Écrit 2 : étude d'épisodes" : "Écrit 2 : composition"], ["jury", b3 ? "Le rapport du jury 2026" : "Ce que répètent les jurys"]].filter(([k]) => k === "jury" || relHas(k)).map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
+  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", b3 ? "Écrit 1 : réponse argumentée" : sjPools("e1").l], ["e2", b3 ? "Écrit 2 : étude d'épisodes" : sjPools("e2").l], ["jury", b3 ? "Le rapport du jury 2026" : "Ce que répètent les jurys"]].filter(([k]) => k === "jury" || relHas(k)).map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
   let body;
   if (me.tab === "jury" && b3) {
     const g = JURYS.find(x => x.f === "cext");
@@ -5981,7 +6033,7 @@ function barRow(label, s){
     <div class="bar" role="img" aria-label="${esc(label)} : ${s.m} maîtrisées, ${s.c} en cours, ${s.e} jamais vues sur ${s.n}">${seg("m", s.m, "maîtrisées")}${seg("c", s.c, "en cours")}${seg("e", s.e, "jamais vues")}</div></div>`;
 }
 function weakCards(){
-  return allCards().filter(c => progress[c.id] && progress[c.id].l > 0)
+  return relCards().filter(c => progress[c.id] && progress[c.id].l > 0)
     .sort((a, b) => (progress[b.id].l - progress[a.id].l) || (progress[a.id].b - progress[b.id].b)).slice(0, 8);
 }
 function heatmapHTML(){
@@ -6376,12 +6428,12 @@ function blancPhases(m){
 function blancPhase(m){ const now = Date.now(), ph = blancPhases(m); const p = ph.find(x => now < x.end) || ph[2]; return `${p.t} jusqu'à ${fmtClock(p.end)}`; }
 function blancDraw(e, src){
   const done = new Set(blancList().filter(m => m.src === "ann").map(m => m.sid));
+  const P = sjPools(e.k === "e1" ? "e1" : "e2");
   let pool;
   if (src === "ann") {
-    pool = ANNALES.filter(a => a.e === e.k && (!e.f || a.f === e.f));
-    if (!pool.length) pool = ANNALES.filter(a => a.e === (e.k === "ei" ? "e2" : e.k));
+    pool = P.ann.length ? P.ann : ANNALES.filter(a => a.e === e.k && (!e.f || a.f === e.f));
     const fresh = pool.filter(a => !done.has(a.id)); if (fresh.length) pool = fresh;
-  } else pool = isB3Conc() ? (e.k === "e1" ? SUBJECTS_B1 : SUBJECTS_B2) : e.k === "e1" ? SUBJECTS : SUBJECTS2;
+  } else pool = P.own;
   return pool[Math.floor(Math.random() * pool.length)] || null;
 }
 function blancStart(){
@@ -6520,11 +6572,12 @@ function blancHomeHTML(){
   if (!bl.k || !es.some(e => e.k === bl.k)) bl.k = es[0].k;
   const e = es.find(x => x.k === bl.k), hOff = e.h, h = bl.h || hOff || 4;
   const list = blancList().filter(m => m.state !== "run");
-  const nAnn = ANNALES.filter(a => a.e === e.k && (!e.f || a.f === e.f)).length;
+  const BP = sjPools(e.k === "e1" ? "e1" : "e2"), nAnn = BP.ann.length, nOwn = BP.own.length;
+  if (!nOwn) bl.src = "ann"; else if (!nAnn) bl.src = "sub";
   return `<div class="blanc-setup">
     <p class="lead">Le sujet est tiré au sort au moment de commencer. Le chrono continue même si tu fermes la page ; à la fin du temps, la copie est rendue d'office.</p>
     <fieldset class="blanc-f"><legend>Épreuve</legend><div class="chips">${es.map(x => `<button class="chip" data-blk="${x.k}" aria-pressed="${x.k === bl.k}">${esc(x.s)}${x.h ? ` · ${x.h} h` : ""}</button>`).join("")}</div></fieldset>
-    <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips"><button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort${nAnn ? ` (${nAnn})` : ""}</button><button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement</button></div></fieldset>
+    <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips">${nAnn ? `<button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort (${nAnn})</button>` : ""}${nOwn ? `<button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement (${nOwn})</button>` : ""}</div></fieldset>
     <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button></p>`}
     <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>
@@ -6607,7 +6660,7 @@ function renderStats(){
   const pct = (g, t) => t ? Math.round(100 * g / t) + " %" : "–";
   const byTh = EPR.filter(g => relHas(g.id)).map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => barRow(THEMES[k], bucket(cards.filter(c => c.th === k)))).join("")).join("")
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
-  const byP = !relHas("e1") ? "" : PERIODS.map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
+  const byP = !relHas("e1") ? "" : (concPer() || PERIODS).map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
     ${readinessHTML()}
     ${(() => { const c = concById(prefs.concours); return c ? coverageHTML(c, { mine: true, span: true }) : ""; })()}
@@ -6646,7 +6699,7 @@ const lastSub = { home: "home", revise: "revise", train: "sujets", suivi: "stats
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
-  get sujets(){ return isB3Conc() ? "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury." : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
+  get sujets(){ if (prefs.concours && !isB3Conc()) { const ls = ["e1", "e2"].filter(k => relHas(k)).map(k => sjPools(k).l.toLowerCase()); return `Les sujets de ton concours (${ls.join(" ; ")}), avec le retour de Claude et ce qu'en dit le jury.`; } return isB3Conc() ? "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury." : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
     : relHas("e1") ? "Entraîne-toi à la dissertation d'histoire de l'EPS, avec le retour de Claude." : "Entraîne-toi à la composition à partir d'un contexte et d'épisodes de classe, avec le retour de Claude."; },
   blanc: "Une épreuve complète en conditions réelles, puis la correction de Claude.",
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
@@ -6665,6 +6718,10 @@ function setView(v, focus){
   else if (focus) { const t = $(focus); if (t) t.focus(); }
 }
 function render(focusActions){
+  const gate = !prefs.concours;
+  document.documentElement.classList.toggle("gate", gate);
+  if (gate) { view = "home"; welcomeOpen = true; if (!$("#welcome .w-gate")) renderWelcome(); }
+  const cc = $("#conc-chip"); if (cc) { const c = concById(prefs.concours); cc.hidden = !c; if (c) cc.querySelector(".cc-t").textContent = c.t; }
   renderFilters();
   const sec = SEC_OF[view];
   const wl = $("#welcome"); if (wl) wl.hidden = !(typeof welcomeOpen !== "undefined" && welcomeOpen && view === "home");
@@ -6720,10 +6777,12 @@ document.addEventListener("click", e => {
   if (d.act === "pt-quit") { pt.on = false; setView("home"); return; }
   if (d.act === "pt-go") { pt.on = false; const g = relGroups().find(x => !grpLocked(x) && grpGoal(x).todo) || freeGrp(); setGrp(g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-prog") { pt.on = false; setView("stats"); const c = $("#panel-stats .cov"); if (c) try { c.scrollIntoView({ block: "start" }); } catch (e) {} return; }
+  if (d.act === "conc-change") { conc.cur = null; conc.list = true; setView("concours"); const b = $("#panel-concours .conc-card"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "prog-rev") { startProg(d.c, +d.b, +d.i); return; }
   if (d.act === "go-sources") { if (welcomeOpen) hideWelcome(); setView("sources"); return; }
   if (d.onb) {
-    const c = chooseConcours(d.onb === "none" ? "" : d.onb); renderWelcome();
+    const fresh = !Object.keys(progress).length;
+    const c = chooseConcours(d.onb === "none" ? "" : d.onb); if (fresh) renderWelcome(); else hideWelcome();
     toast(c ? `C'est noté : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
     const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
   }
@@ -6847,6 +6906,7 @@ document.addEventListener("click", e => {
   if (d.refsave) { const i = $("#ref-input"); saveRef(d.refsave, i ? i.value : ""); return; }
   if (d.refcancel) { const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "fb-ask") { askFeedback(["intro", "para"].includes(d.kind) ? d.kind : "plan"); return; }
+  if (d.sjsrc) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.src = d.sjsrc; sj.cur = null; sj.axe = "Tous"; render(); const b = document.querySelector(`[data-sjsrc="${d.sjsrc}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.sjmode) { sj.mode = d.sjmode; render(); const b = document.querySelector(`[data-sjmode="${d.sjmode}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.tdur) { tm.dur = +d.tdur * 60; tmReset(); render(); return; }
   if (d.act === "tm-start") { tmStart(); return; }
@@ -7194,7 +7254,7 @@ function welcomeSetSeen(){ try { localStorage.setItem(WELCOME_KEY, "1"); } catch
 const REL_GRP = { "capeps-int": ["tx", "e2"] };
 const relGroups = () => REL_GRP[prefs.concours] || ["e1", "e2", "tx"];
 const relHas = g => relGroups().includes(g);
-const relCards = () => allCards().filter(c => relHas(grpOf(c)));
+const relCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 /* Choisir son concours : le site ne montre plus que ce qui le concerne, et la date des écrits est réglée. */
 function chooseConcours(id){
   const c = concById(id);
@@ -7202,7 +7262,7 @@ function chooseConcours(id){
   const rel = relGroups(); setGrp(rel.includes(grp) ? grp : rel[0]);
   an.f = null; an.e = "tous"; an.all = false; me.f = null;
   if (me.tab !== "jury" && !rel.includes(me.tab)) me.tab = rel.includes("e1") ? "e1" : "e2";
-  sj.epr = rel.includes("e1") ? "e1" : "e2"; sj.cur = null; sj.axe = "Tous"; rf.g = "tous";
+  theme = "Tous"; period = "Toutes"; sj.epr = rel.includes("e1") ? "e1" : "e2"; sj.cur = null; sj.axe = "Tous"; sj.src = "own"; rf.g = "tous"; fr.items = []; fr.era = "all";
   conc.cur = c || null; conc.list = false; goalEdit = false;
   persist(); done = 0; buildQueue(); render();
   return c;
@@ -7210,13 +7270,23 @@ function chooseConcours(id){
 function onbHTML(){
   const c = concById(prefs.concours);
   if (c) return `<p class="w-mine">Ton concours : <b>${esc(c.t)}</b>${c.d ? `, écrits le ${esc(fmtDay(c.d))}` : ""}. <button class="linkbtn" data-onb-change="1">Changer</button></p>`;
-  return `<div class="w-onb"><p class="w-sub">Pour commencer, quel concours prépares-tu ?</p>
-    <div class="w-conc">${CONCOURS.map(x => `<button class="btn" data-onb="${x.id}"><b>${esc(x.t)}</b><span>${esc(x.tag)}</span></button>`).join("")}<button class="btn" data-onb="none"><b>Je ne sais pas encore</b><span>Tout afficher</span></button></div>
-    <p class="w-note">Le site règle ensuite le compte à rebours sur la date de tes écrits et met en avant les annales, la méthode et les épreuves de ton concours. Tu pourras changer à tout moment.</p></div>`;
+  return `<div class="w-onb w-gate"><p class="w-sub" id="w-q">Quel concours prépares-tu ?</p>
+    <p class="w-note">Tout le site se règle sur ton choix : les épreuves, le format des sujets, les attentes du jury, les annales, le programme et la date des écrits. Tu pourras en changer à tout moment.</p>
+    <div class="w-conc" role="group" aria-labelledby="w-q">${CONCOURS.map(x => `<button class="btn" data-onb="${x.id}"><b>${esc(x.t)}</b><span>${esc(x.tag)}</span><span class="w-d">Écrits : ${esc(x.ecrits.replace(/ \(.*\)$/, ""))}</span></button>`).join("")}</div>
+    <details class="w-help"><summary>Je ne sais pas lequel choisir</summary><ul>
+      <li><b>Tu as ou prépares une licence</b> : CAPEPS externe (concours à bac+3).</li>
+      <li><b>Tu as ou prépares un master</b> : CAPEPS externe transitoire (dernière session en 2027) ou agrégation externe.</li>
+      <li><b>Agent public, trois ans de services et une licence</b> : CAPEPS interne.</li>
+      <li><b>Fonctionnaire, cinq ans de services publics</b> : agrégation interne.</li>
+      <li><b>Cinq ans d'activité dans le privé</b> : troisième concours.</li></ul>
+      <p class="w-note">Ce sont les règles générales : vérifie ta situation dans la note de service, citée sur la fiche de chaque concours.</p></details>
+    ${STANDALONE && acct.status !== "in" ? `<p class="w-note">Déjà un compte ? <button class="linkbtn" data-act="account-open">Connecte-toi</button> pour retrouver ton concours et ta progression.</p>` : ""}</div>`;
 }
 function renderWelcome(){
   const el = $("#welcome");
   const n = allCards().length;
+  if (!prefs.concours) { el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
+    <p class="w-pos">Tes cours te donnent le contenu. Ici, tu le retiens, tu t'entraînes au format de ton concours et tes textes sont corrigés selon les rapports de jury.</p>${onbHTML()}`; return; }
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
     <p class="w-pos">Tes cours te donnent le contenu. Ici, tu le retiens, tu t'entraînes au format de ton concours et tes textes sont corrigés selon les rapports de jury.</p>
     ${onbHTML()}
@@ -7337,7 +7407,9 @@ $("#add-form").addEventListener("submit", e => {
   toast("Carte ajoutée. Elle apparaîtra dans ta prochaine séance."); $("#f-q").focus();
 });
 
-localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave(); buildQueue(); render(); blancCheck();
+localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave();
+try { const u = new URL(location.href), q = u.searchParams.get("concours"); if (q) { u.searchParams.delete("concours"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); if (concById(q) && prefs.concours !== q) chooseConcours(q); } } catch (e) {}
+buildQueue(); render(); blancCheck();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
