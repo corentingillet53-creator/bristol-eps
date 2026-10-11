@@ -93,7 +93,8 @@ svg.ic{width:22px;height:22px;flex:none}
   .welcome{padding:32px 36px}
 }
 /* Grand écran : deux colonnes */
-.home-grid,.rev-grid,.stats-grid{display:grid;gap:0 32px}
+.home-grid,.rev-grid,.stats-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0 32px}
+#goal-np{max-width:100%}
 .rev-side{display:none}
 .side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:18px 18px 16px;margin:0 0 20px}
 .side-card h2{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 12px}
@@ -585,6 +586,30 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .ol-3 .outl-go{padding-left:28px;font-size:13px}
 .outl-empty{font-size:13px;color:var(--muted);margin:4px 0 6px}
 .outl-warn{font-size:13px;color:var(--mid);font-weight:700;margin:4px 0 6px}
+.undo-btn{margin-right:12px;font-size:14px}
+.express-link{margin-top:10px;font-size:14px}
+.np-warn{color:var(--mid);margin-top:8px}
+#goal-np{margin-top:6px}
+#panel-revise .bristol{touch-action:pan-y;transition:transform .18s ease-out,box-shadow .12s}
+#panel-revise .bristol[data-swipe="su"]{box-shadow:0 0 0 3px var(--ok)}
+#panel-revise .bristol[data-swipe="rate"]{box-shadow:0 0 0 3px var(--bad)}
+.touch-only{display:none}
+@media (pointer:coarse){ .touch-only{display:inline} p.touch-only{display:block} }
+@media (max-width:959px){ .rev-actions{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--paper);padding:10px 0 8px;margin-bottom:-4px} }
+.recap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px;margin:12px 0 18px;max-width:520px}
+.recap-h{font-family:var(--f-display);font-weight:800;font-size:22px;margin:0 0 10px;color:var(--ink)}
+.recap .recap-leg,.recap .recap-list{color:var(--ink)}
+#panel-revise{overflow-x:clip}
+.recap-bar{display:flex;gap:2px;height:12px;border-radius:6px;overflow:hidden}
+.recap-bar span{display:block;min-width:4px}
+.rc-su{background:var(--ok)} .rc-hesite{background:var(--gold)} .rc-rate{background:var(--bad)}
+.recap-leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;margin:8px 0 6px}
+.recap-leg span{display:inline-flex;align-items:center;gap:6px}
+.recap-leg .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.recap-list{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:15px}
+.recap-list li{display:flex;align-items:center;gap:6px}
+.recap-list svg.ic{width:18px;height:18px;color:var(--gold)}
+@media (prefers-reduced-motion: reduce){ #panel-revise .bristol{transition:none} }
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -1166,7 +1191,8 @@ let games = { frise: { g: 0, t: 0 }, qui: { g: 0, t: 0 } };
 let log = {}, prefs = { examDate: "", concours: "", t: 0 };
 const pad2 = n => String(n).padStart(2, "0");
 function dayKey(d){ d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
-function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", t: x.t || 0 }; }
+const NP_OPTS = [5, 10, 15, 20, 25];
+function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", np: NP_OPTS.includes(x.np) ? x.np : 0, t: x.t || 0 }; }
 function mergeLog(a, b){
   const out = {};
   for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
@@ -1337,7 +1363,7 @@ async function flush(){
 function merge(remote){
   const g = Array.from(new Set((remote.gone || []).concat(gone)));
   const out = Object.assign({}, remote.progress || {});
-  for (const [id, v] of Object.entries(progress)) if (!out[id] || (v.t || 0) > (out[id].t || 0)) out[id] = v;
+  for (const [id, v] of Object.entries(progress)) if (!out[id] || (v.u || v.t || 0) > (out[id].u || out[id].t || 0)) out[id] = v;
   const ids = new Set((remote.custom || []).map(c => c.id));
   const cu = (remote.custom || []).concat(custom.filter(c => !ids.has(c.id))).filter(c => !g.includes(c.id));
   g.forEach(id => delete out[id]);
@@ -1388,10 +1414,12 @@ function grpGoal(g){
   const unseen = cards.filter(c => !progress[c.id]).length;
   const n = (log[dayKey()] || {})["n_" + g] || 0;
   const ex = examDays();
-  const target = !ex ? NEW_MAX : ex.daysLeft <= 0 || !(unseen + n) ? 0 : Math.min(25, Math.max(2, Math.ceil((unseen + n) / ex.learnDays)));
+  const auto = !ex ? NEW_MAX : ex.daysLeft <= 0 || !(unseen + n) ? 0 : Math.min(25, Math.max(2, Math.ceil((unseen + n) / ex.learnDays)));
+  /* Objectif choisi à la main : il remplace le calcul d'après la date. */
+  const target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : auto;
   const now = Date.now(), due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
   const left = Math.max(0, Math.min(unseen, target + (extraNew[g] || 0) - n));
-  return { g, unseen, n, target, left, due, todo: due + left };
+  return { g, unseen, n, target, auto, left, due, todo: due + left };
 }
 function goalInfo(){
   const ex = examDays(); if (!ex) return null;
@@ -1590,7 +1618,7 @@ function homeTasks(){
   const task = (done, ic, title, sub, btn, lead) => `<li class="task${done ? " done" : ""}${lead ? " lead-task" : ""}"><span class="task-ic">${icon(done ? "check" : ic)}</span><div class="task-tx"><b>${title}</b><span>${sub}</span></div>${btn}</li>`;
   return { n: [sDone, wDone, fDone].filter(Boolean).length, html: [
     bm ? `<li class="task lead-task blanc-task"><span class="task-ic">${icon("clock")}</span><div class="task-tx"><b>Concours blanc en cours</b><span>${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes</span></div><button class="btn primary" data-act="blanc-go">Reprendre</button></li>` : "",
-    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul></div></li>`,
+    `<li class="task sess-task${sDone ? " done" : " lead-task"}"><span class="task-ic">${icon(sDone ? "check" : "cards")}</span><div class="task-tx"><b>${sDone ? "Séances du jour terminées" : "Séances du jour"}</b><span>${sDone ? (next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes sont programmées.") : "Une séance par épreuve, pour ne pas mélanger les écrits."}</span><ul class="grp-rows">${rows}</ul>${sDone ? "" : `<button class="linkbtn express-link" data-act="express">Pas le temps ? Séance express de 5 minutes</button>`}</div></li>`,
     task(wDone, "pen", wDone ? "Paragraphe rédigé" : "Rédiger un paragraphe argumenté", esc(subj.t),
       `<button class="btn" data-act="home-write" data-sid="${subj.id}">${wDone ? "Un autre" : "Écrire"}</button>`),
     task(fDone, "line", fDone ? "Frise faite" : "Faire une frise", "Cinq événements à remettre dans l'ordre chronologique.",
@@ -1643,17 +1671,20 @@ function buildQueue(){
   }
   const fresh = pool.slice(0, newLimit());
   queue = due.concat(fresh).map(c => c.id);
-  cram = false; flipped = false;
+  cram = false; flipped = false; express = false; lastGrade = null;
 }
 function cramQueue(){
   const ids = allCards().filter(inFilter).map(c => c.id);
   for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
-  queue = ids; cram = true; flipped = false;
+  queue = ids; cram = true; flipped = false; express = false; lastGrade = null;
 }
 function grade(r){
-  const id = queue.shift(); if (!id) return;
+  const id = queue[0]; if (!id) return;
+  const dk = dayKey();
+  const before = { id, p: progress[id] ? Object.assign({}, progress[id]) : null, dk, log: log[dk] ? Object.assign({}, log[dk]) : null, queue: queue.slice(), done, cram, sess: sess ? Object.assign({}, sess) : null };
+  queue.shift();
   const now = Date.now(), p = progress[id];
-  const dk = dayKey(), lg = log[dk] || { a: 0, n: 0 };
+  const lg = log[dk] || { a: 0, n: 0 };
   const gk = "n_" + grpOf(byId(id) || {});
   log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) }, p ? {} : { [gk]: (lg[gk] || 0) + 1 });
   if (!cram || r === "rate") {
@@ -1662,11 +1693,99 @@ function grade(r){
     const ivl = g === 1 ? 10 * 6e4 : fsrsDays(f.s) * DAY;
     progress[id] = { b, d: now + ivl, t: now, n: (p ? p.n || 0 : 0) + 1, l: (p ? p.l || 0 : 0) + (r === "rate" ? 1 : 0), s: Math.round(f.s * 100) / 100, df: Math.round(f.df * 100) / 100 };
   }
+  sessRecord(id, r, before.p);
+  lastGrade = Object.assign(before, { r });
   persist();
   if (r === "rate") queue.splice(Math.min(3, queue.length), 0, id);
   done++; flipped = false; refEdit = null; render(true);
   if (progress[id] && (!cram || r === "rate")) toast(progress[id].b === 5 ? "Carte maîtrisée : boîte 5." : "Carte en boîte " + progress[id].b + ".");
 }
+
+/* ---------- Séance : annuler, bilan, séance express, gestes ---------- */
+/* Annuler : l'état d'avant la dernière réponse (carte, journal du jour, file, compteurs). */
+let lastGrade = null;
+/* Bilan de la séance en cours (remis à zéro à la première réponse d'une nouvelle séance). */
+let sess = null, express = false;
+const EXPRESS_N = 20;   /* environ 5 minutes à 15 secondes par carte */
+const GRADE_TXT = { rate: "Raté", hesite: "Hésité", su: "Su" };
+function undoGrade(){
+  const u = lastGrade; if (!u) return;
+  lastGrade = null;
+  /* La carte reprend son état d'avant ; « u » date la modification pour la synchronisation
+     sans fausser le calcul FSRS, qui se fonde sur « t », la date de la dernière révision. */
+  if (u.p) progress[u.id] = Object.assign({}, u.p, { u: Date.now() }); else delete progress[u.id];
+  if (u.log) log[u.dk] = u.log; else delete log[u.dk];
+  queue = u.queue; done = u.done; cram = u.cram; flipped = true;
+  if (sess && u.sess) sess = u.sess;
+  persist(); render(true);
+  toast("Réponse annulée : choisis à nouveau.");
+}
+function sessRecord(id, r, p){
+  if (done === 0 || !sess) sess = { start: Date.now(), end: Date.now(), n: 0, su: 0, hesite: 0, rate: 0, fresh: 0, up5: 0, grp, cram };
+  sess.n++; sess[r]++; sess.end = Date.now();
+  if (!p) sess.fresh++;
+  if (progress[id] && progress[id].b === 5 && (!p || p.b < 5)) sess.up5++;
+}
+function sessRecap(){
+  const s = sess; if (!s || !s.n || s.grp !== grp) return "";
+  const min = Math.max(1, Math.round((s.end - s.start) / 6e4)), pct = Math.round(100 * s.su / s.n);
+  const st = streaks(), now = Date.now(), t1 = startOfDay().getTime() + 2 * DAY;
+  const tomorrow = allCards().filter(c => grpOf(c) === grp && progress[c.id] && progress[c.id].d > now && progress[c.id].d < t1).length;
+  const seg = (k, v) => v ? `<span class="rc-${k}" style="flex:${v} 1 0"></span>` : "";
+  return `<div class="recap">
+    <p class="recap-h">${plural(s.n, "carte")} en ${min} min</p>
+    <div class="recap-bar" role="img" aria-label="${s.su} sues, ${s.hesite} hésitées, ${s.rate} ratées">${seg("su", s.su)}${seg("hesite", s.hesite)}${seg("rate", s.rate)}</div>
+    <p class="recap-leg"><span><i class="sw rc-su"></i>${s.su} sue${s.su > 1 ? "s" : ""} (${pct} %)</span><span><i class="sw rc-hesite"></i>${s.hesite} hésitée${s.hesite > 1 ? "s" : ""}</span><span><i class="sw rc-rate"></i>${s.rate} ratée${s.rate > 1 ? "s" : ""}</span></p>
+    <ul class="recap-list">
+      ${s.fresh ? `<li>${s.fresh} nouvelle${s.fresh > 1 ? "s" : ""} carte${s.fresh > 1 ? "s" : ""} découverte${s.fresh > 1 ? "s" : ""}</li>` : ""}
+      ${s.up5 ? `<li>${s.up5} carte${s.up5 > 1 ? "s" : ""} maîtrisée${s.up5 > 1 ? "s" : ""} (boîte 5)</li>` : ""}
+      ${st.cur ? `<li>${icon("flame")} ${plural(st.cur, "jour")} d'affilée</li>` : ""}
+      <li>Demain : ${tomorrow ? plural(tomorrow, "carte") + " à revoir" : "rien à revoir pour cette épreuve"}</li>
+    </ul></div>`;
+}
+function startExpress(g){
+  if (g) setGrp(g);
+  done = 0; buildQueue(); queue = queue.slice(0, EXPRESS_N); express = true;
+  setView("revise");
+  const b = $('[data-act="flip"]'); if (b) b.focus();
+}
+/* Épreuve la plus chargée aujourd'hui, pour la séance express depuis l'accueil. */
+function busiestGrp(){
+  const gs = EPR.filter(e => relGroups().includes(e.id)).map(e => [e.id, grpGoal(e.id).todo]).sort((a, b) => b[1] - a[1]);
+  return gs.length && gs[0][1] ? gs[0][0] : null;
+}
+function buzz(ms){ try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {} }
+
+/* Gestes : glisser la carte retournée à droite pour « Su », à gauche pour « Raté » ; toucher la carte la retourne. */
+const swipe = { x0: 0, y0: 0, dx: 0, on: false, id: null, moved: false };
+const SWIPE_MIN = 90;
+document.addEventListener("pointerdown", e => {
+  const card = e.target.closest && e.target.closest("#panel-revise .bristol");
+  if (!card || view !== "revise" || !queue.length || e.target.closest("button, a, input, textarea") || (e.pointerType === "mouse" && e.button !== 0)) return;
+  Object.assign(swipe, { x0: e.clientX, y0: e.clientY, dx: 0, on: true, id: e.pointerId, moved: false });
+});
+document.addEventListener("pointermove", e => {
+  if (!swipe.on || e.pointerId !== swipe.id) return;
+  const dx = e.clientX - swipe.x0, dy = e.clientY - swipe.y0;
+  if (!swipe.moved && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) { swipe.on = false; return; }   /* défilement vertical */
+  if (!flipped) return;
+  if (Math.abs(dx) > 8) swipe.moved = true;
+  swipe.dx = dx;
+  const card = $("#panel-revise .bristol"); if (!card) return;
+  card.style.transform = `translateX(${dx}px) rotate(${dx / 30}deg)`;
+  card.dataset.swipe = dx > SWIPE_MIN / 2 ? "su" : dx < -SWIPE_MIN / 2 ? "rate" : "";
+});
+function swipeEnd(e){
+  if (!swipe.on || e.pointerId !== swipe.id) return;
+  swipe.on = false;
+  const card = $("#panel-revise .bristol");
+  if (!flipped) { if (!swipe.moved && e.type === "pointerup") { flipped = true; render(true); } return; }
+  if (swipe.dx > SWIPE_MIN) { buzz(); grade("su"); return; }
+  if (swipe.dx < -SWIPE_MIN) { buzz([12, 40, 12]); grade("rate"); return; }
+  if (card) { card.style.transform = ""; card.dataset.swipe = ""; }
+}
+document.addEventListener("pointerup", swipeEnd);
+document.addEventListener("pointercancel", swipeEnd);
 
 /* ---------- Rendu ---------- */
 function renderFilters(){
@@ -1693,7 +1812,8 @@ function renderFilters(){
 function renderGrpSeg(){
   const el = $("#grp-seg"); if (!el) return;
   el.innerHTML = EPR.map(e => { const x = grpGoal(e.id), on = e.id === grp;
-    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}>${esc(e.s)}${x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
+    const lab = e.id === "tx" ? `<span class="tl-long">${esc(e.s)}</span><span class="tl-short" aria-hidden="true">Textes</span>` : esc(e.s);
+    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}${e.id === "tx" ? ` aria-label="${esc(e.s)}${x.todo ? ", " + x.todo + " à faire" : ""}"` : ""}>${lab}${x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
 }
 function renderRevise(){
   renderGrpSeg();
@@ -1710,6 +1830,7 @@ function renderRevise(){
     const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
     const others = EPR.filter(e => e.id !== grp).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
     el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? "objectif du jour atteint." : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
+      ${done ? sessRecap() : ""}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
       <div class="row-btns" style="margin-bottom:16px">${others.map(([e]) => `<button class="btn primary" data-grp="${e.id}">Passer ${e.id === "tx" ? "aux textes officiels" : "à l'" + e.s.toLowerCase()}</button>`).join("")}</div>` : ""}
       <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
@@ -1720,7 +1841,7 @@ function renderRevise(){
   const left = queue.length;
   el.innerHTML = `
     ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <div class="sess"><b>${cram ? "Révision libre" : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess"><b>${cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
       <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" role="img" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
@@ -1728,16 +1849,22 @@ function renderRevise(){
       ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
     </article>
     ${flipped ? srcHTML(c) : ""}
-    <div class="actions">
+    <div class="actions rev-actions">
       ${flipped
         ? `<div class="grades">
             <button class="btn grade bad" data-g="rate">Raté <span class="k">1</span></button>
             <button class="btn grade mid" data-g="hesite">Hésité <span class="k">2</span></button>
             <button class="btn grade good" data-g="su">Su <span class="k">3</span></button>
-          </div>
-          <p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(c.id) + "."}</p>`
+          </div>`
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
-    </div>`;
+    </div>
+    ${flipped ? `<p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(c.id) + "."}<span class="touch-only"> Tu peux aussi glisser la carte : à droite pour « Su », à gauche pour « Raté ».</span></p>` : `<p class="hint touch-only">Touche la carte pour la retourner.</p>`}`;
+}
+/* Objectif manuel trop bas pour tout voir avant les deux semaines de révision finale. */
+function npWarn(x){
+  const ex = examDays(); if (!prefs.np || !ex || ex.daysLeft <= 0) return "";
+  const rest = x.unseen - prefs.np * ex.learnDays;
+  return rest > 0 ? `<p class="goal-sub np-warn">À ce rythme, environ ${plural(rest, "carte")} de cette épreuve ne ${rest > 1 ? "seront" : "sera"} pas vue${rest > 1 ? "s" : ""} avant la révision finale. Le rythme automatique est de ${x.auto} par jour.</p>` : "";
 }
 function starBtn(c){ const on = isFav(c.id); return `<button class="star" data-fav="${esc(c.id)}" aria-pressed="${on}" aria-label="${on ? "Retirer des favoris" : "Ajouter aux favoris"}" title="${on ? "Retirer des favoris" : "Ajouter aux favoris"}">${icon("star")}</button>`; }
 function renderReviseSide(){
@@ -1748,11 +1875,16 @@ function renderReviseSide(){
       <div><b>${x.left}</b><span>nouvelles</span></div>
       <div><b>${x.n}</b><span>découvertes</span></div></div>
       <p class="goal-sub" style="margin-top:10px">${today.a || 0} réponse${(today.a || 0) > 1 ? "s" : ""} aujourd'hui, toutes épreuves confondues.</p></div>
+    <div class="side-card"><h2>Objectif quotidien</h2>
+      <label for="goal-np" class="goal-sub" style="font-weight:400">Nouvelles cartes par jour et par épreuve</label>
+      <select id="goal-np"><option value="0"${prefs.np ? "" : " selected"}>Automatique${prefs.examDate ? " (d'après la date : " + x.auto + ")" : " (" + NEW_MAX + ")"}</option>${NP_OPTS.map(v => `<option value="${v}"${prefs.np === v ? " selected" : ""}>${v}</option>`).join("")}</select>
+      ${npWarn(x)}</div>
     <div class="side-card"><h2>Raccourcis</h2><ul class="keys">
       <li><span class="k">Espace</span>Retourner la carte</li>
       <li><span class="k">1</span>Raté : la carte revient dans la séance</li>
       <li><span class="k">2</span>Hésité : elle revient plus tôt</li>
-      <li><span class="k">3</span>Su : elle revient de plus en plus tard</li></ul></div>
+      <li><span class="k">3</span>Su : elle revient de plus en plus tard</li>
+      <li><span class="k">U</span>Annuler la dernière réponse</li></ul></div>
     <div class="side-card"><h2>Les boîtes</h2><p class="goal-sub">Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines, et jamais après la date du concours. Elle est maîtrisée en boîte 5, quand tu la retiens au moins un mois.</p></div>`;
 }
 function deckMatch(c){
@@ -5516,6 +5648,8 @@ document.addEventListener("click", e => {
   if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
   if (d.tab) { setView(d.tab); return; }
   if (d.act === "flip") { flipped = true; render(true); return; }
+  if (d.act === "undo") { undoGrade(); return; }
+  if (d.act === "express") { startExpress(view === "revise" ? grp : busiestGrp()); return; }
   if (d.act === "more-new") { extraNew[grp] = (extraNew[grp] || 0) + 10; done = 0; buildQueue(); render(true); return; }
   if (d.act === "cram") { done = 0; cramQueue(); render(true); return; }
   if (d.act === "refresh") { done = 0; buildQueue(); render(true); return; }
@@ -5572,6 +5706,13 @@ document.addEventListener("input", e => {
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
 });
 document.addEventListener("change", e => {
+  if (e.target.id === "goal-np") {
+    const v = +e.target.value; prefs = Object.assign({}, prefs, { np: NP_OPTS.includes(v) ? v : 0, t: Date.now() });
+    persist(); if (!flipped) { done = 0; buildQueue(); } render();
+    const sel = $("#goal-np"); if (sel) sel.focus();
+    toast(prefs.np ? `Objectif : ${prefs.np} nouvelles cartes par jour et par épreuve.` : "Objectif automatique.");
+    return;
+  }
   if (e.target.dataset && e.target.dataset.chk !== undefined) {
     const sid = e.target.dataset.sid, i = +e.target.dataset.chk;
     const cur = new Set(chkGet(sid)); if (e.target.checked) cur.add(i); else cur.delete(i);
@@ -5903,6 +6044,7 @@ function applyBig(on){ document.documentElement.classList.toggle("big", on); $("
 try { applyBig(localStorage.getItem(BIG_KEY) === "1"); } catch (e) {}
 $("#textsize").addEventListener("click", () => { const on = !document.documentElement.classList.contains("big"); applyBig(on); try { localStorage.setItem(BIG_KEY, on ? "1" : "0"); } catch (e) {} });
 document.addEventListener("keydown", e => {
+  if (view === "revise" && lastGrade && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.target.closest("input, textarea, select")) { e.preventDefault(); undoGrade(); return; }
   if (e.target.closest("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
   if (view === "qui") {
     if (!qz.ans && ["1","2","3","4"].includes(e.key)) { const w = qz.opts[+e.key - 1]; if (w) { e.preventDefault(); answerQui(w); } }
@@ -5910,6 +6052,7 @@ document.addEventListener("keydown", e => {
     return;
   }
   if (view !== "revise") return;
+  if ((e.key === "u" || e.key === "U") && lastGrade) { e.preventDefault(); undoGrade(); return; }
   if (!queue.length) return;
   if (!flipped && (e.key === " " || e.key === "Enter")) { if (e.target.closest("button")) return; e.preventDefault(); flipped = true; render(true); return; }
   if (flipped && ["1","2","3"].includes(e.key)) { e.preventDefault(); grade({ "1": "rate", "2": "hesite", "3": "su" }[e.key]); }
