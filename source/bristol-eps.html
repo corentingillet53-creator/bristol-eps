@@ -554,6 +554,37 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .push-box{margin:0 0 22px}
 .push-on{display:flex;gap:8px;align-items:center;font-weight:700;margin:0 0 6px}
 .push-on svg.ic{color:var(--accent-text);width:20px;height:20px;flex:none}
+/* Mode concentration */
+html.focus .side,html.focus #area-train > .seg,html.focus #intro-train,html.focus #panel-sujets > .chips,html.focus #panel-sujets > .modes,html.focus #panel-sujets > .sj-help,html.focus .toast-hide{display:none!important}
+html.focus .app{display:block}
+html.focus .page-h{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+html.focus .main{max-width:1100px;padding:16px 16px 40px}
+html.focus .blanc-bar{top:0}
+html.focus .blanc-copy{min-height:calc(100vh - 140px)}
+html.focus #sj-notes{min-height:calc(100vh - 220px)}
+.sj-lab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-top:16px}
+.sj-lab .sj-help{margin:0}
+.sj-lab + .sj-notes,.sj-lab + .write-grid .sj-notes{margin-top:8px}
+.focus-btn,.blanc-focus{min-height:40px}
+.blanc-bar .blanc-focus{background:var(--hero-tint);color:var(--hero-ink);border-color:transparent}
+.blanc-bar.late{box-shadow:0 0 0 3px var(--gold)}
+.subj-fold > summary{cursor:pointer;font-weight:700;min-height:44px;display:inline-flex;align-items:center;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);margin-bottom:10px}
+.write-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:8px}
+.write-grid .sj-notes{margin-top:0}
+@media (min-width:1100px){ .write-grid{grid-template-columns:minmax(0,1fr) 240px;align-items:start} .write-side{position:sticky;top:96px} html.focus .write-side{top:90px} }
+.outl-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:8px 12px}
+.outl-box summary{cursor:pointer;font-weight:700;font-size:14px;min-height:36px;display:flex;align-items:center}
+.outl{list-style:none;margin:4px 0 6px;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
+.write-side,.outl-box{min-width:0}
+.outl-go{appearance:none;display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:6px 6px;min-height:36px;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.outl-go:hover{background:var(--chip)}
+.outl-go span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.outl-w{color:var(--muted);font-size:12px;white-space:nowrap;flex:none}
+.ol-1 .outl-go{font-weight:700}
+.ol-2 .outl-go{padding-left:16px}
+.ol-3 .outl-go{padding-left:28px;font-size:13px}
+.outl-empty{font-size:13px;color:var(--muted);margin:4px 0 6px}
+.outl-warn{font-size:13px;color:var(--mid);font-weight:700;margin:4px 0 6px}
 .hm-wrap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
 .hm-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--muted);line-height:14px}
 .hm{display:grid;grid-template-rows:repeat(7,14px);grid-auto-flow:column;grid-auto-columns:14px;gap:3px}
@@ -2362,12 +2393,13 @@ function tmStop(){ tm.running = false; if (tm.iv) { clearInterval(tm.iv); tm.iv 
 function tick(){
   if (!tm.running) return;
   tm.left = (tm.end - Date.now()) / 1000;
+  if (tm.dur >= 15 * 60 && tm.left <= 300 && !tm.warned) { tm.warned = true; toast("Plus que 5 minutes : termine ta problématique et ton annonce de plan.", 6000); try { if (navigator.vibrate) navigator.vibrate(200); } catch (e) {} }
   if (tm.left <= 0) { tm.left = 0; tmStop(); toast("Temps écoulé. Relis ton introduction avec la grille."); render(); return; }
   const el = document.getElementById("tmr"); if (el) el.textContent = fmtT(tm.left);
 }
 function tmStart(){ if (tm.left <= 0) tm.left = tm.dur; tm.end = Date.now() + tm.left * 1000; tm.running = true; if (!tm.iv) tm.iv = setInterval(tick, 250); render(); const t = $("#sj-notes"); if (t) t.focus(); }
 function tmPause(){ tick(); tmStop(); render(); }
-function tmReset(){ tmStop(); tm.left = tm.dur; }
+function tmReset(){ tmStop(); tm.left = tm.dur; tm.warned = false; }
 function chkGet(sid){ try { return JSON.parse(noteGet("c:" + sid) || "[]"); } catch (e) { return []; } }
 
 function drawSubject(){
@@ -2409,20 +2441,21 @@ function renderSujets(){
           <div class="row-btns">${tm.running ? `<button class="btn" data-act="tm-pause">Pause</button>` : `<button class="btn primary" data-act="tm-start">${started ? "Reprendre" : tm.left <= 0 ? "Recommencer" : "Démarrer"}</button>`}<button class="btn" data-act="tm-reset">Réinitialiser</button></div>
           ${tm.running || started ? "" : `<div class="chips" role="group" aria-label="Durée">${[15, 20, 30].map(m => `<button class="chip" data-tdur="${m}" aria-pressed="${tm.dur === m * 60}">${m} min</button>`).join("")}</div>`}
         </div>
-        <label for="sj-notes" class="sj-help" style="display:block">Ton introduction, ${savedWhere("e")}.</label>
+        <div class="sj-lab"><label for="sj-notes" class="sj-help">Ton introduction, ${savedWhere("e")}.</label>${focusBtn()}</div>
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="${isE2(s) ? "Enjeu, définition et mise en relation des notions, problématique, contexte et élèves, annonce du plan…" : "Accroche, définition des termes, bornes chronologiques, enjeu, problématique, annonce du plan…"}">${esc(noteGet(key))}</textarea>
         <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isE2(s) ? INTRO2_CRIT : INTRO_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "intro")}`;
     } else if (sj.mode === "para") {
       const key = "p:" + s.id, chk = chkGet("p-" + s.id);
       work = `<p class="sj-help">${isE2(s) ? "Choisis un épisode. Analyse ce que font les élèves, explique-le avec des connaissances précises, puis propose une mise en œuvre concrète et justifiée dans l'APSA." : "Choisis une idée qui répond au sujet et développe-la en un paragraphe. Appuie-toi sur un exemple précis, avec sa date et ses acteurs."}</p>
-        <label for="sj-notes" class="sj-help" style="display:block">${isE2(s) ? "Ta partie illustrée" : "Ton paragraphe"}, ${savedWhere()}.</label>
+        <div class="sj-lab"><label for="sj-notes" class="sj-help">${isE2(s) ? "Ta partie illustrée" : "Ton paragraphe"}, ${savedWhere()}.</label>${focusBtn()}</div>
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="${isE2(s) ? "Comportements observés. Interprétation (auteur, date). Principe d'intervention. Situation, consignes, critères de réussite. Effets attendus et lien au sujet." : "Idée directrice. Argument. Exemple précis et daté. Nuance ou limite. Retour au sujet."}">${esc(noteGet(key))}</textarea>
         <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isE2(s) ? ILLU_CRIT : PARA_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="p-${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "para")}`;
     } else {
-      work = `<label for="sj-notes" class="sj-help" style="display:block">Tes idées : problématique, plan, exemples. Texte ${savedWhere()}.</label>
-        <textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="${isE2(s) ? "Notions et liens entre elles…&#10;Problématique…&#10;I. … (épisode, APSA)&#10;II. …" : "Problématique…&#10;I. …&#10;II. …"}">${esc(noteGet(s.id))}</textarea>
+      work = `<div class="sj-lab"><label for="sj-notes" class="sj-help">Tes idées : problématique, plan, exemples. Texte ${savedWhere()}.</label>${focusBtn()}</div>
+        <div class="write-grid"><textarea id="sj-notes" class="sj-notes" data-sid="${s.id}" placeholder="${isE2(s) ? "Notions et liens entre elles…&#10;Problématique…&#10;I. … (épisode, APSA)&#10;II. …" : "Problématique…&#10;I. …&#10;II. …"}">${esc(noteGet(s.id))}</textarea>
+        <aside class="write-side">${outlineHTML(noteGet(s.id), "sj-notes")}</aside></div>
         ${fbBlock(s, "plan")}`;
     }
     body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p>${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : isE2(s) && s.annale ? `<p class="sj-help">Le contexte d'établissement et les épisodes sont dans le sujet officiel : ouvre-le depuis l'onglet Annales.</p>` : ""}</article>
@@ -4988,6 +5021,85 @@ function icsDownload(form){
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast("Fichier agenda téléchargé : ouvre-le pour ajouter les rappels.");
 }
+/* ---------- Écriture : mode concentration, sommaire de la copie ---------- */
+/* Mode concentration : plus de menus ni d'onglets, la copie occupe l'écran.
+   Plein écran quand le navigateur le permet (pas sur iPhone : la classe CSS suffit). */
+let focusMode = false;
+function setFocus(on){
+  focusMode = !!on;
+  document.documentElement.classList.toggle("focus", focusMode);
+  try {
+    if (focusMode && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen({ navigationUI: "hide" }).catch(() => {});
+    if (!focusMode && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  } catch (e) {}
+  render();
+  const t = $("#blanc-copy") || $("#sj-notes"); if (t) t.focus({ preventScroll: !focusMode });
+  if (focusMode) toast("Mode concentration. Échap pour en sortir.");
+}
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && focusMode) setFocus(false); });
+function focusBtn(){ return `<button class="btn small focus-btn" data-act="focus" aria-pressed="${focusMode}">${focusMode ? "Quitter le mode concentration" : "Mode concentration"}</button>`; }
+
+/* Sommaire : titres repérés en début de ligne (Introduction, I., A., 1., Conclusion, « Première partie »). */
+const OUT_RX = [
+  [1, /^(introduction|conclusion)\b/i],
+  [1, /^(première|deuxième|troisième|quatrième|cinquième|seconde) partie\b/i],
+  [1, /^(partie\s+)?[IVX]{1,4}\s*[.)\-–—:]\s*\S/],
+  [2, /^[A-H]\s*[.)\-–—:]\s*\S/],
+  [3, /^\d{1,2}\s*[.)\-–—:]\s*\S/]
+];
+function outline(text){
+  const lines = text.split("\n"), out = []; let pos = 0, cur = null, before = 0;
+  for (const raw of lines) {
+    const l = raw.trim(), w = wordCount(l);
+    const hit = l.length <= 160 ? OUT_RX.find(([, rx]) => rx.test(l)) : null;
+    if (hit) { cur = { lvl: hit[0], t: l.replace(/\s+/g, " ").slice(0, 90), pos, w: 0 }; out.push(cur); }
+    else if (cur) cur.w += w; else before += w;
+    pos += raw.length + 1;
+  }
+  /* Une partie principale compte aussi les mots de ses sous-parties. */
+  out.forEach((it, i) => { it.own = it.w; if (it.lvl === 1) for (let j = i + 1; j < out.length && out[j].lvl > 1; j++) it.w += out[j].w; });
+  return { items: out, before };
+}
+/* Parties principales (I, II, III) : mots, sous-parties comprises ; signale un déséquilibre net. */
+function outlineBalance(items){
+  const parts = []; let p = null;
+  for (const it of items) {
+    if (it.lvl === 1) { p = /^(introduction|conclusion)/i.test(it.t) ? null : { t: it.t, w: it.w }; if (p) parts.push(p); }
+  }
+  if (parts.length < 2) return "";
+  const max = parts.reduce((a, b) => b.w > a.w ? b : a), min = parts.reduce((a, b) => b.w < a.w ? b : a);
+  if (max.w < 150 || min.w >= max.w * 0.6) return "";
+  return `Parties déséquilibrées : « ${min.t.slice(0, 30)} » fait ${min.w} mots contre ${max.w} pour « ${max.t.slice(0, 30)} ».`;
+}
+function outlineHTML(text, target){
+  const o = outline(text), n = o.items.length;
+  const list = n ? `<ol class="outl">${o.items.map(it => `<li class="ol-${it.lvl}"><button class="outl-go" data-outpos="${it.pos}" data-outta="${target}" title="${esc(it.t)}"><span>${esc(it.t)}</span><span class="outl-w">${it.w} mots</span></button></li>`).join("")}</ol>`
+    : `<p class="outl-empty">Commence tes titres en début de ligne (« Introduction », « I. », « A. », « Conclusion ») : ton plan apparaît ici, avec le nombre de mots de chaque partie.</p>`;
+  const bal = outlineBalance(o.items);
+  return `<details class="outl-box" id="outl-${target}"${n ? " open" : ""}><summary>Plan de ta copie${n ? ` (${n} titre${n > 1 ? "s" : ""})` : ""}</summary>${list}${bal ? `<p class="outl-warn">${esc(bal)}</p>` : ""}</details>`;
+}
+let outlTimer = null;
+function outlineRefresh(ta){
+  clearTimeout(outlTimer);
+  outlTimer = setTimeout(() => {
+    const box = document.getElementById("outl-" + ta.id); if (!box) return;
+    const open = box.open, tmp = document.createElement("div"); tmp.innerHTML = outlineHTML(ta.value, ta.id);
+    const nb = tmp.firstElementChild; if (open || outline(ta.value).items.length) nb.open = true; else nb.removeAttribute("open");
+    box.replaceWith(nb);
+  }, 350);
+}
+/* Aller à un titre : place le curseur au début de la ligne et fait défiler la zone de texte jusqu'à elle. */
+function taGoto(ta, pos){
+  const cs = getComputedStyle(ta), m = document.createElement("div");
+  ["fontFamily", "fontSize", "fontWeight", "lineHeight", "letterSpacing", "tabSize", "wordSpacing"].forEach(p => { m.style[p] = cs[p]; });
+  Object.assign(m.style, { position: "absolute", visibility: "hidden", whiteSpace: "pre-wrap", overflowWrap: "break-word", top: "0", left: "-9999px",
+    width: (ta.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) + "px" });
+  m.textContent = ta.value.slice(0, pos) || "."; document.body.appendChild(m);
+  const y = m.scrollHeight; m.remove();
+  ta.focus({ preventScroll: true }); ta.setSelectionRange(pos, pos);
+  ta.scrollTop = Math.max(0, y - parseFloat(cs.lineHeight || "24") * 1.5);
+  try { ta.scrollIntoView({ block: "nearest" }); } catch (e) {}
+}
 /* ---------- Concours blanc : une épreuve complète en temps réel ----------
    État dans les textes synchronisés : « bm:<id> » (description, JSON), « b:<id> » (copie),
    « f:b:<id> » (retour de Claude). Le chrono repose sur l'heure de début : il continue
@@ -5040,6 +5152,7 @@ function blancStart(){
   toast(`C'est parti : ${h} h. Le chrono continue même si tu fermes la page.`);
 }
 function blancSubmit(m, auto){
+  if (focusMode) { focusMode = false; document.documentElement.classList.remove("focus"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} }
   m = Object.assign({}, m, { state: "done", end: auto ? m.start + m.dur * 1000 : Date.now() });
   blancPut(m); bl.view = m.id; bl.confirm = null;
   persist();
@@ -5050,12 +5163,33 @@ function blancSubmit(m, auto){
 function blancCheck(){
   const m = blancActive(); if (!m) { if (bl.iv) { clearInterval(bl.iv); bl.iv = null; } return null; }
   if (blancLeft(m) <= 0) { blancSubmit(m, true); return null; }
-  if (!bl.iv) bl.iv = setInterval(blancTick, 1000);
+  if (!bl.iv) { blancAlerts(m, true); bl.iv = setInterval(blancTick, 1000); }
   return m;
+}
+/* Alertes de temps : fin de l'analyse, début de la relecture, 5 dernières minutes. */
+const blAlerted = new Set();
+function blancAlerts(m, silent){
+  const ph = blancPhases(m), end = m.start + m.dur * 1000, rel = Math.round((end - ph[1].end) / 6e4);
+  const marks = [
+    ["plan", ph[0].end, "Fin du temps d'analyse : passe à la rédaction."],
+    ["rel", ph[1].end, `Plus que ${rel} minutes : termine ta partie en cours, rédige ta conclusion, puis relis-toi.`],
+    ["m5", end - 5 * 6e4, "Plus que 5 minutes : relis ta conclusion et vérifie les dates."]
+  ];
+  const now = Date.now();
+  for (const [k, at, msg] of marks) {
+    const key = m.id + ":" + k;
+    if (now < at || blAlerted.has(key)) continue;
+    blAlerted.add(key);
+    if (silent) continue;
+    toast(msg, 8000);
+    try { if (navigator.vibrate) navigator.vibrate([200, 120, 200]); } catch (e) {}
+  }
+  const bar = $(".blanc-bar"); if (bar) bar.classList.toggle("late", now >= ph[1].end);
 }
 function blancTick(){
   const m = blancActive(); if (!m) { clearInterval(bl.iv); bl.iv = null; return; }
   if (blancLeft(m) <= 0) { blancSubmit(m, true); return; }
+  blancAlerts(m);
   const t = $("#btmr"); if (t) t.textContent = fmtHMS(blancLeft(m));
   const p = $("#bphase"); if (p) p.textContent = blancPhase(m);
   const h = $("#home-blanc-left"); if (h) h.textContent = fmtHMS(blancLeft(m)).replace(/ \d+ s$/, "");
@@ -5073,10 +5207,12 @@ function blancRunHTML(m){
   return `<div class="blanc-bar" role="group" aria-label="Concours blanc en cours">
       <div><span class="blanc-tl">Temps restant</span><span id="btmr" class="blanc-t" role="timer">${fmtHMS(blancLeft(m))}</span></div>
       <div class="blanc-info"><span id="bphase">${esc(blancPhase(m))}</span><span><span id="bwords">${wordCount(copy)}</span> mots</span></div>
+      <button class="btn small blanc-focus" data-act="focus" aria-pressed="${focusMode}">${focusMode ? "Quitter la concentration" : "Mode concentration"}</button>
     </div>
-    ${blancSubjHTML(m, s)}
+    ${focusMode ? `<details class="subj-fold"${copy.trim() ? "" : " open"}><summary>Sujet</summary>${blancSubjHTML(m, s)}</details>` : blancSubjHTML(m, s)}
     <label for="blanc-copy" class="sj-help" style="display:block">Ta copie, ${savedWhere("e")} au fil de la frappe. Pas de fiches ni de notes : conditions d'examen.</label>
-    <textarea id="blanc-copy" class="sj-notes blanc-copy" data-bid="${m.id}" spellcheck="false" placeholder="Introduction…">${esc(copy)}</textarea>
+    <div class="write-grid"><textarea id="blanc-copy" class="sj-notes blanc-copy" data-bid="${m.id}" spellcheck="false" placeholder="Introduction…">${esc(copy)}</textarea>
+    <aside class="write-side">${outlineHTML(copy, "blanc-copy")}</aside></div>
     <div class="row-btns actions">${conf === "submit"
       ? `<button class="btn primary" data-act="blanc-submit" data-ok="1">Confirmer : rendre ma copie</button><button class="btn" data-act="blanc-cancel">Continuer à écrire</button>`
       : conf === "quit"
@@ -5302,12 +5438,14 @@ function render(focusActions){
   if (focusActions) { const b = $("#panel-" + view + " .actions button:not([disabled]), #panel-" + view + " .row-btns button:not([disabled])"); if (b) b.focus({preventScroll: true}); }
 }
 let toastTimer;
-function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms || 2600); }
 
 /* ---------- Événements ---------- */
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (d.act === "focus") { setFocus(!focusMode); return; }
+  if (d.outpos !== undefined) { const ta = document.getElementById(d.outta); if (ta) taGoto(ta, +d.outpos); return; }
   if (d.act === "push-on" || d.act === "push-save" || d.act === "push-test" || d.act === "push-off") { pushAction(d.act); return; }
   if (d.act === "plan-date") { goalEdit = true; setView("home"); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
@@ -5425,10 +5563,12 @@ document.addEventListener("input", e => {
     if (!m || m.id !== e.target.dataset.bid) { renderBlanc(); return; }
     txSet("b:" + m.id, e.target.value);
     const w = $("#bwords"); if (w) w.textContent = wordCount(e.target.value);
+    outlineRefresh(e.target);
     return;
   }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
+  if (document.getElementById("outl-sj-notes")) outlineRefresh(e.target);
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
 });
 document.addEventListener("change", e => {
@@ -5446,6 +5586,9 @@ document.addEventListener("change", e => {
   const s = document.getElementById(id); if (s) s.focus();
 });
 /* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && focusMode) { e.preventDefault(); e.stopImmediatePropagation(); setFocus(false); return; }
+}, true);
 document.addEventListener("keydown", e => {
   const list = e.target.closest && e.target.closest('[role="tablist"]');
   if (!list || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(e.key)) return;
