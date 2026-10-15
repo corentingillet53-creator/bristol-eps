@@ -17,8 +17,8 @@ head = """<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="description" content="Réviser les écrits du CAPEPS et de l'agrégation d'EPS : fiches, annales, entraînement avec retour de Claude.">
-<meta name="theme-color" content="#f3f5f2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1412" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#e7e3da" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16110e" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="Bristol EPS">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -43,6 +43,16 @@ _MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","sep
 _d = datetime.date.today()
 _maj = f"{_d.day}{'er' if _d.day == 1 else ''} {_MOIS[_d.month - 1]} {_d.year}"
 page_app = _re.sub(r'const SITE_MAJ = "[^"]*";', f'const SITE_MAJ = "{_maj}";', page, count=1)
+# Polices : la page source charge Google Fonts (pour l'artifact Claude) ; le site publié les sert lui-même.
+FONTS = ('<link rel="preload" href="/fonts/albert-sans.woff2" as="font" type="font/woff2" crossorigin>\n'
+         '<link rel="preload" href="/fonts/imbue-400.woff2" as="font" type="font/woff2" crossorigin>\n'
+         '<link rel="stylesheet" href="/fonts/fonts.css">')
+def self_host_fonts(html):
+    html = _re.sub(r'<link rel="preconnect" href="https://fonts\.(googleapis|gstatic)\.com"[^>]*>\n?', '', html)
+    html, n = _re.subn(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/[^"]*">', FONTS, html, count=1)
+    assert n == 1, "lien Google Fonts introuvable"
+    return html
+page_app = self_host_fonts(page_app)
 out.write_text(head + page_app + "\n</body>\n</html>\n", encoding="utf-8")
 print("Écrit :", out, f"({out.stat().st_size // 1024} Ko)")
 
@@ -63,10 +73,10 @@ count = {g: sum(1 for c in cards if GROUP.get(c[1]) == g) for g in ("e1", "e2", 
 ann = re.findall(r'"id": "an\d+",[^}]*?"y": (\d{4})', block("ANNALES"), re.S)
 years = [int(y) for y in ann]
 subj = len(re.findall(r'\{\s*id:\s*"s\d+"', page)) + len(re.findall(r'\{id:"t\d+",epr', page)) + len(re.findall(r'\{id:"[qm]\d+",epr', page))
-demo_ids = ["n02", "am02", "b05", "ex06", "b03", "am01"]
+demo_ids = ["n02", "n221", "n53", "am02", "am01", "ex06", "po05", "po32", "po27"]
 EPR_S = {"e1": "Écrit 1", "e2": "Écrit 2", "tx": "Textes officiels"}
 unesc = lambda t: json.loads('"' + t + '"')
-demo = [{"q": unesc(c[3]), "a": unesc(c[4]), "p": c[2], "th": themes.get(c[1], c[1]), "e": EPR_S.get(GROUP.get(c[1]), "")} for i in demo_ids for c in cards if c[0] == i]
+demo = [{"q": unesc(c[3]), "a": unesc(c[4]), "p": c[2], "th": themes.get(c[1], c[1]), "e": EPR_S.get(GROUP.get(c[1]), ""), "g": GROUP.get(c[1], "")} for i in demo_ids for c in cards if c[0] == i]
 conc = []
 for cid, t, tag in re.findall(r'\{ id: "((?:capeps|agreg)-[a-z0-9]+)", t: "([^"]+)", tag: "([^"]+)"', page):
     seg = page[page.index(f'{{ id: "{cid}"'):][:2000]
@@ -76,7 +86,7 @@ vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["
         "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
         "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
         "DEMO_JSON": json.dumps(demo, ensure_ascii=False), "CONC_JSON": json.dumps(conc, ensure_ascii=False)}
-land = (here / "source" / "landing.html").read_text(encoding="utf-8")
+land = self_host_fonts((here / "source" / "landing.html").read_text(encoding="utf-8"))
 for k, v in vals.items(): land = land.replace("{{" + k + "}}", str(v))
 assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
 lout = here / "public" / "index.html"
@@ -99,12 +109,11 @@ hashes = sorted(set(_script_hashes(_app_html) + _script_hashes(land)))
 csp = "; ".join([
     "default-src 'self'",
     "script-src 'self' " + " ".join(hashes),
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",
-    # Le service worker met en cache les polices Google : il lui faut ces deux origines.
-    "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
+    "connect-src 'self'",
     "worker-src 'self'",
     "manifest-src 'self'",
     "frame-src 'none'",

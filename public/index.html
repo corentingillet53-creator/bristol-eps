@@ -3,347 +3,485 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Bristol EPS : réviser les écrits du CAPEPS et de l'agrégation d'EPS</title>
-<meta name="description" content="Fiches à répétition espacée, annales avec les rapports de jury, sujets corrigés par Claude et concours blancs en temps réel, pour les écrits du CAPEPS et de l'agrégation d'EPS.">
+<title>Bristol EPS : réviser les écrits du CAPEPS et de l’agrégation d’EPS</title>
+<meta name="description" content="Fiches à répétition espacée, annales avec les rapports de jury, retours de Claude selon la grille du jury et concours blancs, pour les écrits du CAPEPS et des agrégations d’EPS.">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#f3f5f2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1412" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#456f3a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2b3f25" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Bristol EPS : réviser les écrits du CAPEPS et de l'agrégation d'EPS">
-<meta property="og:description" content="Un peu chaque jour : fiches, annales, sujets corrigés et concours blancs.">
+<meta property="og:title" content="Bristol EPS : réviser les écrits d’EPS">
+<meta property="og:description" content="Une fiche à la fois : fiches, annales, sujets corrigés selon les rapports de jury, concours blancs.">
 <meta property="og:image" content="/img/revise.webp">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <script>
 /* Déjà utilisateur sur cet appareil : directement dans l'application (« ?accueil » pour voir cette page). */
+document.documentElement.classList.add("js");
 try { if (!/[?&]accueil/.test(location.search) && (localStorage.getItem("bristol-eps-v1") || localStorage.getItem("bristol-eps-welcome"))) location.replace("/app/" + location.search + location.hash); } catch (e) {}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap">
+<link rel="preload" href="/fonts/albert-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/imbue-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
+/* Bristol EPS. Direction : « la page est l'objet ». Chaque section est une fiche bristol du paquet du candidat :
+   papier clair, ligne d'en-tête verte, posée sur un fond os ; un champ vert (l'ouverture), un champ chocolat (la fin). */
 :root{
-  --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#56645d; --line:#dde4df; --chip:#e8ede9;
-  --accent:#0b7a53; --accent-deep:#075c3e; --accent-text:#09694a; --soft:#e1f2e9; --gold:#e5a00d;
-  --bad:#b53a2d; --bad-soft:#fbe4e0; --ok-soft:#e1f2e9;
-  --lane:rgba(255,255,255,.22);
-  --f-display:"Bricolage Grotesque",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --bg:#e5e1d8; --tone:#dad5ca; --paper:#f3f3f0; --ink:#2a1d17; --muted:#66574d;
+  --accent:#456f3a; --accent-ink:#ffffff; --accent-strong:#36592d; --accent-text:#3b6131;
+  --field:#456f3a; --field-ink:#ffffff; --deep:#2a1d17; --deep-ink:#e8e6e2; --deep-muted:#cbbfb3;
+  --f-display:"Imbue","Iowan Old Style",Georgia,serif;
+  --f-text:"Albert Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --step-small:.875rem;
+  --step-body:clamp(1.0625rem,1rem + .25vw,1.1875rem);
+  --step-lead:clamp(1.25rem,1.1rem + .7vw,1.625rem);
+  --step-head:clamp(2.25rem,1.4rem + 3.4vw,4.25rem);
+  --step-display:clamp(3.25rem,1.6rem + 6.4vw,7.5rem);
+  --m:clamp(16px,3vw,40px);
+  --ease-out:cubic-bezier(.22,1,.36,1); --ease-soft:cubic-bezier(.33,1,.68,1);
+  --t-press:140ms; --t-hover:180ms; --t-reveal:800ms;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
-  :root{ --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
-    --accent:#137450; --accent-deep:#0d5a3d; --accent-text:#5fdaa7; --soft:#163a2b; --bad:#f07d70; --bad-soft:#3d1d19; --ok-soft:#163a2b; --lane:rgba(255,255,255,.14); color-scheme:dark; }
+  :root{ --bg:#16110e; --tone:#1f1814; --paper:#2a211c; --ink:#efe8de; --muted:#b9ab9f;
+    --accent:#93bf81; --accent-ink:#11190d; --accent-strong:#a8d095; --accent-text:#a8d095;
+    --field:#2b3f25; --field-ink:#efe8de; --deep:#0c0907; --deep-ink:#efe8de; --deep-muted:#b9ab9f; color-scheme:dark; }
 }
-*{box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font:400 18px/1.55 var(--f-body)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--step-body)/1.55 var(--f-text)}
 img{max-width:100%;height:auto;display:block}
-a{color:var(--accent-text)}
-:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;font:700 17px/1 var(--f-body);text-decoration:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent-deep)}
-
-/* En-tête */
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
-.brand{display:flex;align-items:center;gap:10px;font:800 21px/1 var(--f-display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
-.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:17px}
-.top .btn{min-height:44px;padding:0 18px;font-size:15px}
-.top-r{display:flex;align-items:center;gap:18px}
-.top-link{font-weight:700;color:var(--ink);text-decoration:none}
-.top-link:hover{text-decoration:underline}
-
-/* Ouverture : le titre, et une vraie fiche sur la piste */
-.hero{display:grid;gap:40px;padding:28px 0 72px;align-items:center}
-@media (min-width:980px){ .hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:56px;padding:40px 0 96px} }
-h1{font:800 clamp(44px,5.4vw,74px)/.95 var(--f-display);font-stretch:78%;font-variation-settings:"wdth" 78;letter-spacing:-.03em;margin:0 0 26px;text-wrap:balance}
-.lead{font-size:20px;color:var(--muted);max-width:34em;margin:0 0 30px}
-.ctas{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
-.ctas .quiet{font-weight:700;text-decoration:underline;text-underline-offset:4px}
-.free{font-size:15px;color:var(--muted);margin:18px 0 0}
-
-.track{position:relative;background:var(--accent);border-radius:32px;padding:56px 28px;overflow:hidden;min-height:420px;display:flex;align-items:center;justify-content:center}
-.track svg.lanes{position:absolute;inset:0;width:100%;height:100%}
-.card{position:relative;width:100%;max-width:440px;background:var(--surface);border-radius:22px;padding:22px 24px 24px;box-shadow:0 30px 60px -28px rgba(0,0,0,.55)}
-.card-band{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:13px;color:var(--muted);margin:0 0 14px}
-.card-band b{color:var(--accent-text);background:var(--soft);border-radius:999px;padding:3px 10px;font-size:12px}
-.card-q{font:700 24px/1.22 var(--f-display);margin:0;min-height:3.6em}
-.card-a{margin:16px 0 0;padding-top:14px;border-top:1px dashed var(--line);font-weight:700;color:var(--accent-text);font-size:18px}
-.card-act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
-.card-act .btn{min-height:56px}
-.card-act .wide{grid-column:1 / -1}
-.btn.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
-.btn.good{background:var(--ok-soft);border-color:transparent;color:var(--accent-text)}
-.card-note{position:relative;color:#fff;font-size:14px;margin:18px 0 0;text-align:center}
-.card-box{position:relative;display:flex;flex-direction:column;align-items:center;width:100%}
-
-/* Dates des écrits */
-.dates{padding:8px 0 80px}
-h2{font:800 clamp(30px,4.2vw,46px)/1.02 var(--f-display);font-variation-settings:"wdth" 82;letter-spacing:-.025em;margin:0 0 14px;text-wrap:balance}
-.sub{color:var(--muted);max-width:40em;margin:0 0 28px}
-.dt{width:100%;border-collapse:collapse;font-size:17px}
-.dt th,.dt td{text-align:left;padding:16px 12px;border-bottom:1px solid var(--line);vertical-align:baseline}
-.dt th{font-size:14px;color:var(--muted);font-weight:700}
-.dt td:first-child{font-weight:700}
-.dt .tag{display:block;font-weight:400;font-size:14px;color:var(--muted)}
-.dt .j{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
-.dt .j small{font:700 14px var(--f-body);color:var(--muted)}
-.dt-go{font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:4px}
-.dt-go:hover{color:var(--accent-text)}
-.dates .note{font-size:15px;color:var(--muted);margin:16px 0 0}
-@media (max-width:640px){ .dt thead{display:none} .dt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:14px 0;border-bottom:1px solid var(--line)} .dt td{border:0;padding:0} .dt td.when{grid-column:1;color:var(--muted);font-size:15px} .dt td.jcell{grid-row:1 / span 2;grid-column:2;align-self:center} }
-
-/* Contenu : quatre usages, chacun avec une vraie capture */
-.appr{padding:8px 0 64px}
-.appr-g{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:8px 0 0}
-.appr-g > div{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 22px}
-.appr-g h3{font:800 21px/1.15 var(--f-display);margin:0 0 8px}
-.appr-g p{margin:0;font-size:16px;color:var(--muted)}
-.appr .note{font-size:16px;color:var(--muted);margin:18px 0 0;max-width:46em}
-.why{padding:8px 0 64px}
-.cmp-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
-.cmp{width:100%;border-collapse:collapse;min-width:680px;font-size:16px}
-.cmp th,.cmp td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.cmp thead th{font-size:14px;color:var(--muted)}
-.cmp thead th.me{color:var(--accent-text);font-size:16px}
-.cmp tbody th{font-weight:700;width:26%}
-.cmp td.me{background:var(--soft);font-weight:700}
-.cmp td.n{color:var(--muted)}
-.cmp td.y::before{content:"✓ ";color:var(--accent-text);font-weight:800}
-@media (max-width:640px){ .cmp{min-width:0} .cmp thead{display:none} .cmp,.cmp tbody,.cmp tr,.cmp th,.cmp td{display:block;width:auto} .cmp tr{border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:0 0 12px;background:var(--surface)} .cmp th,.cmp td{border:0;padding:4px 0} .cmp tbody th{width:auto;font-size:17px;margin-bottom:4px} .cmp td::before{content:attr(data-l) " : ";font-weight:700;color:var(--ink)} .cmp td.y::before{content:"✓ " attr(data-l) " : ";color:var(--accent-text)} .cmp td.me{background:none} }
-.why .note{font-size:16px;color:var(--muted);margin:18px 0 0;max-width:46em}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-.feat{padding:24px 0 40px}
-.row{display:grid;gap:28px;align-items:center;padding:44px 0;border-top:1px solid var(--line)}
-@media (min-width:980px){ .row{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:64px} .row.flip{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)} .row.flip .txt{order:2} }
-.row h3{font:800 32px/1.05 var(--f-display);font-variation-settings:"wdth" 85;letter-spacing:-.02em;margin:0 0 12px}
-.row p{margin:0 0 14px;max-width:34em}
-.row ul{margin:0;padding-left:20px;max-width:34em}
-.row li{margin:6px 0}
-.shot{border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:0 24px 50px -30px rgba(0,0,0,.35);background:var(--surface)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em;line-height:.92;margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 28px;border:0;border-radius:0;background:var(--accent);color:var(--accent-ink);font:600 var(--step-body)/1 var(--f-text);text-decoration:none;cursor:pointer;transition:transform var(--t-press) var(--ease-out),background-color var(--t-hover) ease}
+.btn:active{transform:scale(.97)}
+.link{font-weight:600;text-decoration:underline;text-decoration-thickness:.07em;text-underline-offset:.22em;transition:text-decoration-color var(--t-hover) ease}
+@media (hover:hover) and (pointer:fine){ .btn:hover{background:var(--accent-strong)} .link:hover{text-decoration-color:var(--accent)} }
+/* La fiche bristol : papier, coins presque droits, ligne d'en-tête verte. */
+.fiche{background:var(--paper);color:var(--ink);border-radius:3px;position:relative}
+.fiche::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--accent);border-radius:3px 3px 0 0}
 
-/* Tarifs */
-.price{padding:56px 0 24px}
-.plans{display:grid;gap:16px;margin-top:26px}
-@media (min-width:900px){ .plans{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch} }
-.plan-c{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:24px}
-.plan-c.best{border:2px solid var(--accent);background:var(--soft)}
-.plan-n{font:700 18px/1.2 var(--f-display);margin:0}
-.plan-p{font:800 40px/1 var(--f-display);letter-spacing:-.02em;margin:4px 0}
-.plan-p small{font:400 16px var(--f-body);color:var(--muted)}
-.plan-d{color:var(--muted);font-size:15px;margin:0 0 6px}
-.plan-c ul{margin:0 0 18px;padding-left:20px;flex:1}
-.plan-c li{margin:4px 0}
-.plan-c .btn{align-self:flex-start}
-/* Une séance */
-.how{padding:72px 0}
-.steps{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:18px;counter-reset:s}
-@media (min-width:860px){ .steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px} }
-.steps li{counter-increment:s;padding:22px 0 0;border-top:3px solid var(--accent)}
-.steps li::before{content:counter(s);display:block;font:800 44px/1 var(--f-display);color:var(--accent-text);margin-bottom:10px}
-.steps b{display:block;font:700 20px/1.25 var(--f-display);margin-bottom:6px}
-.steps p{margin:0;color:var(--muted)}
-.how .after{margin:30px 0 0;max-width:46em}
+/* ---------- Ouverture : la fiche posée sur le champ vert ---------- */
+.hero{min-height:100svh;background:var(--field);display:grid;place-items:center;padding:var(--m)}
+.hero-card{width:min(100%,920px);aspect-ratio:1.42;padding:clamp(28px,3.4vw,52px);display:grid;grid-template-rows:auto 1fr auto;gap:clamp(20px,2.4vw,32px)}
+.hero h1{font-size:var(--step-display);padding-top:6px;max-width:11ch}
+.hero-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,3vw,48px);align-content:start}
+.facts{list-style:none;margin:0;padding:0;font-size:var(--step-lead);line-height:1.2}
+.facts li+li{margin-top:.35em}
+.hero-lead{font-size:var(--step-body);max-width:34ch}
+.hero-foot{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px}
+.mark{font:400 var(--step-lead)/1 var(--f-display);letter-spacing:-.01em;text-decoration:none}
+.hero-foot .link{justify-self:end}
+@media (max-width:760px){
+  .hero{padding:16px}
+  .hero-card{aspect-ratio:auto;min-height:70svh;padding:32px 22px 22px}
+  .hero-body{grid-template-columns:1fr}
+  .hero-foot{grid-template-columns:1fr 1fr}
+  .hero-foot .btn{grid-column:1 / -1;grid-row:1;width:100%}
+}
 
-/* Questions */
-.faq{padding:24px 0 72px}
-.faq details{border-bottom:1px solid var(--line);max-width:820px}
-.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;padding:20px 0;font:700 20px/1.3 var(--f-display)}
+/* ---------- Session 2027 : la ligne des dates ---------- */
+.dates{padding:clamp(96px,11vw,160px) var(--m) clamp(88px,9vw,130px)}
+.dates-top{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;align-items:end}
+.dates h2{grid-column:1 / span 7;font-size:var(--step-display)}
+.dates-note{grid-column:9 / span 4;font-size:var(--step-body)}
+.dt{list-style:none;margin:clamp(64px,8vw,120px) 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:64px 24px}
+.dt a{display:block;text-decoration:none;min-width:150px}
+.dt b{display:block;font:400 var(--step-head)/.9 var(--f-display);font-variant-numeric:tabular-nums}
+.dt span{display:block;margin-top:12px;font-size:var(--step-body);max-width:17ch;line-height:1.3}
+.dt span strong{font-weight:600}
+@media (hover:hover) and (pointer:fine){ .dt a:hover b{color:var(--accent-text)} }
+@media (max-width:760px){ .dates-top{display:block} .dates-note{margin-top:20px} .dt{display:grid;grid-template-columns:1fr 1fr;gap:32px 16px} }
+
+/* ---------- Les chiffres : un registre aligné, le titre épinglé ---------- */
+.stats{background:var(--tone);padding:clamp(96px,11vw,170px) var(--m)}
+.stats-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;align-items:start}
+.stats h2{grid-column:1 / span 5;font-size:var(--step-head);position:sticky;top:30vh}
+.stats h2 span{display:block;color:var(--muted)}
+.ledger{grid-column:7 / span 6;list-style:none;margin:0;padding:0}
+.ledger li{display:grid;grid-template-columns:1.5em minmax(0,1fr);gap:0 .25em;align-items:baseline;font-size:var(--step-display)}
+.ledger li+li{margin-top:clamp(20px,2.4vw,36px)}
+.ledger b{font:400 var(--step-display)/1 var(--f-display);font-variant-numeric:tabular-nums lining-nums;text-align:right}
+.ledger p{font-size:var(--step-body);line-height:1.45;max-width:30ch}
+@media (max-width:760px){ .stats-g{display:block} .stats h2{position:static;margin-bottom:48px} .ledger li{grid-template-columns:1fr;font-size:clamp(3.5rem,15vw,4.5rem)} .ledger b{text-align:left} .ledger p{margin-top:6px} }
+
+/* ---------- Essaie une fiche : la plaque carrée ---------- */
+.try{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:88svh}
+.try-plate{display:grid;place-items:center;padding:40px}
+.demo{width:100%;max-width:620px;aspect-ratio:1;padding:clamp(28px,3.4vw,48px);display:flex;flex-direction:column}
+.demo-th{display:flex;justify-content:space-between;gap:16px;margin-top:20px;font-size:var(--step-small);color:var(--muted)}
+.demo-q{font:500 var(--step-lead)/1.25 var(--f-text);margin:auto 0 0}
+.demo-a{margin-top:28px;font:500 var(--step-lead)/1.3 var(--f-text);color:var(--accent-text)}
+.demo-h{margin-top:auto;padding-top:28px;font-size:var(--step-body)}
+.try-side{display:flex;flex-direction:column;justify-content:space-between;gap:48px;padding:40px var(--m) 40px 0}
+.tabs{display:flex;flex-wrap:wrap;gap:8px 28px}
+.tabs button{appearance:none;border:0;background:none;padding:10px 0;font:500 var(--step-body)/1 var(--f-text);color:var(--muted);cursor:pointer;transition:color var(--t-hover) ease}
+.tabs button[aria-pressed="true"]{color:var(--ink);font-weight:700}
+.tabs button[aria-pressed="true"]::after{content:"";display:block;height:4px;margin-top:8px;background:var(--accent)}
+.try h2{font-size:var(--step-head)}
+.try-side .desc{margin-top:48px;max-width:34ch}
+.cells{display:grid;grid-template-columns:1fr 1fr}
+.cells button{appearance:none;border:0;min-height:72px;font:600 var(--step-body)/1.1 var(--f-text);cursor:pointer;transition:transform var(--t-press) var(--ease-out),background-color var(--t-hover) ease}
+.cells button:active{transform:scale(.97)}
+.cells .c1{background:var(--ink);color:var(--bg)}
+.cells .c2{background:var(--tone);color:var(--ink)}
+@media (hover:hover) and (pointer:fine){ .cells .c2:hover{background:var(--paper)} }
+@media (max-width:900px){
+  .try{grid-template-columns:minmax(0,1fr);min-height:0;padding:88px 0}
+  .try-plate{padding:0 16px}
+  .demo{aspect-ratio:auto;min-height:360px}
+  .try-side{padding:32px 16px 0;gap:28px}
+  .try-side .desc{margin-top:16px}
+  .cells{grid-template-columns:1fr;gap:8px}.cells button{min-height:60px}
+}
+
+/* ---------- Une préparation : la rangée de moments ---------- */
+.moments{padding:clamp(96px,11vw,160px) 0 clamp(96px,10vw,150px);background:var(--tone)}
+.mo-top{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:0 var(--m)}
+.moments h2{font-size:var(--step-head)}
+.mo-nav{display:flex;gap:8px}
+.mo-nav button{appearance:none;border:0;width:48px;height:48px;background:var(--ink);color:var(--bg);font:600 var(--step-lead)/1 var(--f-text);cursor:pointer;transition:transform var(--t-press) var(--ease-out)}
+.mo-nav button:active{transform:scale(.94)}
+.mo-bar{margin:28px var(--m) 0;height:6px;background:var(--bg);overflow:hidden}
+.mo-bar span{display:block;height:100%;background:var(--ink);transform-origin:left;transform:scaleX(.15)}
+.mo-row{display:flex;gap:32px;overflow-x:auto;scroll-snap-type:x mandatory;padding:40px var(--m) 8px;scrollbar-width:none}
+.mo-row::-webkit-scrollbar{display:none}
+.mo{flex:0 0 280px;scroll-snap-align:start;display:flex;flex-direction:column}
+.mo h3{font:700 var(--step-body)/1.25 var(--f-text);letter-spacing:0}
+.mo p{margin-top:8px;font-size:var(--step-body);line-height:1.45;min-height:5.8em}
+.mo figure{margin:0}
+.mo img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top}
+@media (max-width:760px){ .mo{flex-basis:72vw}.mo-row{gap:16px;padding-left:16px;padding-right:16px}.mo-nav{display:none} }
+
+/* ---------- Vérifié dans les textes : la liste imprimée ---------- */
+.proof{background:var(--deep);padding:clamp(96px,10vw,150px) 0 0;overflow:hidden;max-height:min(1180px,190svh)}
+.proof-card{width:min(56vw,860px);margin:0 auto;padding:56px;transform:rotate(-1.4deg);text-align:center;min-height:1100px}
+.proof h2{font-size:var(--step-head)}
+.proof figure{margin:40px 0}
+.proof img{width:100%;aspect-ratio:16/9;object-fit:cover;object-position:left top}
+.names{font-size:var(--step-body);line-height:1.75;margin:0 auto;max-width:46ch}
+.proof .after{margin:32px auto 0;max-width:46ch;font-size:var(--step-body)}
+@media (max-width:760px){ .proof-card{width:92%;padding:40px 22px;transform:rotate(-1deg);min-height:1000px} }
+
+/* ---------- Les prix, comme un menu ---------- */
+.price{padding:clamp(110px,12vw,180px) var(--m)}
+.price-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px}
+.price-h{grid-column:1 / span 3}
+.price h2{font-size:var(--step-head)}
+.price-h img{margin-top:48px;width:min(100%,260px);aspect-ratio:4/5;object-fit:cover;object-position:top}
+.price-l{grid-column:5 / span 8;display:grid;grid-template-columns:1fr 1fr;gap:0 64px}
+.grp h3{font:500 var(--step-lead)/1.2 var(--f-text);letter-spacing:0;margin:0 0 28px}
+.grp+.grp h3{color:var(--muted)}
+.item+.item{margin-top:28px}
+.item-r{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:var(--step-body);font-weight:600}
+.item-r b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item p{margin-top:4px;font-size:var(--step-body);line-height:1.45;max-width:36ch}
+.grp+.grp .item-r{font-weight:500}
+.price-go{grid-column:5 / span 8;margin-top:64px;display:flex;flex-wrap:wrap;align-items:center;gap:20px 32px}
+.price-go p{font-size:var(--step-small);color:var(--muted);max-width:52ch}
+@media (max-width:860px){ .price-g{display:block} .price-l{grid-template-columns:1fr;gap:56px 0;margin-top:48px} .price-go{margin-top:48px} }
+
+/* ---------- Questions, à côté d'une grande image ---------- */
+.faq{background:var(--tone);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:0 clamp(32px,5vw,80px);padding:0 var(--m) 0 var(--m)}
+.faq-l{padding:clamp(96px,10vw,150px) 0}
+.faq h2{font-size:var(--step-head)}
+.faq-facts{list-style:none;padding:0;margin:28px 0 40px;font-size:var(--step-body)}
+.faq-facts li+li{margin-top:6px}
+.faq details+details{margin-top:28px}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;min-height:44px;font:600 var(--step-body)/1.3 var(--f-text)}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";font:400 28px/1 var(--f-body);color:var(--accent-text)}
-.faq details[open] summary::after{content:"−"}
-.faq details p{margin:0 0 20px;color:var(--muted);max-width:44em}
+.chev{flex:none;width:14px;height:14px;position:relative;transition:transform var(--t-hover) var(--ease-out)}
+.chev::before,.chev::after{content:"";position:absolute;top:6px;width:9px;height:2px;background:currentColor}
+.chev::before{left:0;transform:rotate(45deg)}.chev::after{right:0;transform:rotate(-45deg)}
+details[open] .chev{transform:rotate(180deg)}
+.faq details p{margin-top:10px;font-size:var(--step-body);line-height:1.5;max-width:52ch}
+.faq-go{margin-top:48px;display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
+.faq-r{position:relative;margin-top:-1px;padding-bottom:80px}
+.faq-r .tall{width:100%;max-width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:top;display:block;background:var(--paper)}
+.faq-r .sq{position:absolute;left:-40px;bottom:40px;width:40%;aspect-ratio:1;object-fit:cover;object-position:top;outline:8px solid var(--tone)}
+@media (max-width:860px){ .faq{grid-template-columns:minmax(0,1fr);padding:0} .faq-r{order:-1;padding:0 16px} .faq-r .tall{aspect-ratio:4/5} .faq-r .sq{left:auto;right:28px;bottom:-24px;width:38%} .faq-l{padding:72px 16px 88px} .faq-go .btn{width:100%} }
 
-.end{background:var(--accent);color:#fff;border-radius:32px;padding:56px 32px;margin:0 0 56px;position:relative;overflow:hidden}
-.end h2{color:#fff;max-width:16em}
-.end p{max-width:36em;margin:0 0 26px}
-.end .btn.primary{background:#fff;color:var(--accent-deep);border-color:#fff}
-.foot{padding:0 0 40px;color:var(--muted);font-size:15px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
-@media (max-width:640px){ body{font-size:17px} .wrap{padding:0 16px} .track{padding:40px 16px;min-height:380px;border-radius:24px} .card-q{font-size:21px} .end{padding:40px 22px;border-radius:24px} }
-@media (prefers-reduced-motion: no-preference){ .card.turn{animation:turn .32s ease-out} @keyframes turn{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}} }
+/* ---------- La carte-réponse ---------- */
+.reply{background:var(--deep);color:var(--deep-ink);min-height:80svh;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;padding:clamp(96px,10vw,140px) var(--m) 0;overflow:hidden}
+.reply-p{grid-column:1 / span 4;align-self:end;margin-bottom:64px;font-size:var(--step-lead);line-height:1.35;color:var(--deep-ink)}
+.reply-card{grid-column:6 / span 7;align-self:end;margin-bottom:-60px;aspect-ratio:1.4;padding:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:rotate(2deg)}
+.reply-card h2{font-size:var(--step-head);max-width:13ch}
+.reply-card p{margin:16px 0 32px;font-size:var(--step-body)}
+.reply-card .btn{width:100%;background:var(--ink);color:var(--paper)}
+@media (hover:hover) and (pointer:fine){ .reply-card .btn:hover{background:var(--accent);color:var(--accent-ink)} }
+@media (max-width:860px){ .reply{display:block;padding:88px 16px 0;min-height:0} .reply-p{margin:0 0 40px} .reply-card{width:90%;margin:0 auto -40px;transform:rotate(1deg);aspect-ratio:auto;padding:40px 22px} .reply-card .btn{min-height:52px} }
+
+/* ---------- Le dos de la fiche ---------- */
+.back{background:var(--deep);color:var(--deep-ink);padding:clamp(160px,14vw,200px) var(--m) 0;overflow:hidden}
+.back-card{max-width:1100px;margin:0 auto;padding:64px 56px 28px;display:grid;grid-template-columns:1fr 1fr;gap:72px 64px}
+.back-card h2{font-size:var(--step-head)}
+.back-card .msg{margin-top:16px;font-size:var(--step-body);max-width:40ch}
+.back-r{position:relative;padding-right:120px}
+.addr{list-style:none;margin:0;padding:0;font-size:var(--step-body)}
+.addr li+li{margin-top:12px}
+.stamp{position:absolute;right:0;top:0;width:88px;padding:6px;background:var(--bg);transform:rotate(3deg)}
+.stamp img{aspect-ratio:3/4;object-fit:cover;object-position:top}
+.imprint{grid-column:1 / -1;align-self:end;text-align:center;font-size:var(--step-small);color:var(--muted)}
+.wordmark{font:400 clamp(4rem,1rem + 15vw,15rem)/.8 var(--f-display);letter-spacing:-.02em;color:var(--deep-ink);margin:48px 0 0;white-space:nowrap;text-align:center;transform:translateY(.12em)}
+@media (max-width:860px){ .back{padding:150px 16px 0} .back-card{grid-template-columns:1fr;padding:44px 22px 22px} .back-r{padding-right:0} .back-r{position:static} .stamp{width:64px;top:28px;right:22px} .back-card h2{margin-right:84px} }
+
+/* ---------- Mouvement : entrées, une fois ; rien ne reste caché sans script ---------- */
+@media (prefers-reduced-motion: no-preference){
+  .js [data-rise]{opacity:0;transform:translateY(18px);animation:rise var(--t-reveal) var(--ease-out) forwards;animation-delay:calc(var(--i,0) * 90ms + 120ms)}
+  .js .hero-card[data-rise]{transform:translateY(28px) rotate(-1.2deg)}
+  .io [data-reveal]{opacity:0;transform:translateY(24px);transition:opacity 700ms var(--ease-out),transform 900ms var(--ease-out);transition-delay:calc(var(--i,0) * 75ms)}
+  .io [data-reveal].is-in{opacity:1;transform:none}
+  .io .proof-card[data-reveal]{transform:translateY(60px) rotate(-3deg)}
+  .io .proof-card[data-reveal].is-in{transform:rotate(-1.4deg)}
+  .io .reply-card[data-reveal]{transform:translateY(80px) rotate(5deg)}
+  .io .reply-card[data-reveal].is-in{transform:rotate(2deg)}
+  .demo.turn{animation:turn 420ms var(--ease-out)}
+  @keyframes turn{from{transform:rotateY(70deg) scale(.98);opacity:.3}to{transform:none;opacity:1}}
+  @supports (animation-timeline: view()){
+    .drift{animation:drift linear both;animation-timeline:view();animation-range:entry 0% exit 100%}
+    @keyframes drift{from{transform:translateY(-4%) scale(1.06)}to{transform:translateY(4%) scale(1.06)}}
+    .wordmark{animation:mark linear both;animation-timeline:view();animation-range:entry 0% cover 60%}
+    @keyframes mark{from{transform:translateY(.5em)}to{transform:translateY(.12em)}}
+  }
+}
+@keyframes rise{to{opacity:1;transform:none}}
+@media (max-width:760px){ .js .hero-card[data-rise]{transform:translateY(18px)} }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</a>
-    <span class="top-r"><a class="top-link" href="#tarifs">Tarifs</a><a class="btn" href="/app/">Ouvrir l'application</a></span>
-  </header>
+<main>
+  <section class="hero" aria-labelledby="h-hero">
+    <article class="hero-card fiche" data-rise style="--i:0">
+      <h1 id="h-hero">Réviser les écrits d’EPS</h1>
+      <div class="hero-body">
+        <ul class="facts" data-rise style="--i:1">
+          <li>CAPEPS et agrégations, externes et internes</li>
+          <li>Session 2027</li>
+          <li>Gratuit pour commencer, sans inscription</li>
+        </ul>
+        <p class="hero-lead" data-rise style="--i:2">Tes cours te donnent le contenu. Bristol te le fait retenir, t’entraîne au format de ton concours et relit tes textes selon les rapports de jury.</p>
+      </div>
+      <div class="hero-foot" data-rise style="--i:3">
+        <a class="mark" href="/?accueil">Bristol EPS</a>
+        <a class="btn" href="/app/">Commencer à réviser</a>
+        <a class="link" href="#tarifs">Tarifs</a>
+      </div>
+    </article>
+  </section>
 
-  <main>
-    <section class="hero" aria-labelledby="h-hero">
+  <section class="dates" aria-labelledby="h-dates">
+    <div class="dates-top">
+      <h2 id="h-dates" data-reveal>Session 2027</h2>
+      <p class="dates-note" id="dates-note" data-reveal style="--i:1">Choisis ton concours : tout le site se règle dessus, des épreuves au format des sujets. Dates relevées dans les textes officiels ; seule ta convocation fait foi.</p>
+    </div>
+    <ol class="dt" id="dates-body" aria-label="Premiers écrits de chaque concours"></ol>
+  </section>
+
+  <section class="stats" aria-labelledby="h-stats">
+    <div class="stats-g">
+      <h2 id="h-stats"><span>Tout le programme,</span> sur des fiches</h2>
+      <ul class="ledger">
+        <li data-reveal><b>313</b><p>fiches : 148 pour l’écrit 1, 125 pour l’écrit 2 et 40 sur les textes officiels.</p></li>
+        <li data-reveal><b>83</b><p>sujets d’annales, de 2015 à 2026, avec ce que les rapports de jury en ont dit.</p></li>
+        <li data-reveal><b>42</b><p>sujets d’entraînement au format de ton concours, corrigés par Claude selon la grille du jury.</p></li>
+        <li data-reveal><b>53</b><p>références à placer en copie, chacune avec son idée clé.</p></li>
+        <li data-reveal><b>8</b><p>fils rouges qui relient les faits, de la fin du XIXe siècle à aujourd’hui.</p></li>
+        <li data-reveal><b>90</b><p>pour cent : la probabilité de souvenir sous laquelle une fiche revient. Jamais après la date de ton concours.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="try" id="essai" aria-labelledby="h-try">
+    <div class="try-plate">
+      <article class="demo fiche" id="demo" aria-live="polite">
+        <p class="demo-q" id="demo-q"></p>
+        <p class="demo-a" id="demo-a" hidden></p>
+        <p class="demo-h" id="demo-h">Cherche la réponse dans ta tête avant de retourner la fiche.</p>
+        <p class="demo-th"><span id="demo-th"></span><span id="demo-p"></span></p>
+      </article>
+    </div>
+    <div class="try-side">
+      <div class="tabs" role="group" aria-label="Choisir l’écrit">
+        <button type="button" data-g="e1" aria-pressed="true">Écrit 1</button>
+        <button type="button" data-g="e2" aria-pressed="false">Écrit 2</button>
+        <button type="button" data-g="tx" aria-pressed="false">Textes officiels</button>
+      </div>
       <div>
-        <h1 id="h-hero">Les écrits du CAPEPS et de l'agrégation d'EPS, un peu chaque jour.</h1>
-        <p class="lead">Tes cours te donnent le contenu. Bristol te le fait retenir, t'entraîne au format exact de ton concours et corrige tes textes en une minute, selon ce que demandent les rapports de jury.</p>
-        <div class="ctas"><a class="btn primary" href="/app/">Commencer à réviser</a><a class="quiet" href="#contenu">Voir ce qu'il y a dedans</a></div>
-        <p class="free">Gratuit pour commencer, sans inscription. Accès complet : 80 € jusqu’au concours, ou 15 € par mois.</p>
+        <h2 id="h-try" data-reveal>Essaie une fiche</h2>
+        <p class="desc" data-reveal style="--i:1">Ce sont de vraies fiches du site. Dans l’application, tu dis ensuite si tu savais : la fiche revient dans dix minutes, dans quelques jours ou dans quelques semaines.</p>
       </div>
-      <div class="track" aria-label="Essai d'une fiche">
-        <svg class="lanes" viewBox="0 0 600 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g fill="none" stroke="var(--lane)" stroke-width="2">
-            <path d="M-40 380 H380 A170 170 0 0 0 380 40 H-40"/>
-            <path d="M-40 410 H380 A200 200 0 0 0 380 10 H-40"/>
-            <path d="M-40 440 H380 A230 230 0 0 0 380 -20 H-40"/>
-            <path d="M-40 470 H380 A260 260 0 0 0 380 -50 H-40"/>
-            <path d="M-40 350 H380 A140 140 0 0 0 380 70 H-40"/>
-          </g>
-          <g stroke="var(--lane)" stroke-width="4"><path d="M120 350 V470"/></g>
-        </svg>
-        <div class="card-box">
-          <article class="card" id="demo" aria-live="polite"></article>
-          <p class="card-note">Essaie : ce sont de vraies fiches du site.</p>
+      <div class="cells">
+        <button type="button" class="c1" id="demo-flip">Retourner la fiche</button>
+        <button type="button" class="c2" id="demo-next">Fiche suivante</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="moments" id="contenu" aria-labelledby="h-mo">
+    <div class="mo-top">
+      <h2 id="h-mo" data-reveal>De la première fiche aux écrits</h2>
+      <div class="mo-nav"><button type="button" id="mo-prev" aria-label="Moment précédent">‹</button><button type="button" id="mo-next" aria-label="Moment suivant">›</button></div>
+    </div>
+    <div class="mo-bar" aria-hidden="true"><span id="mo-bar"></span></div>
+    <div class="mo-row" id="mo-row" role="region" aria-label="Les moments d’une préparation" tabindex="0">
+      <article class="mo" data-reveal><h3>Le premier jour</h3><p>Tu choisis ton concours. Un test de douze questions situe ton niveau, thème par thème.</p><figure style="margin-top:40px"><img src="/img/m-test.webp" width="780" height="976" alt="Écran du test de positionnement : « Où en es-tu ? », douze questions tirées des fiches de ton concours." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:1"><h3>Chaque matin</h3><p>Le compte à rebours et la séance du jour, calculée d’après la date de tes écrits.</p><figure style="margin-top:112px"><img src="/img/m-accueil.webp" width="780" height="976" alt="Écran d’accueil : J-138 avant les écrits du 2 mars 2027 et 17 jours d’affilée." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:2"><h3>Face à la fiche</h3><p>Tu cherches la réponse avant de retourner. C’est cet effort de rappel qui fait retenir.</p><figure style="margin-top:72px"><img src="/img/m-question.webp" width="780" height="976" alt="Une fiche : « Que prévoit la loi Falloux (1850) pour la gymnastique ? »" loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:3"><h3>Une fois retournée</h3><p>Raté, hésité ou su : la fiche revient dans dix minutes, quelques jours ou quelques semaines.</p><figure style="margin-top:136px"><img src="/img/m-reponse.webp" width="780" height="976" alt="La réponse retournée, avec les trois boutons Raté, Hésité et Su." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:4"><h3>Devant un sujet</h3><p>À côté de chaque sujet, ce que le jury attend, avec les rapports qui le disent.</p><figure style="margin-top:56px"><img src="/img/m-jury.webp" width="780" height="976" alt="L’encadré « Ce que le jury attend », avec les années des rapports cités." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:5"><h3>Pour fixer les dates</h3><p>La frise et le quiz « Qui ? » remettent les réformes et les auteurs dans l’ordre.</p><figure style="margin-top:96px"><img src="/img/m-frise.webp" width="780" height="976" alt="La frise : remettre cinq événements dans l’ordre chronologique." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:6"><h3>En fin de semaine</h3><p>Ton niveau par thème du programme, et ce qu’il reste à voir avant les écrits.</p><figure style="margin-top:80px"><img src="/img/m-progres.webp" width="780" height="976" alt="Le niveau de préparation : 22 %, puis le niveau par thème de l’écrit 1." loading="lazy"></figure></article>
+    </div>
+  </section>
+
+  <section class="proof" aria-labelledby="h-proof">
+    <article class="proof-card fiche" data-reveal>
+      <h2 id="h-proof">Vérifié dans les textes</h2>
+      <figure><img class="drift" src="/img/proof-src.webp" width="810" height="456" alt="Une fiche retournée dans l’application : la réponse, son complément et la ligne « Vérifié avec », qui donne la source." loading="lazy"></figure>
+      <p class="names">Pierre&nbsp;Arnaud · Jacques&nbsp;Thibault · Jacques&nbsp;Ulmann · Jacques&nbsp;Defrance · Jacques&nbsp;Gleyse · Michaël&nbsp;Attali et Jean&nbsp;Saint-Martin · Alain&nbsp;Hébrard · Annick&nbsp;Davisse et Catherine&nbsp;Louveau · Didier&nbsp;Delignières · les rapports de jury de 2015 à 2026 · le Bulletin officiel · Roediger et Karpicke · Cepeda · Dunlosky</p>
+      <p class="after">Au dos de chaque fiche d’histoire, la source qui a servi à la vérifier, ou la mention qu’elle reste à recouper. Claude relit ce que tu écris ; il n’écrit ni les fiches ni les sujets.</p>
+    </article>
+  </section>
+
+  <section class="price" id="tarifs" aria-labelledby="h-price">
+    <div class="price-g">
+      <div class="price-h"><h2 id="h-price" data-reveal>Les prix</h2><img src="/img/m-accueil.webp" width="780" height="976" alt="L’accueil de l’application : le compte à rebours jusqu’aux écrits et la série de jours." loading="lazy" data-reveal style="--i:1"></div>
+      <div class="price-l">
+        <div class="grp" data-reveal>
+          <h3>Bristol EPS, en euros</h3>
+          <div class="item"><p class="item-r">Découverte <b>gratuit</b></p><p>Cinq nouvelles fiches par jour sur un écrit, les annales et les rapports de jury. Sans inscription.</p></div>
+          <div class="item"><p class="item-r">Pass session 2027 <b>80</b></p><p>En une fois, accès jusqu’au 31 juillet 2027 : les trois écrits, les retours de Claude sans compteur, le concours blanc corrigé.</p></div>
+          <div class="item"><p class="item-r">Mensuel <b>15</b></p><p>Par mois, sans engagement : le même accès complet.</p></div>
+        </div>
+        <div class="grp" data-reveal style="--i:1">
+          <h3>Ailleurs, en euros</h3>
+          <div class="item"><p class="item-r">Fiches PDF des écrits <b>69–130</b></p><p>À lire et relire, sans retour sur ce que tu écris.</p></div>
+          <div class="item"><p class="item-r">Une copie corrigée <b>22</b></p><p>À l’unité, par un correcteur, sous 72 heures.</p></div>
+          <div class="item"><p class="item-r">Prépa avec corrections <b>410–3 000</b></p><p>Devoirs corrigés et cours, sur l’année.</p></div>
         </div>
       </div>
-    </section>
-
-    <section class="dates" aria-labelledby="h-dates">
-      <h2 id="h-dates">Session 2027 : les écrits approchent</h2>
-      <p class="sub">Choisis ton concours : tout le site se règle dessus, des épreuves au format des sujets, des attentes du jury aux annales et au plan de révision.</p>
-      <table class="dt">
-        <thead><tr><th scope="col">Concours</th><th scope="col">Écrits</th><th scope="col">Dans</th></tr></thead>
-        <tbody id="dates-body"></tbody>
-      </table>
-      <p class="note" id="dates-note">Dates relevées dans les textes officiels ; seule ta convocation fait foi.</p>
-    </section>
-
-    <section class="why" aria-labelledby="h-why">
-      <h2 id="h-why">Le complément de tes cours, pas un de plus</h2>
-      <p class="sub">Chaque ressource fait bien une partie du travail. Bristol réunit au même endroit ce qui manque d'habitude : retenir, s'entraîner au bon format, être corrigé tout de suite.</p>
-      <div class="cmp-wrap" role="region" aria-label="Comparatif des ressources" tabindex="0"><table class="cmp">
-        <thead><tr><th scope="col"><span class="sr-only">Ce dont tu as besoin</span></th><th scope="col" class="me">Bristol EPS</th><th scope="col">Cours (fac, INSPÉ)</th><th scope="col">Cartes à faire soi-même</th><th scope="col">IA généraliste</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Le contenu du programme, vérifié et sourcé</th><td data-l="Bristol EPS" class="me y">Oui, source au dos des fiches</td><td data-l="Cours (fac, INSPÉ)" class="y">Oui</td><td data-l="Cartes à faire soi-même" class="n">À saisir toi-même</td><td data-l="IA généraliste" class="n">Non vérifié</td></tr>
-          <tr><th scope="row">Retenir sans y penser jusqu'aux écrits</th><td data-l="Bristol EPS" class="me y">Dose du jour calculée d'après la date</td><td data-l="Cours (fac, INSPÉ)" class="n">À organiser seul</td><td data-l="Cartes à faire soi-même" class="y">Oui</td><td data-l="IA généraliste" class="n">Non</td></tr>
-          <tr><th scope="row">S'entraîner au format de ton concours</th><td data-l="Bristol EPS" class="me y">Format 2026 du bac+3, annales, concours blanc</td><td data-l="Cours (fac, INSPÉ)" class="y">Quelques devoirs</td><td data-l="Cartes à faire soi-même" class="n">Non</td><td data-l="IA généraliste" class="n">Format approximatif</td></tr>
-          <tr><th scope="row">Être corrigé selon les attentes du jury</th><td data-l="Bristol EPS" class="me y">En une minute, grille du rapport à l'appui</td><td data-l="Cours (fac, INSPÉ)" class="n">Quelques copies, plus tard</td><td data-l="Cartes à faire soi-même" class="n">Non</td><td data-l="IA généraliste" class="n">Retour générique</td></tr>
-          <tr><th scope="row">Savoir où tu en es</th><td data-l="Bristol EPS" class="me y">Niveau par thème du programme</td><td data-l="Cours (fac, INSPÉ)" class="n">Rarement</td><td data-l="Cartes à faire soi-même" class="n">Par paquet</td><td data-l="IA généraliste" class="n">Non</td></tr>
-        </tbody>
-      </table></div>
-      <p class="note">Les rapports de jury sont le fil conducteur : chaque sujet affiche ce que le jury attend, avec la page du rapport, et les retours de Claude suivent sa grille.</p>
-    </section>
-
-    <section class="appr" aria-labelledby="h-appr">
-      <h2 id="h-appr">Fondé sur la recherche, ancré dans les textes</h2>
-      <div class="appr-g">
-        <div><h3>Ce que la recherche dit d'apprendre</h3><p>Se tester plutôt que relire, et espacer les révisions : les deux techniques que la littérature juge les plus efficaces (Roediger et Karpicke, 2006 ; Cepeda et al., 2006 ; Dunlosky et al., 2013). Chaque fiche se travaille ainsi, au rythme calculé pour la date de tes écrits.</p></div>
-        <div><h3>Les textes officiels et les jurys</h3><p>Le programme de ton concours relié aux fiches, thème par thème. Les attentes des rapports de jury à côté de chaque sujet, page par page pour le CAPEPS externe 2026. Les sujets officiels depuis 2015, avec ce qu'en ont dit les jurys.</p></div>
-        <div><h3>L'IA à sa juste place</h3><p>Claude ne rédige jamais à ta place : tu écris, il relit, avec le sujet, des fiches vérifiées et les critères du rapport du jury. Les fiches, les sujets et la méthode sont rédigés, sourcés et relus, pas générés à la volée.</p></div>
+      <div class="price-go">
+        <a class="btn" href="/app/">Commencer à réviser</a>
+        <p>Tu choisis ta formule depuis l’application, après avoir essayé. Paiement par Stripe. Prix pratiqués ailleurs relevés sur les sites des offres en octobre 2026.</p>
       </div>
-      <p class="note">Formateurs, membres de jury, agrégés : le contenu est ouvert à la relecture, depuis la page « Approche et sources » de l'application.</p>
-    </section>
+    </div>
+  </section>
 
-    <section class="feat" id="contenu" aria-labelledby="h-feat">
-      <h2 id="h-feat">Ce qu'il y a dedans</h2>
-      <p class="sub">Les trois écrits sont séparés : l'histoire de l'EPS, les sciences et l'intervention, et les textes officiels. Tu choisis ton concours, le site n'affiche que ce qui te concerne.</p>
+  <section class="faq" aria-labelledby="h-faq">
+    <div class="faq-l">
+      <h2 id="h-faq" data-reveal>Questions</h2>
+      <ul class="faq-facts" data-reveal style="--i:1">
+        <li>Gratuit pour commencer, sans inscription.</li>
+        <li>Sur téléphone et ordinateur, même hors connexion.</li>
+        <li>Le pass se paie une fois ; rien n’est prélevé ensuite.</li>
+      </ul>
+      <details><summary>Pourquoi pas simplement une IA généraliste ?<span class="chev" aria-hidden="true"></span></summary><p>Elle ne connaît ni le format de ton concours, ni la grille du jury, et elle invente parfois des dates ou des références. Ici, Claude relit avec le sujet, les fiches vérifiées qui s’y rapportent et les critères du rapport du jury, et il signale ce qui reste à vérifier.</p></details>
+      <details><summary>Et par rapport à des fiches PDF ?<span class="chev" aria-hidden="true"></span></summary><p>Une fiche PDF se relit ; une fiche Bristol se travaille : tu cherches la réponse, tu la retournes, et elle revient au bon moment jusqu’aux écrits. Tu t’entraînes aussi sur les sujets, avec un retour en une minute.</p></details>
+      <details><summary>Ça remplace une préparation ?<span class="chev" aria-hidden="true"></span></summary><p>Non : un retour de Claude n’est pas la correction d’un enseignant. Bristol est l’entraînement de tous les jours, entre tes cours et tes copies corrigées.</p></details>
+      <details><summary>Quels concours sont couverts ?<span class="chev" aria-hidden="true"></span></summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d’EPS. Les oraux ne sont pas encore traités.</p></details>
+      <details><summary>Le contenu est-il fiable ?<span class="chev" aria-hidden="true"></span></summary><p>Les fiches d’histoire indiquent la source qui a servi à les vérifier, ou signalent qu’elles restent à recouper, avec l’historiographie de la période. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
+      <details><summary>Que devient ce que j’écris ?<span class="chev" aria-hidden="true"></span></summary><p>Tes textes restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la relecture ; le site ne le garde pas à cette occasion.</p></details>
+      <details><summary>Le nombre de retours est-il limité ?<span class="chev" aria-hidden="true"></span></summary><p>Il n’y a pas de compteur. Une limite d’usage raisonnable, très au-dessus de ce qu’utilise un candidat qui s’entraîne tous les jours, protège seulement le service contre les détournements.</p></details>
+      <div class="faq-go"><a class="btn" href="/app/">Commencer à réviser</a><a class="link" href="/app/">Ouvrir l’application</a></div>
+    </div>
+    <div class="faq-r">
+      <video class="tall" src="/img/session.webm" poster="/img/session-poster.webp" width="780" height="1040" muted loop playsinline autoplay preload="none" aria-label="Une séance sur téléphone : la question, la fiche retournée, puis la suivante."></video>
+      <img class="sq" src="/img/m-jury.webp" width="780" height="976" alt="Ce que le jury attend, sur téléphone." loading="lazy">
+    </div>
+  </section>
 
-      <div class="row">
-        <div class="txt">
-          <h3>Réviser sans rien oublier</h3>
-          <p>313 fiches : 148 pour l'écrit 1, 125 pour l'écrit 2 et 40 sur les textes officiels. Chacune revient au moment où tu risques de l'oublier, puis de plus en plus tard.</p>
-          <ul><li>Une séance par écrit, avec un objectif du jour calculé d'après la date de ton concours.</li><li>Sur chaque fiche d'histoire, la source qui a servi à la vérifier, avec tes notes et tes références.</li><li>Une séance express de 5 minutes, ou un mode écoute pour réviser dans le train.</li></ul>
-        </div>
-        <figure class="shot" style="margin:0"><img src="/img/revise.webp" width="1600" height="1000" alt="Une séance de révision : la question, la réponse retournée et les boutons Raté, Hésité, Su." loading="lazy"></figure>
-      </div>
-
-      <div class="row flip">
-        <div class="txt">
-          <h3>S'entraîner comme le jour J</h3>
-          <p>83 sujets d'annales de 2015 à 2026, avec ce que les rapports de jury ont relevé, et 42 sujets d'entraînement.</p>
-          <ul><li>Au format exact de ton concours : au CAPEPS externe, questions à l'écrit 1 et étude d'épisodes à l'écrit 2, comme en 2026.</li><li>À côté de chaque sujet, ce que le jury attend, page du rapport à l'appui ; le retour de Claude suit la même grille.</li><li>Concours blanc : un sujet tiré au sort, la durée de l'épreuve, la correction et une note indicative.</li><li>La méthode de chaque écrit et ce que les jurys répètent d'une session à l'autre.</li></ul>
-        </div>
-        <figure class="shot" style="margin:0"><img src="/img/blanc.webp" width="1600" height="1000" alt="Un concours blanc en cours : le temps restant, le sujet, la copie et son plan détecté automatiquement." loading="lazy"></figure>
-      </div>
-
-      <div class="row">
-        <div class="txt">
-          <h3>Comprendre et citer juste</h3>
-          <p>8 fils rouges relient les faits sur un thème, de la fin du XIXe siècle à aujourd'hui. 53 références à placer en copie, chacune avec son idée clé et la façon de l'utiliser.</p>
-          <ul><li>La frise et le quiz « Qui ? » pour fixer dates et auteurs.</li><li>Les épreuves d'admissibilité et d'admission de chaque concours, et leurs programmes.</li><li>Une recherche unique dans tout le site, tes propres textes compris.</li></ul>
-        </div>
-        <figure class="shot" style="margin:0"><img src="/img/fils.webp" width="1600" height="1000" alt="Un fil rouge : la question, le récit de synthèse et la frise des étapes." loading="lazy"></figure>
-      </div>
-
-      <div class="row flip">
-        <div class="txt">
-          <h3>Tenir jusqu'aux écrits</h3>
-          <p>Le site découpe les semaines qui restent : nouvelles fiches, sujets d'annales, copies complètes en temps réel, puis deux semaines de révision finale.</p>
-          <ul><li>Les cartes à revoir sur 7 jours et ton niveau par écrit.</li><li>Un rappel chaque jour sur ton téléphone, et le bilan de ta semaine le dimanche.</li><li>Installable comme une application, et utilisable sans connexion.</li></ul>
-        </div>
-        <figure class="shot" style="margin:0"><img src="/img/progres.webp" width="1600" height="1000" alt="La page Progrès : bilan de la semaine, niveau de préparation et régularité." loading="lazy"></figure>
-      </div>
-    </section>
-
-    <section class="price" id="tarifs" aria-labelledby="h-price">
-      <h2 id="h-price">Commence gratuitement, passe à l'accès complet quand tu veux</h2>
-      <div class="plans">
-        <div class="plan-c"><p class="plan-n">Découverte</p><p class="plan-p">Gratuit</p><p class="plan-d">Sans inscription.</p><ul><li>Cinq nouvelles fiches par jour sur un écrit</li><li>Les annales et les rapports de jury</li><li>La méthode, les sujets, la frise et les fils rouges</li></ul><a class="btn" href="/app/">Commencer</a></div>
-        <div class="plan-c best"><p class="plan-n">Pass session 2027</p><p class="plan-p">80 €</p><p class="plan-d">En une fois, jusqu'au concours : accès jusqu'au 31 juillet 2027, écrits et oraux compris.</p><ul><li>Les trois écrits, sans limite</li><li>Les retours de Claude et le concours blanc corrigé, sans compteur</li><li>Le plan jusqu'aux écrits, les rappels, le mode écoute</li></ul><a class="btn primary" href="/app/">Commencer</a></div>
-        <div class="plan-c"><p class="plan-n">Mensuel</p><p class="plan-p">15 €<small> par mois</small></p><p class="plan-d">Sans engagement, résiliable à tout moment.</p><ul><li>Le même accès complet</li><li>Pratique pour quelques mois de préparation</li></ul><a class="btn" href="/app/">Commencer</a></div>
-      </div>
-      <p class="sub" style="margin-top:18px">Tu choisis ta formule depuis l'application, après avoir essayé. Paiement sécurisé par Stripe.</p>
-    </section>
-
-    <section class="how" aria-labelledby="h-how">
-      <h2 id="h-how">Une séance, en trois gestes</h2>
-      <ol class="steps">
-        <li><b>Lis la question</b><p>Cherche la réponse dans ta tête avant de regarder. C'est cet effort qui fait retenir.</p></li>
-        <li><b>Retourne la carte</b><p>La réponse s'affiche, avec un complément et la source.</p></li>
-        <li><b>Dis si tu savais</b><p>Raté, hésité ou su : la carte revient dans dix minutes, dans quelques jours ou dans quelques semaines.</p></li>
-      </ol>
-      <p class="after">Le calcul repose sur l'algorithme de répétition espacée FSRS : chaque carte revient quand ta probabilité de t'en souvenir tombe à 90 %, et jamais après la date de ton concours.</p>
-    </section>
-
-    <section class="faq" aria-labelledby="h-faq">
-      <h2 id="h-faq">Questions fréquentes</h2>
-      <details><summary>Faut-il créer un compte ?</summary><p>Non. Ta progression est enregistrée dans ton navigateur dès la première carte. Un compte, gratuit, sert à la retrouver sur ton téléphone et ton ordinateur, et à recevoir le rappel quotidien.</p></details>
-      <details><summary>Quels concours sont couverts ?</summary><p>Les écrits du CAPEPS externe (nouveau concours à bac+3 et concours transitoire), du CAPEPS interne, du troisième concours, et des agrégations externe et interne d'EPS. Les oraux ne sont pas encore traités.</p></details>
-      <details><summary>Pourquoi pas simplement une IA généraliste ?</summary><p>Une IA généraliste ne connaît ni le format de ton concours, ni la grille du jury, et elle invente parfois des dates ou des références. Ici, Claude corrige avec le sujet, les fiches vérifiées qui s'y rapportent et les critères du rapport du jury, et il signale ce qui reste à vérifier. Et le site te fait aussi retenir, chaque jour, ce que tu dois savoir.</p></details>
-      <details><summary>Le contenu est-il fiable ?</summary><p>Les fiches d'histoire indiquent la source avec laquelle elles ont été vérifiées, ou signalent qu'elles restent à recouper, avec l'historiographie de référence de la période (Arnaud, Thibault, Attali et Saint-Martin…). Les programmes et les dates viennent des textes officiels. Un lien sous chaque fiche permet de signaler une erreur.</p></details>
-      <details><summary>Que devient ce que j'écris ?</summary><p>Tes plans, introductions et copies restent sur ton appareil, et dans ton compte si tu es connecté. Quand tu demandes un retour, le texte est envoyé à Claude (Anthropic) pour la correction ; le site ne le garde pas à cette occasion.</p></details>
-      <details><summary>Que comprend la version gratuite ?</summary><p>Cinq nouvelles fiches par jour sur un écrit, avec leurs révisions, les annales et les rapports de jury, la méthode, les sujets d'entraînement, la frise, les fils rouges et les références. L'accès complet ouvre tous les écrits sans limite, les retours de Claude, le concours blanc corrigé, le plan jusqu'aux écrits, les rappels et le mode écoute.</p></details>
-      <details><summary>Le nombre de corrections est-il limité ?</summary><p>Il n'y a pas de compteur. Une limite d'usage raisonnable, très au-dessus de ce qu'utilise un candidat qui s'entraîne tous les jours, protège seulement le service contre les détournements, comme un compte partagé.</p></details>
-      <details><summary>Comment résilier ?</summary><p>Le pass session se paie une fois : rien n'est prélevé ensuite. L'abonnement mensuel se résilie en un clic depuis « Mon compte », sans engagement ; l'accès reste ouvert jusqu'à la fin du mois payé.</p></details>
-      <details><summary>Ça marche sur téléphone ?</summary><p>Oui, et le site s'installe comme une application : sur Android, via le menu du navigateur ; sur iPhone, dans Safari, avec Partager puis « Sur l'écran d'accueil ». Les révisions fonctionnent ensuite sans connexion.</p></details>
-    </section>
-
-    <section class="end" aria-labelledby="h-end">
-      <h2 id="h-end">Ta première séance prend cinq minutes.</h2>
-      <p>Choisis ton concours, réponds à quelques fiches, et le site prépare la suite jusqu'aux écrits.</p>
-      <a class="btn primary" href="/app/">Commencer à réviser</a>
-    </section>
-  </main>
-  <footer class="foot"><span>Bristol EPS, conçu par un enseignant d'EPS.</span><a href="/app/">Ouvrir l'application</a></footer>
-</div>
+  <section class="reply" aria-labelledby="h-reply">
+    <p class="reply-p" data-reveal>Choisis ton concours, réponds à quelques fiches : le site prépare la suite jusqu’aux écrits.</p>
+    <div class="reply-card fiche" data-reveal style="--i:1">
+      <h2 id="h-reply">Cinq minutes pour commencer</h2>
+      <p>Ta première séance est gratuite, sans inscription.</p>
+      <a class="btn" href="/app/">Commencer à réviser</a>
+    </div>
+  </section>
+</main>
+<footer class="back">
+  <div class="back-card fiche">
+    <div>
+      <h2>Bonne révision</h2>
+      <p class="msg">Bristol EPS est conçu par un enseignant d’EPS. Une erreur sur une fiche ? Le lien « Signaler » sous chaque fiche me l’envoie.</p>
+    </div>
+    <div class="back-r">
+      <ul class="addr">
+        <li><a class="link" href="/app/">Ouvrir l’application</a></li>
+        <li><a class="link" href="#essai">Essayer une fiche</a></li>
+        <li><a class="link" href="#tarifs">Tarifs</a></li>
+        <li><a class="link" href="#h-hero">Haut de la page</a></li>
+      </ul>
+      <div class="stamp"><img src="/img/m-question.webp" width="780" height="976" alt="" loading="lazy"></div>
+    </div>
+    <p class="imprint">© 2026 Bristol EPS. Polices Imbue et Albert Sans, licence SIL OFL. Les images sont des captures de l’application.</p>
+  </div>
+  <p class="wordmark" aria-hidden="true">Bristol EPS</p>
+</footer>
 <script>
-const DEMO = [{"q": "Que prévoit la loi Falloux (1850) pour la gymnastique ?", "a": "Elle en fait une matière facultative de l'enseignement primaire.", "p": "Avant 1880", "th": "Repères institutionnels", "e": "Écrit 1"}, {"q": "Que postule la théorie du schéma de Schmidt (1975) ?", "a": "Le sujet construit des programmes moteurs généralisés, paramétrés grâce à un schéma de rappel et contrôlés par un schéma de reconnaissance.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2"}, {"q": "Quel courant étranger fonde la gymnastique sur l'anatomie et la physiologie ?", "a": "La gymnastique suédoise de Pehr Henrik Ling.", "p": "Avant 1880", "th": "Le geste et l'effort", "e": "Écrit 1"}, {"q": "Qu'est-ce que l'expérience optimale ou « flow » (Csikszentmihalyi) ?", "a": "Un état d'absorption totale dans l'activité, quand le défi est à la hauteur des compétences.", "p": "", "th": "Émotions, motivation et interactions", "e": "Écrit 2"}, {"q": "Quelle école, fondée en 1852, devient le centre de la gymnastique militaire en France ?", "a": "L'École normale militaire de gymnastique de Joinville-le-Pont.", "p": "Avant 1880", "th": "Repères institutionnels", "e": "Écrit 1"}, {"q": "Quelles sont les trois étapes de l'apprentissage moteur selon Fitts et Posner (1967) ?", "a": "L'étape cognitive, l'étape associative, puis l'étape autonome.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2"}];
+const DEMO = [{"q": "Que prévoit la loi Falloux (1850) pour la gymnastique ?", "a": "Elle en fait une matière facultative de l'enseignement primaire.", "p": "Avant 1880", "th": "Repères institutionnels", "e": "Écrit 1", "g": "e1"}, {"q": "Où et quand se tiennent les premiers Jeux mondiaux féminins organisés autour d'Alice Milliat ?", "a": "À Paris, au stade Pershing, en 1922.", "p": "1918-1945", "th": "Débats et controverses", "e": "Écrit 1", "g": "e1"}, {"q": "Quelle réforme rend la mixité obligatoire dans l'enseignement primaire et secondaire ?", "a": "La loi Haby du 11 juillet 1975 et ses décrets d'application.", "p": "1967-1981", "th": "Transmettre et adapter", "e": "Écrit 1", "g": "e1"}, {"q": "Que postule la théorie du schéma de Schmidt (1975) ?", "a": "Le sujet construit des programmes moteurs généralisés, paramétrés grâce à un schéma de rappel et contrôlés par un schéma de reconnaissance.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2", "g": "e2"}, {"q": "Quelles sont les trois étapes de l'apprentissage moteur selon Fitts et Posner (1967) ?", "a": "L'étape cognitive, l'étape associative, puis l'étape autonome.", "p": "", "th": "Apprentissage moteur et techniques corporelles", "e": "Écrit 2", "g": "e2"}, {"q": "Qu'est-ce que l'expérience optimale ou « flow » (Csikszentmihalyi) ?", "a": "Un état d'absorption totale dans l'activité, quand le défi est à la hauteur des compétences.", "p": "", "th": "Émotions, motivation et interactions", "e": "Écrit 2", "g": "e2"}, {"q": "Quel est l'horaire hebdomadaire d'EPS au collège, et quel texte le fixe ?", "a": "4 h en 6e ; 3 h en 5e, 4e et 3e. Il est fixé par l'arrêté du 19 mai 2015 relatif à l'organisation des enseignements au collège, modifié par l'arrêté du 16 juin 2017.", "p": "", "th": "Programmes et textes officiels", "e": "Textes officiels", "g": "tx"}, {"q": "Quel principe la circulaire n°90-107 du 17 mai 1990 pose-t-elle en matière d'inaptitude ?", "a": "Tout élève est présumé apte. La notion de dispense est remplacée par celle d'inaptitude, et les contre-indications de l'inaptitude partielle sont formulées « en termes d'incapacités fonctionnelles » (types de mouvements ou d'efforts), et non en activités interdites.", "p": "", "th": "Programmes et textes officiels", "e": "Textes officiels", "g": "tx"}, {"q": "Quel est le poids de l'EPS au baccalauréat général et technologique ?", "a": "Coefficient 6, en terminale, au titre du contrôle continu (qui représente 40 % de la note finale). L'EPS est évaluée en CCF, et non par la moyenne des bulletins.", "p": "", "th": "Programmes et textes officiels", "e": "Textes officiels", "g": "tx"}];
 const CONC = [{"id": "capeps-l3", "t": "CAPEPS externe", "tag": "Bac+3, nouveau concours", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "capeps-m2", "t": "CAPEPS externe transitoire", "tag": "Bac+5, dernière session en 2027", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "capeps-int", "t": "CAPEPS interne", "tag": "Pour les agents publics en poste", "ecrits": "29 janvier 2027", "d": "2027-01-29"}, {"id": "capeps-3", "t": "Troisième concours du CAPEPS", "tag": "Pour une reconversion depuis le privé", "ecrits": "2 et 3 mars 2027", "d": "2027-03-02"}, {"id": "agreg-ext", "t": "Agrégation externe d'EPS", "tag": "Bac+5", "ecrits": "Entre le 17 février et le 5 mars 2027 (dates de l'EPS pas encore publiées)", "d": "2027-02-17"}, {"id": "agreg-int", "t": "Agrégation interne d'EPS", "tag": "Pour les enseignants titulaires", "ecrits": "Entre le 25 et le 29 janvier 2027 (dates de l'EPS pas encore publiées)", "d": "2027-01-25"}];
 const INSC_END = Date.UTC(2026, 10, 25, 11, 0, 0);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-let i = 0, shown = false;
-const card = document.getElementById("demo");
+const $ = id => document.getElementById(id);
+
+/* La fiche à retourner, par écrit. */
+let g = "e1", k = 0, shown = false;
+const deck = () => DEMO.filter(c => c.g === g);
 function draw(turn){
-  const c = DEMO[i % DEMO.length];
-  card.innerHTML = `<p class="card-band"><b>${esc(c.th)}</b><span>${esc(c.e)}${c.p ? ", " + esc(c.p) : ""}</span></p>
-    <p class="card-q">${esc(c.q)}</p>${shown ? `<p class="card-a">${esc(c.a)}</p>` : ""}
-    <div class="card-act">${shown ? `<button class="btn bad" data-k="next">Raté</button><button class="btn good" data-k="next">Su</button>` : `<button class="btn primary wide" data-k="flip">Voir la réponse</button>`}</div>`;
-  if (turn) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
+  const d = deck(), c = d[k % d.length];
+  $("demo-th").textContent = c.th; $("demo-p").textContent = c.p || c.e;
+  $("demo-q").textContent = c.q; $("demo-a").textContent = c.a; $("demo-a").hidden = !shown;
+  $("demo-h").textContent = shown ? "Su, ou raté ? Dans l’application, c’est toi qui le dis." : "Cherche la réponse dans ta tête avant de retourner la fiche.";
+  $("demo-flip").textContent = shown ? "Revoir la question" : "Retourner la fiche";
+  if (turn) { const el = $("demo"); el.classList.remove("turn"); void el.offsetWidth; el.classList.add("turn"); }
 }
-card.addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.k === "flip") shown = true; else { shown = false; i++; }
+$("demo-flip").addEventListener("click", () => { shown = !shown; draw(true); });
+$("demo-next").addEventListener("click", () => { shown = false; k++; draw(true); });
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  g = b.dataset.g; k = 0; shown = false;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
   draw(true);
-  const nb = card.querySelector("button"); if (nb) nb.focus({ preventScroll: true });
-});
+}));
 draw(false);
+
 /* Compte à rebours jusqu'aux premiers écrits de chaque concours. */
 const today = new Date(); today.setHours(0, 0, 0, 0);
-document.getElementById("dates-body").innerHTML = CONC.map(c => {
+$("dates-body").innerHTML = CONC.map((c, i) => {
   const n = Math.round((new Date(c.d + "T00:00:00") - today) / 864e5);
-  return `<tr><td><a class="dt-go" href="/app/?concours=${encodeURIComponent(c.id)}">${esc(c.t)}</a><span class="tag">${esc(c.tag)}</span></td><td class="when">${esc(c.ecrits)}</td><td class="jcell">${n > 0 ? `<span class="j">J-${n}</span>` : `<span class="j"><small>passés</small></span>`}</td></tr>`;
+  return `<li data-reveal style="--i:${i}"><a href="/app/?concours=${encodeURIComponent(c.id)}"><b>${n > 0 ? "J-" + n : "Passés"}</b><span><strong>${esc(c.t)}</strong>, ${esc(c.ecrits)}</span></a></li>`;
 }).join("");
-if (Date.now() < INSC_END) document.getElementById("dates-note").textContent = "Inscriptions sur Cyclades jusqu'au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
+if (Date.now() < INSC_END) $("dates-note").textContent = "Choisis ton concours : tout le site se règle dessus. Inscriptions sur Cyclades jusqu’au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
+
+/* La rangée de moments : boutons et barre d'avancement. */
+const row = $("mo-row"), bar = $("mo-bar");
+const step = () => (row.querySelector(".mo") || {}).offsetWidth + 32 || 312;
+function prog(){ const max = row.scrollWidth - row.clientWidth; const r = max > 0 ? row.scrollLeft / max : 1; bar.style.transform = `scaleX(${Math.max(.08, Math.min(1, .15 + r * .85))})`; }
+row.addEventListener("scroll", prog, { passive: true }); prog();
+$("mo-prev").addEventListener("click", () => row.scrollBy({ left: -step(), behavior: "smooth" }));
+$("mo-next").addEventListener("click", () => row.scrollBy({ left: step(), behavior: "smooth" }));
+
+/* La vidéo de séance : seulement visible à l'écran, et jamais si le mouvement réduit est demandé. */
+(() => {
+  const v = document.querySelector("video.tall"); if (!v) return;
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  if (still.matches) { v.removeAttribute("autoplay"); v.pause(); return; }
+  if (!("IntersectionObserver" in window)) return;
+  new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause(); }), { threshold: .2 }).observe(v);
+})();
+
+/* Entrées : une fois, sans jamais laisser de contenu caché. */
+(() => {
+  const t = document.querySelectorAll("[data-reveal]");
+  if (!("IntersectionObserver" in window)) return;
+  document.documentElement.classList.add("io");
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }, { rootMargin: "0px 0px -10% 0px", threshold: .08 });
+  t.forEach(el => io.observe(el));
+  addEventListener("load", () => setTimeout(() => t.forEach(el => { const r = el.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) el.classList.add("is-in"); }), 2500));
+})();
 </script>
 </body>
 </html>

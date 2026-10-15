@@ -82,6 +82,13 @@ Chaque modification envoyée sur la branche `main` est déployée automatiquemen
 
 Si tu modifies `source/bristol-eps.html` ou `source/landing.html`, fabrique d'abord les pages avec : `python3 build.py`. Le script réécrit aussi `public/_headers` (en-têtes de sécurité) : la politique de contenu n'autorise que les scripts du site, reconnus par leur empreinte. Une page modifiée sans relancer `build.py` resterait bloquée par le navigateur.
 
+## Identité visuelle
+
+- **L'idée** : la fiche bristol. Chaque section de la page d'accueil est une fiche du paquet du candidat (papier clair, ligne d'en-tête verte), et la première se retourne.
+- **Couleurs** : fond os `#e5e1d8`, papier `#f3f3f0`, encre chocolat `#2a1d17`, un seul vert `#456f3a` pour l'action ; variantes sombres dans les deux pages.
+- **Typographie** : Imbue (titres et grands chiffres) et Albert Sans (texte), servies par le site lui-même depuis `public/fonts/` (licence SIL OFL) : aucune requête vers Google.
+- **Images** : uniquement des captures réelles de l'application (`public/img/`), et une courte vidéo d'une séance (`session.webm`). À refaire quand l'interface change.
+
 ## Sécurité
 
 - **En-têtes** (`public/_headers`, écrit par `build.py`) : politique de contenu stricte (aucun script extérieur ni injecté), HTTPS imposé (HSTS), pas d'affichage dans un cadre, pas de caméra, micro ni localisation.

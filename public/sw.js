@@ -1,11 +1,11 @@
 /* Service worker de Bristol EPS : l'application reste utilisable hors ligne.
    - la page : réseau d'abord (pour recevoir les mises à jour), copie en cache si le réseau manque ;
    - les polices Google : copie en cache, rafraîchie en arrière-plan ;
-   - les icônes et le manifeste : cache d'abord ;
+   - les icônes, les polices du site et le manifeste : cache d'abord ;
    - /api/* : jamais mis en cache (comptes, progression, retour de Claude). */
-const PAGE = "bristol-page-v2", STATIC = "bristol-static-v1", FONTS = "bristol-fonts-v1";  // v2 : application sous /app/, page de présentation à la racine
+const PAGE = "bristol-page-v2", STATIC = "bristol-static-v2", FONTS = "bristol-fonts-v1";  // v2 : application sous /app/, page de présentation à la racine
 const KEEP = [PAGE, STATIC, FONTS];
-const PRECACHE = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/favicon-32.png"];
+const PRECACHE = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/favicon-32.png", "/fonts/fonts.css", "/fonts/albert-sans.woff2", "/fonts/imbue-400.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
@@ -57,7 +57,7 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  if (same && (url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest")) {
+  if (same && (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/fonts/") || url.pathname === "/manifest.webmanifest")) {
     e.respondWith((async () => {
       const cache = await caches.open(STATIC);
       const hit = await cache.match(req);

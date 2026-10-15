@@ -1,6 +1,6 @@
 # Fichier écrit par build.py : ne pas modifier à la main.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-CFKw7iyMXv5V6cGlAvVA+bt8KWu1UglYTsRtoePaRWE=' 'sha256-U0JcEYPun88g/6+NKJvZKCtrdOege//tiUORe7R3xLs=' 'sha256-rdpCBRp9igBBG5PZPtOpX0oGqLQWH4XYO3OsSj6YR9I='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-8buaHDIp8SIcdqLQRwntUL5mmy7/G2LvM2kBHrIOjCA=' 'sha256-WTlKYEZJsQw3fbJbnCxInxEFXY/r7yVwj3ZP9oCPMJg=' 'sha256-rxGULr6dXwtJdRGOhN4xjTkbUsXOrBDSBUA7uIlISbg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

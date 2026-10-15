@@ -1,45 +1,46 @@
 <title>Bristol EPS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Imbue&family=Albert+Sans:wght@400..800&display=swap">
 <style>
-/* Bristol EPS — app épurée : barre latérale (ordinateur) ou onglets en bas (téléphone), une colonne de 720px.
-   Un vert « gymnase » pour l'action, l'or réservé à la série et aux succès. */
+/* Bristol EPS : la fiche bristol (papier clair) posée sur un fond os, encre chocolat, un seul vert pour l'action.
+   Typographie : Imbue (titres, chiffres de très grande taille) et Albert Sans (tout le reste). L'or est réservé à la série et aux succès. */
 :root{
-  --paper:#f3f5f2; --surface:#ffffff; --ink:#13201a; --muted:#5a6861; --line:#dde4df; --chip:#e8ede9;
-  --accent:#0b7a53; --bar:#0b7a53; --accent-ink:#ffffff; --soft:#e1f2e9; --accent-text:#09694a;
-  --hero:#0b7a53; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.93); --hero-tint:rgba(0,0,0,.18); --hero-lane:rgba(255,255,255,.25); --hero-fill:#ffffff;
-  --gold:#e5a00d; --gold-ink:#3b2900; --gold-text:#8a5c00;
-  --ok:#0b7a53; --ok-soft:#e1f2e9; --mid:#955900; --mid-soft:#fcecd2; --bad:#b53a2d; --bad-soft:#fbe4e0;
-  --warn:#955900;
-  --seg-m:#0b7a53; --seg-c:#8fd0b2; --seg-e:#dde4df;
-  --hm0:#e5ebe7; --hm1:#bfe3d1; --hm2:#7cc7a4; --hm3:#2f9c6e; --hm4:#0b6b47;
-  --shadow:rgba(19,32,26,.10);
-  --f-display:"Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
-  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --paper:#e7e3da; --surface:#f9f7f2; --ink:#2a1d17; --muted:#66574d; --line:#d4cec2; --chip:#dcd6ca;
+  --accent:#456f3a; --bar:#456f3a; --accent-ink:#ffffff; --soft:#dfe7d6; --accent-text:#3b6131;
+  --hero:#456f3a; --hero-ink:#ffffff; --hero-sub:rgba(255,255,255,.93); --hero-tint:rgba(0,0,0,.16); --hero-lane:rgba(255,255,255,.22); --hero-fill:#f9f7f2;
+  --gold:#e5a00d; --gold-ink:#3b2900; --gold-text:#835600;
+  --ok:#456f3a; --ok-soft:#dfe7d6; --mid:#8f5a00; --mid-soft:#f3e3c6; --bad:#a8372b; --bad-soft:#f5ddd6;
+  --warn:#8f5a00;
+  --seg-m:#456f3a; --seg-c:#a7c299; --seg-e:#d4cec2;
+  --hm0:#dcd6ca; --hm1:#c4d4b8; --hm2:#92b282; --hm3:#5e8a50; --hm4:#355a2c;
+  --shadow:rgba(42,29,23,.10);
+  --f-display:"Albert Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body:"Albert Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-serif:"Imbue", "Iowan Old Style", Georgia, serif;
   --f-mono:var(--f-display);
   --r-xl:28px; --r-l:20px; --r-m:14px; --r-s:10px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
-    --accent:#3dcb92; --bar:#2fae78; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
-    --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
+    --paper:#16110e; --surface:#211a16; --ink:#efe8de; --muted:#b5a79b; --line:#382d27; --chip:#2b221d;
+    --accent:#93bf81; --bar:#7fae6c; --accent-ink:#11190d; --soft:#263220; --accent-text:#a8d095;
+    --hero:#2b3f25; --hero-ink:#efe8de; --hero-sub:#c8d5bd; --hero-tint:rgba(255,255,255,.06); --hero-lane:rgba(255,255,255,.12); --hero-fill:#93bf81;
     --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
-    --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
-    --seg-m:#3dcb92; --seg-c:#2a6b50; --seg-e:#28332e;
-    --hm0:#1f2925; --hm1:#1e4535; --hm2:#2a6b50; --hm3:#36a277; --hm4:#5fdaa7;
+    --ok:#93bf81; --ok-soft:#263220; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
+    --seg-m:#93bf81; --seg-c:#4a6a3e; --seg-e:#382d27;
+    --hm0:#2b221d; --hm1:#2f4127; --hm2:#4a6a3e; --hm3:#6f9a5e; --hm4:#a8d095;
     --shadow:rgba(0,0,0,.45); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#0e1412; --surface:#17201c; --ink:#e6eeea; --muted:#9aa9a1; --line:#28332e; --chip:#1f2925;
-  --accent:#3dcb92; --bar:#2fae78; --accent-ink:#04130c; --soft:#163a2b; --accent-text:#5fdaa7;
-  --hero:#163a2b; --hero-ink:#e6eeea; --hero-sub:#a9c4b7; --hero-tint:rgba(255,255,255,.07); --hero-lane:rgba(255,255,255,.12); --hero-fill:#3dcb92;
+  --paper:#16110e; --surface:#211a16; --ink:#efe8de; --muted:#b5a79b; --line:#382d27; --chip:#2b221d;
+  --accent:#93bf81; --bar:#7fae6c; --accent-ink:#11190d; --soft:#263220; --accent-text:#a8d095;
+  --hero:#2b3f25; --hero-ink:#efe8de; --hero-sub:#c8d5bd; --hero-tint:rgba(255,255,255,.06); --hero-lane:rgba(255,255,255,.12); --hero-fill:#93bf81;
   --gold:#f1be4a; --gold-ink:#2a1d00; --gold-text:#f1be4a;
-  --ok:#3dcb92; --ok-soft:#163a2b; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
-  --seg-m:#3dcb92; --seg-c:#2a6b50; --seg-e:#28332e;
-  --hm0:#1f2925; --hm1:#1e4535; --hm2:#2a6b50; --hm3:#36a277; --hm4:#5fdaa7;
+  --ok:#93bf81; --ok-soft:#263220; --mid:#e8a94f; --mid-soft:#3a2c14; --bad:#f07d70; --bad-soft:#3d1d19; --warn:#e8a94f;
+  --seg-m:#93bf81; --seg-c:#4a6a3e; --seg-e:#382d27;
+  --hm0:#2b221d; --hm1:#2f4127; --hm2:#4a6a3e; --hm3:#6f9a5e; --hm4:#a8d095;
   --shadow:rgba(0,0,0,.45); color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -860,6 +861,21 @@ html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
   .period{white-space:normal;border-radius:12px}
   .hero{padding:20px 18px 18px}
 }
+
+/* ---------- Identité : les grands titres et les grands chiffres en Imbue ---------- */
+.brand,.page-h,.hero-j,.hero-title,.empty h2,.pt-h,.fil-head h2,.rd-pct b{font-family:var(--f-serif);font-weight:400;font-variation-settings:normal;letter-spacing:-.01em}
+.brand{font-size:26px}
+.brand-mark{font-family:var(--f-serif);font-weight:400;font-size:21px;border-radius:4px}
+.page-h{font-size:44px;line-height:.98}
+.hero-title{font-size:36px;line-height:1}
+.empty h2{font-size:34px;line-height:1}
+.pt-h{font-size:36px;line-height:1}
+.fil-head h2{font-size:40px;line-height:1}
+.hero-j{font-size:clamp(80px,17vw,120px);line-height:.82}
+.rd-pct b{font-size:60px}
+@media (max-width:640px){.page-h{font-size:38px}}
+/* La carte de révision est une fiche bristol : coins presque droits, ligne d'en-tête verte. */
+.bristol{border:0;border-radius:6px;border-top:6px solid var(--accent);box-shadow:0 22px 44px -32px var(--shadow)}
 </style>
 
 <div class="app">
