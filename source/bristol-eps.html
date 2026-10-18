@@ -253,6 +253,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .pt-rev li span{font-size:14px;color:var(--muted)}
 .pt-rev li.pt-ok span{color:var(--ok)}
 .pt .save-card{margin-top:20px}
+.cov-warn{font-size:14px;color:var(--mid);margin:-4px 0 10px}
 .cov-h{font-family:var(--f-display);font-weight:700;font-size:16px;line-height:1.3;margin:18px 0 8px}
 .cov-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .cov-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,150px) auto;gap:6px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 10px 10px 14px}
@@ -1824,11 +1825,14 @@ const ICON = {
 const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
 function isToday(ts){ return !!ts && dayKey(new Date(ts)) === dayKey(); }
-function subjectOfDay(){
-  const L = isB3Conc() ? SUBJECTS_B1 : SUBJECTS, n = L.length, day = Math.floor(startOfDay().getTime() / DAY);
+/* Le sujet du jour vient du concours choisi : ses sujets d'entraînement, sinon ses annales (jamais un sujet hors programme). */
+function daySubjects(e){ const P = sjPools(e); return P.own.length ? P.own : P.ann.map(annSubject); }
+function pickDay(L){
+  const n = L.length, day = Math.floor(startOfDay().getTime() / DAY); if (!n) return null;
   for (let i = 0; i < n; i++) { const x = L[(day + i) % n]; if (!ach.w["p:" + x.id]) return x; }
   return L[day % n];
 }
+function subjectOfDay(){ return pickDay(daySubjects("e1")); }
 const plural = (n, w) => n + " " + w + (n > 1 ? "s" : "");
 function heroHTML(){
   const g = goalInfo(), st = streaks(), myC = concById(prefs.concours);
@@ -1862,16 +1866,12 @@ function heroHTML(){
   else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
   else lane = g.daysLeft <= 14 ? `<p class="hero-note">Phase finale : après ta séance, revois tes points faibles.</p>` : "";
   return `<section class="hero" id="goal" aria-label="Objectif concours">
-    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)} <button class="linkbtn" data-act="conc-change">Changer</button></p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? "Écrits" : "Concours"} le ${esc(dateTxt)}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
+    <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)} <button class="linkbtn" data-act="conc-change">Changer</button></p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? (dateProv(myC) ? "Écrits vers le" : "Écrits le") : "Concours le"} ${esc(dateTxt)}${myC && prefs.examDate === myC.d && dateProv(myC) ? " (date provisoire)" : ""}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
     ${lane}
   </section>`;
 }
 /* Accueil : le strict nécessaire. Une séance qui enchaîne les écrits de ton concours, un exercice d'écriture. */
-function subjectOfDay2(){
-  const L = isB3Conc() ? SUBJECTS_B2 : SUBJECTS2, n = L.length, day = Math.floor(startOfDay().getTime() / DAY);
-  for (let i = 0; i < n; i++) { const x = L[(day + i) % n]; if (!ach.w["p:" + x.id]) return x; }
-  return L[day % n];
-}
+function subjectOfDay2(){ return pickDay(daySubjects("e2")); }
 function homeSession(){
   const now = Date.now();
   const gs = EPR.filter(e => relHas(e.id)).map(e => [e, grpGoal(e.id)]);
@@ -1907,8 +1907,10 @@ function homeTrain(){
   const recent = blancList().some(m => m.start > Date.now() - 7 * DAY);
   if (w0 && !recent && w0.items.some(i => i.includes("concours blanc"))) return card("clock", "Cette semaine : un concours blanc", "Une copie complète en temps réel, comme le jour J. Garde-toi un créneau.", `<button class="btn" data-tab="blanc">Préparer</button>`);
   const e1 = relHas("e1"), s = e1 ? subjectOfDay() : subjectOfDay2();
+  if (!s) return "";
   const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
-  return card(wDone ? "check" : "pen", wDone ? "Écrit du jour fait" : e1 ? "Un paragraphe argumenté" : isB3Conc() ? "Une partie sur un épisode" : "Une partie illustrée", `${esc(s.t)}`, `<button class="btn" data-act="home-write" data-sid="${s.id}">${wDone ? "Un autre" : "Écrire"}</button>`);
+  const st = s.t.length > 200 ? s.t.slice(0, 197).replace(/\s+\S*$/, "") + "…" : s.t;
+  return card(wDone ? "check" : "pen", wDone ? "Écrit du jour fait" : s.annale ? "Un plan sur une annale" : e1 ? "Un paragraphe argumenté" : isB3Conc() ? "Une partie sur un épisode" : "Une partie illustrée", `${esc(st)}`, `<button class="btn" data-act="home-write" data-sid="${s.id}">${wDone ? "Un autre" : "Écrire"}</button>`);
 }
 function quoteOfDay(){
   const qs = QUOTES.filter(x => x.text.length < 260).filter(x => { const r = x.ref && REFS.find(y => y.id === x.ref); return r ? relHas(r.g) : relHas("e1"); }); if (!qs.length) return null;
@@ -2320,14 +2322,14 @@ function renderPaywall(){
     <h2 id="pw-title">Prépare tous tes écrits, sans limite</h2>
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
-      <li>${icon("check")} Les trois écrits : ${n} fiches, autant de nouvelles par jour que tu veux</li>
-      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes, sans compteur</li>
+      <li>${icon("check")} Tous les écrits de ton concours : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes, sans compteur (seule une limite d'usage raisonnable protège le service)</li>
       <li>${icon("check")} Le concours blanc chronométré, corrigé avec une note indicative</li>
       <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, et les rappels</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
     <div class="pw-plans">
-      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, écrits et oraux compris.</span></button>
+      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
     ${!on ? `<p class="pw-note">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
@@ -2829,6 +2831,7 @@ const SUBJECTS2 = [
    c:["in07","in15","in18","in22","in25","ex05","ex16","da03"]}
 ];
 
+const INTRO_AE_CRIT = ["Une accroche liée au sujet", "La citation analysée : sa thèse, ses notions, la relation qu'elle pose", "Des définitions opératoires des notions", "Une problématique qui discute la thèse", "L'annonce du plan"];
 const INTRO2_CRIT = ["Un enjeu ou une accroche liés au sujet", "Les notions du sujet définies et mises en relation", "Une problématique qui pose une tension", "Le contexte et les élèves pris en compte", "L'annonce du plan"];
 const ILLU_CRIT = ["Des comportements d'élèves précis, analysés", "Une explication par des connaissances scientifiques (auteur, date)", "Un principe d'intervention explicite", "Une mise en œuvre concrète dans l'APSA (situation, consignes, critères)", "Le lien avec le sujet et les effets attendus"];
 const isE2 = x => !!x && x.epr === "e2";
@@ -2958,7 +2961,7 @@ function juryBoxHTML(epr){
   const J = juryItems(epr); if (!J || !J.items.length) return "";
   const li = x => `<li>${esc(x.t)} <span class="jb-m">${esc(x.m)}</span></li>`;
   return `<section class="jury-box" aria-labelledby="jb-h"><h2 id="jb-h">Ce que le jury attend</h2><ul>${J.items.slice(0, 3).map(li).join("")}</ul>
-    ${J.items.length > 3 ? `<details><summary>Les ${J.items.length - 3} autres attentes du jury</summary><ul>${J.items.slice(3).map(li).join("")}</ul></details>` : ""}
+    ${J.items.length > 3 ? `<details><summary>${J.items.length === 4 ? "L'autre attente du jury" : `Les ${J.items.length - 3} autres attentes du jury`}</summary><ul>${J.items.slice(3).map(li).join("")}</ul></details>` : ""}
     ${J.src ? `<p class="jb-src"><a href="${esc(J.src[0])}" target="_blank" rel="noopener">${esc(J.src[1])}</a></p>` : ""}</section>`;
 }
 const kindTxt = (x, kind) => isB3(x) && isE2(x) && kind === "para" ? ["ta partie sur un épisode", "ma partie"] : isB3(x) && !isE2(x) && kind === "intro" ? ["ta problématique", "ma problématique"] : isB3(x) && isE2(x) && kind === "plan" ? ["ta préparation", "ma préparation"] : isE2(x) && kind === "para" ? ["ta partie illustrée", "ma partie illustrée"] : KIND_TXT[kind];
@@ -3408,6 +3411,7 @@ function drawSubject(){
   sj.cur = list[Math.floor(Math.random() * list.length)] || null; sj.shown = false;
 }
 function renderSujets(){
+  try { localStorage.setItem("bristol-eps-sj", JSON.stringify(sj.cur ? { id: sj.cur.id, mode: sj.mode } : null)); } catch (e) {}
   const e2 = sj.epr === "e2";
   if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
@@ -3458,7 +3462,7 @@ function renderSujets(){
         </div>
         <div class="sj-lab"><label for="sj-notes" class="sj-help">${isB3(s) && !isE2(s) ? "Ta problématique" : "Ton introduction"}, ${savedWhere("e")}.${isB3(s) && isE2(s) ? ` <span id="sj-wc">${wordCount(noteGet(key))} mots sur 300</span>` : ""}</label>${focusBtn()}</div>
         <textarea id="sj-notes" class="sj-notes intro" data-sid="${key}" placeholder="${isB3(s) ? (isE2(s) ? "Caractérise la notion : ses composantes, ce qui la déclenche, ce qui la distingue des notions voisines, et pourquoi elle compte pour les apprentissages…" : "Quelques lignes pour entrer dans la thématique, puis une problématique concise qui répond aux deux questions. Pas d'annonce de plan.") : isE2(s) ? "Enjeu, définition et mise en relation des notions, problématique, contexte et élèves, annonce du plan…" : "Accroche, définition des termes, bornes chronologiques, enjeu, problématique, annonce du plan…"}">${esc(noteGet(key))}</textarea>
-        <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isB3(s) ? (isE2(s) ? B2_INTRO_CRIT : B1_INTRO_CRIT) : isE2(s) ? INTRO2_CRIT : INTRO_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
+        <fieldset class="grid-chk"><legend>Ta grille d'auto-évaluation</legend>${(isB3(s) ? (isE2(s) ? B2_INTRO_CRIT : B1_INTRO_CRIT) : isE2(s) ? (prefs.concours === "agreg-ext" ? INTRO_AE_CRIT : INTRO2_CRIT) : INTRO_CRIT).map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>
         ${fbBlock(s, "intro")}`;
     } else if (sj.mode === "para") {
       const key = "p:" + s.id, chk = chkGet("p-" + s.id);
@@ -3474,7 +3478,7 @@ function renderSujets(){
         ${isB3(s) && !isE2(s) ? (() => { const chk = chkGet("pl-" + s.id); return `<fieldset class="grid-chk"><legend>La grille du jury 2026</legend>${B1_PLAN_CRIT.map((c, i) => `<label class="chk"><input type="checkbox" data-chk="${i}" data-sid="pl-${s.id}"${chk.includes(i) ? " checked" : ""}> ${esc(c)}</label>`).join("")}</fieldset>`; })() : ""}
         ${fbBlock(s, "plan")}`;
     }
-    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p>${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : isE2(s) && s.annale ? `<p class="sj-help">Le contexte d'établissement et les épisodes sont dans le sujet officiel : ouvre-le depuis l'onglet Annales.</p>` : ""}</article>
+    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q">${esc(s.t)}</p>${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : isE2(s) && s.annale ? `<p class="sj-help">${prefs.concours === "agreg-ext" ? "Le texte complet du sujet officiel est en lien dans l'onglet Annales." : "Le contexte d'établissement et les épisodes sont dans le sujet officiel : ouvre-le depuis l'onglet Annales."}</p>` : ""}</article>
       ${juryBoxHTML(s.epr)}
       ${work}
       ${sj.shown
@@ -3483,7 +3487,7 @@ function renderSujets(){
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
   $("#panel-sujets").innerHTML = `<div class="chips era-chips" aria-label="Axe des sujets">${chips}</div>${modes}${body}
-    <p class="sj-help">${sj.cur && sj.cur.annale ? "Sujet officiel de concours. Le retour de Claude est un premier regard, pas le corrigé du jury : relis aussi le rapport du jury dans l'onglet Annales." : (sj.cur && isB3(sj.cur) ? "Sujet conçu par Bristol EPS sur le modèle du sujet officiel de 2026 ; ce n'est pas un sujet de concours." : "Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels.")} Les cartes proposées sont des points d'appui, pas un plan.</p>`;
+    <p class="sj-help">${sj.cur && sj.cur.annale ? "Sujet officiel de concours. Le retour de Claude est un premier regard, pas le corrigé du jury : relis aussi le rapport du jury dans l'onglet Annales." : (sj.cur && isB3(sj.cur) ? "Sujet conçu par Bristol EPS sur le modèle du sujet officiel de 2026 ; ce n'est pas un sujet de concours." : !sj.cur && sj.src === "ann" ? "Sujets officiels de ton concours. Le retour de Claude est un premier regard, pas le corrigé du jury." : "Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels.")} Les cartes proposées sont des points d'appui, pas un plan.</p>`;
 }
 
 /* ---------- Fils rouges ---------- */
@@ -3652,6 +3656,7 @@ const CONCOURS = [
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"], BO_2027] },
 
   { id: "agreg-int", t: "Agrégation interne d'EPS", tag: "Pour les enseignants titulaires",
+    progAn: 2026,
     note: "Le programme 2027 est publié sur le site du ministère mais n'a pas pu être relu ici : le programme affiché est celui de 2026. Vérifie-le sur le document officiel avant de t'y fier.",
     qui: "Fonctionnaires justifiant de cinq années de services publics, appréciées à la date des résultats d'admissibilité. Les candidats en disponibilité ne peuvent pas concourir.",
     prive: "CAER-PA pour les maîtres contractuels du privé : mêmes épreuves, même jury.",
@@ -3677,6 +3682,9 @@ const CONCOURS = [
       ["Les épreuves de l'agrégation interne d'EPS", "https://www.devenirenseignant.gouv.fr/les-epreuves-de-l-agregation-interne-et-du-caerpa-section-education-physique-et-sportive-967"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"]] }
 ];
+/* Troisième concours : régi par le même arrêté que le CAPEPS externe à bac+3 ; le site s'entraîne sur ce format, signalé comme repris. */
+(() => { const c3 = CONCOURS.find(c => c.id === "capeps-3"), l3 = CONCOURS.find(c => c.id === "capeps-l3");
+  if (c3 && l3 && !c3.adm.length) Object.assign(c3, { adm: l3.adm, admi: l3.admi, prog: l3.prog, repris: true }); })();
 /* ---------- Test de positionnement : 12 questions, environ 3 minutes ----------
    Questions tirées des fiches de ton concours, réparties sur ses thèmes ; quatre réponses, ou « Je ne sais pas ».
    Une fiche réussie compte comme vue (notée « Hésité » : elle revient vite pour vérifier que tu la sais vraiment). */
@@ -3691,13 +3699,25 @@ function ptBuild(){
   const qs = [];
   for (let r = 0; qs.length < PT_N && r < 10; r++) for (const p of pools) { if (qs.length >= PT_N) break; const c = p[r]; if (c) qs.push(c); }
   return shuffle(qs).map(c => {
-    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th);
-    /* Des leurres qui ressemblent à la bonne réponse : même premier mot, longueur voisine. */
+    /* Des leurres plausibles mais faux : une réponse à une question du même type (Qui, Quand, Combien…),
+       jamais une réponse qui partage un nom propre ou la plupart de ses mots avec la bonne (elle pourrait être juste). */
+    const qw = t => normTxt(t).split(/[\s,'’]+/)[0], cq = qw(c.q);
+    const names = t => new Set((t.match(/\b[A-ZÀ-Ý][a-zà-ÿ]{3,}\b/g) || []).filter((w, i) => i > 0 || !/^(Elle|Il|Ils|Elles|Les|Une|Des|Pour|Dans|Avec|Par|Sur|Sous|Son|Ses|Leur|Cette|Cet|Ce)$/.test(w)));
+    const words = t => new Set(normTxt(t).split(/[^a-z0-9]+/).filter(w => w.length > 3));
+    const cn = names(c.a), cwd = words(c.a);
+    const near = (t, u) => { const un = names(u); for (const n of names(t)) if (un.has(n)) return true; const tw = words(t), uw = words(u); let k = 0; for (const w of tw) if (uw.has(w)) k++; return tw.size && k / Math.min(tw.size, uw.size || 1) >= .5; };
+    const close = x => near(x.a, c.a);
+    const isYear = t => /^\s*(en |le |dès |à partir de )?\d{4}\b/i.test(t), isNum = t => /^\s*\d/.test(t);
+    const kind = t => isYear(t) ? "y" : isNum(t) ? "n" : "t";
+    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th && kind(x.a) === kind(c.a) && !close(x));
     const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
-    const score = x => (w0(x.a) === cw ? 3 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
+    const score = x => (qw(x.q) === cq ? 4 : 0) + (w0(x.a) === cw ? 2 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
     const pool = same.map(x => [x, score(x)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
     const opts = [];
-    for (const x of pool) { if (opts.length >= 3) break; if (!opts.includes(x.a)) opts.push(x.a); }
+    const add = x => { if (opts.length < 3 && !opts.includes(x.a) && !opts.some(o => near(o, x.a))) opts.push(x.a); };
+    for (const x of pool) add(x);
+    if (opts.length < 3) for (const x of shuffle(concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && kind(x.a) === kind(c.a) && !close(x)))) add(x);
+    if (opts.length < 3) for (const x of pool) if (opts.length < 3 && !opts.includes(x.a)) opts.push(x.a);
     return { id: c.id, opts: shuffle(opts.concat(c.a)), a: c.a, r: null };
   });
 }
@@ -3898,7 +3918,7 @@ function coverageHTML(c, opts){
     return `<h3 class="cov-h">${esc(b.t)}</h3>${b.lead ? `<p class="opt">${esc(b.lead)}</p>` : ""}<ul class="cov-list">${rows}</ul>`;
   }).join("");
   const src = c.src && c.src[0];
-  return `<div class="sect cov${opts.span ? " span2" : ""}">${opts.title === false ? "" : `<h2>${opts.mine ? "Ton programme 2027" : "Programme"}</h2>`}
+  return `<div class="sect cov${opts.span ? " span2" : ""}">${opts.title === false ? "" : `<h2>${opts.mine ? `Ton programme ${c.progAn || 2027}` : `Programme ${c.progAn || 2027}`}</h2>${c.progAn ? `<p class="cov-warn">Programme de la session ${c.progAn} : celui de 2027 reste à relire ici. Vérifie-le sur le document officiel.</p>` : ""}`}
     <p class="lead">Chaque thème du programme officiel, les fiches qui s'y rattachent et ton niveau sur chacun.</p>
     ${blocks}
     <p class="conc-maj">Fiches rattachées par thème et par mots-clés ; une fiche peut servir plusieurs thèmes.${src ? ` <a href="${esc(src[1])}" target="_blank" rel="noopener">${esc(src[0])}</a>.` : ""}</p></div>`;
@@ -3908,6 +3928,7 @@ function coverageHTML(c, opts){
 const CPER = { "agreg-ext": P1918, "agreg-int": P1967 };
 const CY0 = { "agreg-ext": 1918, "agreg-int": 1967 };
 const concPer = () => CPER[prefs.concours] || null;
+const dateProv = c => /pas encore publi/.test((c && c.ecrits) || "");
 function inConc(c){ const per = concPer(); return !!c.custom || grpOf(c) !== "e1" || !per || !c.p || per.includes(c.p); }
 const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
@@ -3973,13 +3994,14 @@ function renderConcours(){
   el.innerHTML = `<button class="back" data-act="conc-back">${isMine ? "Changer de concours" : "← Tous les concours"}</button>
     <div class="fil-head"><span class="period">${esc(c.tag)}</span><h2>${esc(c.t)}</h2></div>
     <p class="conc-note">${esc(c.note)}</p>
-    <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Mon concours (retirer)" : "C'est mon concours"}</button>${isMine && c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Revenir à la date des écrits</button>` : ""}</div>
+    <div class="row-btns conc-actions"><button class="btn${isMine ? "" : " primary"}" data-act="conc-mine" data-id="${c.id}" aria-pressed="${isMine}">${isMine ? "Ne plus suivre ce concours" : "C'est mon concours"}</button>${isMine && c.d && prefs.examDate !== c.d ? `<button class="btn" data-act="conc-date" data-id="${c.id}">Revenir à la date des écrits</button>` : ""}</div>
     <dl class="conc-facts">
       <div><dt>Pour qui</dt><dd>${esc(c.qui)}${c.prive ? `<br><span class="opt">${esc(c.prive)}</span>` : ""}</dd></div>
       <div><dt>Écrits 2027</dt><dd>${esc(c.ecrits)}</dd></div>
       <div><dt>Inscriptions</dt><dd>Du 1er octobre 2026 (12 h) au 25 novembre 2026 (12 h), sur Cyclades.</dd></div>
       <div><dt>Postes</dt><dd>${esc(c.postes)}</dd></div>
     </dl>
+    ${c.repris ? `<p class="conc-note"><b>Épreuves reprises du CAPEPS externe à bac+3</b>, régi par le même arrêté : c'est le format sur lequel le site t'entraîne. Confirme-les sur la page officielle (lien en bas de page) avant de t'organiser.</p>` : ""}
     ${sect("Épreuves d'admissibilité", c.adm)}
     ${sect("Épreuves d'admission", c.admi)}
     ${coverageHTML(c, { mine: isMine })}
@@ -5912,7 +5934,7 @@ function annCards(a){
   return scored;
 }
 function annSubject(a){
-  return { id: a.id, th: a.e === "e2" ? "IN" : "T", epr: a.e === "e2" ? "e2" : "e1", t: a.t, c: annCards(a), axe: "Sujet d'annale", annale: true,
+  return { id: a.id, th: a.e === "e1" ? "T" : "IN", epr: a.e === "e1" ? "e1" : "e2", t: a.t, c: annCards(a), axe: "Sujet d'annale", annale: true,
     label: `Annale : ${a.co}, session ${a.y}, ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}` };
 }
 function annHTML(a){
@@ -5966,6 +5988,27 @@ const METHODE = {
     { t: "Proposer et justifier", d: "Chaque proposition découle de l'analyse : principe d'intervention, situation, but, consignes, critères de réussite, variables, effets attendus et limites. Montre l'activité de l'élève, pas seulement celle de l'enseignant.", p: "Le piège : la « magie de la tâche », une situation décrite comme si elle produisait l'apprentissage toute seule." },
     { t: "Respecter les exigences du sujet", d: "Vérifie les consignes de forme : nombre d'épisodes, de classes ou d'APSA, champs d'apprentissage différents, niveaux de scolarité.", p: "Le piège : ne traiter qu'une APSA ou qu'un champ quand le sujet en demande deux. La copie est alors déclassée." },
     { t: "Introduire et conclure", d: "Introduction : enjeu, notions définies et reliées, problématique, contexte, annonce du plan. Conclusion : réponse argumentée, avec les conditions et les limites de tes propositions.", p: "Le piège : une introduction qui ne relie pas les notions, une conclusion qui répète." }
+  ]}
+};
+/* Agrégations : l'écrit 1 peut être une dissertation ou un commentaire d'un écrit ; l'écrit 2 de l'externe est une dissertation. */
+const METHODE_AE = {
+  e1: { t: "Écrit 1 : dissertation ou commentaire d'un écrit", steps: [
+    { t: "Analyser le sujet", d: "Définis chaque terme dans son sens à l'époque, repère les mots-pivots (« toujours », « davantage », « dans quelle mesure ») et identifie le type de sujet : question, citation à discuter, document à commenter.", p: "Le piège : survoler un adverbe ou un verbe, ou traiter le thème du programme au lieu du sujet posé." },
+    { t: "Fixer et justifier les bornes", d: "Reste dans les bornes du sujet et du programme de ton concours, et justifie les dates de début et de fin par des événements liés à la question. Couvre toute la période, temps présent compris.", p: "Le piège : les angles morts. Les jurys sanctionnent l'oubli des périodes récentes et les copies qui s'arrêtent vingt ans avant aujourd'hui." },
+    { t: "Si c'est un commentaire : situer le document", d: "Auteur, date, nature du texte, destinataires, contexte de production : ce qui permet de comprendre pourquoi ce texte dit ce qu'il dit, à ce moment-là.", p: "Le piège : présenter l'auteur par une biographie récitée sans lien avec le texte." },
+    { t: "Si c'est un commentaire : dégager la thèse et l'organisation", d: "Énonce la thèse en une phrase, repère comment le texte est construit et cite-le précisément, en renvoyant aux lignes.", p: "Le piège : paraphraser le texte dans l'ordre, ligne après ligne, sans jamais l'expliquer." },
+    { t: "Construire une problématique", d: "Formule la tension que pose le sujet ou le document : une question qui peut recevoir plusieurs réponses selon les périodes, les acteurs et les conceptions de l'EPS.", p: "Le piège : paraphraser le sujet ou poser une question à laquelle tout le monde répond oui." },
+    { t: "Argumenter et mettre en perspective", d: "Appuie chaque idée sur des faits datés, des textes, des acteurs et l'historiographie. Pour un commentaire, confronte le document à d'autres sources : ce qu'il éclaire, ce qu'il tait, ce que l'on en sait aujourd'hui.", p: "Le piège : le contexte en décor, ou un commentaire qui oublie le texte au profit d'une dissertation générale." },
+    { t: "Introduire et conclure", d: "Introduction : accroche liée au sujet, termes définis, bornes ou présentation du document, problématique, annonce du plan. Conclusion : une réponse explicite à la problématique.", p: "Le piège : une introduction démesurée, ou une conclusion qui résume le plan." }
+  ]},
+  e2: { t: "Écrit 2 : la dissertation (développement de la personne)", steps: [
+    { t: "Analyser la citation", d: "Repère la thèse, les notions et la relation que la citation pose entre elles (cause, condition, opposition). Si l'auteur et la date sont donnés, dis ce qu'ils apportent au sens de la phrase.", p: "Le piège : réagir à un mot-clé et dérouler un cours au lieu de discuter ce que dit précisément la citation." },
+    { t: "Définir de façon opératoire", d: "Définis chaque notion de manière à pouvoir l'observer chez des élèves en EPS : ce qu'on voit, ce qu'on mesure, ce qui change.", p: "Le piège : une définition de dictionnaire qui ne sert plus jamais ensuite." },
+    { t: "Problématiser la thèse", d: "Pose la question de la portée de la thèse : à quelles conditions, pour quels élèves, dans quelles pratiques, jusqu'où elle tient.", p: "Le piège : une question rhétorique, ou une adhésion complète à la citation." },
+    { t: "Construire une discussion", d: "Un plan en deux ou trois parties qui examine la thèse, ses conditions et ses limites ; chaque partie porte une réponse, pas un thème.", p: "Le piège : juxtaposer un « biologique », un « psychologique » et un « sociologique » sans fil commun." },
+    { t: "Mobiliser des connaissances scientifiques", d: "Peu de références, précises (auteur, date), mises en débat entre elles, avec des travaux récents à côté des classiques. Explique ce qu'une étude montre, ne te contente pas de la citer.", p: "Le piège : un catalogue d'auteurs, ou des références toutes anciennes." },
+    { t: "Revenir aux élèves et à l'EPS", d: "Chaque idée se traduit dans des conduites d'élèves, des APSA et des choix d'enseignement précis : publics, situations, effets attendus.", p: "Le piège : une copie de psychologie ou de physiologie générale, sans école ni élèves." },
+    { t: "Gérer une épreuve longue", d: "Réserve un vrai temps à l'analyse du sujet et au plan détaillé avant de rédiger, et garde de quoi conclure. Relis les transitions : ce sont elles qui montrent la discussion.", p: "Le piège : se lancer dans la rédaction au bout d'une demi-heure et finir sans conclusion." }
   ]}
 };
 /* Méthode du CAPEPS externe bac+3, tirée du rapport du jury 2026 (pages entre parenthèses). */
@@ -6061,7 +6104,7 @@ function renderMethode(){
       <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
       ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h2>${ep}</h2><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
   } else {
-    const m = (b3 ? METHODE_B3 : METHODE)[me.tab];
+    const m = (b3 ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE.e2 } : METHODE)[me.tab];
     const TKEY = { "capeps-m2": /transitoire/, "capeps-int": /CAPEPS interne/, "agreg-int": /agrégation interne/, "agreg-ext": /agrégation externe/ }[prefs.concours];
     const times = b3 ? TEMPS_B3 : TKEY ? TEMPS.filter(([a]) => TKEY.test(a)) : TEMPS;
     body = `<h2 class="sect-h">${esc(m.t)}</h2>${b3 ? `<p class="lead">Chaque étape renvoie à la page du <a href="${B3_REPORT}" target="_blank" rel="noopener">rapport du jury 2026</a> d'où elle vient.</p>` : ""}<ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p>${st.r ? `<span class="jb-m">Rapport 2026, ${esc(st.r)}</span>` : ""}</li>`).join("")}</ol>
@@ -6418,8 +6461,10 @@ function outline(text){
   const lines = text.split("\n"), out = []; let pos = 0, cur = null, before = 0;
   for (const raw of lines) {
     const l = raw.trim(), w = wordCount(l);
-    const hit = l.length <= 160 ? OUT_RX.find(([, rx]) => rx.test(l)) : null;
-    if (hit) { cur = { lvl: hit[0], t: l.replace(/\s+/g, " ").slice(0, 90), pos, w: 0 }; out.push(cur); }
+    const hit = OUT_RX.find(([, rx]) => rx.test(l));
+    /* Un titre suivi de son texte sur la même ligne : le titre va jusqu'à la première ponctuation forte, le reste compte comme texte. */
+    const head = hit ? (l.length <= 160 ? l : l.split(/(?<=[.:;!?])\s+/)[0].slice(0, 160)) : "";
+    if (hit) { cur = { lvl: hit[0], t: head.replace(/\s+/g, " ").slice(0, 90), pos, w: l.length <= 160 ? 0 : Math.max(0, w - wordCount(head)) }; out.push(cur); }
     else if (cur) cur.w += w; else before += w;
     pos += raw.length + 1;
   }
@@ -6567,7 +6612,7 @@ function blancSubjHTML(m, s){
   return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${a.co}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div><p class="q">${esc(s.t)}</p>
     ${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}
     ${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
-    ${a && a.e !== "e1" ? `<p class="sj-help">Le dossier du sujet officiel (contexte, documents, épisodes) n'est pas reproduit ici${a.src ? ` : <a href="${esc(a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
+    ${a && a.e !== "e1" ? `<p class="sj-help">${a.f === "aext" ? "Le texte complet du sujet officiel" : "Le dossier du sujet officiel (contexte, documents, épisodes)"} n'est pas reproduit ici${a.src ? ` : <a href="${esc(a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
 }
 function blancRunHTML(m){
   const s = blancSubject(m), copy = txGet("b:" + m.id);
@@ -6596,7 +6641,7 @@ function blancFbHTML(m){
   if (!sampleFn) return out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "";
   if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "");
   return `<div class="fb"><div class="row-btns"><button class="btn${text ? "" : " primary"}" data-act="blanc-fb" data-bid="${m.id}"${busy ? " disabled" : ""}>${text ? "Nouvelle correction" : "Faire corriger ma copie par Claude"}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    ${STANDALONE ? `<p class="fb-note">Une correction de copie compte pour deux retours. Ta copie est envoyée à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
+    ${STANDALONE ? `<p class="fb-note">Ta copie est envoyée à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
     <div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
 }
 function blancDoneHTML(m){
@@ -6840,7 +6885,7 @@ document.addEventListener("click", e => {
   if (d.act === "goal-clear") { prefs = Object.assign({}, prefs, { examDate: "", t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); toast("Date du concours retirée."); return; }
   if (d.grp && !d.act) { if (listen.on) listenStop(false); setGrp(d.grp); done = 0; buildQueue(); render(true); const b = document.querySelector(`#grp-seg [data-grp="${grp}"]`); if (b && !$('[data-act="flip"]')) b.focus({ preventScroll: true }); return; }
   if (d.act === "home-start") { if (d.g) setGrp(d.g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]') || $("#panel-revise .btn"); if (b) b.focus({ preventScroll: true }); return; }
-  if (d.act === "home-write") { const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === d.sid); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = s.epr === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
+  if (d.act === "home-write") { const an = ANNALES.find(x => x.id === d.sid); const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === d.sid) || (an && annSubject(an)); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = s.epr === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; sj.mode = s.annale ? "plan" : "para"; setView("sujets"); const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); } return; }
   if (d.act === "home-frise") { setView("frise"); return; }
   if (d.act === "pt-intro") { pt.on = false; setView("test"); const b = $("[data-act=pt-start]"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-start") { if (welcomeOpen) hideWelcome(); ptStart(); return; }
@@ -6855,7 +6900,7 @@ document.addEventListener("click", e => {
   if (d.onb) {
     const fresh = !Object.keys(progress).length;
     const c = chooseConcours(d.onb === "none" ? "" : d.onb); if (fresh) renderWelcome(); else hideWelcome();
-    toast(c ? `C'est noté : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
+    toast(c ? `C'est noté : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
     const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
   }
   if (d.onbChange) { conc.cur = null; conc.list = true; setView("concours"); return; }
@@ -6893,7 +6938,7 @@ document.addEventListener("click", e => {
   if (d.act === "conc-back") { conc.list = true; }
   if (d.act === "conc-back") { const id = conc.cur && conc.cur.id; conc.cur = null; render(); const b = id && document.querySelector(`[data-conc="${id}"]`); if (b) b.focus(); return; }
   if (d.act === "conc-open") { conc.cur = concById(d.id); setView("concours"); return; }
-  if (d.act === "conc-mine") { const on = prefs.concours !== d.id; const c = chooseConcours(on ? d.id : ""); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on && c ? `C'est ton concours : ${c.t}${c.d ? ", écrits le " + fmtDay(c.d) : ""}. Le site n'affiche plus que ce qui le concerne.` : "Concours retiré : tout le contenu est affiché."); return; }
+  if (d.act === "conc-mine") { const on = prefs.concours !== d.id; const c = chooseConcours(on ? d.id : ""); const b = $('[data-act="conc-mine"]'); if (b) b.focus({ preventScroll: true }); toast(on && c ? `C'est ton concours : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}. Le site n'affiche plus que ce qui le concerne.` : "Concours retiré : tout le contenu est affiché."); return; }
   if (d.act === "conc-date") { const c = concById(d.id); if (c && c.d) { prefs = Object.assign({}, prefs, { examDate: c.d, concours: c.id, t: Date.now() }); goalEdit = false; persist(); done = 0; buildQueue(); render(); const g = goalInfo(); toast(g && g.newPerDay ? `Compte à rebours réglé sur les écrits : ${g.newPerDay} nouvelles cartes par jour.` : "Compte à rebours réglé sur les écrits."); } return; }
   if (d.act === "conc-grp") { setGrp(d.g); done = 0; theme = "Tous"; period = "Toutes"; buildQueue(); setView("revise"); toast("Séance : " + eprOf(grp).t + "."); return; }
   if (d.act === "conc-rev") { const c = concById(d.id); if (c) setGrp("e1"); if (c) startCram(allCards().filter(x => !c.rev.periods || c.rev.periods.includes(x.p)).map(x => x.id)); return; }
@@ -7342,7 +7387,7 @@ function chooseConcours(id){
 }
 function onbHTML(){
   const c = concById(prefs.concours);
-  if (c) return `<p class="w-mine">Ton concours : <b>${esc(c.t)}</b>${c.d ? `, écrits le ${esc(fmtDay(c.d))}` : ""}. <button class="linkbtn" data-onb-change="1">Changer</button></p>`;
+  if (c) return `<p class="w-mine">Ton concours : <b>${esc(c.t)}</b>${c.d ? `, écrits ${dateProv(c) ? "vers le" : "le"} ${esc(fmtDay(c.d))}` : ""}. <button class="linkbtn" data-onb-change="1">Changer</button></p>`;
   return `<div class="w-onb w-gate"><p class="w-sub" id="w-q">Quel concours prépares-tu ?</p>
     <p class="w-note">Tout le site se règle sur ton choix : les épreuves, le format des sujets, les attentes du jury, les annales, le programme et la date des écrits. Tu pourras en changer à tout moment.</p>
     <div class="w-conc" role="group" aria-labelledby="w-q">${CONCOURS.map(x => `<button class="btn" data-onb="${x.id}"><b>${esc(x.t)}</b><span>${esc(x.tag)}</span><span class="w-d">Écrits : ${esc(x.ecrits.replace(/ \(.*\)$/, ""))}</span></button>`).join("")}</div>
@@ -7381,10 +7426,10 @@ function renderWelcome(){
       <li>Retourne la carte (bouton ou touche Espace).</li>
       <li>Sois honnête : Raté, Hésité ou Su (touches 1, 2 ou 3).</li>
     </ol>
-    <p class="w-note">Dix nouvelles cartes par jour, dans l'ordre chronologique (ou le rythme calculé d'après la date de ton concours). Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions demande un code d'accès bêta." : ""}</p>
+    <p class="w-note">${isPremium() ? "De nouvelles cartes chaque jour, au rythme calculé d'après la date de ton concours (dix par jour sans date)." : FREE_NEW + " nouvelles cartes par jour sur un écrit en version découverte ; l'accès complet ouvre tous les écrits, au rythme calculé d'après la date de ton concours."} Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions fait partie de l'accès complet." : ""}</p>
     </div><div>
     <p class="w-sub">Bon à savoir</p>
-    <p class="w-note">Les trois premiers thèmes reprennent les axes du programme de l'écrit 1 du CAPEPS externe 2027 : « L'évolution de l'EPS depuis la fin du XIXe siècle ». Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
+    <p class="w-note">Les thèmes de l'écrit 1 regroupent les cartes d'histoire de l'EPS par grands axes, et seules les périodes au programme de ton concours sont proposées. Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
     ${installHTML()}
     <div class="w-disp"><p class="w-sub">Affichage</p>${themeChipsHTML()}</div>
@@ -7491,6 +7536,15 @@ $("#add-form").addEventListener("submit", e => {
 });
 
 localLoad(); txLoad(); backfillWritten(); checkAch(true); localSave();
+/* Le sujet en cours d'écriture est retrouvé après un rechargement (le brouillon, lui, est déjà enregistré). */
+try {
+  const k = JSON.parse(localStorage.getItem("bristol-eps-sj") || "null");
+  if (k && k.id) {
+    const an = ANNALES.find(x => x.id === k.id);
+    const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === k.id) || (an && annSubject(an));
+    if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; }
+  }
+} catch (e) {}
 try { const u = new URL(location.href), q = u.searchParams.get("concours"); if (q) { u.searchParams.delete("concours"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); if (concById(q) && prefs.concours !== q) chooseConcours(q); } } catch (e) {}
 buildQueue(); render(); blancCheck();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
