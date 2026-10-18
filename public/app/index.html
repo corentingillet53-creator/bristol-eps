@@ -706,6 +706,38 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .express-row{display:flex;flex-wrap:wrap;gap:4px 18px;margin:10px 0 0}
 .express-row .linkbtn{font-size:14px}
 .np-warn{color:var(--mid);margin-top:8px}
+.start-nudge{margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.start-nudge .ic{width:18px;height:18px;color:var(--accent)}
+.linkbtn.muted{color:var(--muted)}
+.start-l{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:10px}
+.start-i{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-radius:var(--r-m);background:var(--paper)}
+.start-i.ok{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.start-n{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--surface);font-weight:700;color:var(--ink)}
+.start-i.ok .start-n{background:var(--accent);color:var(--accent-ink)}
+.start-n .ic{width:18px;height:18px}
+.start-t{margin:0;font-weight:700}
+.start-m{font-weight:400;color:var(--muted);font-size:14px;margin-left:6px}
+.start-d{margin:2px 0 0;color:var(--muted);font-size:14px}
+@media (max-width:520px){ .start-i{grid-template-columns:32px minmax(0,1fr)} .start-i .btn{grid-column:2;justify-self:start} }
+.lex{margin:0 0 10px;display:grid;gap:6px}
+.lex div{display:grid;grid-template-columns:minmax(80px,auto) minmax(0,1fr);gap:10px}
+.lex dt{font-weight:700}
+.lex dd{margin:0;color:var(--muted)}
+.w-lex{margin:12px 0;scroll-margin-top:84px}
+.w-lex summary{cursor:pointer;font-weight:700}
+.paper-run{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-m);padding:16px 18px;margin:12px 0 18px}
+.paper-run p{margin:0}
+.ph{margin:18px 0}
+.ph-l{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.ph-l li{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.ph-l img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.ph-add{cursor:pointer;position:relative}
+.ph-add:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.twk{background:var(--paper);border-radius:var(--r-m);padding:14px 16px;margin:0 0 18px}
+.tw-h{font-weight:700;margin:0 0 8px}
+.tw-row{display:flex;flex-wrap:wrap;gap:10px 18px;margin-bottom:8px}
+.tw-f{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.tw-f select{min-width:150px}
 #goal-np{margin-top:6px}
 #panel-revise .bristol{touch-action:pan-y;transition:transform .18s ease-out,box-shadow .12s}
 #panel-revise .bristol[data-swipe="su"]{box-shadow:0 0 0 3px var(--ok)}
@@ -1423,7 +1455,25 @@ let log = {}, prefs = { examDate: "", concours: "", t: 0 };
 const pad2 = n => String(n).padStart(2, "0");
 function dayKey(d){ d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
 const NP_OPTS = [5, 10, 15, 20, 25];
-function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", np: NP_OPTS.includes(x.np) ? x.np : 0, t: x.t || 0 }; }
+/* Temps disponible par jour, en minutes (semaine, week-end). 0 = non renseigné. */
+const TW_OPTS = [15, 30, 45, 60, 90, 120, 180, 240];
+/* Une nouvelle carte coûte environ 1 min 30 au total : la découverte, puis ses révisions des semaines suivantes. */
+const MIN_PER_NEW = 1.5;
+const hasTime = () => !!(prefs.tw && prefs.twe);
+const weekMin = () => hasTime() ? 5 * prefs.tw + 2 * prefs.twe : 0;
+/* Part du temps pour les cartes : le reste va à l'écriture (sujets, paragraphes, concours blancs). */
+const cardShare = final => final ? 0.3 : 0.6;
+const fmtMin = m => m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + pad2(m % 60) : "");
+/* Nouvelles cartes par jour que permet le temps disponible, réparties entre les épreuves au prorata de ce qui reste à voir. */
+function timeCap(g){
+  if (!hasTime()) return null;
+  const rel = relGroups(), un = {};
+  rel.forEach(k => { un[k] = allCards().filter(c => grpOf(c) === k && inConc(c) && !progress[c.id]).length; });
+  const tot = rel.reduce((t, k) => t + un[k], 0); if (!tot || !un[g]) return 0;
+  const perDay = weekMin() / 7 * cardShare(false) / MIN_PER_NEW;
+  return Math.max(1, Math.round(perDay * un[g] / tot));
+}
+function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", np: NP_OPTS.includes(x.np) ? x.np : 0, tw: TW_OPTS.includes(x.tw) ? x.tw : 0, twe: TW_OPTS.includes(x.twe) ? x.twe : 0, t: x.t || 0 }; }
 function mergeLog(a, b){
   const out = {};
   for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
@@ -1670,7 +1720,8 @@ function grpGoal(g){
   const ex = examDays();
   const auto = !ex ? NEW_MAX : ex.daysLeft <= 0 || !(unseen + n) ? 0 : Math.min(25, Math.max(2, Math.ceil((unseen + n) / ex.learnDays)));
   /* Objectif choisi à la main : il remplace le calcul d'après la date. */
-  let target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : auto;
+  const tc = timeCap(g);
+  let target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : tc !== null && !(ex && ex.daysLeft <= 0) ? (ex ? Math.min(auto, tc) : tc) : auto;
   /* Version découverte : un seul écrit, quelques nouvelles fiches par jour. */
   const locked = typeof grpLocked === "function" && grpLocked(g);
   if (typeof isPremium === "function" && !isPremium()) target = locked || (ex && ex.daysLeft <= 0) ? 0 : FREE_NEW;
@@ -1919,6 +1970,14 @@ function homeSession(){
   </section>`;
 }
 function homeTrain(){
+  const x = homeTrain0();
+  let twLater = false; try { twLater = localStorage.getItem("bristol-eps-tw-later") === dayKey(); } catch (e) {}
+  if (prefs.examDate && !hasTime() && isPremium() && !twLater && !blancActive()) return `<p class="start-nudge">${icon("clock")} <button class="linkbtn" data-act="plan-time">Combien de temps as-tu par jour ? Règle ton plan</button> <button class="linkbtn muted" data-act="tw-later">Plus tard</button></p>` + x;
+  if (startOff() || blancActive() || !ptLast() || activeDays() >= 7 || Object.keys(progress).length >= 80) return x;
+  const st = startSteps(), dn = st.filter(y => y.ok).length;
+  return (dn < st.length - 2 ? `<p class="start-nudge"><button class="linkbtn" data-act="start-open">Tu pars de zéro ? Par où commencer : ${st.length} étapes, avec le temps à prévoir</button></p>` : "") + x;
+}
+function homeTrain0(){
   const bm = blancActive();
   if (bm && blancLeft(bm) > 0 && !bl.iv) bl.iv = setInterval(blancTick, 1000);
   const card = (ic, h, sub, btn) => `<section class="tw" aria-labelledby="tw-h"><span class="ts-ic">${icon(ic)}</span><div class="tw-tx"><h2 id="tw-h">${h}</h2><p>${sub}</p></div>${btn}</section>`;
@@ -2222,6 +2281,8 @@ function gsResults(q){
   const words = normTxt(q).split(/\s+/).filter(w => w.length > 1);
   if (!words.length) return null;
   const R = [];
+  const lex = LEX_ALL.filter(x => gsMatch([x.k, x.d], words));
+  R.push({ k: "lex", t: "Sigles", n: lex.length, items: lex.slice(0, 5).map(x => ({ html: `<span class="gs-meta">${esc(x.g)}</span><span class="gs-t">${gsHighlight(x.k, words)}</span><span class="gs-a">${gsHighlight(x.d, words, 220)}</span>`, act: `data-act="lex-open"` })) });
   const cards = relCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
   R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
     html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
@@ -2345,8 +2406,8 @@ function renderPaywall(){
     <ul class="pw-list">
       <li>${icon("check")} Tous les écrits de ton concours : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
       <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes, sans compteur (seule une limite d'usage raisonnable protège le service)</li>
-      <li>${icon("check")} Le concours blanc chronométré, corrigé avec une note indicative</li>
-      <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, et les rappels</li>
+      <li>${icon("check")} Le concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative</li>
+      <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps, et les rappels</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
     <div class="pw-plans">
@@ -3230,7 +3291,7 @@ function codeSet(v){ try { if (v) localStorage.setItem(CODE_KEY, v); else localS
 async function serverSample(payload, { signal, onText }){
   let res;
   try {
-    res = await fetch("/api/feedback", { method: "POST", signal,
+    res = await fetch(payload && payload.images ? "/api/feedback?photos=1" : "/api/feedback", { method: "POST", signal,
       headers: { "content-type": "application/json", "x-access-code": codeGet() },
       body: JSON.stringify(payload) });
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
@@ -3512,6 +3573,62 @@ function renderSujets(){
 }
 
 /* ---------- Fils rouges ---------- */
+/* ---------- Sigles du concours ---------- */
+const LEXIQUE = [
+  ["Institutions et diplômes", [
+    ["EPS", "Éducation physique et sportive."],
+    ["CAPEPS", "Certificat d'aptitude au professorat d'éducation physique et sportive."],
+    ["CAFEP", "Version du CAPEPS pour l'enseignement privé sous contrat : mêmes épreuves."],
+    ["CAER", "Concours d'accès à l'échelle de rémunération : version des concours internes pour les maîtres du privé sous contrat."],
+    ["BO, BOEN", "Bulletin officiel de l'Éducation nationale, où paraissent programmes, circulaires et notes de service."],
+    ["IO", "Instructions officielles : textes qui accompagnent et orientent l'enseignement (par exemple les IO de 1967)."],
+    ["IA-IPR", "Inspecteur d'académie, inspecteur pédagogique régional : il inspecte et conseille les professeurs d'EPS."],
+    ["EPLE", "Établissement public local d'enseignement : collège, lycée, lycée professionnel."],
+    ["IUFM, ESPÉ, INSPÉ", "Instituts de formation des enseignants : IUFM créés par la loi de 1989, ESPÉ en 2013, INSPÉ depuis 2019."],
+    ["STAPS", "Sciences et techniques des activités physiques et sportives : la filière universitaire du sport."],
+    ["CREPS", "Aujourd'hui centres de ressources, d'expertise et de performance sportive ; à l'origine, centres régionaux d'éducation physique et sportive."],
+    ["SNEP-FSU", "Syndicat national de l'éducation physique, qui publie copies des sujets et rapports de jury."],
+    ["AEEPS", "Association pour l'enseignement de l'EPS, association professionnelle des enseignants d'EPS."]]],
+  ["Programmes et évaluation", [
+    ["APSA", "Activités physiques, sportives et artistiques : les supports de l'enseignement."],
+    ["CA", "Champ d'apprentissage : quatre au collège (programmes de 2015), cinq au lycée (programmes de 2019). Aussi : conseil d'administration de l'établissement."],
+    ["AFL", "Attendus de fin de lycée (voie générale et technologique, programmes de 2019)."],
+    ["AFLP", "Attendus de fin de lycée professionnel (programmes de 2019)."],
+    ["CP", "Compétences propres à l'EPS (programmes du lycée de 2010), remplacées par les champs d'apprentissage."],
+    ["CMS", "Compétences méthodologiques et sociales (programmes du lycée de 2010)."],
+    ["Socle", "Socle commun de connaissances, de compétences et de culture (2015) : cinq domaines que l'école doit faire acquérir."],
+    ["CCF", "Contrôle en cours de formation : évaluation certificative au baccalauréat et au CAP."],
+    ["DNB", "Diplôme national du brevet, en fin de collège."],
+    ["FPS", "Forme de pratique scolaire : une APSA transformée pour servir les apprentissages visés."],
+    ["ASSN", "Attestation scolaire du savoir-nager."],
+    ["APQ", "Activité physique quotidienne : trente minutes par jour à l'école primaire, généralisées en 2022."]]],
+  ["Vie de l'établissement et sport scolaire", [
+    ["AS", "Association sportive de l'établissement, animée par les professeurs d'EPS."],
+    ["UNSS", "Union nationale du sport scolaire : la fédération du sport scolaire du second degré."],
+    ["USEP", "Union sportive de l'enseignement du premier degré."],
+    ["UGSEL", "Union générale sportive de l'enseignement libre : le sport scolaire du privé catholique."],
+    ["CPE", "Conseiller principal d'éducation."],
+    ["CESCE", "Comité d'éducation à la santé, à la citoyenneté et à l'environnement."],
+    ["CVC, CVL", "Conseil de la vie collégienne, conseil des délégués pour la vie lycéenne."],
+    ["REP, REP+", "Réseaux d'éducation prioritaire."]]],
+  ["Inclusion et besoins particuliers", [
+    ["PAI", "Projet d'accueil individualisé, pour un élève atteint d'une maladie (aménagements, traitements)."],
+    ["PAP", "Plan d'accompagnement personnalisé, pour des difficultés scolaires durables liées à un trouble des apprentissages."],
+    ["PPS", "Projet personnalisé de scolarisation, pour un élève en situation de handicap."],
+    ["PPRE", "Programme personnalisé de réussite éducative."],
+    ["MDPH", "Maison départementale des personnes handicapées."],
+    ["AESH", "Accompagnant des élèves en situation de handicap."],
+    ["ULIS", "Unités localisées pour l'inclusion scolaire."],
+    ["SEGPA", "Section d'enseignement général et professionnel adapté, au collège."]]],
+  ["Physiologie et entraînement", [
+    ["VMA", "Vitesse maximale aérobie : vitesse de course atteinte à la consommation maximale d'oxygène."],
+    ["VO2 max", "Consommation maximale d'oxygène."],
+    ["FC", "Fréquence cardiaque."],
+    ["RPE", "Effort perçu, mesuré par exemple sur l'échelle de Borg."],
+    ["APA", "Activité physique adaptée."]]]
+];
+const LEX_ALL = LEXIQUE.flatMap(([g, l]) => l.map(([k, d]) => ({ g, k, d })));
+function lexHTML(){ return LEXIQUE.map(([g, l]) => `<p class="w-sub">${esc(g)}</p><dl class="lex">${l.map(([k, d]) => `<div><dt>${esc(k)}</dt><dd>${esc(d)}</dd></div>`).join("")}</dl>`).join(""); }
 const FILS = [
   {id:"f1",t:"Filles et mixité",q:"Comment l'éducation physique des filles passe-t-elle d'une éducation à part à un objectif d'égalité ?",
    i:"Longtemps distincte de celle des garçons, l'éducation physique des filles est d'abord obligatoire sur le papier, puis alignée sur celle des garçons. La mixité généralisée en 1975 déplace ensuite la question : enseigner ensemble ne garantit pas l'égalité, qui devient un objectif explicite en 2000.",
@@ -6294,6 +6411,7 @@ function planWeeks(){
   const rel = relGroups(), t0 = startOfDay();
   const gs = EPR.filter(e => rel.includes(e.id)).map(e => { const x = grpGoal(e.id); return { g: e.id, s: e.s, rem: x.unseen, per: x.target }; });
   const ecr = planEcrits(), weeks = [], nW = Math.ceil(ex.daysLeft / 7);
+  const T = hasTime(); let bank = 0, rot = 0, blancRot = 0;
   for (let w = 0; w < nW; w++) {
     const d0 = w * 7, d1 = Math.min(ex.daysLeft - 1, d0 + 6);
     let learn = 0;
@@ -6304,6 +6422,26 @@ function planWeeks(){
     if (news.length) items.push("Nouvelles cartes : " + news.map(x => `${x.s.toLowerCase()} · ${x.n}`).join(", "));
     else if (!final) items.push("Toutes les cartes sont vues : consolide celles des boîtes 1 à 3.");
     if (final && !last) items.push("Plus de nouvelles cartes : points faibles et cartes ratées (onglet Progrès).");
+    if (T && !last) {
+      /* Temps renseigné : l'écriture se cale sur ce qui reste une fois les cartes faites, et s'accumule d'une semaine à l'autre. */
+      const blanc = e => `${cap(e.s)} : un concours blanc, copie complète en temps réel${e.h ? ` (${e.h} h d'un bloc, plutôt le week-end)` : ""}, puis la correction de Claude.`;
+      /* Les cartes prennent ce dont elles ont besoin (dans la limite de leur part) ; tout le reste va à l'écriture. */
+      const cardMin = Math.min(weekMin() * cardShare(final), news.reduce((t, x) => t + x.n, 0) * MIN_PER_NEW);
+      const wr = Math.round(weekMin() - cardMin);
+      bank += wr;
+      const maxH = Math.max(...ecr.map(e => +e.h || 4)) * 60;
+      bank = Math.min(bank, 2 * maxH + 120);
+      let got = 0;
+      const every = wr >= 2 * maxH ? 2 : 4;
+      if (final || w % every === every - 1) {
+        const e = ecr[blancRot % ecr.length], need = (+e.h || 4) * 60;
+        if (bank >= need) { items.push(blanc(e)); bank -= need; blancRot++; got++; }
+      }
+      let plans = 0;
+      while (bank >= 60 && plans < ecr.length) { const e = ecr[rot++ % ecr.length]; items.push(`${cap(e.s)} : ${wTask(e, "plan")}`); bank -= 60; plans++; got++; }
+      if (bank >= 30 + (every === 2 ? 0 : maxH / 2)) { const e = ecr[rot % ecr.length]; items.push(`${cap(e.s)} : ${wTask(e, "short")}`); bank -= 30; got++; }
+      if (!got && bank >= 20) { const e = ecr[rot++ % ecr.length]; items.push(`${cap(e.s)} : ${wTask(e, "mini")}`); bank -= 20; }
+    } else {
     /* Une copie complète toutes les quatre semaines, en alternant les écrits ; les deux en révision finale. */
     const full = w % 4 === 3 ? ecr[((w + 1) / 4 - 1) % ecr.length] : null;
     ecr.forEach(e => {
@@ -6311,15 +6449,30 @@ function planWeeks(){
       if (final || e === full) items.push(`${cap(e.s)} : un concours blanc, copie complète en temps réel${e.h ? ` (${e.h} h)` : ""}, puis la correction de Claude.`);
       else items.push(`${cap(e.s)} : un sujet d'annale, problématique et plan détaillé en 1 h.`);
     });
+    }
     if (!last && !final && rel.includes("e2")) items.push("Références : en apprendre cinq et les placer dans un paragraphe.");
     if (last) items.push("Relis tes plans, tes références et ta frise ; pas de copie complète, repos la veille.");
     const a = new Date(t0); a.setDate(a.getDate() + d0);
     const b = new Date(t0); b.setDate(b.getDate() + d1);
     weeks.push({ w, a, b, final, last, items });
   }
-  return { ex, weeks };
+  return { ex, weeks, left: gs.reduce((t, x) => t + x.rem, 0), perDay: gs.reduce((t, x) => t + x.per, 0) };
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+/* Exercices d'écriture au format de l'épreuve. */
+function wTask(e, k){
+  if (isB3Conc() && e.g === "e2") return { plan: "une introduction sur la notion (300 mots) et une partie sur un épisode, en 1 h.", short: "une introduction sur la notion, chronométrée (30 min).", mini: "l'analyse d'un comportement d'élève en un paragraphe (20 min)." }[k];
+  if (isB3Conc()) return { plan: "une thématique et ses deux questions, problématique et plan en 1 h.", short: "une problématique chronométrée et un paragraphe argumenté (30 min).", mini: "un paragraphe argumenté de 20 min." }[k];
+  if (prefs.concours === "capeps-int") return { plan: "un sujet d'annale, enjeux et plan des deux volets (classe, établissement) en 1 h.", short: "une introduction chronométrée et une proposition pour la classe (30 min).", mini: "une proposition justifiée pour la classe, en 20 min." }[k];
+  return { plan: "un sujet d'annale, problématique et plan détaillé en 1 h.", short: "une introduction chronométrée et un paragraphe argumenté (30 min).", mini: "un paragraphe argumenté de 20 min." }[k];
+}
+function timeSel(id, v, lbl){ return `<label class="tw-f"><span>${lbl}</span><select id="${id}"><option value="0"${v ? "" : " selected"}>Choisir</option>${TW_OPTS.map(m => `<option value="${m}"${v === m ? " selected" : ""}>${fmtMin(m)}</option>`).join("")}</select></label>`; }
+function timeHTML(p){
+  const capN = () => relGroups().reduce((t, g) => { const x = grpGoal(g), c = timeCap(g) || 0; return t + (examDays() ? Math.min(x.auto, c) : c); }, 0);
+  const sum = hasTime() && !isPremium() ? `<p class="goal-sub">Environ ${fmtMin(weekMin())} par semaine : avec l'accès complet, ton rythme serait de ${capN()} nouvelles cartes par jour, le reste du temps pour écrire. Version découverte : ${FREE_NEW} nouvelles fiches par jour sur un écrit.</p>` : !hasTime() ? `<p class="goal-sub">Indique ton temps : le plan règle le nombre de nouvelles cartes et place les sujets et les concours blancs là où tu as le temps.</p>`
+    : `<p class="goal-sub">Environ ${fmtMin(weekMin())} par semaine : ${p.perDay} nouvelle${p.perDay > 1 ? "s" : ""} carte${p.perDay > 1 ? "s" : ""} par jour${prefs.np ? " (objectif choisi à la main dans Réviser)" : ""}, le reste du temps pour écrire.${p.left > 0 ? ` <b>À ce rythme, environ ${plural(p.left, "carte")} ne ${p.left > 1 ? "seront" : "sera"} pas vue${p.left > 1 ? "s" : ""} avant la révision finale</b> : ajoute du temps, ou garde-les pour la révision finale en commençant par les thèmes faibles.` : " Tout le programme est vu avant la révision finale."}</p>`;
+  return `<div class="twk"><p class="tw-h">Ton temps de travail</p><div class="tw-row">${timeSel("tw-wk", prefs.tw, "En semaine, par jour")}${timeSel("tw-we", prefs.twe, "Le week-end, par jour")}</div>${sum}</div>`;
+}
 function planHTML(){
   const p = planWeeks();
   if (!p) return `<div class="sect span2"><h2>Ton plan jusqu'aux écrits</h2>
@@ -6330,6 +6483,7 @@ function planHTML(){
   const head = p.weeks.slice(0, isPremium() ? PLAN_SHOW : 1), rest = isPremium() ? p.weeks.slice(PLAN_SHOW) : [];
   return `<div class="sect span2"><h2>Ton plan jusqu'aux écrits</h2>
     <p class="lead">${plural(p.weeks.length, "semaine")} avant l'épreuve. Chaque jour : d'abord les cartes à revoir, puis les nouvelles. Les deux dernières semaines servent à revoir, sans nouvelles cartes.</p>
+    ${timeHTML(p)}
     <ol class="plan">${head.map(wk).join("")}</ol>
     ${isPremium() ? "" : `<div class="plan-lock"><p>${icon("lock")} Les ${p.weeks.length - 1} semaines suivantes, jusqu'aux écrits, sont dans l'accès complet.</p><button class="btn primary small" data-act="paywall" data-why="plan">Voir mon plan complet</button></div>`}
     ${rest.length ? `<details class="plan-more"><summary>Voir les ${rest.length} semaines suivantes</summary><ol class="plan" start="${PLAN_SHOW + 1}">${rest.map(wk).join("")}</ol></details>` : ""}
@@ -6555,7 +6709,41 @@ function taGoto(ta, pos){
    « f:b:<id> » (retour de Claude). Le chrono repose sur l'heure de début : il continue
    si la page est fermée, et la copie est rendue d'office à la fin du temps. */
 const FAM = { "capeps-l3": "cext", "capeps-m2": "cext", "capeps-3": "cext", "capeps-int": "cint", "agreg-ext": "aext", "agreg-int": "aint" };
-const bl = { k: null, src: "ann", h: null, view: null, confirm: null, iv: null };
+const bl = { k: null, src: "ann", h: null, view: null, confirm: null, iv: null, paper: false, photos: {}, busy: false };
+/* Copie sur papier : photos réduites dans le navigateur (1600 px au plus, JPEG), gardées en mémoire le temps de la correction. */
+const PH_MAX = 12, PH_SIDE = 1600;
+function photoShrink(file){
+  return new Promise((ok, ko) => {
+    const r = new FileReader();
+    r.onerror = () => ko(new Error("read"));
+    r.onload = () => { const img = new Image(); img.onerror = () => ko(new Error("img")); img.onload = () => {
+      const k = Math.min(1, PH_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      let q = 0.72, url = c.toDataURL("image/jpeg", q);
+      while (url.length > 1400000 && q > 0.4) { q -= 0.1; url = c.toDataURL("image/jpeg", q); }
+      ok({ url, data: url.slice(url.indexOf(",") + 1) });
+    }; img.src = r.result; };
+    r.readAsDataURL(file);
+  });
+}
+async function photosAdd(id, files){
+  const L = bl.photos[id] = bl.photos[id] || [];
+  const list = Array.from(files || []).filter(f => /^image\//.test(f.type)).slice(0, PH_MAX - L.length);
+  if (!list.length) { toast(L.length >= PH_MAX ? `${PH_MAX} pages au plus.` : "Choisis des photos (JPEG, PNG ou HEIC selon ton téléphone)."); return; }
+  bl.busy = true; renderBlanc();
+  for (const f of list) { try { L.push(await photoShrink(f)); } catch (e) { toast("Une photo n'a pas pu être lue : réessaie en JPEG."); } }
+  bl.busy = false; renderBlanc();
+  const b = $("#ph-add"); if (b) b.focus();
+}
+function photosHTML(m){
+  const L = bl.photos[m.id] || [], kb = Math.round(L.reduce((t, x) => t + x.data.length * 0.75, 0) / 1024);
+  return `<div class="ph" aria-labelledby="ph-h"><h3 id="ph-h" class="bc-h">Les photos de ta copie</h3>
+    <p class="sj-help">Une photo par page, dans l'ordre, bien à plat et lisible (lumière du jour, sans ombre). ${PH_MAX} pages au plus. Elles restent sur cet appareil jusqu'à la correction et ne sont pas conservées ensuite.</p>
+    ${L.length ? `<ol class="ph-l">${L.map((x, i) => `<li><img src="${x.url}" alt="Page ${i + 1}"><span>Page ${i + 1}</span><button class="linkbtn" data-phdel="${i}" data-bid="${m.id}" aria-label="Retirer la page ${i + 1}">Retirer</button></li>`).join("")}</ol><p class="goal-sub">${plural(L.length, "page")}, ${kb > 1024 ? fmtN(kb / 1024) + " Mo" : kb + " Ko"}.</p>` : ""}
+    <label class="btn${L.length ? "" : " primary"} ph-add" id="ph-add" tabindex="0" role="button">${bl.busy ? "Préparation des photos…" : L.length ? "Ajouter d'autres pages" : "Ajouter les photos de ma copie"}<input type="file" id="ph-in" data-bid="${m.id}" accept="image/*" multiple class="sr-only" tabindex="-1"></label>
+  </div>`;
+}
 function blancEcrits(){
   const c = concById(prefs.concours), f = c ? FAM[c.id] : null;
   if (c && c.adm && c.adm.length) return c.adm.map(a => ({ k: f === "cint" ? "ei" : a.hist ? "e1" : "e2", s: c.adm.length > 1 ? (a.hist ? "Écrit 1" : "Écrit 2") : "Écrit", h: +((a.m.match(/(\d+) h/) || [])[1]) || null, f, co: c.t }));
@@ -6596,7 +6784,7 @@ function blancStart(){
   const h = bl.h || e.h || 4, x = blancDraw(e, bl.src);
   if (!x) { toast("Aucun sujet disponible pour cet écrit."); return; }
   const now = Date.now(), id = "b" + now.toString(36);
-  blancPut({ id, k: e.k, s: e.s, co: e.co || "", f: e.f || "", src: bl.src, sid: x.id, dur: h * 3600, start: now, end: 0, state: "run" });
+  blancPut({ id, k: e.k, s: e.s, co: e.co || "", f: e.f || "", src: bl.src, sid: x.id, dur: h * 3600, start: now, end: 0, state: "run", paper: STANDALONE && bl.paper ? 1 : 0 });
   bl.view = null; bl.confirm = null; render();
   const t = $("#blanc-copy"); if (t) t.focus();
   toast(`C'est parti : ${h} h. Le chrono continue même si tu fermes la page.`);
@@ -6657,13 +6845,13 @@ function blancRunHTML(m){
   const conf = bl.confirm;
   return `<div class="blanc-bar" role="group" aria-label="Concours blanc en cours">
       <div><span class="blanc-tl">Temps restant</span><span id="btmr" class="blanc-t" role="timer">${fmtHMS(blancLeft(m))}</span></div>
-      <div class="blanc-info"><span id="bphase">${esc(blancPhase(m))}</span><span><span id="bwords">${wordCount(copy)}</span> mots</span></div>
+      <div class="blanc-info"><span id="bphase">${esc(blancPhase(m))}</span>${m.paper ? "<span>Copie sur papier</span>" : `<span><span id="bwords">${wordCount(copy)}</span> mots</span>`}</div>
       <button class="btn small blanc-focus" data-act="focus" aria-pressed="${focusMode}">${focusMode ? "Quitter la concentration" : "Mode concentration"}</button>
     </div>
     ${focusMode ? `<details class="subj-fold"${copy.trim() ? "" : " open"}><summary>Sujet</summary>${blancSubjHTML(m, s)}</details>` : blancSubjHTML(m, s)}
-    <label for="blanc-copy" class="sj-help" style="display:block">Ta copie, ${savedWhere("e")} au fil de la frappe. Pas de fiches ni de notes : conditions d'examen.</label>
+    ${m.paper ? `<div class="paper-run"><p><b>Compose sur tes feuilles.</b> Pas de fiches ni de notes : conditions d'examen. Numérote tes pages ; à la fin du temps, tu les photographieras pour la correction.</p></div>` : `<label for="blanc-copy" class="sj-help" style="display:block">Ta copie, ${savedWhere("e")} au fil de la frappe. Pas de fiches ni de notes : conditions d'examen.</label>
     <div class="write-grid"><textarea id="blanc-copy" class="sj-notes blanc-copy" data-bid="${m.id}" spellcheck="false" placeholder="Introduction…">${esc(copy)}</textarea>
-    <aside class="write-side">${outlineHTML(copy, "blanc-copy")}</aside></div>
+    <aside class="write-side">${outlineHTML(copy, "blanc-copy")}</aside></div>`}
     <div class="row-btns actions">${conf === "submit"
       ? `<button class="btn primary" data-act="blanc-submit" data-ok="1">Confirmer : rendre ma copie</button><button class="btn" data-act="blanc-cancel">Continuer à écrire</button>`
       : conf === "quit"
@@ -6679,19 +6867,19 @@ function blancFbHTML(m){
   if (!sampleFn) return out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "";
   if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "");
   return `<div class="fb"><div class="row-btns"><button class="btn${text ? "" : " primary"}" data-act="blanc-fb" data-bid="${m.id}"${busy ? " disabled" : ""}>${text ? "Nouvelle correction" : "Faire corriger ma copie par Claude"}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    ${STANDALONE ? `<p class="fb-note">Ta copie est envoyée à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
+    ${STANDALONE ? `<p class="fb-note">${m.paper ? "Les photos de ta copie sont envoyées" : "Ta copie est envoyée"} à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
     <div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
 }
 function blancDoneHTML(m){
   const s = blancSubject(m), copy = txGet("b:" + m.id), used = Math.round((m.end - m.start) / 6e4);
   return `<div class="row-btns"><button class="btn" data-act="blanc-back">← Tous mes concours blancs</button></div>
     <div class="kpis blanc-kpis">
-      <div class="kpi"><b>${wordCount(copy)}</b><span>mots</span></div>
+      ${m.paper ? `<div class="kpi"><b>${(bl.photos[m.id] || []).length}</b><span>pages photographiées</span></div>` : `<div class="kpi"><b>${wordCount(copy)}</b><span>mots</span></div>`}
       <div class="kpi"><b>${Math.floor(used / 60)} h ${String(used % 60).padStart(2, "0")}</b><span>utilisées sur ${m.dur / 3600} h</span></div>
       <div class="kpi"><b>${esc(new Date(m.start).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))}</b><span>${esc(m.s)}${m.co ? " · " + esc(m.co) : ""}</span></div>
     </div>
     ${blancSubjHTML(m, s)}
-    <details class="blanc-copy-ro"><summary>${icon("pen")} Relire ma copie</summary><div class="blanc-copy-txt">${copy.trim() ? esc(copy) : "<em>Copie vide.</em>"}</div></details>
+    ${m.paper ? (STANDALONE ? photosHTML(m) : "") : `<details class="blanc-copy-ro"><summary>${icon("pen")} Relire ma copie</summary><div class="blanc-copy-txt">${copy.trim() ? esc(copy) : "<em>Copie vide.</em>"}</div></details>`}
     ${blancFbHTML(m)}
     <p class="sj-help">Compare aussi avec ce que relèvent les jurys : onglet Méthode, « Ce que répètent les jurys »${s && s.a ? ", et le rapport de cette session dans l'onglet Annales" : ""}.</p>`;
 }
@@ -6733,6 +6921,7 @@ function blancHomeHTML(){
     <p class="lead">Le sujet est tiré au sort au moment de commencer. Le chrono continue même si tu fermes la page ; à la fin du temps, la copie est rendue d'office.</p>
     <fieldset class="blanc-f"><legend>Épreuve</legend><div class="chips">${es.map(x => `<button class="chip" data-blk="${x.k}" aria-pressed="${x.k === bl.k}">${esc(x.s)}${x.h ? ` · ${x.h} h` : ""}</button>`).join("")}</div></fieldset>
     <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips">${nAnn ? `<button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort (${nAnn})</button>` : ""}${nOwn ? `<button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement (${nOwn})</button>` : ""}</div></fieldset>
+    ${STANDALONE ? `<fieldset class="blanc-f"><legend>Copie</legend><div class="chips"><button class="chip" data-blpaper="0" aria-pressed="${!bl.paper}">Au clavier</button><button class="chip" data-blpaper="1" aria-pressed="${bl.paper}">Sur papier, comme le jour J</button></div>${bl.paper ? `<p class="sj-help">Tu composes sur tes feuilles ; à la fin, tu photographies tes pages et Claude corrige ta copie manuscrite.</p>` : ""}</fieldset>` : ""}
     <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button></p>`}
     <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>
@@ -6782,7 +6971,9 @@ async function askCopie(m){
   if (!m || !sampleFn) return;
   const key = "b:" + m.id, copy = txGet(key).trim(), s = blancSubject(m);
   if (fb.ctl) fb.ctl.abort();
-  if (copy.length < 200) { Object.assign(fb, { sid: key, status: "error", text: "", note: "Ta copie est trop courte pour une correction (quelques paragraphes au minimum).", ctl: null }); render(); return; }
+  const pics = m.paper ? (bl.photos[m.id] || []) : [];
+  if (m.paper && !pics.length) { Object.assign(fb, { sid: key, status: "error", text: "", note: "Ajoute d'abord les photos de ta copie.", ctl: null }); render(); return; }
+  if (!m.paper && copy.length < 200) { Object.assign(fb, { sid: key, status: "error", text: "", note: "Ta copie est trop courte pour une correction (quelques paragraphes au minimum).", ctl: null }); render(); return; }
   const cards = s && s.c ? s.c.map(byId).filter(Boolean) : [];
   const o = { epreuve: m.k === "e1" ? "e1" : "e2", concours: m.co || "", subject: s ? s.t : "", contexte: s && (s.ctx || isB3(s)) ? ctxText(s).slice(0, 4000) : "",
     duree: m.dur / 3600 + " h", minutes: Math.round((m.end - m.start) / 6e4), notes: copy.slice(0, 60000),
@@ -6794,7 +6985,7 @@ async function askCopie(m){
     if (fb.ctl !== ctl) return; fb.status = "streaming"; fb.text = text;
     const el = document.getElementById("blanc-fb"); if (el && bl.view === m.id) el.innerHTML = `<p class="fb-label">Correction de Claude · un regard de correcteur, pas la note du jury</p><div class="fb-body">${mdLite(text)}</div>`;
   } };
-  if (STANDALONE) opts.payload = Object.assign({ kind: "copie", axe: "Concours blanc" }, o);
+  if (STANDALONE) opts.payload = Object.assign({ kind: "copie", axe: "Concours blanc" }, o, pics.length ? { notes: "", images: pics.map(x => x.data) } : {});
   try {
     const res = await sampleFn(promptCopie(o), opts);
     if (fb.ctl !== ctl) return;
@@ -6807,6 +6998,38 @@ async function askCopie(m){
   }
   fb.ctl = null; render();
 }
+/* ---------- Parcours « je pars de zéro » ---------- */
+const startOff = () => { try { return localStorage.getItem("bristol-eps-start-off") === "1"; } catch (e) { return false; } };
+function filsLus(){ try { return JSON.parse(localStorage.getItem("bristol-eps-fils-lus") || "[]").length; } catch (e) { return 0; } }
+function activeDays(){ return Object.values(log).filter(x => x && x.a > 0).length; }
+function startSteps(){
+  const e1 = relHas("e1"), anns = new Set(ANNALES.map(a => a.id));
+  const steps = [
+    { t: "Faire le test de positionnement", m: "3 min", d: "Ton niveau par thème et tes priorités ; les fiches réussies comptent déjà comme vues.", ok: !!ptLast(), b: `<button class="btn small" data-act="pt-start">Faire le test</button>` },
+    { t: "Régler ton temps de travail", m: "1 min", d: "Ton temps en semaine et le week-end : le plan en déduit le nombre de nouvelles cartes et la place des sujets.", ok: hasTime(), b: `<button class="btn small" data-act="plan-time">Régler</button>` }];
+  if (e1) steps.push({ t: "Lire deux fils rouges", m: "15 min", d: "Les récits de synthèse donnent la trame de l'histoire de l'EPS avant d'entrer dans le détail des cartes.", ok: filsLus() >= 2, b: `<button class="btn small" data-sec="revise" data-gotab="fils">Ouvrir les fils rouges</button>` });
+  steps.push(
+    { t: "Une séance de cartes par jour pendant une semaine", m: "10 à 20 min par jour", d: "La régularité compte plus que la durée : les cartes reviennent au moment où tu risques de les oublier.", ok: activeDays() >= 7, prog: Math.min(7, activeDays()) + " / 7 jours", b: `<button class="btn small" data-sec="revise">Réviser</button>` },
+    { t: "Rédiger un premier paragraphe argumenté", m: "20 min", d: e1 ? "Une idée, un argument, un exemple daté, une nuance : la brique de base de toutes les copies." : "Une proposition justifiée par des connaissances et illustrée dans une APSA : la brique de base de la copie.", ok: writtenBy("p:").length > 0, b: `<button class="btn small" data-sec="train" data-gotab="sujets">Écrire</button>` },
+    { t: "Faire le plan d'un sujet d'annale", m: "1 h", d: "Un vrai sujet de ton concours, problématique et plan, puis compare avec ce qu'en a dit le jury.", ok: writtenBy("").some(k => anns.has(k)), b: `<button class="btn small" data-sec="train" data-gotab="annales">Choisir une annale</button>` },
+    { t: "Passer un premier concours blanc", m: (() => { const h = (planEcrits().map(e => +e.h).filter(Boolean)); return h.length ? Math.min(...h) + " h d'un bloc" : "la durée de l'épreuve"; })(), d: "Vers la quatrième semaine : une copie complète en temps réel, pour apprendre à gérer le temps.", ok: blancsDone() > 0, b: `<button class="btn small" data-sec="train" data-gotab="blanc">Concours blanc</button>` });
+  return steps;
+}
+function startHTML(){
+  if (startOff()) return "";
+  const st = startSteps(), done = st.filter(x => x.ok).length;
+  if (done === st.length) return "";
+  const un = relCards().filter(c => !progress[c.id]).length;
+  const est = hasTime() ? Math.ceil(un * MIN_PER_NEW / (weekMin() * cardShare(false))) : 0;
+  const ex = examDays();
+  const estTxt = !hasTime() ? "Règle ton temps de travail pour savoir combien de semaines il te faut pour voir tout le programme."
+    : `À ton rythme (${fmtMin(weekMin())} par semaine), il te faut environ ${plural(est, "semaine")} pour voir les ${un} cartes qui restent${ex && ex.daysLeft > 0 ? (est * 7 <= ex.learnDays ? ", avant la révision finale : tu es dans les temps." : ` ; il en reste ${Math.max(0, Math.floor(ex.learnDays / 7))} avant la révision finale : ajoute du temps, ou commence par tes thèmes prioritaires.`) : "."}`;
+  return `<div class="sect span2 start" id="start-path"><h2>Par où commencer</h2>
+    <p class="lead">Tu pars de zéro ? Ces étapes, dans l'ordre. ${done ? `${done} sur ${st.length} déjà faite${done > 1 ? "s" : ""}.` : ""}</p>
+    <ol class="start-l">${st.map((x, i) => `<li class="start-i${x.ok ? " ok" : ""}"><span class="start-n" aria-hidden="true">${x.ok ? icon("check") : i + 1}</span><div class="start-tx"><p class="start-t">${esc(x.t)} <span class="start-m">${esc(x.m)}</span>${x.ok ? `<span class="sr-only"> (fait)</span>` : ""}</p><p class="start-d">${esc(x.d)}${x.prog && !x.ok ? ` <b>${esc(x.prog)}</b>` : ""}</p></div>${x.ok ? "" : x.b}</li>`).join("")}</ol>
+    <p class="goal-sub">${esc(estTxt)}</p>
+    <div class="row-btns"><button class="linkbtn" data-act="lex-open">Les sigles du concours</button><button class="linkbtn" data-act="start-hide">Masquer ce parcours</button></div></div>`;
+}
 function renderStats(){
   const cards = relCards();
   const seen = cards.filter(c => progress[c.id]).length;
@@ -6817,6 +7040,7 @@ function renderStats(){
     + (cards.some(c => !THEMES[c.th]) ? barRow(NONE_T, bucket(cards.filter(c => !THEMES[c.th]))) : "");
   const byP = !relHas("e1") ? "" : (concPer() || PERIODS).map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
+    ${startHTML()}
     ${readinessHTML()}
     ${(() => { const c = concById(prefs.concours); return c ? coverageHTML(c, { mine: true, span: true }) : ""; })()}
     ${(() => { const t = ptLast(); return `<div class="sect pt-box"><h2>Test de positionnement</h2>${t ? `<p class="lead">Le ${esc(new Date(t.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : <b>${t.ok} sur ${t.n}</b>.${ptPriorities(t.by || {}).length ? " Priorités : " + ptPriorities(t.by).map(esc).join(" et ") + "." : ""}</p>` : `<p class="lead">${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.</p>`}<div class="row-btns"><button class="btn" data-act="pt-start">${t ? "Refaire le test" : "Faire le test"}</button></div></div>`; })()}
@@ -6917,6 +7141,8 @@ document.addEventListener("click", e => {
   if (d.act === "focus") { setFocus(!focusMode); return; }
   if (d.outpos !== undefined) { const ta = document.getElementById(d.outta); if (ta) taGoto(ta, +d.outpos); return; }
   if (d.act === "push-on" || d.act === "push-save" || d.act === "push-test" || d.act === "push-off") { pushAction(d.act); return; }
+  if (d.act === "plan-time") { setView("stats"); setTimeout(() => { const i = $("#tw-wk"); if (i) { i.scrollIntoView({ block: "center" }); i.focus(); } }, 50); return; }
+  if (d.act === "tw-later") { try { localStorage.setItem("bristol-eps-tw-later", dayKey()); } catch (e) {} render(); return; }
   if (d.act === "plan-date") { goalEdit = true; setView("home"); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-edit") { goalEdit = true; renderGoal(); const i = $("#exam-date"); if (i) i.focus(); return; }
   if (d.act === "goal-cancel") { goalEdit = false; renderGoal(); return; }
@@ -6952,6 +7178,8 @@ document.addEventListener("click", e => {
   if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blk) { bl.k = d.blk; bl.h = null; renderBlanc(); const b = $(`[data-blk="${d.blk}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blsrc) { bl.src = d.blsrc === "sub" ? "sub" : "ann"; renderBlanc(); const b = $(`[data-blsrc="${bl.src}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.blpaper !== undefined) { bl.paper = d.blpaper === "1"; renderBlanc(); const b = $(`[data-blpaper="${d.blpaper}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.phdel !== undefined) { const L = bl.photos[d.bid] || []; L.splice(+d.phdel, 1); renderBlanc(); const b = $("#ph-add"); if (b) b.focus(); return; }
   if (d.blh) { bl.h = +d.blh; renderBlanc(); const b = $(`[data-blh="${d.blh}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blopen) { bl.view = d.blopen; renderBlanc(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "blanc-start") { if (!isPremium()) { paywall("blanc"); return; } if (!blancActive()) blancStart(); return; }
@@ -6993,11 +7221,14 @@ document.addEventListener("click", e => {
   if (d.act === "rk-copy") { const t = acct.recoveryKey; try { navigator.clipboard.writeText(t).then(() => toast("Clé copiée."), () => toast("Copie impossible : sélectionne la clé et copie-la.")); } catch (e) { toast("Copie impossible : sélectionne la clé et copie-la."); } return; }
   if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
   if (d.act === "install") { if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); ev.userChoice.finally(() => renderWelcome()); } return; }
+  if (d.act === "lex-open") { const go = () => { if (view !== "home") setView("home"); showWelcome(true); setTimeout(() => { const l = $("#w-lex"); if (l) { l.open = true; l.scrollIntoView({ block: "start" }); const sm = l.querySelector("summary"); if (sm) sm.focus({ preventScroll: true }); } }, 60); }; if (gs.open) gsGo(go); else go(); return; }
+  if (d.act === "start-open") { setView("stats"); setTimeout(() => { const x = $("#start-path"); if (x) { x.scrollIntoView({ block: "start" }); const h = x.querySelector("h2"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } }, 60); return; }
+  if (d.act === "start-hide") { try { localStorage.setItem("bristol-eps-start-off", "1"); } catch (e) {} render(); return; }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); setGrp(relGroups()[0]); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
   if (d.sec) { if (d.gotab) conc.cur = null; setView(d.gotab || lastSub[d.sec]); return; }
-  if (d.fil) { fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
+  if (d.fil) { try { const r = JSON.parse(localStorage.getItem("bristol-eps-fils-lus") || "[]"); if (!r.includes(d.fil)) { r.push(d.fil); localStorage.setItem("bristol-eps-fils-lus", JSON.stringify(r)); } } catch (e) {} fil.cur = FILS.find(f => f.id === d.fil) || null; render(); try { window.scrollTo({ top: 0 }); } catch (e) {} const b = $("#panel-fils .back"); if (b) b.focus({preventScroll: true}); return; }
   if (d.act === "fil-back") { const id = fil.cur && fil.cur.id; fil.cur = null; render(); const b = id && document.querySelector(`[data-fil="${id}"]`); if (b) b.focus(); return; }
   if (d.act === "fil-revise" && fil.cur) { setGrp("e1"); startCram(fil.cur.e.map(x => x[2])); return; }
   if (d.sjepr) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.sjepr; sj.axe = "Tous"; sj.cur = null; tmReset(); render(); const b = document.querySelector(`[data-sjepr="${d.sjepr}"]`); if (b) b.focus({ preventScroll: true }); return; }
@@ -7100,6 +7331,15 @@ document.addEventListener("input", e => {
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
 });
 document.addEventListener("change", e => {
+  if (e.target.id === "ph-in") { const id = e.target.dataset.bid, f = e.target.files; photosAdd(id, f); e.target.value = ""; return; }
+  if (e.target.id === "tw-wk" || e.target.id === "tw-we") {
+    const v = +e.target.value, k = e.target.id === "tw-wk" ? "tw" : "twe";
+    prefs = Object.assign({}, prefs, { [k]: TW_OPTS.includes(v) ? v : 0, t: Date.now() });
+    persist(); if (!flipped) { done = 0; buildQueue(); } render();
+    const sel = document.getElementById(e.target.id); if (sel) sel.focus();
+    if (hasTime()) toast("Plan recalculé sur ton temps.");
+    return;
+  }
   if (e.target.id === "goal-np") {
     const v = +e.target.value; prefs = Object.assign({}, prefs, { np: NP_OPTS.includes(v) ? v : 0, t: Date.now() });
     persist(); if (!flipped) { done = 0; buildQueue(); } render();
@@ -7121,6 +7361,9 @@ document.addEventListener("change", e => {
   const s = document.getElementById(id); if (s) s.focus();
 });
 /* Navigation au clavier dans les listes d'onglets (flèches, Début, Fin) */
+document.addEventListener("keydown", e => {
+  if (e.target.id === "ph-add" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const i = $("#ph-in"); if (i) i.click(); }
+});
 document.addEventListener("keydown", e => {
   if (pw.open) {
     if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closePaywall(); return; }
@@ -7469,6 +7712,7 @@ function renderWelcome(){
     <p class="w-sub">Bon à savoir</p>
     <p class="w-note">Les thèmes de l'écrit 1 regroupent les cartes d'histoire de l'EPS par grands axes, et seules les périodes au programme de ton concours sont proposées. Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
+    <details class="w-lex" id="w-lex"><summary>Les sigles du concours (${LEX_ALL.length})</summary>${lexHTML()}</details>
     ${installHTML()}
     <div class="w-disp"><p class="w-sub">Affichage</p>${themeChipsHTML()}</div>
     </details>`;
