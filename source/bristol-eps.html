@@ -2354,17 +2354,20 @@ function gsResults(q){
   R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
     html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
     act: `data-gscram="${esc(c.id)}"`, lab: "Réviser cette fiche" })) });
-  const refs = REFS.filter(r => relHas(r.g) && gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
+  const y0r = concPer() ? parseInt(concPer()[0], 10) || 0 : 0;
+  const refs = REFS.filter(r => relHas(r.g) && !(r.g === "e1" && y0r && REF_END[r.id] && REF_END[r.id] < y0r) && gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
   R.push({ k: "refs", t: "Références", n: refs.length, all: refs.length > 5 ? "gs-all-refs" : "", items: refs.slice(0, 5).map(r => ({
     html: `<span class="gs-meta">${esc(r.au)}${r.y ? ", " + r.y : ""}</span><span class="gs-t">${gsHighlight(r.ti, words)}</span>`, act: `data-gsref="${esc(r.id)}"` })) });
-  const anns = ANNALES.filter(a => gsMatch([a.t, a.co, String(a.y), a.j || "", a.ju || ""], words));
+  const ownA = myAnnIds();
+  const anns = ANNALES.filter(a => (!ownA || ownA.has(a.id)) && gsMatch([a.t, a.co, String(a.y), a.j || "", a.ju || ""], words));
   R.push({ k: "ann", t: "Annales", n: anns.length, all: anns.length > 5 ? "gs-all-ann" : "", items: anns.slice(0, 5).map(a => ({
     html: `<span class="gs-meta">${esc(a.co)}, ${a.y} · ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}</span><span class="gs-t">${gsHighlight(a.t, words, 200)}</span>`, act: `data-gsann="${esc(a.id)}"` })) });
   const fils = FILS.filter(f => gsMatch([f.t, f.q, f.i, (f.k || []).join(" "), (f.d || []).join(" "), f.p || ""], words));
   R.push({ k: "fils", t: "Fils rouges", n: fils.length, items: fils.slice(0, 5).map(f => ({ html: `<span class="gs-t">${gsHighlight(f.t, words)}</span><span class="gs-a">${gsHighlight(f.q, words)}</span>`, act: `data-gsfil="${esc(f.id)}"` })) });
   const meth = [];
-  for (const [k, m] of Object.entries(METHODE)) for (const st of m.steps || []) if (gsMatch([st.t, st.d, st.p || ""], words)) meth.push({ html: `<span class="gs-meta">${esc(m.t)}</span><span class="gs-t">${gsHighlight(st.t, words)}</span><span class="gs-a">${gsHighlight(st.d, words, 180)}</span>`, act: `data-gsmeth="${k}"` });
-  for (const j of JURYS) for (const it of j.items) if (gsMatch([it[0], it[1], j.t], words)) meth.push({ html: `<span class="gs-meta">Rapports de jury · ${esc(j.t)}, ${esc(it[0])}</span><span class="gs-t">${gsHighlight(it[1], words)}</span>`, act: `data-gsmeth="jury"` });
+  for (const [k, m] of Object.entries(methFor())) if (relHas(k)) for (const st of m.steps || []) if (gsMatch([st.t, st.d, st.p || ""], words)) meth.push({ html: `<span class="gs-meta">${esc(m.t)}</span><span class="gs-t">${gsHighlight(st.t, words)}</span><span class="gs-a">${gsHighlight(st.d, words, 180)}</span>`, act: `data-gsmeth="${k}"` });
+  const myF = FAM[prefs.concours];
+  for (const j of JURYS) if (!myF || j.f === myF) for (const it of j.items) if (gsMatch([it[0], it[1], j.t], words)) meth.push({ html: `<span class="gs-meta">Rapports de jury · ${esc(j.t)}, ${esc(it[0])}</span><span class="gs-t">${gsHighlight(it[1], words)}</span>`, act: `data-gsmeth="jury"` });
   R.push({ k: "meth", t: "Méthode et jurys", n: meth.length, items: meth.slice(0, 5) });
   const conc = CONCOURS.filter(c => gsMatch([c.t, c.tag, c.note || "", c.qui || "", (c.adm || []).map(a => a.t + " " + a.d).join(" "), (c.admi || []).map(a => a.t + " " + a.d).join(" ")], words));
   R.push({ k: "conc", t: "Concours", n: conc.length, items: conc.slice(0, 5).map(c => ({ html: `<span class="gs-t">${gsHighlight(c.t, words)}</span><span class="gs-a">${esc(c.tag)}</span>`, act: `data-gsconc="${esc(c.id)}"` })) });
@@ -2569,16 +2572,21 @@ let reportOpen = null;
 const REPORT_KINDS = [["fait", "Fait inexact"], ["date", "Date ou chiffre faux"], ["source", "Source ou référence"], ["orthographe", "Faute de français"], ["autre", "Autre"]];
 function reportHTML(c){
   if (!STANDALONE || c.custom) return "";
-  if (reportOpen !== c.id) return `<span><button class="linkbtn" data-report="${esc(c.id)}">Signaler une erreur</button></span>`;
+  let sent = 0; try { sent = (JSON.parse(localStorage.getItem("bristol-eps-reports") || "{}"))[c.id] || 0; } catch (e) {}
+  if (reportOpen !== c.id) return `<span>${sent ? `Signalée le ${esc(new Date(sent).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}, en cours de vérification. ` : ""}<button class="linkbtn" data-report="${esc(c.id)}">${sent ? "Ajouter une précision" : "Signaler une erreur"}</button></span>`;
   return `<form class="report-form" data-reportform="${esc(c.id)}" novalidate>
     <label for="rep-kind">Type d'erreur</label><select id="rep-kind">${REPORT_KINDS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select>
     <label for="rep-msg">Ce qui ne va pas (et la correction, si tu la connais)</label><textarea id="rep-msg" rows="3" maxlength="1000" placeholder="Ex. : la loi date de 1880, pas de 1882 (source : …)"></textarea>
+    ${acct.status === "in" ? `<p class="hint">Tu recevras la réponse à l'adresse de ton compte quand la fiche sera vérifiée.</p>` : `<label for="rep-mail">Ton adresse e-mail (facultatif)</label><input id="rep-mail" type="email" maxlength="160" autocomplete="email"><p class="hint">Pour être prévenu quand la fiche est vérifiée. Elle ne sert qu'à cette réponse, n'est ni publiée ni transmise.</p>`}
     <div class="row-btns"><button class="btn small primary" type="submit">Envoyer</button><button class="btn small" type="button" data-act="report-cancel">Annuler</button></div></form>`;
 }
 async function reportSend(form){
   const id = form.dataset.reportform, c = byId(id), msg = ($("#rep-msg") || {}).value || "", kind = ($("#rep-kind") || {}).value || "autre";
   if (msg.trim().length < 5) { toast("Décris l'erreur en quelques mots."); return; }
-  const r = await api("POST", "/api/report", { card: id, kind, msg: msg.trim(), q: c ? c.q : "" });
+  const mail = (($("#rep-mail") || {}).value || "").trim();
+  if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { toast("Vérifie ton adresse e-mail, ou laisse le champ vide."); return; }
+  const r = await api("POST", "/api/report", { card: id, kind, msg: msg.trim(), q: c ? c.q : "", email: mail });
+  try { const L = JSON.parse(localStorage.getItem("bristol-eps-reports") || "{}"); L[id] = Date.now(); localStorage.setItem("bristol-eps-reports", JSON.stringify(L)); } catch (e) {}
   if (r.status === 200) { reportOpen = null; render(); toast("Merci : signalement envoyé, il sera vérifié."); }
   else toast(r.status === 429 ? "Trop de signalements pour l'instant. Réessaie plus tard." : "Envoi impossible. Réessaie dans un instant.");
 }
@@ -2599,7 +2607,7 @@ function renderFilters(){
     + eprOf(grp).th.map(k => opt(k, THEMES[k], inG.filter(c => c.th === k).length)).join("")
     + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "")
     + (inG.some(c => isFav(c.id)) || theme === "Favoris" ? opt("Favoris", "Mes favoris", inG.filter(c => isFav(c.id)).length) : "");
-  const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
+  const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.filter(e => !prefs.concours || relHas(e.id)).map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
   const pOpts = [["Toutes", concPer() ? "Toute la période du programme" : "Toutes les périodes"]].concat((concPer() || PERIODS).map(x => [x, x]));
   $(target).innerHTML =
     gSel + `<div><label for="fa-${p}">Thème</label><select id="fa-${p}" data-fsel="theme">${tHTML}</select></div>` +
@@ -4012,7 +4020,7 @@ const SRC_OFF = new Set(["SFM", "SQE", "ESR", "BO27", "A2011", "GUY23", "LP05", 
 const srcTier = k => /^PO\d/.test(k) || SRC_OFF.has(k) ? 0 : SRC_SCH.has(k) ? 1 : 2;
 function renderSources(){
   const el = $("#panel-sources"); if (!el) return;
-  const cards = allCards().filter(c => !c.custom), e1 = cards.filter(c => grpOf(c) === "e1"), e2 = cards.filter(c => grpOf(c) === "e2"), tx = cards.filter(c => grpOf(c) === "tx");
+  const cards = (prefs.concours ? concCards() : allCards()).filter(c => !c.custom), e1 = cards.filter(c => grpOf(c) === "e1"), e2 = cards.filter(c => grpOf(c) === "e2"), tx = cards.filter(c => grpOf(c) === "tx");
   const ver = c => !!CARD_SRC[c.id];
   const v1 = e1.filter(ver).length, vtx = tx.filter(ver).length, v2 = e2.filter(ver).length;
   const years = ANNALES.map(a => a.y), jur = JURYS.reduce((t, j) => t + j.items.length, 0);
@@ -4042,9 +4050,9 @@ function renderSources(){
       <li>Les fiches, les sujets, la méthode et les liens aux rapports ne sont pas générés à la volée : ils sont rédigés, sourcés et relus.</li>
     </ul></div>
     <div class="sect"><h2>Les fiches</h2><dl class="conc-facts">
-      <div><dt>Écrit 1 : histoire</dt><dd>${e1.length} fiches, dont ${v1} recoupées avec une source en ligne citée au dos. Les autres portent la mention « à vérifier dans tes ouvrages ».</dd></div>
-      <div><dt>Écrit 2 : sciences et intervention</dt><dd>${e2.length} fiches construites à partir des auteurs et travaux qu'elles citent, ceux qu'attendent les jurys${v2 ? `, dont ${v2} reliées directement à l'article ou à l'ouvrage de recherche cité` : ""}.</dd></div>
-      <div><dt>Textes officiels</dt><dd>${tx.length} fiches, dont ${vtx} reliées directement au texte publié au Bulletin officiel ou sur Légifrance.</dd></div>
+      ${!e1.length ? "" : `<div><dt>Écrit 1 : histoire</dt><dd>${e1.length} fiches, dont ${v1} recoupées avec une source en ligne citée au dos. Les autres portent la mention « à vérifier dans tes ouvrages ».</dd></div>`}
+      ${!e2.length ? "" : `<div><dt>Écrit 2 : sciences et intervention</dt><dd>${e2.length} fiches construites à partir des auteurs et travaux qu'elles citent, ceux qu'attendent les jurys${v2 ? `, dont ${v2} reliées directement à l'article ou à l'ouvrage de recherche cité` : ""}.</dd></div>`}
+      ${!tx.length ? "" : `<div><dt>Textes officiels</dt><dd>${tx.length} fiches, dont ${vtx} reliées directement au texte publié au Bulletin officiel ou sur Légifrance.</dd></div>`}
       <div><dt>Références et citations</dt><dd>${REFS.length} ouvrages et articles, ${QUOTES.length} citations reproduites mot pour mot et vérifiées sur leur source.</dd></div>
     </dl>
     ${(() => { const n = [0, 0, 0]; cards.forEach(c => { const k = CARD_SRC[c.id]; if (k) n[srcTier(k)]++; }); return `<p>Les fiches recoupées s'appuient sur un texte officiel ou une institution (${n[0]}), sur un travail universitaire, une source d'époque ou une encyclopédie de référence (${n[1]}), ou sur un site de recoupement (${n[2]}). Ces dernières sont remplacées au fur et à mesure par des sources de premier rang.</p>`; })()}
@@ -4066,11 +4074,11 @@ function renderSources(){
       <li>Tes textes ne sont envoyés à Claude que lorsque tu demandes un retour.</li>
       <li>Ni publicité, ni revente de données.</li>
     </ul></div>
-    <div class="sect"><h2>Une erreur ?</h2><p>Au dos de chaque fiche, « Signaler une erreur » envoie ton message directement. Les corrections apparaissent dès la mise à jour suivante.</p></div>
+    <div class="sect"><h2>Une erreur ?</h2><p>Au dos de chaque fiche, « Signaler une erreur » envoie ton message directement. Chaque signalement est lu ; laisse ton adresse si tu veux être prévenu de la correction, qui apparaît dès la mise à jour suivante.</p></div>
     <div class="sect"><h2>Formateurs, membres de jury, agrégés</h2><p>Le contenu gagne à être relu par celles et ceux qui forment et évaluent les candidats. Si tu veux relire une partie du site (une période, une notion, un concours), laisse un mot.</p>
       ${STANDALONE ? (relSent ? `<p class="hint" role="status">Merci, ton message est bien arrivé.</p>` : `<form class="report-form rel-form" data-relform="1" novalidate>
         <label for="rel-role">Ta fonction</label><input id="rel-role" maxlength="120" placeholder="Ex. : formatrice INSPÉ, membre du jury de l'agrégation interne">
-        <label for="rel-mail">Ton adresse e-mail</label><input id="rel-mail" type="email" maxlength="160" autocomplete="email">
+        <label for="rel-mail">Ton adresse e-mail</label><input id="rel-mail" type="email" maxlength="160" autocomplete="email" aria-describedby="rel-mail-h"><p class="hint" id="rel-mail-h">Elle sert uniquement à te répondre : elle n'est ni publiée, ni transmise, ni utilisée pour de la prospection.</p>
         <label for="rel-msg">Ce que tu proposes de relire</label><textarea id="rel-msg" rows="3" maxlength="700"></textarea>
         <div class="row-btns"><button class="btn small primary" type="submit">Envoyer</button></div><p class="err" id="rel-err" hidden></p></form>`) : ""}</div>
   </div>`;
@@ -4578,8 +4586,12 @@ const QUOTES = [
 ];
 const normTxt = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 function refCite(r){ return `${r.au}, ${r.ti}, ${r.y}.`; }
+/* Dernière année couverte par les références d'histoire centrées sur une période ancienne :
+   masquées quand le programme du concours commence après (agrégations). */
+const REF_END = { r01: 1889, r02: 1914, r07: 1914, r33: 1888, r30: 1902, r31: 1925, r32: 1925, r34: 1922, r35: 1945, r36: 1965, r79: 1944, r81: 1919, r83: 1957 };
 function refMatches(r){
   if (!relHas(r.g)) return false;
+  if (r.g === "e1" && REF_END[r.id] && concPer()) { const y0 = parseInt(concPer()[0], 10) || 0; if (REF_END[r.id] < y0) return false; }
   if (rf.g !== "tous" && r.g !== rf.g) return false;
   if (!rf.q) return true;
   const qs = QUOTES.filter(x => x.ref === r.id).map(x => x.text).join(" ");
@@ -6183,6 +6195,12 @@ const ANNALES = [
 const ANN_FAM = [["tous", "Tous les concours"], ["cext", "CAPEPS externe"], ["cint", "CAPEPS interne"], ["aext", "Agrégation externe"], ["aint", "Agrégation interne"]];
 const ANN_FAM_OF_CONC = { "capeps-l3": "cext", "capeps-m2": "cext", "capeps-3": "cext", "capeps-int": "cint", "agreg-ext": "aext", "agreg-int": "aint" };
 const an = { f: null, e: "tous", q: "" };
+/* Annales au format exact du concours choisi (mêmes règles que l'onglet Sujets). */
+function myAnnIds(){
+  if (!prefs.concours || !CPROF[prefs.concours]) return null;
+  const ids = new Set(); ["e1", "e2"].filter(relHas).forEach(e => sjPools(e).ann.forEach(a => ids.add(a.id)));
+  return ids.size ? ids : null;
+}
 const ANN_STOP = new Set("depuis comment entre leurs elles ainsi cette selon notamment contexte propos discutez vous vos votre analyserez montrerez illustrerez appuyant enseignant enseignants education physique sportive eleves eleve fin xixe siecle jours".split(" "));
 function annCards(a){
   const words = Array.from(new Set(normTxt(a.t).split(/[^a-z0-9]+/).filter(w => w.length >= 6 && !ANN_STOP.has(w))));
@@ -6209,13 +6227,15 @@ function renderAnnales(){
   const el = $("#panel-annales"); if (!el) return;
   const fam = ANN_FAM_OF_CONC[prefs.concours];
   if (an.f === null) an.f = fam || "tous";
-  const list = ANNALES.filter(a => (an.f === "tous" || a.f === an.f) && (an.e === "tous" || a.e === an.e || (an.e === "e1" && a.e === "ei"))
+  const own = myAnnIds();
+  const list = ANNALES.filter(a => (own && !an.all ? own.has(a.id) : (an.f === "tous" || a.f === an.f)) && (an.e === "tous" || a.e === an.e || (an.e === "e1" && a.e === "ei"))
     && (!an.q || normTxt(a.t + " " + a.j.join(" ") + " " + a.y).includes(normTxt(an.q))));
   if (!document.getElementById("an-search")) {
     el.innerHTML = `<div class="rf-bar"><label class="sr-only" for="an-search">Chercher dans les annales</label><input id="an-search" type="search" placeholder="Chercher un mot du sujet : effort, mixité, 1967…" autocomplete="off">
       <div class="chips" id="an-fam"></div><div class="chips" id="an-ep"></div></div><p class="rf-count" id="an-count" aria-live="polite"></p><div id="an-list"></div>`;
   }
-  $("#an-fam").innerHTML = fam && !an.all ? `<button class="linkbtn" data-act="an-all">Voir aussi les annales des autres concours</button>`
+  const sameFam = own ? ANNALES.filter(a => a.f === fam && !own.has(a.id)).length : 0;
+  $("#an-fam").innerHTML = fam && !an.all ? `${prefs.concours === "capeps-3" ? `<p class="sj-help">Le troisième concours passe les mêmes épreuves que le CAPEPS externe à bac+3 : ce sont ses sujets.</p>` : ""}<button class="linkbtn" data-act="an-all">${sameFam ? `Voir aussi les ${sameFam} sujets d'autres formats et des autres concours` : "Voir aussi les annales des autres concours"}</button>`
     : ANN_FAM.map(([k, l]) => `<button class="chip" data-anf="${k}" aria-pressed="${k === an.f}">${esc(l)}</button>`).join("") + (fam ? `<button class="linkbtn" data-act="an-mine">Revenir à mon concours</button>` : "");
   $("#an-ep").innerHTML = an.f === "cint" ? "" : [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
   $("#an-count").textContent = `${list.length} sujet${list.length > 1 ? "s" : ""}`;
@@ -6225,6 +6245,8 @@ function renderAnnales(){
 }
 
 
+/* Méthode propre au concours choisi. */
+function methFor(){ return isB3Conc() ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE.e2 } : prefs.concours === "capeps-int" ? { e2: METHODE_CI.e2 } : METHODE; }
 /* ---------- Méthode des écrits ----------
    Démarche construite à partir des attentes répétées dans les rapports de jury (2015-2026).
    La synthèse « Ce que répètent les jurys » renvoie aux sessions où chaque point est relevé (voir Annales). */
@@ -6374,9 +6396,10 @@ function renderMethode(){
       <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
       ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h2>${ep}</h2><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
   } else {
-    const m = (b3 ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE.e2 } : prefs.concours === "capeps-int" ? { e1: METHODE.e1, e2: METHODE_CI.e2 } : METHODE)[me.tab];
+    const m = methFor()[me.tab];
     const TKEY = { "capeps-m2": /transitoire/, "capeps-int": /CAPEPS interne/, "agreg-int": /agrégation interne/, "agreg-ext": /agrégation externe/ }[prefs.concours];
-    const times = b3 ? TEMPS_B3 : TKEY ? TEMPS.filter(([a]) => TKEY.test(a)) : TEMPS;
+    const own = planEcrits(), lab = a => { const h = parseInt(a, 10), e = own.find(x => +x.h === h); return e && own.length > 1 ? `${cap(e.s)}, ${h} h` : `${h} h`; };
+    const times = b3 ? TEMPS_B3 : TKEY ? TEMPS.filter(([a]) => TKEY.test(a)).map(([a, b]) => [lab(a), b]) : TEMPS;
     body = `<h2 class="sect-h">${esc(m.t)}</h2>${b3 ? `<p class="lead">Chaque étape renvoie à la page du <a href="${B3_REPORT}" target="_blank" rel="noopener">rapport du jury 2026</a> d'où elle vient.</p>` : ""}<ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p>${st.r ? `<span class="jb-m">Rapport 2026, ${esc(st.r)}</span>` : ""}</li>`).join("")}</ol>
       ${`<div class="sect"><h2>Gérer son temps</h2><p class="lead">Une répartition indicative, à ajuster à ta vitesse d'écriture.</p><ul class="time-list">${times.map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join("")}</ul></div>`}
       <div class="row-btns"><button class="btn primary" data-act="me-train" data-e="${me.tab}">M'entraîner sur un sujet d'${me.tab === "e1" ? "écrit 1" : "écrit 2"}</button><button class="btn" data-act="me-jury">Ce que répètent les jurys</button></div>`;
@@ -6385,11 +6408,17 @@ function renderMethode(){
 }
 
 const fil = { cur: null };
+/* Fils rouges qui touchent la période au programme du concours choisi. */
+function filsMine(){
+  const per = concPer(); if (!per || !per.length) return FILS;
+  const y0 = parseInt(per[0], 10) || 0, L = FILS.filter(f => f.e.some(x => +x[0] >= y0));
+  return L.length ? L : FILS;
+}
 function renderFils(){
   const el = $("#panel-fils");
   if (!fil.cur) {
-    el.innerHTML = `<p class="intro">Les fiches donnent des faits isolés. Un fil rouge les relie en un récit sur un thème transversal : étapes, tournants, débats et une piste de plan. C'est la matière d'une partie de dissertation.</p>
-      <div class="fil-list">${FILS.map(f => `<button class="fil-card" data-fil="${f.id}"><h2>${esc(f.t)}</h2><p>${esc(f.q)}</p><span class="num">${f.e.length} étapes · ${f.e[0][0]} → ${f.e[f.e.length - 1][0]}</span></button>`).join("")}</div>
+    el.innerHTML = `<p class="intro">Les fiches donnent des faits isolés. Un fil rouge les relie en un récit sur un thème transversal : étapes, tournants, débats et une piste de plan. C'est la matière d'une partie de copie.</p>
+      <div class="fil-list">${filsMine().map(f => `<button class="fil-card" data-fil="${f.id}"><h2>${esc(f.t)}</h2><p>${esc(f.q)}</p><span class="num">${f.e.length} étapes · ${f.e[0][0]} → ${f.e[f.e.length - 1][0]}</span></button>`).join("")}</div>
       <p class="sj-help">Synthèses rédigées à partir des cartes vérifiées du paquet. Confronte-les à tes lectures.</p>`;
     return;
   }
@@ -7193,7 +7222,7 @@ const lastSub = { home: "home", revise: "revise", train: "sujets", suivi: "stats
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
-  get sujets(){ if (prefs.concours && !isB3Conc()) { const ls = ["e1", "e2"].filter(k => relHas(k)).map(k => sjPools(k).l.replace(/^É/, "é")); return `Les sujets de ton concours (${ls.join(" ; ")}), avec le retour de Claude et ce qu'en dit le jury.`; } return isB3Conc() ? "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury." : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
+  get sujets(){ if (prefs.concours && !isB3Conc()) { const ls = ["e1", "e2"].filter(k => relHas(k)).map(k => sjPools(k).l.replace(/^É/, "é")); return `Les sujets de ton concours (${ls.join(" ; ")}), avec le retour de Claude et ce qu'en dit le jury.`; } return isB3Conc() ? (prefs.concours === "capeps-3" ? "Le troisième concours passe les mêmes écrits que le CAPEPS externe à bac+3 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury 2026." : "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury.") : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
     : relHas("e1") ? "Entraîne-toi à la dissertation d'histoire de l'EPS, avec le retour de Claude." : "Entraîne-toi à la composition à partir d'un contexte et d'épisodes de classe, avec le retour de Claude."; },
   blanc: "Une épreuve complète en conditions réelles, puis la correction de Claude.",
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
@@ -7212,6 +7241,7 @@ function setView(v, focus){
   else if (focus) { const t = $(focus); if (t) t.focus(); }
 }
 function render(focusActions){
+  if (prefs.concours && typeof relHas === "function" && !relHas(grp)) { const g = ["e1", "e2", "tx"].find(relHas); if (g) setGrp(g); }
   const gate = !prefs.concours;
   document.documentElement.classList.toggle("gate", gate);
   if (gate) { view = "home"; welcomeOpen = true; if (!$("#welcome .w-gate")) renderWelcome(); }

@@ -1,7 +1,8 @@
 // Bristol EPS — signalement d'une erreur sur une fiche.
 // Les signalements sont gardés dans D1 (table reports, créée au premier usage) ;
 // pour les lire : Cloudflare → D1 → bristol-db → Console :
-//   SELECT datetime(created_at / 1000, 'unixepoch') AS quand, card, kind, msg, q FROM reports ORDER BY created_at DESC;
+//   SELECT datetime(created_at / 1000, 'unixepoch') AS quand, card, kind, msg, q, email, user_id FROM reports ORDER BY created_at DESC;
+// email : adresse laissée (facultative) pour être prévenu de la correction ; user_id renvoie au compte s'il y en a un.
 // Limite : 10 signalements par heure et par adresse (empreinte, l'adresse n'est pas stockée).
 import { json, err, readJson, currentUser } from "./account.js";
 
@@ -11,6 +12,7 @@ let ready = false;
 async function ensureReports(env) {
   if (ready) return;
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, card TEXT NOT NULL, kind TEXT NOT NULL, msg TEXT NOT NULL, q TEXT NOT NULL, user_id TEXT, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'nouveau')").run();
+  try { await env.DB.prepare("ALTER TABLE reports ADD COLUMN email TEXT").run(); } catch (e) { /* colonne déjà là */ }
   ready = true;
 }
 async function hashIp(ip) {
@@ -25,6 +27,8 @@ export async function handleReport(request, env) {
   const kind = body && KINDS.has(body.kind) ? body.kind : "";
   const msg = body && typeof body.msg === "string" ? body.msg.trim() : "";
   const q = body && typeof body.q === "string" ? body.q.trim().slice(0, 400) : "";
+  const em = body && typeof body.email === "string" ? body.email.trim().slice(0, 160) : "";
+  if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return err(400, "bad_email");
   if (!CARD.test(card) || !kind || msg.length < 5 || msg.length > 1000) return err(400, "bad_request");
   if (env.QUOTA) {
     const k = `rep:${await hashIp(request.headers.get("cf-connecting-ip") || "local")}:${new Date().toISOString().slice(0, 13)}`;
@@ -35,7 +39,7 @@ export async function handleReport(request, env) {
   try {
     await ensureReports(env);
     const user = await currentUser(request, env).catch(() => null);
-    await env.DB.prepare("INSERT INTO reports (card, kind, msg, q, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?)").bind(card, kind, msg, q, user ? user.id : null, Date.now()).run();
+    await env.DB.prepare("INSERT INTO reports (card, kind, msg, q, user_id, created_at, email) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(card, kind, msg, q, user ? user.id : null, Date.now(), em || null).run();
   } catch (e) { console.error("Signalement :", String(e && e.stack || e)); return err(500, "server_error"); }
   return json(200, { ok: true });
 }
