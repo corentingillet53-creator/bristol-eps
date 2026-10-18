@@ -878,6 +878,7 @@ html.big body{zoom:1.125}
   .q{font-size:22px} .a{font-size:20px}
   .grades .k{display:none}
   .seg button{font-size:14px;padding:6px 4px;white-space:nowrap}
+  .seg.sj-epr button{white-space:normal;line-height:1.2}
   .band{align-items:flex-start}
   .period{white-space:normal;border-radius:12px}
   .hero{padding:20px 18px 18px}
@@ -6853,7 +6854,7 @@ const lastSub = { home: "home", revise: "revise", train: "sujets", suivi: "stats
 const INTROS = {
   frise: "Remets cinq événements dans l'ordre chronologique.",
   qui: "Retrouve l'auteur ou l'acteur derrière un ouvrage, une loi ou une idée.",
-  get sujets(){ if (prefs.concours && !isB3Conc()) { const ls = ["e1", "e2"].filter(k => relHas(k)).map(k => sjPools(k).l.toLowerCase()); return `Les sujets de ton concours (${ls.join(" ; ")}), avec le retour de Claude et ce qu'en dit le jury.`; } return isB3Conc() ? "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury." : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
+  get sujets(){ if (prefs.concours && !isB3Conc()) { const ls = ["e1", "e2"].filter(k => relHas(k)).map(k => sjPools(k).l.replace(/^É/, "é")); return `Les sujets de ton concours (${ls.join(" ; ")}), avec le retour de Claude et ce qu'en dit le jury.`; } return isB3Conc() ? "Au format du CAPEPS externe 2026 : réponse argumentée à l'écrit 1, étude d'épisodes à l'écrit 2. Le retour de Claude suit la grille du rapport du jury." : relHas("e1") && relHas("e2") ? "Entraîne-toi à l'écrit 1 (dissertation d'histoire) ou à l'écrit 2 (composition à partir d'un contexte et d'épisodes), avec le retour de Claude."
     : relHas("e1") ? "Entraîne-toi à la dissertation d'histoire de l'EPS, avec le retour de Claude." : "Entraîne-toi à la composition à partir d'un contexte et d'épisodes de classe, avec le retour de Claude."; },
   blanc: "Une épreuve complète en conditions réelles, puis la correction de Claude.",
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
