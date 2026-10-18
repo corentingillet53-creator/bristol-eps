@@ -869,17 +869,13 @@ a.g-btn{text-decoration:none}
 @media (min-width:960px){ .toast{bottom:24px;left:calc(50% + 124px)} }
 
 /* ---------- Texte plus grand ---------- */
-html.big body{font-size:18px}
-html.big .q{font-size:29px} html.big .a{font-size:24px} html.big .x{font-size:18px}
-html.big .lead,html.big .intro,html.big .hint,html.big .item .ia,html.big .task-tx span,html.big .hero-date{font-size:17px}
-html.big .chip,html.big .fbar label,html.big .nav-btn{font-size:15px}
-@media (min-width:960px){ html.big .nav-btn{font-size:18px} }
+/* Tout le texte et les boutons grandissent d'un huitième, comme un zoom du navigateur. */
+html.big body{zoom:1.125}
 
 @media (max-width:520px){
   .page-h{font-size:30px}
   .bristol{padding:18px 18px 24px;border-radius:var(--r-l)}
   .q{font-size:22px} .a{font-size:20px}
-  html.big .q{font-size:24px} html.big .a{font-size:21px}
   .grades .k{display:none}
   .seg button{font-size:14px;padding:6px 4px;white-space:nowrap}
   .band{align-items:flex-start}
@@ -3733,14 +3729,19 @@ function ptBuild(){
     const close = x => near(x.a, c.a);
     const isYear = t => /^\s*(en |le |dès |à partir de )?\d{4}\b/i.test(t), isNum = t => /^\s*\d/.test(t);
     const kind = t => isYear(t) ? "y" : isNum(t) ? "n" : "t";
-    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th && kind(x.a) === kind(c.a) && !close(x));
+    /* Une question sur une personne appelle des noms ; une question sur un ouvrage, jamais un nom de personne. */
+    const isName = t => /^(Jean|Pierre|Georges|Philippe|Jacques|Paul|Marcel|Robert|Alice|Maurice|Louis|Michel|[A-ZÀ-Ý][a-zà-ÿ'-]+)( (de |d'|Le |La |van |von )?[A-ZÀ-Ý][a-zà-ÿ'-]+){1,3}([ ,.(]|$)/.test(t) && t.split(/\s+/).length <= 9 && !/^(La|Le|Les|L'|Un|Une|Des|Il|Elle|Au|Aux|En|Par|Pour)\b/.test(t);
+    const askPerson = /^(qui\b|quel (auteur|ministre|médecin|sociologue|historien|psychologue|philosophe|pédagogue|officier)|quelle (femme|personnalité|athlète))/i.test(c.q.trim());
+    const askWork = /^quel(le)? (ouvrage|livre|titre|œuvre|oeuvre|manuel)/i.test(c.q.trim());
+    const fits = x => askPerson && isName(c.a) ? isName(x.a) : askWork ? !isName(x.a) : true;
+    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th && kind(x.a) === kind(c.a) && !close(x) && fits(x));
     const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
     const score = x => (qw(x.q) === cq ? 4 : 0) + (w0(x.a) === cw ? 2 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
     const pool = same.map(x => [x, score(x)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
     const opts = [];
     const add = x => { if (opts.length < 3 && !opts.includes(x.a) && !opts.some(o => near(o, x.a))) opts.push(x.a); };
     for (const x of pool) add(x);
-    if (opts.length < 3) for (const x of shuffle(concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && kind(x.a) === kind(c.a) && !close(x)))) add(x);
+    if (opts.length < 3) for (const x of shuffle(concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && kind(x.a) === kind(c.a) && !close(x) && fits(x)))) add(x);
     if (opts.length < 3) for (const x of pool) if (opts.length < 3 && !opts.includes(x.a)) opts.push(x.a);
     return { id: c.id, opts: shuffle(opts.concat(c.a)), a: c.a, r: null };
   });
@@ -6014,6 +6015,18 @@ const METHODE = {
     { t: "Introduire et conclure", d: "Introduction : enjeu, notions définies et reliées, problématique, contexte, annonce du plan. Conclusion : réponse argumentée, avec les conditions et les limites de tes propositions.", p: "Le piège : une introduction qui ne relie pas les notions, une conclusion qui répète." }
   ]}
 };
+/* CAPEPS interne : une étude de cas (citation, contexte d'établissement, propositions pour une classe et pour l'établissement, bilan prospectif). */
+const METHODE_CI = {
+  e2: { t: "L'écrit : l'étude de cas (4 h)", steps: [
+    { t: "Analyser la citation et la consigne", d: "Repère ce que dit la citation (sa source : programme, circulaire, rapport), ses mots-clés et ce que la consigne te demande exactement : « pourquoi et comment », pour quels élèves, dans quel cadre.", p: "Le piège : en faire un commentaire de texte, ou ne traiter qu'un des termes de la citation (réponse partielle, relevée par les jurys)." },
+    { t: "Exploiter le contexte de l'établissement", d: "Tire des annexes les données qui comptent (public, résultats, projet d'établissement, équipe EPS, AS, installations) et transforme-les en priorités. Le contexte se traite : il justifie chaque choix.", p: "Le piège : recopier le contexte en liste, puis l'oublier dans les propositions." },
+    { t: "Dégager les enjeux", d: "Formule ce qui est en jeu pour les élèves décrits, en reliant la citation, les programmes et le contexte : c'est ta problématique.", p: "Le piège : des enjeux généraux qui vaudraient pour n'importe quel établissement." },
+    { t: "Proposer pour la classe", d: "Des choix didactiques et pédagogiques précis pour la classe retenue : APSA, champ d'apprentissage, attendus, situations, rôle de l'élève, évaluation. Chaque proposition est justifiée et réalisable.", p: "Le piège : une proposition générique, ou une situation décrite sans dire ce que l'élève apprend." },
+    { t: "Proposer pour l'établissement", d: "Le second volet : l'équipe EPS (projet pédagogique, programmation, évaluation commune), l'association sportive, les liens avec les autres disciplines et les partenaires.", p: "Le piège : confondre les deux volets, ou oublier l'AS et l'équipe quand le sujet les demande." },
+    { t: "Conclure par un bilan prospectif", d: "Synthétise ce que tes propositions changent, avec quels indicateurs, et ce qui reste à construire dans le temps.", p: "Le piège : un bilan qui résume la copie au lieu de l'ouvrir sur la suite." },
+    { t: "Viser la précision", d: "La barre d'admissibilité est haute : références exactes aux programmes et aux textes, exemples concrets, vocabulaire juste. C'est la précision qui départage.", p: "Le piège : des textes officiels cités de mémoire et approximativement." }
+  ]}
+};
 /* Agrégations : l'écrit 1 peut être une dissertation ou un commentaire d'un écrit ; l'écrit 2 de l'externe est une dissertation. */
 const METHODE_AE = {
   e1: { t: "Écrit 1 : dissertation ou commentaire d'un écrit", steps: [
@@ -6128,7 +6141,7 @@ function renderMethode(){
       <p class="lead">Les remarques qui reviennent d'une session à l'autre dans les rapports du jury. Les années renvoient aux sujets de l'onglet Annales, où chaque rapport est en lien.</p>
       ${["Écrit 1", "Écrit 2", "Écrit"].filter(ep => g.items.some(i => i[0] === ep)).map(ep => `<div class="sect"><h2>${ep}</h2><ul class="jury-list">${g.items.filter(i => i[0] === ep).map(i => `<li><p>${esc(i[1])}</p><span>Relevé en ${esc(i[2])}</span></li>`).join("")}</ul></div>`).join("")}`;
   } else {
-    const m = (b3 ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE.e2 } : METHODE)[me.tab];
+    const m = (b3 ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE.e2 } : prefs.concours === "capeps-int" ? { e1: METHODE.e1, e2: METHODE_CI.e2 } : METHODE)[me.tab];
     const TKEY = { "capeps-m2": /transitoire/, "capeps-int": /CAPEPS interne/, "agreg-int": /agrégation interne/, "agreg-ext": /agrégation externe/ }[prefs.concours];
     const times = b3 ? TEMPS_B3 : TKEY ? TEMPS.filter(([a]) => TKEY.test(a)) : TEMPS;
     body = `<h2 class="sect-h">${esc(m.t)}</h2>${b3 ? `<p class="lead">Chaque étape renvoie à la page du <a href="${B3_REPORT}" target="_blank" rel="noopener">rapport du jury 2026</a> d'où elle vient.</p>` : ""}<ol class="steps">${m.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p>${st.r ? `<span class="jb-m">Rapport 2026, ${esc(st.r)}</span>` : ""}</li>`).join("")}</ol>
@@ -6636,7 +6649,7 @@ function blancSubjHTML(m, s){
   return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${a.co}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div><p class="q">${esc(s.t)}</p>
     ${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}
     ${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
-    ${a && a.e !== "e1" ? `<p class="sj-help">${a.f === "aext" ? "Le texte complet du sujet officiel" : "Le dossier du sujet officiel (contexte, documents, épisodes)"} n'est pas reproduit ici${a.src ? ` : <a href="${esc(a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
+    ${a && a.e !== "e1" ? `<p class="sj-help">${a.f === "aext" ? "Le texte complet du sujet officiel" : "Le dossier du sujet officiel (contexte, documents, épisodes)"} n'est pas reproduit ici${a.src ? ` : <a href="${esc(Array.isArray(a.src) ? a.src[1] : a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
 }
 function blancRunHTML(m){
   const s = blancSubject(m), copy = txGet("b:" + m.id);
