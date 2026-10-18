@@ -2518,7 +2518,6 @@ function renderRevise(){
       <p class="q">${esc(c.q)}</p>
       ${flipped ? `<div class="reveal"><p class="a">${esc(c.a)}</p>${c.x ? `<p class="x">${esc(c.x)}</p>` : ""}</div>` : ""}
     </article>
-    ${flipped ? srcHTML(c) : ""}
     <div class="actions rev-actions">
       ${flipped
         ? `<div class="grades">
@@ -2528,6 +2527,7 @@ function renderRevise(){
           </div>`
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
     </div>
+    ${flipped ? srcHTML(c) : ""}
     ${flipped ? `<p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(c.id) + "."}<span class="touch-only"> Tu peux aussi glisser la carte : à droite pour « Su », à gauche pour « Raté ».</span></p>` : `<p class="hint touch-only">Touche la carte pour la retourner.</p>`}`;
 }
 /* Objectif manuel trop bas pour tout voir avant les deux semaines de révision finale. */
@@ -7447,7 +7447,7 @@ function renderWelcome(){
     ${onbHTML()}
     <div class="row-btns w-go">${ptLast() ? `<button class="btn primary" data-act="welcome-start">Commencer ma première séance</button>` : `<button class="btn primary" data-act="pt-start">Faire le test de positionnement (3 min)</button><button class="btn" data-act="welcome-start">Commencer directement</button>`}<button class="btn" data-act="welcome-close">Fermer</button></div>
     <details class="w-more"${welcomeHelp ? " open" : ""}><summary>Comment ça marche</summary>
-    <p class="w-lead">Un outil pour préparer les écrits du CAPEPS et de l'agrégation d'EPS : ${n} fiches pour l'écrit 1 (histoire), l'écrit 2 (sciences et intervention) et les textes officiels, des récits de synthèse et des entraînements à la dissertation.</p>
+    <p class="w-lead">${(() => { const c = CONCOURS.find(x => x.id === prefs.concours); const G = { e1: "écrit 1", e2: "écrit 2", tx: "textes officiels" }; const g = ["e1", "e2", "tx"].filter(relHas).map(k => G[k]); const lst = g.length > 1 ? g.slice(0, -1).join(", ") + " et " + g[g.length - 1] : g[0] || ""; const ex = isB3Conc() ? "des entraînements au format de ton concours (questions, étude d'épisodes)" : prefs.concours === "capeps-int" ? "des entraînements à l'étude de cas sur les annales" : "des entraînements à la dissertation"; return `Pour ${esc(c ? c.t : "ton concours")} : ${concCards().length} fiches (${lst})${relHas("e1") ? ", des récits de synthèse" : ""} et ${ex}.`; })()}</p>
     <p class="w-sub">Quatre espaces</p>
     <ul class="w-spaces">
       <li class="w-space"><b>Accueil</b><span>Le compte à rebours jusqu'à tes écrits, ta séance du jour en un bouton (les écrits s'enchaînent) et un exercice d'écriture.</span></li>
