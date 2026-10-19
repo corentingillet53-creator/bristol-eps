@@ -4,6 +4,7 @@
 // Prérequis : node server.js (port 8766). Usage : node prompts.mjs → « ALL OK ».
 import { chromium } from "playwright";
 import { onRequestPost } from "../functions/api/feedback.js";
+import { makeD1 } from "./d1mock.mjs";
 
 let upstream = null;
 globalThis.fetch = async (url, init) => {
@@ -12,7 +13,7 @@ globalThis.fetch = async (url, init) => {
   const body = new ReadableStream({ start(c) { c.enqueue(enc.encode('event: message_stop\ndata: {"type":"message_stop"}\n\n')); c.close(); } });
   return new Response(body, { status: 200 });
 };
-const env = { ANTHROPIC_API_KEY: "k", ACCESS_CODES: "test" };
+const env = { ANTHROPIC_API_KEY: "k", ACCESS_CODES: "test", DB: makeD1(), MIN_INTERVAL_S: "0", DAILY_SHORT: "100000", DAILY_COPIES: "100000", BUDGET_CENTS: "100000", GLOBAL_DAILY_CENTS: "100000" };
 async function serverPrompt(payload) {
   upstream = null;
   const res = await onRequestPost({ request: new Request("https://x.dev/api/feedback", { method: "POST", headers: { "content-type": "application/json", "x-access-code": "test" }, body: JSON.stringify(payload) }), env });

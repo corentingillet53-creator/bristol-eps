@@ -1,0 +1,41 @@
+# Tests avant fusion : chaque PR et chaque push sur main fabriquent le site et rejouent
+# les tests serveur (D1 simulée) et les parcours dans Chromium.
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fabriquer le site
+        run: python3 build.py
+      - name: Installer les outils de test
+        working-directory: tests
+        run: |
+          npm i
+          npx playwright install --with-deps chromium
+          sudo mkdir -p /opt/pw-browsers
+          sudo ln -sf "$(node -e "console.log(require('playwright').chromium.executablePath())")" /opt/pw-browsers/chromium
+      - name: Tests serveur
+        working-directory: tests
+        run: |
+          node --no-warnings trial.mjs | tee trial.log; ! grep -q '^FAIL' trial.log
+          node --no-warnings usage.mjs | tee usage.log; ! grep -q '^FAIL' usage.log
+      - name: Parcours dans le navigateur
+        working-directory: tests
+        run: |
+          node server.js & sleep 1
+          node smoke.js | tee smoke.log; grep -q 'ALL OK' smoke.log
+          node freemium.js | tee freemium.log; grep -q 'ALL OK' freemium.log
+          node --no-warnings prompts.mjs | tee prompts.log; grep -q 'ALL OK' prompts.log
+          for c in capeps-l3 capeps-m2 capeps-int capeps-3 agreg-ext agreg-int; do node skills.js $c | tail -1 | grep -q 'errors \[\]'; done

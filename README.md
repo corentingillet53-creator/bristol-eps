@@ -2,7 +2,7 @@
 
 Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offre gratuite) :
 
-- Abonnement (Stripe) : `functions/api/billing.js` et `plan.js`, table `subscriptions` (créée au premier usage). Version découverte : un écrit, 5 nouvelles fiches par jour ; accès complet : pass session (paiement unique jusqu'à `PASS_UNTIL`) ou abonnement mensuel. Réglages Cloudflare : secrets `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`, variables `STRIPE_PRICE_PASS` et `STRIPE_PRICE_MONTHLY` (identifiants `price_…`), facultatives `PRICE_PASS_LABEL`, `PRICE_MONTHLY_LABEL`, `PASS_UNTIL`. Webhook Stripe : `https://<site>/api/billing/webhook`, événements `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`. Les codes de `ACCESS_CODES` donnent l'accès complet (« J'ai un code d'accès »). Le retour de Claude est autorisé pour un compte abonné, ou avec un ancien code bêta.
+- Abonnement (Stripe) : `functions/api/billing.js` et `plan.js`, table `subscriptions` (créée au premier usage). Version découverte : un écrit, 5 nouvelles fiches par jour ; accès complet : pass session (paiement unique jusqu'à `PASS_UNTIL`) ou abonnement mensuel. Réglages Cloudflare : secrets `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`, variables `STRIPE_PRICE_PASS` et `STRIPE_PRICE_MONTHLY` (identifiants `price_…`), facultatives `PRICE_PASS_LABEL`, `PRICE_MONTHLY_LABEL`, `PASS_UNTIL`. Webhook Stripe : `https://<site>/api/billing/webhook`, événements `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `charge.refunded`, `charge.dispute.created` (un remboursement total ou une contestation coupent l'accès). Dans le portail client Stripe, régler la résiliation sur « à la fin de la période ». Le paiement exige la case de renonciation au droit de rétractation (CGV, article 5), tracée dans les métadonnées Stripe. Les codes de `ACCESS_CODES` donnent l'accès complet (« J'ai un code d'accès »). Le retour de Claude est autorisé pour un compte abonné, ou avec un ancien code bêta.
 - Signalements d'erreurs sur les fiches : `functions/api/report.js`, table `reports` (créée au premier signalement), 10 par heure et par adresse. Pour les lire : Cloudflare → D1 → `bristol-db` → Console, `SELECT datetime(created_at/1000,'unixepoch'), card, kind, msg, q FROM reports ORDER BY created_at DESC;`
 - Rappels quotidiens par notification (Progrès › Rappels, compte requis) : `functions/api/push.js` (Web Push chiffré, clés VAPID créées et gardées dans D1, table `push_subs`) ; le cron du Worker (`triggers` dans `wrangler.jsonc`, toutes les 15 minutes) envoie le rappel une fois par jour à l'heure choisie (heure de Paris), seulement si la personne n'a pas encore révisé ; le dimanche, le bilan de la semaine.
 - Répétition espacée : algorithme FSRS-5 (stabilité et difficulté par carte), boîtes 1 à 5 affichées comme paliers de stabilité.
@@ -41,6 +41,9 @@ Dans Cloudflare : **Workers & Pages → bristol-eps → Settings → Variables a
 | `MIN_INTERVAL_S` | délai minimal entre deux demandes d'un même abonné, en secondes | Texte (facultatif, 60) |
 | `GLOBAL_DAILY_CENTS` | coupe-circuit : dépense totale maximale par jour, en centimes | Texte (facultatif, 1000) |
 | `PRICE_IN` / `PRICE_OUT` | prix du modèle en dollars par million de jetons, pour le calcul du coût | Texte (facultatif, 2 et 10) |
+| `TRIAL_PER_IP` | essais gratuits de retour par connexion internet et par jour | Texte (facultatif, 3) |
+| `CODE_MAX_USES` | nombre maximal de comptes par code d'accès | Texte (facultatif, 30) |
+| `ADMIN_TOKEN` | jeton (16 caractères au moins) pour lire le diagnostic de `/api/feedback` | **Secret** (facultatif) |
 | `ANTHROPIC_WORKSPACE_ID` | ID de l'espace de travail de la console, **seulement** si ta clé n'est rattachée à aucun espace de travail | Texte (facultatif) |
 
 Mets bien les deux premières en **Secret** : elles restent ainsi cachées et ne sont jamais effacées par un nouveau déploiement.
@@ -49,17 +52,17 @@ Donne un code différent à chaque testeur : tu pourras en retirer un sans gêne
 
 ## 3. Quota mensuel
 
-Déjà en place : l'espace de stockage KV `bristol-quota` tient l'usage raisonnable (coût réel par abonné et par mois, plafonds journaliers, délai entre deux demandes, coupe-circuit) et garde 30 jours les retours déjà produits : un texte identique renvoyé sur le même sujet ne déclenche pas de nouvel appel. Il est déclaré dans `wrangler.jsonc` (une liaison ajoutée seulement dans le tableau de bord serait effacée au déploiement suivant).
+Déjà en place : la table D1 `usage` tient l'usage raisonnable (coût réel par abonné et par mois, plafonds journaliers, délai entre deux demandes, coupe-circuit, essais gratuits, codes). Chaque demande réserve d'abord son coût maximal en une seule requête atomique, puis le coût réel est compté même si le visiteur ferme la page. Les clés échues sont effacées chaque nuit. L'espace KV `bristol-quota` garde 30 jours les retours déjà produits : un texte identique renvoyé sur le même sujet ne déclenche pas de nouvel appel. Il est déclaré dans `wrangler.jsonc` (une liaison ajoutée seulement dans le tableau de bord serait effacée au déploiement suivant).
 
 ## 4. Vérifier
 
 1. Chaque envoi sur GitHub redéploie le Worker automatiquement (une minute environ). Après avoir ajouté des secrets, tu peux aussi relancer le dernier déploiement depuis l'onglet **Deployments**.
-2. Ouvre https://bristol-eps.corentin-gillet53.workers.dev/api/feedback. Tu dois voir une ligne comme :
+2. Sans jeton, https://bristol-eps.corentin-gillet53.workers.dev/api/feedback répond seulement `{"ok":true}`. Pour le diagnostic, enregistre le secret `ADMIN_TOKEN` puis, dans un terminal : `curl -H "x-admin-token: <ton jeton>" https://bristol-eps.corentin-gillet53.workers.dev/api/feedback`. Tu dois voir une ligne comme :
    `{"ok":true,"apiKey":true,"accessCodes":2,"quotaStore":true,"monthlyLimit":30,"model":"claude-sonnet-5-5"}`
    - `apiKey: false` : la clé n'est pas enregistrée (étape 2) ;
    - `accessCodes: 0` : aucun code (étape 2) ;
    - `quotaStore: false` : la liaison KV manque (étape 3).
-   - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse : `"keyAndModel":"ok"` signifie que tout est bon.
+   - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse (avec le même en-tête) : `"keyAndModel":"ok"` signifie que tout est bon.
 3. Sur le site, va dans **Écrire → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
 
 ---
@@ -68,7 +71,7 @@ Déjà en place : l'espace de stockage KV `bristol-quota` tient l'usage raisonna
 
 Les visiteurs peuvent créer un compte (bouton « Se connecter ») pour retrouver leur progression sur tous leurs appareils.
 
-- **Données** : base D1 `bristol-db` (tables `users`, `sessions`, `progress` et `texts` pour les textes rédigés, créée automatiquement à la première utilisation ; schéma dans `migrations/`).
+- **Données** : base D1 `bristol-db` (tables `users`, `sessions`, `progress` et `texts` pour les textes rédigés, créée automatiquement à la première utilisation ; schéma dans `migrations/`, à appliquer avec `npx wrangler d1 migrations apply bristol-db --remote`).
 - **Mots de passe** : jamais envoyés ni stockés. Le navigateur en dérive une clé (PBKDF2-SHA256, 310 000 itérations) ; le serveur n'en garde qu'une empreinte salée.
 - **Mot de passe oublié** : une clé de secours est affichée une seule fois à l'inscription. Il n'y a pas encore de récupération par e-mail.
 - **Synchronisé** : progression des fiches, cartes perso, références, scores Frise et « Qui ? », date du concours, calendrier de régularité et succès. Les textes rédigés (plans, introductions, paragraphes) restent sur chaque appareil.
