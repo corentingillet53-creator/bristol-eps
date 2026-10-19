@@ -33,6 +33,7 @@ const MAX_TEXT_CHARS = 80000;          // une copie de 6 h tient largement
 const MAX_TEXT_ITEMS = 40;             // textes par envoi
 const MAX_TEXTS_PER_USER = 3000;
 const MAX_TEXTS_BODY = 2 * 1024 * 1024;
+const MAX_TEXTS_CHARS_PER_USER = 5000000;  // environ 60 copies complètes ; protège la base contre le remplissage
 const TEXT_KEY = /^[A-Za-z0-9:_.-]{1,80}$/;
 const enc = new TextEncoder();
 
@@ -111,10 +112,12 @@ async function countAttempt(env, kind, email) {
   await env.QUOTA.put(k, String(n), { expirationTtl: 60 * 60 * 2 });
 }
 
-/* Ménage quotidien (appelé par le cron) : sessions expirées. */
+/* Ménage quotidien (appelé par le cron) : sessions expirées, et signalements de plus d'un an
+   (durée annoncée dans la politique de confidentialité). */
 export async function purgeExpiredSessions(env, now = Date.now()) {
   if (!env.DB) return 0;
   const r = await env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now).run();
+  try { await env.DB.prepare("DELETE FROM reports WHERE created_at < ?").bind(now - 365 * 864e5).run(); } catch (e) { /* table pas encore créée */ }
   return (r && r.meta && r.meta.changes) || 0;
 }
 
@@ -223,9 +226,17 @@ async function deleteAccount(request, env) {
     env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id),
     env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
   ]);
-  // Rappels par notification : la table n'existe que si quelqu'un s'est abonné.
-  try { await env.DB.prepare("DELETE FROM push_subs WHERE user_id = ?").bind(user.id).run(); } catch (e) {}
-  try { await env.DB.prepare("DELETE FROM subscriptions WHERE user_id = ?").bind(user.id).run(); } catch (e) {}
+  // Tables créées au premier usage : chacune peut manquer.
+  const also = [
+    ["DELETE FROM push_subs WHERE user_id = ?", user.id],
+    ["DELETE FROM subscriptions WHERE user_id = ?", user.id],
+    // Signalements : le contenu sert à corriger les fiches, mais plus rien ne renvoie à la personne.
+    ["UPDATE reports SET user_id = NULL, email = NULL WHERE user_id = ? OR email = ?", user.id, user.email],
+    ["DELETE FROM waitlist WHERE email = ?", user.email],
+    ["DELETE FROM usage WHERE k LIKE ?", "%" + user.id + "%"],
+  ];
+  for (const [sql, ...args] of also) { try { await env.DB.prepare(sql).bind(...args).run(); } catch (e) {} }
+  if (env.QUOTA) { try { await env.QUOTA.delete("trial:" + user.id); } catch (e) {} }
   return json(200, { ok: true }, { "set-cookie": sessionCookie("", 0) });
 }
 
@@ -290,8 +301,10 @@ async function putTexts(request, env) {
     it.t = Math.min(Math.floor(t), now + 60000);     // pas de date dans le futur
   }
   await ensureTexts(env);
-  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM texts WHERE user_id = ?").bind(user.id).first();
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(v)), 0) AS c FROM texts WHERE user_id = ?").bind(user.id).first();
   if ((row ? row.n : 0) + items.length > MAX_TEXTS_PER_USER) return err(413, "too_many_texts");
+  // Volume total par compte (les textes remplacés sont comptés large : la limite reste généreuse).
+  if ((row ? row.c : 0) + items.reduce((n, it) => n + it.v.length, 0) > MAX_TEXTS_CHARS_PER_USER) return err(413, "too_many_texts");
   await env.DB.batch(items.map((it) => env.DB.prepare(
     "INSERT INTO texts (user_id, k, v, t) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, k) DO UPDATE SET v = excluded.v, t = excluded.t WHERE excluded.t > texts.t"
   ).bind(user.id, it.k, it.v, it.t)));
@@ -315,8 +328,8 @@ const oauthCookie = (value, maxAge) => `${OAUTH_COOKIE}=${value}; Path=/api/auth
 const callbackUrl = (request) => new URL(request.url).origin + "/api/auth/google/callback";
 
 async function authConfig(request, env) {
-  // Indique quelle pièce manque, sans jamais révéler de valeur secrète.
-  return json(200, { google: googleEnabled(env), googleClientId: !!env.GOOGLE_CLIENT_ID, googleSecret: !!env.GOOGLE_CLIENT_SECRET });
+  // Seulement ce dont la page a besoin : la connexion Google est-elle proposée ?
+  return json(200, { google: googleEnabled(env) });
 }
 
 async function googleStart(request, env) {

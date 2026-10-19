@@ -11,6 +11,7 @@ import { isAccountRoute, handleAccount, purgeExpiredSessions } from "./functions
 import { isPushRoute, handlePush, runDaily } from "./functions/api/push.js";
 import { handleReport } from "./functions/api/report.js";
 import { handleWaitlist } from "./functions/api/waitlist.js";
+import { purgeUsage } from "./functions/api/usage.js";
 import { isBillingRoute, handleBilling } from "./functions/api/billing.js";
 
 /* Réponses de l'API : mêmes en-têtes de base que les fichiers statiques (public/_headers). */
@@ -46,11 +47,14 @@ export default {
     return harden(await route(request, env, ctx, url));
   },
   // Toutes les 15 minutes (wrangler.jsonc, triggers) : rappels quotidiens ;
-  // une fois par jour (vers 3 h UTC), ménage des sessions expirées.
+  // une fois par jour (vers 3 h UTC), ménage des sessions expirées, des vieux signalements
+  // et des compteurs d'usage échus.
   async scheduled(event, env, ctx) {
     const t = new Date(event.scheduledTime);
     ctx.waitUntil(runDaily(env, t).catch((e) => console.error("Rappels :", String(e && e.stack || e))));
-    if (t.getUTCHours() === 3 && t.getUTCMinutes() < 15)
+    if (t.getUTCHours() === 3 && t.getUTCMinutes() < 15) {
       ctx.waitUntil(purgeExpiredSessions(env, t.getTime()).catch((e) => console.error("Ménage :", String(e && e.stack || e))));
+      ctx.waitUntil(purgeUsage(env, t.getTime()).catch((e) => console.error("Ménage des compteurs :", String(e && e.stack || e))));
+    }
   },
 };

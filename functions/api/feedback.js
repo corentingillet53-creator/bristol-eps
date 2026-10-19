@@ -1,5 +1,6 @@
 import { currentUser } from "./account.js";
 import { getPlan } from "./plan.js";
+import { take, gate, bump, peek, forget, ipTag } from "./usage.js";
 // Bristol EPS — fonction serveur du retour de Claude (Cloudflare Pages Functions).
 // Elle reçoit le sujet, le texte du candidat et les faits utiles, vérifie le code
 // d'accès et le quota, construit le prompt ici (jamais dans le navigateur), puis
@@ -15,9 +16,13 @@ import { getPlan } from "./plan.js";
 //   GLOBAL_DAILY_CENTS (1000) coupe-circuit : dépense totale maximale par jour
 //   PRICE_IN, PRICE_OUT (2, 10) prix du modèle en dollars par million de jetons
 //   TRIAL_DAILY (30)          retours offerts (un par compte gratuit) au plus par jour ; 0 pour les couper
+//   TRIAL_PER_IP (3)          retours offerts au plus par jour depuis une même adresse IP
+//   ADMIN_TOKEN (secret, facultatif) : en-tête x-admin-token qui ouvre le diagnostic GET /api/feedback
 //   MODEL              (facultatif)           modèle Claude, par défaut claude-sonnet-5-5
 //   ANTHROPIC_WORKSPACE_ID (facultatif)       ID d'espace de travail, si la clé n'y est pas rattachée
-// Liaison KV facultative mais recommandée (Settings > Bindings) : QUOTA
+// Liaison KV facultative mais recommandée (Settings > Bindings) : QUOTA (cache des retours déjà produits).
+// Les compteurs d'usage sont dans D1 (table usage, functions/api/usage.js) : ils sont atomiques,
+// et le coût maximal d'une demande est réservé avant l'appel puis ajusté au coût réel.
 
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_NOTES = 6000;
@@ -279,17 +284,19 @@ function readCopie(body) {
 
 // Transforme le flux SSE de l'API Claude en texte brut. En fin de flux, un caractère
 // séparateur (U+001E) suivi d'un petit JSON signale une réponse coupée ou une erreur.
-function toTextStream(upstreamBody, onDone) {
+// Le flux amont est lu jusqu'au bout même si le navigateur se déconnecte (ctx.waitUntil) :
+// le coût réel est donc toujours compté, quoi que fasse le client.
+function toTextStream(upstreamBody, onDone, ctx) {
   const reader = upstreamBody.getReader();
   const dec = new TextDecoder();
   const enc = new TextEncoder();
-  let buf = "";
-  let meta = null;
-  let finished = false;
-
-  let sent = false, full = "";
+  const { readable, writable } = new TransformStream();
+  const w = writable.getWriter();
+  let gone = false;
+  const send = (t) => { if (!gone) w.write(enc.encode(t)).catch(() => { gone = true; }); };
+  let buf = "", meta = null, full = "";
   const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-  const handle = (evt, ctrl) => {
+  const handle = (evt) => {
     const data = evt.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("");
     if (!data) return;
     let msg;
@@ -300,42 +307,34 @@ function toTextStream(upstreamBody, onDone) {
     }
     if (msg.type === "message_delta" && msg.usage && typeof msg.usage.output_tokens === "number") usage.output = msg.usage.output_tokens;
     if (msg.type === "content_block_delta" && msg.delta && msg.delta.type === "text_delta" && msg.delta.text) {
-      ctrl.enqueue(enc.encode(msg.delta.text));
+      send(msg.delta.text);
       full += msg.delta.text;
-      sent = true;
     } else if (msg.type === "message_delta" && msg.delta && msg.delta.stop_reason === "max_tokens") {
       meta = { truncated: true };
     } else if (msg.type === "error") {
-      meta = { error: "upstream_error", detail: `${(msg.error && msg.error.type) || ""} ${(msg.error && msg.error.message) || ""}`.trim().slice(0, 240) };
+      meta = { error: "upstream_error", detail: "réponse de Claude interrompue" };
       console.error("Erreur de l'API Claude pendant le flux :", JSON.stringify(msg.error || msg));
     }
   };
-
-  return new ReadableStream({
-    // Lit le flux amont jusqu'à pouvoir envoyer du texte (ou jusqu'à la fin) :
-    // une lecture qui ne produit rien bloquerait sinon le flux.
-    async pull(ctrl) {
-      sent = false;
-      while (!finished && !sent) {
-        let done, value;
-        try { ({ done, value } = await reader.read()); }
-        catch (e) { meta = { error: "upstream_error", detail: "flux de l'API interrompu" }; done = true; }
-        if (value) {
-          buf += dec.decode(value, { stream: true }).replace(/\r\n/g, "\n");
-          let i;
-          while ((i = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, i), ctrl); buf = buf.slice(i + 2); }
-        }
-        if (done) {
-          if (buf.trim()) handle(buf, ctrl);
-          if (meta) ctrl.enqueue(enc.encode("\u001e" + JSON.stringify(meta)));
-          finished = true;
-          if (onDone) { try { await onDone({ usage, text: full, meta }); } catch (e) { console.error("Comptage de l'usage :", String(e)); } }
-          ctrl.close();
-        }
+  const run = (async () => {
+    for (;;) {
+      let done, value;
+      try { ({ done, value } = await reader.read()); }
+      catch (e) { meta = { error: "upstream_error", detail: "flux de l'API interrompu" }; done = true; }
+      if (value) {
+        buf += dec.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+        let i;
+        while ((i = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, i)); buf = buf.slice(i + 2); }
       }
-    },
-    cancel() { try { reader.cancel(); } catch {} },
-  });
+      if (done) break;
+    }
+    if (buf.trim()) handle(buf);
+    if (meta) send("\u001e" + JSON.stringify(meta));
+    if (onDone) { try { await onDone({ usage, text: full, meta }); } catch (e) { console.error("Comptage de l'usage :", String(e)); } }
+    if (!gone) { try { await w.close(); } catch (e) {} }
+  })();
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(run);
+  return readable;
 }
 
 
@@ -353,27 +352,37 @@ function costMicro(env, u) {
   // micro-dollars = jetons × prix par million ; lecture du cache à 5 %, écriture à 125 %.
   return Math.round(u.input * pin + u.cacheRead * pin * 0.05 + u.cacheWrite * pin * 1.25 + u.output * pout);
 }
-async function fairUseCheck(env, who, isCopie) {
-  const now = Date.now(), iso = new Date(now).toISOString(), day = iso.slice(0, 10), month = iso.slice(0, 7);
-  const kv = env.QUOTA, get = async (k) => parseInt((await kv.get(k)) || "0", 10) || 0;
-  const global = await get("g:" + day);
-  if (global >= num(env.GLOBAL_DAILY_CENTS, 1000) * 10000) return { error: json(503, "paused") };
-  const last = await get("r:" + who), gap = num(env.MIN_INTERVAL_S, 60) * 1000;
-  if (last && now - last < gap) return { error: json(429, "slow_down", { retryAfter: Math.ceil((gap - (now - last)) / 1000) }) };
-  const dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`, dn = await get(dk);
-  if (dn >= (isCopie ? num(env.DAILY_COPIES, 3) : num(env.DAILY_SHORT, 25))) return { error: json(429, "daily_limit") };
-  const spent = await get(`c:${who}:${month}`), budget = num(env.BUDGET_CENTS, 200) * 10000;
-  if (spent >= budget) return { error: json(429, "quota_exceeded") };
-  await kv.put("r:" + who, String(now), { expirationTtl: 120 });
-  await kv.put(dk, String(dn + 1), { expirationTtl: 60 * 60 * 48 });
-  return { high: spent >= budget * 0.8 };
+// Coût maximal d'une demande, réservé avant l'appel : jetons d'entrée estimés (≈ 3 caractères
+// par jeton, 1 600 par photo) et tous les jetons de sortie permis.
+function costEstimate(env, prompt, images, maxTokens) {
+  const pin = Number(env.PRICE_IN) || 2, pout = Number(env.PRICE_OUT) || 10;
+  return Math.round((Math.ceil(prompt.length / 3) + images * 1600) * pin * 1.25 + maxTokens * pout);
 }
-async function fairUseRecord(env, who, micro) {
+const DAY = 864e5;
+// Réserve, dans cet ordre et de façon atomique : le coupe-circuit du jour, le délai entre deux
+// demandes, le nombre de demandes du jour, le budget du mois. Renvoie { error } ou
+// { high, settle(micro), undo() } : settle remplace la réservation par le coût réel.
+async function fairUseReserve(env, who, isCopie, est) {
   const iso = new Date().toISOString(), day = iso.slice(0, 10), month = iso.slice(0, 7);
-  const kv = env.QUOTA, get = async (k) => parseInt((await kv.get(k)) || "0", 10) || 0;
-  const ck = `c:${who}:${month}`, gk = "g:" + day;
-  await kv.put(ck, String((await get(ck)) + micro), { expirationTtl: 60 * 60 * 24 * 40 });
-  await kv.put(gk, String((await get(gk)) + micro), { expirationTtl: 60 * 60 * 24 * 3 });
+  const gk = "g:" + day, ck = `c:${who}:${month}`, dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`;
+  const undo = [];
+  const back = async () => { for (const f of undo.reverse()) { try { await f(); } catch (e) {} } };
+  if (await take(env, gk, est, num(env.GLOBAL_DAILY_CENTS, 1000) * 10000, 3 * DAY) === null) return { error: json(503, "paused") };
+  undo.push(() => bump(env, gk, -est, 3 * DAY));
+  const wait = await gate(env, "r:" + who, num(env.MIN_INTERVAL_S, 60) * 1000);
+  if (wait) { await back(); return { error: json(429, "slow_down", { retryAfter: Math.ceil(wait / 1000) }) }; }
+  undo.push(() => forget(env, "r:" + who));
+  if (await take(env, dk, 1, isCopie ? num(env.DAILY_COPIES, 3) : num(env.DAILY_SHORT, 25), 2 * DAY) === null) { await back(); return { error: json(429, "daily_limit") }; }
+  undo.push(() => bump(env, dk, -1, 2 * DAY));
+  const budget = num(env.BUDGET_CENTS, 200) * 10000;
+  const spent = await take(env, ck, est, budget, 40 * DAY);
+  if (spent === null) { await back(); return { error: json(429, "quota_exceeded") }; }
+  undo.push(() => bump(env, ck, -est, 40 * DAY));
+  return {
+    high: spent >= budget * 0.8,
+    undo: back,
+    settle: async (micro) => { const d = micro - est; if (d) { await bump(env, ck, d, 40 * DAY); await bump(env, gk, d, 3 * DAY); } },
+  };
 }
 
 // En-têtes de l'API Claude. ANTHROPIC_WORKSPACE_ID n'est utile que si la clé
@@ -393,10 +402,18 @@ async function readApiError(res) {
   return { status: res.status, type, message: (message || raw).slice(0, 240) };
 }
 
-// GET /api/feedback : vérifie la configuration sans rien révéler de secret.
+// GET /api/feedback : diagnostic de la configuration, réservé à l'en-tête x-admin-token
+// (secret ADMIN_TOKEN) ; sans lui, seulement { ok: true }.
 // GET /api/feedback?probe=1 : vérifie en plus la clé et le modèle auprès de l'API Claude,
 // avec un comptage de tokens (gratuit, ne consomme pas de crédit).
+function isAdmin(request, env) {
+  const t = String(env.ADMIN_TOKEN || ""), h = request.headers.get("x-admin-token") || "";
+  if (t.length < 16 || h.length !== t.length) return false;
+  let r = 0; for (let i = 0; i < t.length; i++) r |= t.charCodeAt(i) ^ h.charCodeAt(i);
+  return r === 0;
+}
 export async function onRequestGet({ request, env }) {
+  if (!isAdmin(request, env)) return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
   const out = {
     ok: true,
     apiKey: !!env.ANTHROPIC_API_KEY,
@@ -440,27 +457,30 @@ function badRequestShape(request) {
   return null;
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, ctx }) {
   if (!env.ANTHROPIC_API_KEY) return json(500, "server_not_configured");
   const shape = badRequestShape(request); if (shape) return shape;
 
   // Accès : un compte abonné (cookie de session), un code d'accès bêta,
   // ou le retour offert : un seul par compte gratuit, sur un plan, une introduction ou un paragraphe.
+  if (!env.DB) return json(500, "server_not_configured");
   let who = null, trialUser = null, user = null;
-  if (env.DB) {
-    user = await currentUser(request, env).catch(() => null);
-    if (user && (await getPlan(env, user.id)).active) who = "u:" + user.id;
-  }
+  user = await currentUser(request, env).catch(() => null);
+  if (user && (await getPlan(env, user.id)).active) who = "u:" + user.id;
+  const hour = new Date().toISOString().slice(0, 13);
   if (!who) {
     const code = String(request.headers.get("x-access-code") || "").trim();
     const codes = String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean);
-    if (code && codes.includes(code)) who = code;
-    else if (code) return json(401, "invalid_code");
-    else if (request.headers.get("x-trial") === "1" && env.QUOTA) {
+    if (code) {
+      // Essais de codes faux : 10 par heure et par adresse IP, puis blocage.
+      const ip = await ipTag(request, "bristol-code");
+      const fk = `codefail:${ip || "?"}:${hour}`;
+      if ((await peek(env, fk)) >= 10) return json(429, "too_many_attempts");
+      if (!codes.includes(code)) { await bump(env, fk, 1, 2 * 36e5); return json(401, "invalid_code"); }
+      who = "k:" + (await sha256(code)).slice(0, 16);
+    } else if (request.headers.get("x-trial") === "1") {
       if (!user) return json(401, "login_required");
-      if (await env.QUOTA.get("trial:" + user.id)) return json(402, "trial_used");
-      const day = new Date().toISOString().slice(0, 10), n = parseInt((await env.QUOTA.get("trialday:" + day)) || "0", 10) || 0;
-      if (n >= num(env.TRIAL_DAILY, 30)) return json(503, "trial_closed");
+      if ((await peek(env, "trial:" + user.id)) || (env.QUOTA && await env.QUOTA.get("trial:" + user.id))) return json(402, "trial_used");
       trialUser = user.id; who = "t:" + user.id;
     } else return json(402, "premium_required");
   }
@@ -503,25 +523,31 @@ export async function onRequestPost({ request, env }) {
   const content = images.length
     ? images.map((data) => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data } })).concat([{ type: "text", text: prompt }])
     : prompt;
+  // Retour offert : réservé de façon atomique avant tout (deux onglets ne l'obtiennent pas deux fois),
+  // dans la limite du jour et de quelques comptes par adresse IP ; rendu si l'appel échoue.
+  const day = new Date().toISOString().slice(0, 10), undoTrial = [];
+  const trialUndo = async () => { for (const f of undoTrial.reverse()) { try { await f(); } catch (e) {} } };
+  if (trialUser) {
+    if (await take(env, "trial:" + trialUser, 1, 1, 400 * DAY) === null) return json(402, "trial_used");
+    undoTrial.push(() => forget(env, "trial:" + trialUser));
+    const ip = await ipTag(request, "bristol-trial");
+    if (ip) {
+      if (await take(env, `trialip:${ip}:${day}`, 1, num(env.TRIAL_PER_IP, 3), 2 * DAY) === null) { await trialUndo(); return json(503, "trial_closed"); }
+      undoTrial.push(() => bump(env, `trialip:${ip}:${day}`, -1, 2 * DAY));
+    }
+    if (await take(env, "trialday:" + day, 1, num(env.TRIAL_DAILY, 30), 2 * DAY) === null) { await trialUndo(); return json(503, "trial_closed"); }
+    undoTrial.push(() => bump(env, "trialday:" + day, -1, 2 * DAY));
+  }
   // Même sujet, même texte : on renvoie le retour déjà produit, sans nouvel appel.
   const trialHdr = trialUser ? { "x-trial": "1" } : {};
   if (env.QUOTA) {
     const hit = await env.QUOTA.get(cacheKey);
-    if (hit) {
-      if (trialUser) await env.QUOTA.put("trial:" + trialUser, String(Date.now()));
-      return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1", ...trialHdr } });
-    }
+    if (hit) return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1", ...trialHdr } });
   }
-  const fair = env.QUOTA ? await fairUseCheck(env, who, isCopie) : null;
-  if (fair && fair.error) return fair.error;
-  // Le retour offert est marqué comme utilisé avant l'appel (deux onglets ne l'obtiennent pas deux fois),
-  // et rendu si l'appel échoue.
-  const trialDay = "trialday:" + new Date().toISOString().slice(0, 10);
-  if (trialUser) {
-    await env.QUOTA.put("trial:" + trialUser, String(Date.now()));
-    await env.QUOTA.put(trialDay, String((parseInt((await env.QUOTA.get(trialDay)) || "0", 10) || 0) + 1), { expirationTtl: 60 * 60 * 48 });
-  }
-  const trialUndo = async () => { if (trialUser) { try { await env.QUOTA.delete("trial:" + trialUser); } catch (e) {} } };
+  const est = costEstimate(env, prompt, images.length, maxTokens);
+  const fair = await fairUseReserve(env, who, isCopie, est);
+  if (fair.error) { await trialUndo(); return fair.error; }
+  const failed = async () => { await fair.undo(); await trialUndo(); };
   let upstream;
   try {
     upstream = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages", {
@@ -536,29 +562,28 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (e) {
     console.error("API Claude injoignable :", String(e));
-    await trialUndo();
+    await failed();
     return json(502, "upstream_error", { detail: "API Claude injoignable" });
   }
 
   if (!upstream.ok || !upstream.body) {
-    await trialUndo();
+    await failed();
     const err = await readApiError(upstream);
+    // Le détail reste dans les journaux de Cloudflare : le navigateur ne reçoit que le code.
     console.error("Réponse de l'API Claude :", err.status, err.type, err.message);
-    const detail = `${err.status} ${err.type} ${err.message}`.trim();
-    if (/credit balance/i.test(err.message)) return json(402, "no_credit", { detail });
-    if (upstream.status === 429 || upstream.status === 529) return json(503, "busy", { detail });
-    if (upstream.status === 401 || upstream.status === 403) return json(500, "bad_api_key", { detail });
-    if (upstream.status === 404 || err.type === "not_found_error") return json(500, "model_unavailable", { detail });
-    return json(502, "upstream_error", { detail });
+    if (/credit balance/i.test(err.message)) return json(402, "no_credit");
+    if (upstream.status === 429 || upstream.status === 529) return json(503, "busy");
+    if (upstream.status === 401 || upstream.status === 403) return json(500, "bad_api_key");
+    if (upstream.status === 404 || err.type === "not_found_error") return json(500, "model_unavailable");
+    return json(502, "upstream_error", { detail: "erreur " + upstream.status });
   }
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
-  if (fair && fair.high) headers["x-usage-high"] = "1";
+  if (fair.high) headers["x-usage-high"] = "1";
   Object.assign(headers, trialHdr);
-  const onDone = env.QUOTA ? async ({ usage, text, meta }) => {
-    const micro = costMicro(env, usage);
-    await fairUseRecord(env, who, micro);
-    if (text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
-  } : null;
-  return new Response(toTextStream(upstream.body, onDone), { headers });
+  const onDone = async ({ usage, text, meta }) => {
+    await fair.settle(costMicro(env, usage));
+    if (env.QUOTA && text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
+  };
+  return new Response(toTextStream(upstream.body, onDone, ctx), { headers });
 }
