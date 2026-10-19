@@ -24,7 +24,7 @@ Site de révision payant pour les écrits du CAPEPS et de l'agrégation d'EPS, p
 | `source/landing.html` | Page de présentation servie à `/`. |
 | `build.py` | Écrit `public/app/index.html` et `public/index.html`, met `SITE_MAJ` à la date du jour, régénère `public/_headers` (CSP par empreintes sha256 des scripts en ligne). Ne jamais éditer `public/app/index.html` à la main. |
 | `worker.js` | Routeur du Worker vers `functions/api/*`. |
-| `functions/api/feedback.js` | Appel à Claude (retours d'écriture, correction de copie), quota KV, cache. Les prompts y sont dupliqués depuis la page : garder les deux identiques (`promptB3`, `buildPrompt2`, `buildPromptCopie`, `bilanTail`). |
+| `functions/api/feedback.js` | Appel à Claude (retours d'écriture, correction de copie), quota KV, cache. Les prompts y sont dupliqués depuis la page : garder les deux identiques (`promptB3`, le bloc `FB_FMTS`/`FB_WHO`/`FB_SPEC`/`promptFb`, `COPIE_EPR`/`COPIE_MID` et la copie, `bilanTail`). `tests/prompts.mjs` vérifie l'égalité. |
 | `functions/api/account.js`, `billing.js`, `plan.js`, `push.js`, `report.js` | Comptes (Google), Stripe, offre, notifications, signalements. |
 | `migrations/` | Schéma D1 (`bristol-db`). |
 | `wrangler.jsonc` | Config Worker (KV `QUOTA`, D1 `DB`, cron). |
@@ -32,9 +32,9 @@ Site de révision payant pour les écrits du CAPEPS et de l'agrégation d'EPS, p
 
 ## Repères dans `source/bristol-eps.html`
 Chercher par nom avec Grep plutôt que lire le fichier.
-- État : `prefs` (concours, examDate…), `progress` (FSRS), `texts` via `txGet`/`txSet` (= `noteGet`/`noteSet`), `ach`, `log`. Préfixes de `texts` : `i:`/`p:`/(rien) + id = intro / paragraphe / plan ; `f:` = retour de Claude enregistré ; `c:` = grille cochée ; `b:` = copie de concours blanc ; `bm:` = métadonnées du blanc.
+- État : `prefs` (concours, examDate…), `progress` (FSRS), `texts` via `txGet`/`txSet` (= `noteGet`/`noteSet`), `ach`, `log`. Préfixes de `texts` : `i:`/`p:`/(rien) + id = intro / paragraphe / plan ; `f:` = retour de Claude enregistré ; `c:` = grille cochée ; `b:` = copie de concours blanc ; `bm:` = métadonnées du blanc ; `d:` = dossier du sujet relevé par le candidat. Au CAPEPS interne, `inConc` ne garde de l'écrit 2 que le thème `IN`.
 - Concours : `CONCOURS`, `CPROF`, `sjPools(e)`, `relHas`/`relGroups`/`REL_GRP`, `relCards`, `isB3Conc`, `planEcrits`, `methFor`. Ids : `capeps-l3` (format B3), `capeps-m2`, `capeps-int` (étude de cas, écrit unique `ei`→e2), `capeps-3`, `agreg-ext`, `agreg-int`.
-- Écriture : `askFeedback(kind)` (plan/intro/para), `askCopie(m)`, `promptCopie`, `promptB3`, `prompt2`, `mdLite` (affichage, masque la ligne `BILAN:`), grilles `INTRO_CRIT`, `PARA_CRIT`, `ILLU_CRIT`, `B1_/B2_*_CRIT`.
+- Écriture : `askFeedback(kind)` (plan/intro/para), `askCopie(m)`, `promptCopie`, `promptB3`, `promptFb` (format selon `fbFmt()` : `cint`, `aint`, `aext` ou CAPEPS externe), `fbCtx` (dossier du sujet saisi par le candidat, clé `d:` + id), `annJury`/`concJury` (notes du jury envoyées à Claude), `mdLite` (affichage, masque la ligne `BILAN:`). Grilles : `gridKey(sujet, kind)` choisit la grille (affichage et suivi), `gridCrit`, `SK_GRID`.
 - Niveau de préparation : `readiness(list)` (connaissances), compétences d'écriture `SK_*`, `skMeasures`, `skStats`, `writeReadiness`, `readyAll`, `skWeak`, `skTrain`, `writingHTML`, `readinessHTML`.
 - Écrans : `render()`, `setView(v)`, `renderHome`/`homeTrain`/`homeTrain0`, `renderStats` (Progrès), `planWeeks`/`wTask`, concours blanc `blanc*`, sélecteur de concours `ccOpen`, routes `routePush`/`routeFromHash`, actions dans le gestionnaire `data-act`.
 - Accès : `isPremium()`, `STANDALONE` (vrai sur le site, faux dans l'artifact où `window.claude` fait les appels).
@@ -53,6 +53,7 @@ node smoke.js           # parcours des 6 concours → « ALL OK »
 node skills.js capeps-l3   # volet Écriture (jsdom), un concours en argument → « errors [] »
 node axe.js             # accessibilité : aucune sortie = aucune violation (lent)
 node csp.js             # seule violation attendue : le script injecté exprès
+node prompts.mjs        # prompts identiques page/serveur pour chaque concours → « ALL OK »
 ```
 Chromium est dans `/opt/pw-browsers` ; ne pas lancer `playwright install`.
 
