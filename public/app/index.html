@@ -758,6 +758,15 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .fold > .sect,.fold-grid{border:0;box-shadow:none;margin:0}
 .fold-grid{display:grid;gap:16px;padding:0 0 16px}
 .fold > .sect > h2:first-child{display:none}
+.it-more{margin-top:8px}
+.it-more summary{cursor:pointer;font-size:14px;color:var(--muted);min-height:32px;display:inline-flex;align-items:center}
+.it-more summary{list-style:none;gap:8px;text-decoration:underline;text-underline-offset:3px}
+.it-more summary::-webkit-details-marker{display:none}
+.it-more summary::after{content:"";width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+.it-more[open] summary::after{transform:rotate(-135deg)}
+.deck-more{text-align:center;margin:20px 0 8px}
+.deck-more .row-btns{justify-content:center}
+#panel-deck .item:focus{outline:3px solid var(--accent);outline-offset:2px}
 .sj-filter{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
 .sj-filter summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:10px 14px;min-height:44px;font-weight:700}
 .sj-filter summary::-webkit-details-marker{display:none}
@@ -2809,20 +2818,28 @@ function renderDeck(){
   if (!dq && grpLocked(grp)) { $("#panel-deck").innerHTML = lockHTML(grp); return; }
   const cards = dq ? allCards().filter(c => deckMatch(c) && !grpLocked(grpOf(c))) : allCards().filter(inFilter);
   const keys = TH_ORDER.concat([""]);
-  const groups = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
+  const groupsAll = keys.map(k => [k, cards.filter(c => (THEMES[c.th] ? c.th : "") === k).sort((a, b) => pIdx(a.p) - pIdx(b.p))]).filter(g => g[1].length);
+  /* Par paquets de DECK_STEP fiches : la page reste légère ; le compte de chaque thème reste celui du thème entier. */
+  const dkKey = [grp, theme, period, dq, prefs.concours].join("|");
+  if (deckPage.key !== dkKey) { deckPage.key = dkKey; deckPage.n = DECK_STEP; }
+  let budget = deckPage.n;
+  const groups = groupsAll.map(([k, list]) => { const shown = list.slice(0, Math.max(0, budget)); budget -= shown.length; return [k, shown, list]; }).filter(g => g[1].length);
+  const total = cards.length, shownN = Math.min(total, deckPage.n);
   if (!groups.length) { $("#panel-deck").innerHTML = dq ? `<div class="empty"><h2>Aucune fiche trouvée.</h2><p>Essaie un autre mot : un nom d'auteur, une date, une notion.</p></div>` : `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>Change de thème ou de période, ou crée tes propres cartes avec « Ajouter une carte ».</p></div>`; return; }
-  $("#panel-deck").innerHTML = `<div class="row-btns deck-actions">${dq ? `<p class="rf-count" aria-live="polite">${plural(cards.length, "fiche")} pour « ${esc(dq)} », toutes épreuves confondues</p>` : `<button class="btn" data-tab="add">Ajouter une carte</button>`}</div>` + groups.map(([k, list]) => {
-    const seen = list.filter(c => progress[c.id]).length, master = list.filter(c => progress[c.id] && progress[c.id].b === 5).length;
-    return `<div class="group"><h2>${esc(THEMES[k] || NONE_T)}</h2><p class="gsub">${list.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
+  $("#panel-deck").innerHTML = `<div class="row-btns deck-actions">${dq ? `<p class="rf-count" aria-live="polite">${plural(cards.length, "fiche")} pour « ${esc(dq)} », toutes épreuves confondues</p>` : `<button class="btn" data-tab="add">Ajouter une carte</button>`}</div>` + groups.map(([k, list, full]) => {
+    const seen = full.filter(c => progress[c.id]).length, master = full.filter(c => progress[c.id] && progress[c.id].b === 5).length;
+    return `<div class="group"><h2>${esc(THEMES[k] || NONE_T)}</h2><p class="gsub">${full.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
       const pr = progress[c.id];
       const due = !pr ? `<span class="due">Jamais vue</span>` : pr.d <= now ? `<span class="due now">À revoir</span>` : `<span class="due">Dans ${fmtIn(pr.d - now)}</span>`;
       const del = !c.custom ? "" : pendingDel === c.id
         ? `<span class="confirm"><button class="btn small" data-confirm="${esc(c.id)}">Supprimer</button><button class="btn small" data-cancel="1">Annuler</button></span>`
         : `<button class="linkbtn" data-del="${esc(c.id)}">Supprimer</button>`;
-      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}${srcHTML(c)}</div><div class="is">${starBtn(c)}<span class="boxes" role="img" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
+      return `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}<details class="it-more"${refEdit === c.id || cnEdit === c.id || reportOpen === c.id ? " open" : ""}><summary>Source, ma référence, ma note</summary>${srcHTML(c)}</details></div><div class="is">${starBtn(c)}<span class="boxes" role="img" aria-label="Boîte ${pr ? pr.b : 0} sur 5">${boxes(pr ? pr.b : 0)}</span>${due}${del}</div></li>`;
     }).join("")}</ul></div>`;
-  }).join("");
+  }).join("") + (shownN < total ? `<div class="deck-more"><p class="rf-count" aria-live="polite">${shownN} fiches affichées sur ${total}</p><div class="row-btns"><button class="btn primary" data-act="deck-more">Afficher ${Math.min(DECK_STEP, total - shownN)} fiches de plus</button><button class="btn" data-act="deck-all">Tout afficher</button></div></div>` : "");
 }
+const DECK_STEP = 30;
+const deckPage = { key: "", n: DECK_STEP };
 /* ---------- Frise et Qui ? ---------- */
 const EVENTS = [
   {y:1850,t:"Loi Falloux : la gymnastique devient une matière facultative du primaire"},
@@ -7514,6 +7531,11 @@ document.addEventListener("click", e => {
   if (d.act === "lex-open") { const go = () => { if (view !== "home") setView("home"); showWelcome(true); setTimeout(() => { const l = $("#w-lex"); if (l) { l.open = true; l.scrollIntoView({ block: "start" }); const sm = l.querySelector("summary"); if (sm) sm.focus({ preventScroll: true }); } }, 60); }; if (gs.open) gsGo(go); else go(); return; }
   if (d.act === "start-open") { setView("stats"); setTimeout(() => { const x = $("#start-path"); if (x) { x.scrollIntoView({ block: "start" }); const h = x.querySelector("h2"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } }, 60); return; }
   if (d.act === "start-hide") { try { localStorage.setItem("bristol-eps-start-off", "1"); } catch (e) {} render(); return; }
+  if (d.act === "deck-more" || d.act === "deck-all") {
+    const before = deckPage.n; deckPage.n = d.act === "deck-all" ? 1e6 : deckPage.n + DECK_STEP; renderDeck();
+    const items = document.querySelectorAll("#panel-deck .item"); const f = items[before]; if (f) { f.tabIndex = -1; f.focus({ preventScroll: false }); }
+    return;
+  }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }
   if (d.act === "welcome-start") { hideWelcome(); setGrp(relGroups()[0]); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus(); return; }
