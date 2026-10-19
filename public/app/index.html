@@ -121,6 +121,8 @@ svg.ic{width:22px;height:22px;flex:none}
   .main{width:100%;max-width:1200px;padding:44px 48px 72px}
   .seg{max-width:880px}
   #area-train > section,#area-train > .intro{max-width:880px}
+  /* Écrire garde des lignes lisibles (880 px) : la colonne est centrée plutôt que collée à gauche. */
+  .main:has(#area-train:not([hidden])){max-width:976px}
   .sj-epr{max-width:none}
   .welcome{padding:32px 36px}
 }
@@ -420,6 +422,12 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .scoreline{color:var(--muted);font-size:14px;margin:0 0 12px}
 .era-chips{margin-bottom:16px}
 .frise-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+.fr-axis{position:relative;height:84px;margin:4px 0 18px}
+.fr-rail{position:absolute;left:0;right:0;top:41px;height:3px;border-radius:2px;background:var(--line)}
+.fr-dot{position:absolute;top:36px;width:13px;height:13px;margin-left:-6px;border-radius:50%;background:var(--accent);border:2px solid var(--paper)}
+.fr-dot.ko{background:var(--muted)}
+.fr-dot b{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-size:14px;white-space:nowrap;color:var(--ink)}
+.fr-dot.up b{bottom:18px}.fr-dot.dn b{top:18px}
 .fr-item{appearance:none;width:100%;text-align:left;display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);cursor:pointer;min-height:56px}
 .fr-item[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
 .badge{flex:none;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:14px}
@@ -920,6 +928,8 @@ html.gs-on{overflow:hidden}
 .pw-sub{font-size:14px;color:var(--muted)}
 .pw-note{font-size:14px;color:var(--muted);margin:12px 0 0}
 .pw-msg{color:var(--bad);font-weight:700;margin:10px 0 0}
+.cp-svg{width:100%;max-width:560px;height:auto;display:block;margin:6px 0 4px}.cp-grid{stroke:var(--line);stroke-width:1}.cp-ax{fill:var(--muted);font-size:11px;text-anchor:end}.cp-band{fill:var(--soft)}.cp-line{fill:none;stroke:var(--accent);stroke-width:2.5}.cp-rng{stroke:var(--accent);stroke-width:2;opacity:.5}.cp-pt{fill:var(--accent)}.cp-sum{font-size:16px;margin:8px 0 4px}.cp-list{list-style:none;margin:6px 0 10px;padding:0;max-width:560px;display:grid;gap:4px;font-size:14px}.cp-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:4px 0}.cp-list b{font-variant-numeric:tabular-nums}
+.res-card{display:grid;gap:10px}.res-card h2,.res-card p,.res-card label{margin:0}.res-card textarea{min-height:90px}
 .pw-renonce{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;margin:14px 0 0;cursor:pointer}
 .pw-renonce input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
 .pw-code{display:grid;gap:6px;margin-top:12px}
@@ -1536,7 +1546,79 @@ const BASE = [
 {id:"po40",th:"PO",p:"",q:"Quelles recommandations horaires la note de service de 2022 donne-t-elle pour la natation au primaire ?",a:"Trois à quatre séquences d'apprentissage de 10 à 12 séances chacune, au moins une séance par semaine, avec environ 40 à 45 minutes de pratique effective dans l'eau par séance.",x:"Elle fixe aussi les taux d'encadrement au primaire (par exemple au moins deux adultes, dont l'enseignant, pour moins de 20 élèves). Dans le second degré, l'enseignement est assuré par le professeur d'EPS, avec un personnel de surveillance qualifié."},
 {id:"po41",th:"PO",p:"",q:"Quand les 30 minutes d'activité physique quotidienne (APQ) à l'école primaire ont-elles été généralisées, et quel est leur lien avec l'EPS ?",a:"À la rentrée 2022, par la note de service du 27 juillet 2022 (BO n°30 du 28 juillet 2022), après une première phase lancée par la circulaire du 12 janvier 2022 (BO n°3 du 20 janvier 2022). Le dispositif est « distinct et complémentaire » des trois heures hebdomadaires d'EPS.",x:"Il s'inscrit dans la démarche « École promotrice de santé », la Stratégie nationale sport-santé et le label Génération 2024. La même circulaire de janvier 2022 lance le partenariat « Une école, un club »."},
 {id:"po42",th:"PO",p:"",q:"Que doit contenir le projet pédagogique d'EPS au collège, selon les ressources d'accompagnement du cycle 4 ?",a:"Issu d'une réflexion collective de l'équipe EPS et ancré dans le projet d'établissement, il comprend un volet disciplinaire et un volet interdisciplinaire. Le premier couvre l'offre de formation (tous les champs rencontrés sur le cycle), les attendus de fin de cycle, les apprentissages prioritaires, les fiches APSA et les modalités d'évaluation. Le second couvre les EPI, l'accompagnement personnalisé et les parcours.",x:"Le projet établit « la cohérence des choix » de l'équipe en fonction du contexte, du programme et des besoins des élèves. Dans la voie professionnelle, le programme le rend explicitement obligatoire : il spécifie les AFLP de chaque APSA et les indicateurs d'évaluation."},
-{id:"po43",th:"PO",p:"",q:"Quels sont les quatre parcours éducatifs auxquels l'EPS contribue, et leurs textes de référence ?",a:"Parcours avenir (arrêté du 1er juillet 2015) ; parcours citoyen (circulaire n°2016-092 du 20 juin 2016) ; parcours éducatif de santé (circulaire n°2016-008 du 28 janvier 2016) ; parcours d'éducation artistique et culturelle (circulaire n°2013-073 du 3 mai 2013).",x:"Les programmes du lycée demandent que le projet pédagogique montre la contribution de l'EPS aux parcours. Le parcours éducatif de santé est le levier le plus directement lié au CA5 et à l'objectif de santé."}
+{id:"po43",th:"PO",p:"",q:"Quels sont les quatre parcours éducatifs auxquels l'EPS contribue, et leurs textes de référence ?",a:"Parcours avenir (arrêté du 1er juillet 2015) ; parcours citoyen (circulaire n°2016-092 du 20 juin 2016) ; parcours éducatif de santé (circulaire n°2016-008 du 28 janvier 2016) ; parcours d'éducation artistique et culturelle (circulaire n°2013-073 du 3 mai 2013).",x:"Les programmes du lycée demandent que le projet pédagogique montre la contribution de l'EPS aux parcours. Le parcours éducatif de santé est le levier le plus directement lié au CA5 et à l'objectif de santé."},
+{id:"ki01",th:"PO",p:"",q:"Que dit l'article L401-1 du Code de l'éducation sur le projet d'établissement ?",a:"Élaboré avec la communauté éducative, il définit les modalités particulières de mise en œuvre des programmes nationaux. Le conseil d'administration l'adopte pour trois à cinq ans.",x:"Il fixe aussi la façon d'évaluer les résultats atteints. Dans l'étude de cas, c'est le premier texte à mobiliser : chaque proposition en EPS doit se raccrocher à un axe du projet d'établissement du dossier."},
+{id:"ki02",th:"PO",p:"",q:"Quel est le rôle du conseil pédagogique dans un collège ou un lycée ?",a:"Créé par la loi du 23 avril 2005 (art. L421-5) et présidé par le chef d'établissement, il favorise la concertation entre professeurs et prépare la partie pédagogique du projet d'établissement.",x:"Il réunit au moins un professeur principal par niveau et un professeur par champ disciplinaire. Son rôle est consultatif : c'est le conseil d'administration qui adopte le projet. L'équipe EPS y fait entendre ses choix."},
+{id:"ki03",th:"PO",p:"",q:"Dans quel cadre s'exerce la liberté pédagogique de l'enseignant (art. L912-1-1 du Code de l'éducation) ?",a:"Dans le respect des programmes et des instructions du ministre, dans le cadre du projet d'école ou d'établissement, avec le conseil et sous le contrôle des corps d'inspection.",x:"Article issu de la loi du 23 avril 2005. Il sert à justifier un choix didactique personnel : tu es libre de tes démarches, à condition qu'elles restent cohérentes avec les programmes et le projet de l'établissement."},
+{id:"ki04",th:"PO",p:"",q:"Quand un établissement a-t-il un coordonnateur d'EPS, et quel est son rôle ?",a:"Dès qu'au moins 3 enseignants d'EPS y assurent au moins 50 heures de service par semaine (circulaire n°2015-058 du 29 avril 2015). Il anime le travail collectif de l'équipe et coordonne le projet pédagogique EPS.",x:"C'est une mission rémunérée par une indemnité pour mission particulière (IMP). Le coordonnateur aide aussi le chef d'établissement à organiser les installations et les emplois du temps de l'équipe EPS."},
+{id:"ki05",th:"PO",p:"",q:"Qu'est-ce que le conseil école-collège ?",a:"Prévu par l'article L401-4 (loi du 8 juillet 2013) et organisé par le décret du 24 juillet 2013, il associe un collège et les écoles de son secteur pour la continuité pédagogique. Il se réunit au moins deux fois par an.",x:"Coprésidé par le principal et l'IEN, il adopte chaque année un programme d'actions, soumis au conseil d'administration du collège et aux conseils d'école. En EPS, c'est le cadre naturel d'un projet de liaison CM2-6e au cycle 3."},
+{id:"ki06",th:"PO",p:"",q:"Quelle circulaire de 2010 organise le développement du sport scolaire, et que dit-elle du projet d'AS ?",a:"La circulaire n°2010-125 du 18 août 2010 (BO n°31 du 2 septembre 2010). Le projet de l'association sportive doit faire partie intégrante du projet d'école et du projet d'établissement.",x:"Elle présente le sport scolaire comme un complément de l'EPS ouvert aux élèves volontaires. Dans l'étude de cas, relier le projet d'AS aux axes du projet d'établissement montre une vision d'ensemble de ton action."},
+{id:"ki07",th:"PO",p:"",q:"Que demande la circulaire de 2010 sur le sport scolaire à propos du mercredi après-midi ?",a:"Les chefs d'établissement doivent préserver le mercredi après-midi dans l'emploi du temps des élèves, pour les activités de l'association sportive et les compétitions.",x:"Argument à reprendre si le dossier décrit une AS peu fréquentée parce que des cours ont été placés le mercredi après-midi."},
+{id:"ki08",th:"PO",p:"",q:"Qu'est-ce que la journée nationale du sport scolaire ?",a:"Instituée par la circulaire du 18 août 2010, elle fait connaître les activités des associations sportives aux élèves, aux familles et au monde sportif local. Sa date est fixée chaque année par une note de service.",x:"C'est une occasion concrète de recruter de nouveaux licenciés, en particulier des élèves peu sportifs, et de faire vivre le lien entre l'AS et le projet d'établissement."},
+{id:"ki09",th:"PO",p:"",q:"Que prévoit la circulaire de 2010 sur le sport scolaire pour les jeunes officiels UNSS ?",a:"Leur formation est systématiquement encouragée et donne lieu à la remise d'un diplôme.",x:"La circulaire du 27 août 2025 cite encore les jeunes dirigeants, jeunes officiels et ambassadeurs. Arbitrer, juger ou organiser fait travailler les responsabilités et la citoyenneté, en lien avec le domaine 3 du socle."},
+{id:"ki10",th:"PO",p:"",q:"Qui préside l'UNSS, et quelle est sa mission ?",a:"Le ministre de l'Éducation nationale. Fédération multisports chargée d'une mission de service public, elle organise et développe la pratique sportive des élèves des AS du second degré.",x:"Environ 40 % de ses licenciés sont des filles : un point à reprendre si le dossier décrit une AS peu féminisée."},
+{id:"ki11",th:"IN",p:"",q:"Qu'est-ce que le sport partagé à l'UNSS ?",a:"Une formule de compétition qui réunit dans les mêmes équipes des élèves valides et des élèves en situation de handicap, par exemple deux et deux.",x:"Réponse concrète pour un élève d'ULIS ou en situation de handicap dans l'étude de cas : l'AS devient elle aussi un lieu d'inclusion, pas seulement le cours d'EPS."},
+{id:"ki12",th:"PO",p:"",q:"Comment le programme d'EPS du lycée GT (2019) présente-t-il l'association sportive ?",a:"Elle s'inscrit en prolongement de l'EPS obligatoire et est accessible à tous les élèves. Elle permet une pratique régulière, l'exercice de responsabilités et la découverte de la vie associative.",x:"Elle contribue aussi à l'éducation à la santé et à la citoyenneté et favorise les rencontres avec d'autres établissements. C'est le texte qui justifie un lien explicite entre ton projet EPS et l'AS."},
+{id:"ki13",th:"PO",p:"",q:"Que dit le programme d'EPS du lycée GT (2019) de l'accueil des élèves inaptes ou en situation de handicap ?",a:"« Le lycée doit accueillir tous les élèves quel que soit leur degré d'aptitude partielle ou de handicap. » L'équipe EPS propose des traitements didactiques adaptés à tous les élèves.",x:"Le programme laisse à l'enseignant toute latitude pour concevoir et adapter son enseignement. Dans l'étude de cas, c'est la phrase à citer avant toute adaptation proposée au lycée."},
+{id:"ki14",th:"PO",p:"",q:"Que dit le programme d'EPS du cycle 4 (2015) sur l'inclusion ?",a:"« Elle assure l'inclusion, dans la classe, des élèves à besoins éducatifs particuliers ou en situation de handicap. »",x:"Le même texte vise tous les élèves, « filles et garçons ensemble et à égalité, a fortiori les plus éloignés de la pratique physique et sportive ». Ces deux phrases fondent toute adaptation proposée au collège."},
+{id:"ki15",th:"PO",p:"",q:"Comment la loi du 11 février 2005 définit-elle le handicap ?",a:"Toute limitation d'activité ou restriction de participation à la vie en société subie dans son environnement, due à une altération substantielle, durable ou définitive d'une ou plusieurs fonctions.",x:"Fonctions physiques, sensorielles, mentales, cognitives ou psychiques, polyhandicap ou trouble de santé invalidant (art. L114 du Code de l'action sociale et des familles). Le mot « environnement » compte : en EPS, adapter la situation réduit le handicap."},
+{id:"ki16",th:"PO",p:"",q:"Qu'est-ce que le PPS, et qui l'élabore ?",a:"Le projet personnalisé de scolarisation d'un élève reconnu handicapé. L'équipe pluridisciplinaire de la MDPH l'élabore ; la CDAPH décide (orientation, aide humaine, matériel).",x:"Cadre : circulaire n°2016-117 du 8 août 2016. Le PPS est révisé au moins à chaque changement de cycle. L'équipe pédagogique, donc aussi le professeur d'EPS, le met en œuvre."},
+{id:"ki17",th:"IN",p:"",q:"Qu'est-ce que l'équipe de suivi de la scolarisation (ESS) ?",a:"Les professionnels qui mettent en œuvre le PPS. Animée par l'enseignant référent, elle se réunit au moins une fois par an pour l'évaluer.",x:"Le professeur d'EPS, membre de l'équipe pédagogique, peut y apporter ses observations de pratique. Elle se tient avec l'élève ou, s'il est mineur, avec ses représentants légaux."},
+{id:"ki18",th:"PO",p:"",q:"À quels élèves s'adresse le plan d'accompagnement personnalisé (PAP) ?",a:"Aux élèves dont les difficultés scolaires durables viennent de troubles des apprentissages (dys, TDAH), sans recours à la MDPH. Le médecin de l'Éducation nationale donne son avis.",x:"Circulaire n°2015-016 du 22 janvier 2015. Le chef d'établissement le rédige ; les enseignants le mettent en œuvre, coordonnés par le professeur principal. Il est révisé chaque année et remplace un éventuel PPRE."},
+{id:"ki19",th:"PO",p:"",q:"Qu'est-ce que le projet d'accueil individualisé (PAI), et quel texte l'encadre ?",a:"Un projet pour l'élève atteint d'un trouble de santé durable (asthme, allergie…), à la demande de la famille. Cadre : circulaire du 10 février 2021 (BO n°9 du 4 mars 2021).",x:"Il est établi avec le médecin de l'Éducation nationale et peut prévoir des aménagements, un traitement ou un protocole d'urgence. Le professeur d'EPS doit en connaître le contenu, surtout pour un élève asthmatique ou allergique."},
+{id:"ki20",th:"IN",p:"",q:"Qu'est-ce qu'un PPRE ?",a:"Un programme personnalisé de réussite éducative, pour l'élève qui risque de ne pas maîtriser les attendus. Obligatoire en cas de redoublement.",x:"C'est une réponse pédagogique de courte durée, sans avis médical. Ne pas le confondre avec le PAP, réservé aux troubles des apprentissages."},
+{id:"ki21",th:"IN",p:"",q:"Quel dispositif pour quel élève : asthmatique, dys sans MDPH, handicap reconnu, difficultés scolaires ?",a:"Asthme ou allergie : PAI. Trouble dys sans MDPH : PAP. Handicap reconnu par la MDPH : PPS. Difficultés sans trouble identifié : PPRE.",x:"Nommer le bon dispositif dans l'étude de cas montre que tu connais l'établissement de l'intérieur. Un PAI reste possible en plus d'un PAP si une pathologie le justifie."},
+{id:"ki22",th:"PO",p:"",q:"Comment fonctionnent les ULIS selon la circulaire de 2015 ?",a:"Circulaire n°2015-129 du 21 août 2015. L'orientation relève de la CDAPH. Les élèves suivent des cours en classe ordinaire et se regroupent en ULIS. Au collège, l'effectif ne dépasse pas dix.",x:"Le coordonnateur, enseignant spécialisé, enseigne lors des regroupements, coordonne avec les partenaires et conseille la communauté éducative : c'est la personne ressource du professeur d'EPS."},
+{id:"ki23",th:"PO",p:"",q:"Quels sont les trois domaines d'activité des AESH ?",a:"Accompagner l'élève dans les actes de la vie quotidienne, dans l'accès aux activités d'apprentissage, et dans les activités de la vie sociale et relationnelle.",x:"Circulaire n°2017-084 du 3 mai 2017. Le but est de favoriser l'autonomie de l'élève. Les AESH sans diplôme du secteur suivent une formation d'adaptation à l'emploi de 60 heures."},
+{id:"ki24",th:"PO",p:"",q:"Que sont les pôles d'appui à la scolarité (PAS) ?",a:"Des pôles qui donnent une première réponse rapide aux élèves à besoins éducatifs particuliers, sans notification MDPH préalable. Ils remplacent peu à peu les PIAL (circulaire du 1er septembre 2025).",x:"Les parents, un professeur ou le chef d'établissement peuvent le saisir. Il associe un coordonnateur de l'Éducation nationale et un éducateur spécialisé. La MDPH reste seule compétente pour reconnaître le handicap."},
+{id:"ki25",th:"PO",p:"",q:"Quelle place la circulaire de 2012 sur les élèves allophones donne-t-elle à l'EPS ?",a:"Circulaire n°2012-141 du 2 octobre 2012 : l'inclusion en classe ordinaire est la règle. Pour les élèves peu scolarisés, elle commence par les cours où l'écrit compte moins, comme l'EPS.",x:"Ces élèves suivent en parallèle un enseignement de français en UPE2A. L'EPS est donc souvent l'un des premiers lieux d'inclusion, ce qui demande des consignes très visuelles."},
+{id:"ki26",th:"PO",p:"",q:"Un élève peut-il refuser l'EPS pour un motif religieux ?",a:"Non. La circulaire du 18 mai 2004, prise pour la loi du 15 mars 2004, précise que les convictions religieuses ne peuvent justifier un absentéisme sélectif, par exemple en EPS.",x:"Les consignes d'hygiène et de sécurité ne peuvent pas non plus être aménagées pour ce motif. La loi s'applique à toutes les activités sous la responsabilité de l'établissement, à la piscine comme au gymnase."},
+{id:"ki27",th:"IN",p:"",q:"Qu'a jugé la CEDH dans l'arrêt Osmanoğlu et Kocabaş c. Suisse (10 janvier 2017) ?",a:"Imposer la natation mixte à des élèves musulmanes ne viole pas la liberté de religion : l'obligation de suivre toute la scolarité l'emporte.",x:"Arrêt utile face à une famille qui refuse la natation mixte : il conforte la règle française, qui n'admet pas de dispense pour motif religieux."},
+{id:"ki28",th:"PO",p:"",q:"Que dit la circulaire n°2004-138 du 13 juillet 2004 sur la sécurité en EPS ?",a:"L'enseignant est « le premier artisan de la sécurité des élèves ». L'organisation de l'EPS doit garantir leur sécurité et contribuer à l'éducation à la sécurité.",x:"Elle signale les activités soumises à des règles de sécurité particulières : activités aquatiques, sur la voie publique, en montagne, avec équipements de protection individuelle. À citer dès que tu proposes une de ces APSA."},
+{id:"ki29",th:"PO",p:"",q:"Quel texte fixe le référentiel des compétences des professeurs, et comment est-il organisé ?",a:"L'arrêté du 1er juillet 2013 (BO n°30 du 25 juillet 2013) : 14 compétences communes aux professeurs et personnels d'éducation, puis 5 compétences propres aux professeurs (P1 à P5).",x:"Au CAPEPS interne, il permet de relier une proposition à une compétence professionnelle, par exemple la compétence 4, « Prendre en compte la diversité des élèves »."},
+{id:"ki30",th:"PO",p:"",q:"Quelles compétences du référentiel de 2013 portent sur la conduite de classe et l'évaluation ?",a:"P3 : construire, mettre en œuvre et animer des situations d'enseignement et d'apprentissage. P4 : organiser le fonctionnement du groupe. P5 : évaluer les progrès et les acquisitions des élèves.",x:"Elles structurent naturellement une étude de cas : concevoir les situations, organiser la classe, évaluer les acquis."},
+{id:"ki31",th:"PO",p:"",q:"Quelle circulaire de 2025 fixe la place de l'activité physique et du sport à l'école, et que prévoit-elle ?",a:"La circulaire du 27 août 2025 (BO n°33 du 4 septembre 2025). Elle donne aux professeurs d'EPS un outil commun de mesure des aptitudes physiques et veut généraliser les 30 minutes d'APQ, les jours sans EPS.",x:"Elle cible aussi les élèves les plus éloignés de la pratique, avec le dispositif « Deux heures de sport en plus » en éducation prioritaire."},
+{id:"ki32",th:"PO",p:"",q:"Que demande la circulaire du 27 août 2025 à propos des certificats d'inaptitude ?",a:"Promouvoir auprès des familles l'usage des certificats d'inaptitude physique partielle, au lieu des certificats d'inaptitude totale.",x:"Le même texte demande d'assurer l'inclusion des élèves à besoins éducatifs particuliers, dont les aménagements sont suivis dans le livret de parcours inclusif (LPI)."},
+{id:"ki33",th:"PO",p:"",q:"Que pose l'article D312-1 du Code de l'éducation sur l'EPS ?",a:"L'EPS fait partie des programmes et horaires de l'enseignement public. Elle doit être adaptée à l'âge et aux possibilités individuelles, déterminées par un contrôle médical.",x:"C'est la base juridique de l'EPS adaptée : un certificat d'inaptitude n'entraîne pas automatiquement l'absence en cours d'EPS."},
+{id:"ki34",th:"IN",p:"",q:"Quelle différence entre inaptitude et dispense en EPS ?",a:"L'inaptitude est un constat médical (certificat). La dispense relève du chef d'établissement : un certificat ne vaut pas dispense automatique.",x:"L'élève inapte partiel reste donc en principe en cours, avec une pratique adaptée à ce qu'il peut faire."},
+{id:"ki35",th:"IN",p:"",q:"Sur quelles variables jouer pour adapter la pratique d'un élève inapte partiel ou en situation de handicap ?",a:"Le temps, l'espace, les règles et consignes, les rôles et statuts, en gardant l'élève dans le groupe classe autant que possible.",x:"Le certificat d'inaptitude partielle est rédigé en termes d'incapacités fonctionnelles : il dit ce que l'élève ne peut pas faire, et le professeur construit le reste."},
+{id:"ag01",th:"R",p:"1967-1981",q:"Quel décret de 1980 fixe le statut particulier des professeurs d'EPS ?",a:"Le décret du 4 août 1980, qui organise aussi l'accès au corps des professeurs d'EPS par liste d'aptitude.",x:"Plusieurs corps coexistent alors dans la discipline (chargés d'enseignement, professeurs adjoints, professeurs d'EPS) ; le SNEP demandera d'élargir l'accès au corps des professeurs."},
+{id:"ag02",th:"R",p:"1981-2000",q:"Quelle politique Alain Savary lance-t-il par une circulaire de juillet 1981 ?",a:"Les zones d'éducation prioritaires (ZEP), pour « corriger l'inégalité sociale par le renforcement sélectif de l'action éducative ».",x:"Elles invitent l'EPS, comme les autres disciplines, à penser la diversité sociale des élèves. Les ZEP deviennent REP et REP+ en 2014-2015."},
+{id:"ag03",th:"H",p:"1981-2000",q:"Quel sociologue publie Le culte de la performance en 1991 ?",a:"Alain Ehrenberg (Calmann-Lévy, 1991).",x:"Un repère sociologique pour situer la place du sport, de la performance et des pratiques sportives dans la société de la fin du XXe siècle."},
+{id:"ag04",th:"H",p:"1981-2000",q:"Quel ouvrage de Gilles Combaz (PUF, 1992) étudie l'EPS comme objet sociologique ?",a:"Sociologie de l'éducation physique (PUF, collection Pratiques corporelles, 1992).",x:"Un regard sociologique sur la discipline et ses enseignants, utile pour ne pas s'en tenir à une histoire des textes officiels."},
+{id:"ag05",th:"R",p:"1981-2000",q:"À quelle nouvelle fédération le SNEP participe-t-il en 1993, après l'éclatement de la FEN ?",a:"La Fédération syndicale unitaire (FSU), dont le SNEP est l'un des syndicats nationaux fondateurs, avec le SNES.",x:"Le syndicalisme des enseignants d'EPS reste uni lors de la crise de la FEN de 1992 : un acteur majeur de la profession pour les débats sur l'horaire, l'AS et la formation."},
+{id:"ag06",th:"H",p:"1981-2000",q:"Quel ouvrage de Christian Pociello (PUF, 1995) analyse les pratiques et les mythes sportifs ?",a:"Les cultures sportives : pratiques, représentations et mythes sportifs (PUF, collection Pratiques corporelles).",x:"Une référence pour analyser la diversité des pratiques sportives et de leurs représentations à la fin du XXe siècle."},
+{id:"ag07",th:"R",p:"1981-2000",q:"Quel texte de 1997 définit la mission du professeur en collège et lycée ?",a:"La circulaire du 23 mai 1997 : exercer sa responsabilité dans le système éducatif, dans la classe et dans l'établissement.",x:"Adressée aux recteurs et aux directeurs d'IUFM, elle oriente la formation des enseignants avant les textes de compétences de 2006, 2010 et 2013."},
+{id:"ag08",th:"R",p:"1981-2000",q:"Quels contrats une circulaire du 9 juillet 1998 crée-t-elle pour organiser les loisirs des jeunes hors du temps scolaire ?",a:"Les contrats éducatifs locaux (CEL), qui associent l'État, les collectivités et les associations autour des activités périscolaires.",x:"Les pratiques physiques et sportives en font partie : l'offre de loisirs des jeunes se construit en lien avec les projets d'école et d'établissement."},
+{id:"ag09",th:"D",p:"1981-2000",q:"Quelle inspectrice pédagogique régionale d'EPS a fait de l'égalité filles-garçons un combat professionnel ?",a:"Annick Davisse, coautrice avec Catherine Louveau de Sports, école, société : la différence des sexes (L'Harmattan).",x:"Son parcours, étudié par Ottogalli-Mazzacavallo et Szerdahelyi, montre comment la question des filles et de la mixité en EPS s'impose à la fin du XXe siècle."},
+{id:"ag10",th:"T",p:"Depuis 2000",q:"Quelle finalité le programme d'EPS de seconde de 2000 fixe-t-il ?",a:"Former, par la pratique des activités physiques, sportives et artistiques, un citoyen cultivé, lucide, autonome.",x:"Applicable en 2000-2001, il organise les contenus en compétences culturelles et méthodologiques (quatre de chaque) : la logique des compétences s'installe au lycée."},
+{id:"ag11",th:"R",p:"Depuis 2000",q:"Quelle loi du 6 juillet 2000 confie aux départements le développement des sports de nature ?",a:"La loi du 6 juillet 2000 : chaque département établit un plan des espaces, sites et itinéraires (PDESI), avec une commission (CDESI).",x:"Les sports de nature deviennent un objet de politique publique, au moment où le programme de 2000 demande d'« adapter ses déplacements aux différents types d'environnements »."},
+{id:"ag12",th:"H",p:"Depuis 2000",q:"Que montrent Combaz et Hoibian (2008) sur les filles et les garçons en EPS ?",a:"Que l'école contribue aux inégalités de sexe en EPS : notes au bac plus faibles pour les filles, activités et modes de pratique à dominante masculine.",x:"Article de Travail, genre et sociétés (n° 20) : au bac 2006, environ un point d'écart entre garçons (13,38) et filles (12,37)."},
+{id:"ag13",th:"R",p:"Depuis 2000",q:"Combien de compétences professionnelles l'arrêté du 12 mai 2010 fixe-t-il pour les professeurs ?",a:"Dix, de « agir en fonctionnaire de l'État » à « se former et innover », dont « prendre en compte la diversité des élèves ».",x:"Il accompagne la mastérisation : la formation des enseignants se pense désormais en référentiel de compétences."},
+{id:"ag14",th:"R",p:"Depuis 2000",q:"Comment les lauréats des concours entrent-ils dans le métier à la rentrée 2010 ?",a:"Ils sont affectés à temps complet devant élèves ; l'année de stage en IUFM, où ils n'enseignaient qu'un tiers du service, disparaît.",x:"La Cour des comptes chiffre à 18 202 les postes de stagiaires d'IUFM supprimés : un tournant critiqué de la formation initiale des enseignants."},
+{id:"ag15",th:"R",p:"Depuis 2000",q:"Quels dispositifs remplacent les UPI dans les collèges et lycées à la rentrée 2010 ?",a:"Les unités localisées pour l'inclusion scolaire (ULIS), circulaire du 18 juin 2010 ; les CLIS des écoles deviennent ULIS école en 2015.",x:"Les élèves en situation de handicap sont inclus dans les classes ordinaires, dont l'EPS, avec un dispositif de référence."},
+{id:"ag16",th:"R",p:"Depuis 2000",q:"Combien de compétences compte le référentiel des métiers du professorat et de l'éducation de 2013 ?",a:"Quatorze compétences communes aux professeurs et personnels d'éducation, et cinq communes aux professeurs (P1 à P5).",x:"Arrêté du 1er juillet 2013, qui abroge le référentiel de 2010 : la formation du master MEEF doit permettre de l'acquérir."},
+{id:"ag17",th:"R",p:"Depuis 2000",q:"Quelles sont les quatre mentions du master MEEF (arrêté du 27 août 2013) ?",a:"Premier degré, second degré, encadrement éducatif, pratiques et ingénierie de la formation.",x:"Les futurs professeurs d'EPS suivent la mention second degré : la formation des enseignants devient un diplôme universitaire de master."},
+{id:"ag18",th:"R",p:"Depuis 2000",q:"Quel conseil la loi de refondation de 2013 crée-t-elle pour les programmes ?",a:"Le Conseil supérieur des programmes (CSP), installé le 10 octobre 2013.",x:"Il donne aussi son avis sur les épreuves des concours de recrutement et sur la formation initiale et continue des enseignants ; il prépare les programmes de 2015."},
+{id:"ag19",th:"R",p:"Depuis 2000",q:"Comment est organisée l'année de stage des lauréats des concours à partir de la rentrée 2014 ?",a:"Un demi-service d'enseignement, l'autre moitié du temps en formation à l'ESPE.",x:"Après les stagiaires à temps complet de 2010, l'alternance revient dans la formation des enseignants : une entrée progressive dans le métier."},
+{id:"ag20",th:"R",p:"Depuis 2000",q:"Que deviennent les auxiliaires de vie scolaire (AVS) avec le décret du 27 juin 2014 ?",a:"Des accompagnants des élèves en situation de handicap (AESH), à qui un CDI peut être proposé.",x:"L'inclusion des élèves handicapés en EPS s'appuie de plus en plus sur ces accompagnants, avec un statut plus stable."},
+{id:"ag21",th:"R",p:"Depuis 2000",q:"Quel est le service hebdomadaire d'un professeur d'EPS selon les textes de 2014-2015 ?",a:"20 heures (17 pour un agrégé), dont 3 heures pour l'association sportive.",x:"Le décret du 20 août 2014 remplace les décrets de 1950 ; la circulaire du 29 avril 2015 précise les 3 heures d'AS, spécificité du métier."},
+{id:"ag22",th:"R",p:"Depuis 2000",q:"Quelle certification créée en 2015 reconnaît les formateurs d'enseignants du second degré ?",a:"Le CAFFA, certificat d'aptitude aux fonctions de formateur académique (décret du 20 juillet 2015).",x:"Ouvert aux enseignants titulaires ayant cinq ans de service, il professionnalise la formation initiale et continue, EPS comprise."},
+{id:"ag23",th:"T",p:"Depuis 2000",q:"Quels enseignements interdisciplinaires la réforme du collège de 2016 crée-t-elle ?",a:"Les EPI, sur huit thématiques dont « corps, santé, bien-être et sécurité », au cycle 4.",x:"Arrêté du 19 mai 2015, en vigueur à la rentrée 2016 : l'EPS est invitée à construire des contenus avec d'autres disciplines."},
+{id:"ag24",th:"R",p:"Depuis 2000",q:"Combien de rendez-vous de carrière le protocole PPCR prévoit-il pour les enseignants depuis 2017 ?",a:"Trois : au 6e, au 8e et au 9e échelon de la classe normale, conduits par l'inspecteur et le chef d'établissement.",x:"Textes de mai 2017 : l'évaluation des enseignants, dont l'inspection, est désormais rythmée par ces rendez-vous."},
+{id:"ag25",th:"T",p:"Depuis 2000",q:"Quel label est créé pour les écoles et établissements à l'approche de Paris 2024 ?",a:"Le label Génération 2024, à partir de la rentrée 2018, pour développer des projets avec les clubs sportifs du territoire.",x:"Il rapproche l'EPS, le sport scolaire et le mouvement sportif : un exemple récent de lien entre école et pratiques sportives des jeunes."},
+{id:"ag26",th:"T",p:"Depuis 2000",q:"Quel programme d'EPS de 2019 concerne le CAP et le baccalauréat professionnel ?",a:"L'arrêté du 3 avril 2019 : cinq champs d'apprentissage, dont le CA5 obligatoire, et cinq objectifs généraux.",x:"Il remplace le programme de 2009 et s'applique de 2019 à 2021 : la voie professionnelle suit la même logique que le collège et le lycée général."},
+{id:"ag27",th:"R",p:"Depuis 2000",q:"Quel organisme est créé en avril 2019 pour piloter le sport de haut niveau et le développement des pratiques ?",a:"L'Agence nationale du sport, groupement d'intérêt public associant État, mouvement sportif (fédérations), collectivités et monde économique.",x:"Le sport se pilote désormais à plusieurs ; en 2019, la Cour des comptes recommande d'associer l'Éducation nationale à sa gouvernance."},
+{id:"ag28",th:"R",p:"Depuis 2000",q:"Que change la loi pour une école de la confiance (2019) pour la formation continue des enseignants ?",a:"Elle devient obligatoire pour chaque enseignant (article L912-1-2 du code de l'éducation).",x:"Un tournant : la formation continue n'est plus seulement un droit, et le débat porte ensuite sur son organisation hors du temps de classe."},
+{id:"ag29",th:"R",p:"Depuis 2000",q:"Quel dispositif permet dès 2019 à des étudiants de L2 de se préparer au métier d'enseignant ?",a:"La préprofessionnalisation : un contrat d'assistant d'éducation de trois ans (L2, L3, M1), de l'observation à des séquences complètes.",x:"Environ 3 000 étudiants par an : la professionnalisation commence dès la licence, avant le master MEEF."},
+{id:"ag30",th:"R",p:"Depuis 2000",q:"Quelle inspection est créée le 1er octobre 2019 par fusion de quatre inspections générales ?",a:"L'inspection générale de l'éducation, du sport et de la recherche (IGÉSR), qui réunit IGEN, IGAENR, IGJS et inspection des bibliothèques.",x:"Éducation et sport sont de nouveau inspectés par un même corps, alors que l'EPS a quitté la Jeunesse et les Sports en 1981."},
+{id:"ag31",th:"D",p:"Depuis 2000",q:"Que reproche la Cour des comptes au sport scolaire dans son rapport de septembre 2019 ?",a:"Une couverture faible malgré les 3 heures d'AS des professeurs d'EPS ; elle propose de les confier au chef d'établissement si l'AS attire peu.",x:"Rapport « L'école et le sport, une ambition à concrétiser » : il juge aussi que les trois heures d'EPS du primaire ne sont que partiellement assurées."},
+{id:"ag32",th:"T",p:"Depuis 2000",q:"Quelle convention interministérielle sur l'égalité filles-garçons est signée le 28 novembre 2019 ?",a:"La convention pour l'égalité entre les filles et les garçons, les femmes et les hommes dans le système éducatif 2019-2024.",x:"Le ministère cite l'EPS parmi les enseignements où l'égalité peut être traitée explicitement : la mixité ne suffit pas."},
+{id:"ag33",th:"R",p:"Depuis 2000",q:"Que sont les PIAL, inscrits dans le code de l'éducation avec la loi pour une école de la confiance ?",a:"Des pôles inclusifs d'accompagnement localisés, qui organisent le travail des AESH auprès des élèves handicapés d'un secteur.",x:"Article L351-3 du code de l'éducation : l'accompagnement des élèves handicapés, en EPS comme ailleurs, est mutualisé entre plusieurs établissements."},
+{id:"ag34",th:"R",p:"Depuis 2000",q:"Quelle aide de 50 euros est créée en 2021 pour l'adhésion des jeunes à un club sportif ?",a:"Le Pass'Sport, pour les 6-17 ans bénéficiaires de l'allocation de rentrée scolaire ou de l'AEEH (décret du 10 septembre 2021).",x:"Après la crise sanitaire, l'État aide les familles modestes à inscrire leurs enfants en club."},
+{id:"ag35",th:"R",p:"Depuis 2000",q:"Quelles structures prennent en charge la formation continue des enseignants dans chaque académie en 2022 ?",a:"Les écoles académiques de la formation continue (EAFC), ouvertes entre le 1er janvier et le 1er septembre 2022, sous l'autorité du recteur.",x:"Elles pilotent la formation continue des enseignants, devenue obligatoire en 2019 ; l'inspection générale en dresse un bilan en 2024."},
+{id:"ag36",th:"T",p:"Depuis 2000",q:"Que garantit la loi du 2 mars 2022 visant à démocratiser le sport pour l'école primaire ?",a:"Une pratique quotidienne minimale d'activités physiques et sportives, en plus des trois heures hebdomadaires d'EPS.",x:"Article 17 : l'État garantit cette pratique aux élèves des écoles publiques et privées sous contrat."},
+{id:"ag37",th:"D",p:"Depuis 2000",q:"Quelle règle la loi du 2 mars 2022 impose-t-elle aux instances dirigeantes des fédérations sportives ?",a:"La parité : l'écart entre hommes et femmes ne doit pas dépasser un, au niveau national dès 2024 et régional en 2028.",x:"En 2024, seules 20 des 96 fédérations étudiées sont présidées par une femme : la place des femmes dans le sport reste un débat."}
 ];
 
 const THEMES = { T: "Transmettre et adapter", G: "Le geste et l'effort", D: "Débats et controverses", R: "Repères institutionnels", H: "Historiens et sociologues",
@@ -1750,8 +1832,84 @@ const SOURCES = {
   PO25: { l: "BO n°9 du 3 mars 2022 (note de service du 28-2-2022)", u: "https://www.education.gouv.fr/bo/22/Hebdo9/MENE2129643N.htm" },
   PO26: { l: "BO n°30 du 28 juillet 2022 (note de service du 27-7-2022)", u: "https://www.education.gouv.fr/bo/22/Hebdo30/MENE2220806N.htm" },
   PO27: { l: "Eduscol, ressource cycle 4 « Projet pédagogique »", u: "https://eduscol.education.gouv.fr/sites/default/files/document/ra16c4epsprojpedagond575976pdf-78273.pdf" },
+  KI01: { l: "Code de l'éducation, art. L401-1 et R421-3 (fiche CGT Éduc'action, 2017)", u: "https://ancien.cgteduc.fr/images/eple/eple_sept_2017/fiche1a.pdf" },
+  KI02: { l: "Assemblée nationale, question écrite n°93162 (conseil pédagogique, loi du 23 avril 2005)", u: "https://www.assemblee-nationale.fr/dyn/12/questions/QANR5L12QE93162.pdf" },
+  KI03: { l: "Assemblée nationale, question écrite n°7529 (art. L912-1-1)", u: "https://www.assemblee-nationale.fr/dyn/13/questions/QANR5L13QE7529.pdf" },
+  KI04: { l: "BO n°18 du 30 avril 2015, circulaire n°2015-058 (IMP)", u: "https://www.education.gouv.fr/bo/15/Hebdo14/MENH1506032C.htm" },
+  KI05: { l: "BO n°32 du 5 septembre 2013, décret n°2013-683 (conseil école-collège)", u: "https://www.education.gouv.fr/bo/13/Hebdo32/MENE1318884D.htm" },
+  KI06: { l: "Circulaire n°2010-125 du 18 août 2010, BO n°31 du 2 septembre 2010 (copie académie de Bordeaux)", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2017/08/Circulaire-n%C2%B0-2010-125-du-18.08.2010-relative-au-d%C3%A9veloppement-du-sport-scolaire.pdf" },
+  KI07: { l: "Circulaire n°2010-125 du 18 août 2010, BO n°31 du 2 septembre 2010 (copie académie de Bordeaux)", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2017/08/Circulaire-n%C2%B0-2010-125-du-18.08.2010-relative-au-d%C3%A9veloppement-du-sport-scolaire.pdf" },
+  KI08: { l: "Circulaire n°2010-125 du 18 août 2010, BO n°31 du 2 septembre 2010 (copie académie de Bordeaux)", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2017/08/Circulaire-n%C2%B0-2010-125-du-18.08.2010-relative-au-d%C3%A9veloppement-du-sport-scolaire.pdf" },
+  KI09: { l: "Circulaire n°2010-125 du 18 août 2010, BO n°31 du 2 septembre 2010 (copie académie de Bordeaux)", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2017/08/Circulaire-n%C2%B0-2010-125-du-18.08.2010-relative-au-d%C3%A9veloppement-du-sport-scolaire.pdf" },
+  KI10: { l: "Statuts et règlements de l'UNSS, 2017 (copie SNEP-FSU)", u: "https://lesite.snepfsu.fr/wp-content/uploads/2024/11/STATUTS_ET_REGLEMENTS_UNSS_2017.pdf" },
+  KI11: { l: "FFN, « Le sport partagé, une voie d'inclusion par le sport »", u: "https://www.ffnatation.fr/actualites/actu-grand-public/le-sport-partage-une-voie-dinclusion-par-le-sport" },
+  KI12: { l: "Eduscol, programme d'EPS du lycée GT, BO spécial n°1 du 22 janvier 2019", u: "https://eduscol.education.gouv.fr/sites/default/files/document/spe574annexe11062919pdf-84864.pdf" },
+  KI13: { l: "Eduscol, programme d'EPS du lycée GT, BO spécial n°1 du 22 janvier 2019", u: "https://eduscol.education.gouv.fr/sites/default/files/document/spe574annexe11062919pdf-84864.pdf" },
+  KI14: { l: "Académie de Besançon, synthèse des programmes d'EPS cycles 3 et 4", u: "https://eps.ac-besancon.fr/wp-content/uploads/sites/36/2016/06/2_-_synthese_des_programmes_en_eps_-_cycles_3_et_4.pdf" },
+  KI15: { l: "monparcourshandicap.gouv.fr, définition du handicap (loi du 11 février 2005)", u: "https://www.monparcourshandicap.gouv.fr/glossaire/handicap" },
+  KI16: { l: "BO n°30 du 25 août 2016, circulaire n°2016-117 (parcours des élèves en situation de handicap)", u: "https://www.education.gouv.fr/bo/16/Hebdo30/MENE%201612034C.htm" },
+  KI17: { l: "BO n°30 du 25 août 2016, circulaire n°2016-117 (parcours des élèves en situation de handicap)", u: "https://www.education.gouv.fr/bo/16/Hebdo30/MENE%201612034C.htm" },
+  KI18: { l: "BO n°5 du 29 janvier 2015, circulaire n°2015-016 (PAP)", u: "https://www.education.gouv.fr/bo/15/Hebdo5/MENE1501296C.htm" },
+  KI19: { l: "BO n°9 du 4 mars 2021, circulaire du 10-2-2021 (PAI pour raison de santé)", u: "https://www.education.gouv.fr/bo/21/Hebdo9/MENE2104832C.htm" },
+  KI20: { l: "monparcourshandicap.gouv.fr, « PPRE, PAI, PAP, PPS »", u: "https://www.monparcourshandicap.gouv.fr/scolarite/ppre-pai-pap-pps-en-quoi-consistent-les-differentes-possibilites-dappui-la-scolarisation" },
+  KI21: { l: "education.gouv.fr, « La scolarisation des élèves à besoins éducatifs particuliers »", u: "https://www.education.gouv.fr/la-scolarisation-des-eleves-en-situation-de-handicap-1022" },
+  KI22: { l: "BO n°31 du 27 août 2015, circulaire n°2015-129 (ULIS)", u: "https://www.education.gouv.fr/bo/15/Hebdo31/MENE1504950C.htm" },
+  KI23: { l: "BO n°18 du 4 mai 2017, circulaire n°2017-084 (missions des AESH)", u: "https://www.education.gouv.fr/bo/17/Hebdo18/MENE1712905C.htm" },
+  KI24: { l: "BO n°33 du 4 septembre 2025, circulaire du 1-9-2025 (pôles d'appui à la scolarité)", u: "https://www.education.gouv.fr/bo/2025/Hebdo33/MENE2520651C" },
+  KI25: { l: "BO n°37 du 11 octobre 2012, circulaire n°2012-141 (élèves allophones)", u: "https://www.education.gouv.fr/bo/12/Hebdo37/MENE1234231C.htm" },
+  KI26: { l: "BO n°21 du 27 mai 2004, circulaire n°2004-084 du 18 mai 2004 (laïcité)", u: "https://www.education.gouv.fr/bo/2004/21/MENG0401138C.htm" },
+  KI27: { l: "Vade-mecum laïcité, fiche « refus de participer à une activité scolaire » (copie académie de Guyane)", u: "https://eps.dis.ac-guyane.fr/IMG/pdf/extrait_vademecum_lai_cite_-_fiche_9_sur_le_refus_de_participer_a_une_activite_scolaire.pdf" },
+  KI28: { l: "Circulaire n°2004-138 du 13 juillet 2004, BO n°32 du 9 septembre 2004 (copie DSDEN 76)", u: "https://prim76.ac-normandie.fr/IMG/pdf/circulaire_du_13_07_04_risques_particuliers_enseignement_eps.pdf" },
+  KI29: { l: "BO n°30 du 25 juillet 2013, arrêté du 1-7-2013 (référentiel de compétences)", u: "https://www.education.gouv.fr/bo/13/Hebdo30/MENE1315928A.htm" },
+  KI30: { l: "BO n°30 du 25 juillet 2013, arrêté du 1-7-2013 (référentiel de compétences)", u: "https://www.education.gouv.fr/bo/13/Hebdo30/MENE1315928A.htm" },
+  KI31: { l: "BO n°33 du 4 septembre 2025, circulaire du 27-8-2025 « Place de l'activité physique et du sport à l'école »", u: "https://www.education.gouv.fr/bo/2025/Hebdo33/MENE2524068C" },
+  KI32: { l: "BO n°33 du 4 septembre 2025, circulaire du 27-8-2025 « Place de l'activité physique et du sport à l'école »", u: "https://www.education.gouv.fr/bo/2025/Hebdo33/MENE2524068C" },
+  KI33: { l: "Académie de Bordeaux, articles du Code de l'éducation sur l'EPS et le handicap", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2020/10/Articles-du-Code-de-l%C3%A9ducation-ayant-trait-au-handicap-EPS.pdf" },
+  KI34: { l: "Académie de Besançon, « Les inaptitudes en EPS » (2023)", u: "https://eps.ac-besancon.fr/wp-content/uploads/sites/36/2023/09/Les-inaptitudes-en-EPS-2023-09.pdf" },
+  KI35: { l: "Eduscol, « Accompagner en EPS les élèves à besoins éducatifs particuliers »", u: "https://eduscol.education.gouv.fr/6267/accompagner-en-eps-les-eleves-besoins-educatifs-particuliers" },
+  AG01: { l: "Question écrite n° 36646, Assemblée nationale (8e législature)", u: "https://questions.assemblee-nationale.fr/dyn/8/questions/QANR5L8QE36646.pdf" },
+  AG02: { l: "Eduscol, Éducation prioritaire : repères historiques", u: "https://eduscol.education.gouv.fr/4899/education-prioritaire-reperes-historiques" },
+  AG03: { l: "Wikipedia, Alain Ehrenberg (bibliographie)", u: "https://en.wikipedia.org/wiki/Alain_Ehrenberg" },
+  AG04: { l: "Crossref, notice du livre (PUF, 1992)", u: "https://api.crossref.org/works?query.bibliographic=Combaz+Sociologie+de+l%27education+physique&rows=5" },
+  AG05: { l: "Institut de recherches de la FSU, Des CLU à la FSU", u: "https://institut.fsu.fr/wp-content/uploads/2026/06/5-Des-CLU-a-la-FSU-1.pdf" },
+  AG06: { l: "Loughborough University Library, notice (PUF, 1995)", u: "https://vufind.lboro.ac.uk/Record/308043/Details" },
+  AG07: { l: "Circulaire n° 97-123 du 23 mai 1997, BO n° 22 (copie EPS, académie de Lyon)", u: "https://eps.enseigne.ac-lyon.fr/spip/IMG/article_PDF/Missions-du-professeur_a13.pdf" },
+  AG08: { l: "Sénat, réponse ministérielle du 17 juin 1999 (circulaire n° 98-144)", u: "https://www.senat.fr/questions/base/1999/qSEQ990213974.html" },
+  AG09: { l: "C. Ottogalli-Mazzacavallo et L. Szerdahelyi, Staps n° 123, 2019 (DOI 10.3917/sta.123.0067)", u: "https://doi.org/10.3917/sta.123.0067" },
+  AG10: { l: "BO hors-série n° 6 du 31 août 2000", u: "https://www.education.gouv.fr/bo/2000/hs6/sportive.htm" },
+  AG11: { l: "Banque des Territoires, les PDESI", u: "https://www.banquedesterritoires.fr/la-lente-marche-en-avant-des-plans-departementaux-des-espaces-sites-et-itineraires" },
+  AG12: { l: "G. Combaz et O. Hoibian, Travail, genre et sociétés n° 20, 2008 (texte)", u: "https://www.epsetsociete.fr/wp-content/uploads/2014/01/article-tgs-combaz-hoibian-2008.pdf" },
+  AG13: { l: "BO n° 29 du 22 juillet 2010", u: "https://www.education.gouv.fr/bo/2010/29/menh1012598a.htm" },
+  AG14: { l: "Cour des comptes, rapport de février 2012 sur la formation des enseignants (copie SE-UNSA)", u: "https://sections.se-unsa.org/80/IMG/pdf/Rapport_Cour_des_comptes_Fev2012.pdf" },
+  AG15: { l: "Weka, Des ULIS destinées aux élèves handicapés (circulaire n° 2010-088)", u: "https://www.weka.fr/actualite/?p=10682" },
+  AG16: { l: "Arrêté du 1er juillet 2013, JO du 18 juillet 2013 (copie SNES)", u: "https://www.snes.edu/wp-content/uploads/2013_07_01_arrete_referentiel_jorf_du_18-07-2013.pdf" },
+  AG17: { l: "Arrêté du 28 mai 2019 modifiant l'arrêté du 27 août 2013, JO du 7 juillet 2019", u: "https://www.sauvonsluniversite.fr/IMG/pdf/joe_20190707_0156_0032.pdf" },
+  AG18: { l: "Ministère, dossier de présentation du CSP (10 octobre 2013)", u: "https://cache.media.education.gouv.fr/file/10_Octobre/16/4/CSP_dossier_presentation_275164.pdf" },
+  AG19: { l: "Circulaire n° 2014-080 du 17 juin 2014, BO n° 25", u: "https://www.education.gouv.fr/bo/14/Hebdo25/MENH1412746C.htm" },
+  AG20: { l: "Banque des Territoires, Les AVS deviennent AESH", u: "https://www.banquedesterritoires.fr/les-avs-deviennent-accompagnants-des-eleves-en-situation-de-handicap-aesh" },
+  AG21: { l: "Décret n° 2014-940 du 20 août 2014 (copie académie de Martinique)", u: "https://site.ac-martinique.fr/wp-content/uploads/sites/10/2014/11/D%c3%89CRET_n%c2%b02014-940_du_20_ao%c3%bbt_2014_version_initiale.pdf" },
+  AG22: { l: "Décret n° 2015-885 du 20 juillet 2015 (copie EPS Bordeaux)", u: "https://ent2d.ac-bordeaux.fr/disciplines/eps/wp-content/uploads/sites/33/2017/08/decret_no2015-885_du_20_juillet_2015.pdf" },
+  AG23: { l: "Ministère, Collège 2016 : l'organisation des enseignements au BO", u: "https://www.education.gouv.fr/college-2016-l-organisation-des-enseignements-au-college-au-bulletin-officiel-8318" },
+  AG24: { l: "Académie de Bordeaux, Rendez-vous de carrière", u: "https://ent2d.ac-bordeaux.fr/disciplines/physique-chimie/wp-content/uploads/sites/82/2025/10/rdvc.pdf" },
+  AG25: { l: "Académie de Grenoble, cahier des charges du label Génération 2024", u: "https://eps-pedagogie.web.ac-grenoble.fr/sites/default/files/media-d7/media-fichiers/2019-07/labellisation-generation-2024-et-cahier-des-charges.pdf" },
+  AG26: { l: "BO spécial n° 5 du 11 avril 2019", u: "https://www.education.gouv.fr/bo/19/Special5/MENE1908621A.htm" },
+  AG27: { l: "Banque des Territoires, L'Agence nationale du sport créée", u: "https://www.banquedesterritoires.fr/lagence-nationale-du-sport-creee-pour-mieux-faire-ensemble" },
+  AG28: { l: "Centre Inffo, Loi pour une école de la confiance : dispositions sur la formation", u: "https://www.centre-inffo.fr/site-droit-formation/loi-pour-une-ecole-de-la-confiance-dispositions-interessant-la-formation-professionnelle" },
+  AG29: { l: "L'Étudiant, Un stage pour s'essayer au métier de prof dès la licence", u: "https://www.letudiant.fr/etudes/fac/un-stage-pour-s-essayer-au-metier-de-prof-des-la-licence.html" },
+  AG30: { l: "BO n° 38 du 17 octobre 2019", u: "https://www.education.gouv.fr/bo/19/Hebdo38/MENH1923980D.htm" },
+  AG31: { l: "Cour des comptes, synthèse du rapport (copie académie de Nancy-Metz)", u: "https://sites.ac-nancy-metz.fr/eps/wp/wp-content/uploads/2023/06/20190912-synthese-ecole-et-sport_0.pdf" },
+  AG32: { l: "Ministère, Égalité entre les filles et les garçons", u: "https://www.education.gouv.fr/egalite-entre-les-filles-et-les-garcons-9047" },
+  AG33: { l: "Question écrite n° 39445, Assemblée nationale (15e législature)", u: "https://www.assemblee-nationale.fr/dyn/15/questions/QANR5L15QE39445.pdf" },
+  AG34: { l: "Maire-info, Pass'Sport : l'aide est créée", u: "https://maire-info.com/sports/passsport-laide-%C3%A0-la-reprise-du-sport-en-club-est-creee-article-25606" },
+  AG35: { l: "Note de service du 22 mars 2022, BO n° 15 du 14 avril 2022", u: "https://www.education.gouv.fr/bo/22/Hebdo15/MENE2209366N.htm" },
+  AG36: { l: "Assemblée nationale, rapport d'information n° 2465 sur l'application de la loi", u: "https://www.assemblee-nationale.fr/dyn/17/rapports/cion-cedu/l17b2465_rapport-information.pdf" },
+  AG37: { l: "Egal Sport, analyse de la loi du 2 mars 2022 (article 29)", u: "https://www.egalsport.com/_files/ugd/64d17e_591117db701c4a35b14de259567bdb2d.pdf" },
 };
 const CARD_SRC = {};
+/* Fiches ki : CAPEPS interne (projet, AS, inclusion, textes), une source affichée ; la seconde est dans contenu/ki-capeps-interne-sources.md. */
+["ki01","ki02","ki03","ki04","ki05","ki06","ki07","ki08","ki09","ki10","ki11","ki12","ki13","ki14","ki15","ki16","ki17","ki18","ki19","ki20","ki21","ki22","ki23","ki24","ki25","ki26","ki27","ki28","ki29","ki30","ki31","ki32","ki33","ki34","ki35"].forEach(id => { CARD_SRC[id] = id.toUpperCase(); });
+/* Fiches ag : agrégation interne depuis 1975 (enseignants, savoirs, jeunes, élèves) ; sources complètes dans contenu/ag-agreg-interne-sources.md. */
+["ag01","ag02","ag03","ag04","ag05","ag06","ag07","ag08","ag09","ag10","ag11","ag12","ag13","ag14","ag15","ag16","ag17","ag18","ag19","ag20","ag21","ag22","ag23","ag24","ag25","ag26","ag27","ag28","ag29","ag30","ag31","ag32","ag33","ag34","ag35","ag36","ag37"].forEach(id => { CARD_SRC[id] = id.toUpperCase(); });
 [["SFM","n231 n232"],["SQE","n233"],["ESR","n234"],["BO27","n235"],["A2011","n236"],["GUY23","n237"],["LP05","n238"],["BO10","n239"],["DEPP","n240"],["PUG","n241"],["LOR","n242"],["OTT","n243"],["CLD","n244"],["DEL","n245"],["AT96","n246"],["PRO","n247"],["OPT","am26"],["MCK","am27"],["NLP","am28"],["RLD","am29"],["SCH","am30"],["ERR","am31"],["HIIT","ef26"],["GUT","ef27"],["DON","ef28"],["STO","ef29"],["PEK","ex26"],["FRE","ex27"],["E32","ex28"],["VAS","ex29"],["TES","ex30"],["CHA","ex31"],["SIT","ex32"],["YEA","ex33"],["BLA","da26"],["DIA","da27"],["BIO","da28"],["MIR","da29"],["SLP","da30"],["TGF","in26"],["SPE","in27"],["MBP","in28"],["ROS","in29"],["FBK","in30"],["CLT","in31"],["CHM","n32 b21"],["LAS","b24 n54"],["TER","b13 b14 n101 n29"],["L75","b23"],["L89","b27"],["L84","b26"],["SEN","n53 n23"],["B00","n63"],["PO20","n58"],["UMA","b08 b07"],["UGY","n01"],["FAL","n02"],["TS","n03 n04 b01 n08 n06 n20 n96 n95 n21 n22 n26 n27 n31 n30 n33 n35 n39 n40 n42 n43 b17 b22 n98 n52 b25 n55 n57 n56 n61"],
  ["GUY","n36 n44 n50 n41 n60 n18 b10"],["TIS","b06 n82"],["COU","n10"],["UNI","b09 n11"],["HEB","n16 n17 b12 n24"],["FOU","n37"],
  ["MER","n45 n59 n79 n38 n34"],["BO19","b29 n68 n69"],["BES","n66 b28"],
@@ -2182,9 +2340,59 @@ function readinessHTML(){
       <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes et ton écriture jusqu'au concours."} La moyenne de tes connaissances et de ton écriture : les jurys notent une copie, pas des fiches.</p></div></div>
     <div class="rd-two"><div class="rd-row rd-vol"><span>Connaissances</span><span class="rd-bar" aria-hidden="true"><span style="width:${kn}%"></span></span><b>${kn} %</b></div>
       <div class="rd-row rd-vol"><span>Écriture</span><span class="rd-bar" aria-hidden="true"><span style="width:${wr}%"></span></span><b>${wr} %</b></div></div>
+    ${copiesHTML()}
     <details class="rd-det"${st.some(x => x.n) ? " open" : ""}><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
     <details class="rd-det"><summary>Connaissances, thème par thème</summary><p class="goal-sub">Une carte compte pleinement en boîte 5, partiellement avant.</p><div class="rd-rows">${rows}</div></details>
   </div>`;
+}
+/* ---------- Progression des copies ----------
+   Note indicative de chaque concours blanc corrigé (fourchette donnée par Claude) et compétences
+   qui progressent : comparer ses copies dans le temps, c'est ce qui montre que le travail paie. */
+function noteRange(t){
+  const sec = (t.split(/^##\s*Note indicative\s*$/mi)[1] || "").split(/^##\s/m)[0];
+  const m = sec.match(/(\d{1,2}(?:[,.]\d+)?)\s*(?:à|-|–|et)\s*(\d{1,2}(?:[,.]\d+)?)\s*\/\s*20/) || sec.match(/(\d{1,2}(?:[,.]\d+)?)\s*\/\s*20/);
+  if (!m) return null;
+  const lo = parseFloat(m[1].replace(",", ".")), hi = m[2] ? parseFloat(m[2].replace(",", ".")) : lo;
+  return lo >= 0 && hi <= 20 && lo <= hi ? { lo, hi, mid: (lo + hi) / 2 } : null;
+}
+function copyNotes(){
+  return blancList().filter(m => m.state === "done").map(m => { const f = txGet("f:b:" + m.id), n = f && noteRange(f); return n ? Object.assign({ m, t: m.end || m.start }, n) : null; })
+    .filter(Boolean).sort((a, b) => a.t - b.t);
+}
+function skTrend(){
+  const M = skMeasures(), out = [];
+  const by = {}; M.forEach(x => { (by[x.e + "|" + x.k] = by[x.e + "|" + x.k] || []).push(x); });
+  Object.entries(by).forEach(([key, L]) => {
+    if (L.length < 4) return;
+    L.sort((a, b) => a.t - b.t);
+    const avg = A => A.reduce((t, x) => t + x.v, 0) / A.length, last = L.slice(-3), first = L.slice(0, Math.min(3, L.length - 3));
+    const d = avg(last) - avg(first), [e, k] = key.split("|");
+    if (Math.abs(d) >= 0.5) out.push({ l: skLabel(k, skFmt(e)), up: d > 0 });
+  });
+  return out;
+}
+function copyChart(N){
+  const W = 560, H = 180, px = 34, py = 14, x = i => px + (N.length === 1 ? (W - 2 * px) / 2 : i * (W - 2 * px) / (N.length - 1)), y = v => py + (20 - v) * (H - 2 * py) / 20;
+  const band = N.length > 1 ? `<path d="M${N.map((n, i) => `${x(i)},${y(n.hi)}`).join("L")}L${N.slice().reverse().map((n, i) => `${x(N.length - 1 - i)},${y(n.lo)}`).join("L")}Z" class="cp-band"/>` : "";
+  const line = N.length > 1 ? `<polyline points="${N.map((n, i) => `${x(i)},${y(n.mid)}`).join(" ")}" class="cp-line"/>` : "";
+  const grid = [0, 5, 10, 15, 20].map(v => `<line x1="${px}" x2="${W - px}" y1="${y(v)}" y2="${y(v)}" class="cp-grid"/><text x="${px - 8}" y="${y(v) + 4}" class="cp-ax">${v}</text>`).join("");
+  const pts = N.map((n, i) => `<line x1="${x(i)}" x2="${x(i)}" y1="${y(n.lo)}" y2="${y(n.hi)}" class="cp-rng"/><circle cx="${x(i)}" cy="${y(n.mid)}" r="5" class="cp-pt"/>`).join("");
+  return `<svg class="cp-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Note indicative de tes ${N.length} copies corrigées, de la première à la dernière : ${N.map(n => fmtNote(n)).join(", ")}">${grid}${band}${line}${pts}</svg>`;
+}
+const fmtNote = n => (n.lo === n.hi ? String(n.lo) : n.lo + " à " + n.hi).replace(/\./g, ",") + " / 20";
+function copiesHTML(){
+  const N = copyNotes(), T = skTrend();
+  if (!N.length && !T.length) return "";
+  const up = T.filter(x => x.up).map(x => x.l), down = T.filter(x => !x.up).map(x => x.l);
+  const d = N.length > 1 ? Math.round((N[N.length - 1].mid - N[0].mid) * 2) / 2 : 0;
+  const fmt = t => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  const ep = m => { const P = sjPools(m.k === "e1" ? "e1" : "e2"); return P.l; };
+  return `<details class="rd-det" open><summary>Tes copies, l'une après l'autre</summary>
+    ${N.length > 1 ? `<p class="cp-sum">${d > 0 ? `<b>+${String(d).replace(".", ",")} point${d >= 2 ? "s" : ""}</b> entre ta première et ta dernière copie corrigée.` : d < 0 ? `Ta dernière copie est un peu en dessous de la première (${String(d).replace(".", ",")}) : regarde ce que Claude a relevé, c'est souvent la gestion du temps.` : "Ta note indicative est stable d'une copie à l'autre."}</p>` : ""}
+    ${N.length ? copyChart(N) + `<ol class="cp-list">${N.map(n => `<li><span>${fmt(n.t)} · ${esc(ep(n.m))}</span><b>${fmtNote(n)}</b></li>`).join("")}</ol>` : ""}
+    ${up.length ? `<p class="goal-sub"><b>En progrès :</b> ${up.map(esc).join(", ")}.</p>` : ""}${down.length ? `<p class="goal-sub"><b>En baisse sur tes derniers textes :</b> ${down.map(esc).join(", ")}.</p>` : ""}
+    <p class="goal-sub">Notes indicatives données par Claude sur tes concours blancs : un repère pour voir ta progression, pas la note d'un jury.</p>
+  </details>`;
 }
 const achList = () => ACHS.filter(a => !a.on || a.on());
 function achHTML(){
@@ -2223,7 +2431,9 @@ const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="curre
 function bumpLog(k){ const dk = dayKey(), o = Object.assign({ a: 0, n: 0 }, log[dk]); o[k] = (o[k] || 0) + 1; log[dk] = o; }
 function isToday(ts){ return !!ts && dayKey(new Date(ts)) === dayKey(); }
 /* Le sujet du jour vient du concours choisi : ses sujets d'entraînement, sinon ses annales (jamais un sujet hors programme). */
-function daySubjects(e){ const P = sjPools(e); return P.own.length ? P.own : P.ann.map(annSubject); }
+/* Interne et agrégations : les annales d'abord (rapports du jury), les sujets d'entraînement en plus. */
+const ANN_FIRST = new Set(["capeps-int", "agreg-ext", "agreg-int"]);
+function daySubjects(e){ const P = sjPools(e); return P.own.length && !(ANN_FIRST.has(prefs.concours) && P.ann.length) ? P.own : P.ann.map(annSubject); }
 function pickDay(L){
   const n = L.length, day = Math.floor(startOfDay().getTime() / DAY); if (!n) return null;
   for (let i = 0; i < n; i++) { const x = L[(day + i) % n]; if (!ach.w["p:" + x.id]) return x; }
@@ -2346,7 +2556,48 @@ function renderHome(){
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : `${heroHTML()}
     ${upgradeBanner()}
-    <div class="home-one">${homeSession()}${homeTrain()}</div>`}`;
+    <div class="home-one">${resultCard()}${homeSession()}${homeTrain()}</div>`}`;
+}
+
+/* ---------- Après les écrits : « es-tu admissible ? » ----------
+   Proposé sur le site seulement, du lendemain des écrits à six mois après, une fois par session.
+   La réponse est anonyme ; le témoignage, la publication et le prénom sont facultatifs. */
+const RES_KEY = "bristol-eps-res";
+const rs = { r: "", busy: false, msg: "" };
+function resState(){ try { return JSON.parse(localStorage.getItem(RES_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function resSet(o){ try { localStorage.setItem(RES_KEY, JSON.stringify(Object.assign(resState(), o))); } catch (e) {} }
+function resYear(){
+  if (!STANDALONE || !prefs.concours || !/^\d{4}-\d{2}-\d{2}$/.test(prefs.examDate || "")) return 0;
+  const gap = (Date.parse(dayKey()) - Date.parse(prefs.examDate)) / DAY;
+  if (gap < 1 || gap > 183) return 0;
+  const y = +prefs.examDate.slice(0, 4), st = resState();
+  if (st.done === y || (st.later && Date.parse(dayKey()) < Date.parse(st.later))) return 0;
+  return y;
+}
+function resultCard(){
+  const y = resYear(); if (!y) return "";
+  if (!rs.r) return `<section class="ts res-card" aria-labelledby="res-h"><h2 id="res-h">Tes écrits sont passés : tu es admissible ?</h2>
+    <p class="lead">Ta réponse, anonyme, nous aide à savoir si le site aide vraiment les candidats.</p>
+    <div class="row-btns"><button class="btn primary" data-act="res-pick" data-r="admissible">Oui, admissible</button><button class="btn" data-act="res-pick" data-r="non">Pas cette fois</button><button class="btn" data-act="res-later">Pas encore les résultats</button></div></section>`;
+  return `<section class="ts res-card" aria-labelledby="res-h"><h2 id="res-h" tabindex="-1">${rs.r === "non" ? "Merci de ta réponse. Courage pour la suite." : "Bravo, et bonne préparation des oraux !"}</h2>
+    <label for="res-txt">Un mot pour les futurs candidats ? <span class="opt">(facultatif)</span></label>
+    <textarea id="res-txt" maxlength="1200" placeholder="Ce qui t'a le plus aidé, ce que tu referais autrement…"></textarea>
+    <label class="chk"><input type="checkbox" id="res-pub"> J'accepte que ce texte soit publié sur le site</label>
+    <label for="res-prenom">Prénom affiché <span class="opt">(facultatif, seulement si tu acceptes la publication)</span></label>
+    <input id="res-prenom" maxlength="40" autocomplete="given-name">
+    <div class="row-btns actions"><button class="btn primary" data-act="res-send"${rs.busy ? " disabled" : ""}>Envoyer</button><button class="btn" data-act="res-send" data-skip="1"${rs.busy ? " disabled" : ""}>Envoyer sans témoignage</button></div>
+    ${rs.msg ? `<p class="err" role="alert">${esc(rs.msg)}</p>` : ""}</section>`;
+}
+async function resSend(skip){
+  const y = resYear(); if (!y || rs.busy) return;
+  const v = id => ((document.getElementById(id) || {}).value || "").trim();
+  const txt = skip ? "" : v("res-txt"), pub = !skip && !!(document.getElementById("res-pub") || {}).checked;
+  rs.busy = true; rs.msg = "";
+  const r = await api("POST", "/api/result", { c: prefs.concours, y, r: rs.r, txt, pub, prenom: pub ? v("res-prenom") : "" });
+  rs.busy = false;
+  if (r.status === 200) { resSet({ done: y }); rs.r = ""; renderHome(); toast("Merci, c'est noté."); return; }
+  rs.msg = r.status === 429 ? "Trop d'envois depuis cette connexion. Réessaie demain." : "L'envoi n'a pas abouti. Réessaie dans un instant.";
+  renderHome();
 }
 
 /* ---------- Séance ---------- */
@@ -2380,6 +2631,7 @@ function grade(r){
   const lg = log[dk] || { a: 0, n: 0 };
   const gk = "n_" + grpOf(byId(id) || {});
   log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) }, p ? {} : { [gk]: (lg[gk] || 0) + 1 });
+  track("review1"); track("active"); trackReturn();
   if (!cram || r === "rate") {
     const g = G_OF[r] || 3, f = fsrsNext(p, g, now), b = boxOfS(f.s, g);
     /* Ratée : elle revient dans 10 minutes, dans la séance. */
@@ -2759,6 +3011,7 @@ async function pwWait(email){
   const f = $(pw.wait === "ok" ? "#pw-wait-ok" : "#pw-wait-in"); if (f) f.focus();
 }
 async function paywall(why){
+  track("paywall");
   if (!STANDALONE) return;
   Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", wait: "", opener: document.activeElement });
   await billCfg();
@@ -2817,6 +3070,7 @@ async function pwCheckout(plan){
     return;
   }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
+  track("checkout");
   const r = await api("POST", "/api/billing/checkout", { plan, renonce: true });
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
@@ -3221,7 +3475,9 @@ function renderFrise(){
   } else {
     const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y);
     const good = sorted.filter((i, rank) => fr.picks[rank] === i).length;
-    body = `<p class="lead"><strong>${good} sur ${fr.items.length}</strong> à la bonne place. Voici l'ordre exact :</p>
+    const y1 = fr.items[sorted[0]].y, y2 = fr.items[sorted[sorted.length - 1]].y, span = Math.max(1, y2 - y1);
+    const axis = `<div class="fr-axis" aria-hidden="true"><div class="fr-rail"></div>${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<span class="fr-dot ${rank % 2 ? "dn" : "up"} ${ok ? "ok" : "ko"}" style="left:${(4 + 92 * (e.y - y1) / span).toFixed(1)}%"><b>${e.y}</b></span>`; }).join("")}</div>`;
+    body = `<p class="lead"><strong>${good} sur ${fr.items.length}</strong> à la bonne place. Voici l'ordre exact, à l'échelle du temps :</p>${axis}
       <ol class="frise-list">${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<li class="fr-res"><span class="yr">${e.y}</span><span>${esc(e.t)}</span><span class="verdict ${ok ? "ok" : "ko"}">${ok ? "Bien placé" : "Tu l'avais mis en n° " + (fr.picks.indexOf(i) + 1)}</span></li>`; }).join("")}</ol>
       <div class="row-btns actions"><button class="btn primary" data-act="fr-new">Nouvelle frise</button></div>`;
   }
@@ -3742,6 +3998,8 @@ function txSet(k, v){
   if (txGet(k) === v) return;
   texts[k] = { v, t: Math.max(Date.now(), texts[k] ? texts[k].t + 1 : 0) };
   tx.dirty.add(k);
+  /* Un vrai texte (plan, introduction, paragraphe, copie), pas un retour ni une grille. */
+  if (v && v.length >= 300 && !/^(f|c|bm|d):/.test(k)) track("write1");
   /* La frappe ne réécrit pas tout le stockage à chaque touche. */
   if (!tx.ltimer) tx.ltimer = setTimeout(txSaveLocal, 400);
   txSchedule();
@@ -3966,7 +4224,7 @@ async function askFeedback(kind){
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
       : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
     fbSave(key, res.text);
-    ach.f++; persist();
+    ach.f++; persist(); track("feedback1");
   } catch (e) {
     if (fb.ctl !== ctl) return;
     fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
@@ -4009,6 +4267,7 @@ function renderSujets(){
   if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
   const P = sjPools(sj.epr);
+  if (!sj.srcPicked && ANN_FIRST.has(prefs.concours) && P.ann.length) sj.src = "ann";
   if (sj.src === "ann" && !P.ann.length) sj.src = "own";
   if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
   const eprList = [["e1", sjPools("e1").l], ["e2", sjPools("e2").l]].filter(([k]) => relHas(k));
@@ -4425,7 +4684,7 @@ function ptNext(){
   ptFinish();
 }
 function ptFinish(){
-  pt.done = true;
+  pt.done = true; track("pt");
   const now = Date.now(); let n = 0;
   for (const q of pt.qs) if (q.r === "ok" && !progress[q.id]) {
     const f = fsrsNext(null, G_OF.hesite, now);
@@ -4568,9 +4827,9 @@ const PROG_MAP = {
   "capeps-m2": [PM_E1_CAPEPS, [{ g: "e2", th: ["AM"] }, { g: "e2", th: ["EF"] }, { g: "e2", th: ["DA", "EX"] }]],
   "capeps-int": [[
     { g: "tx", re: /programme|champs? d.apprentissage|competences generales|socle|attendus/ },
-    { g: "tx", re: /projet pedagogique|projet d.eps|parcours/ },
+    { g: "tx", re: /projet pedagogique|projet d.eps|parcours|projet d.etablissement|conseil pedagogique|coordonnat/ },
     { g: "tx", re: /association sportive|\bas\b|unss|forfait|section sportive|sport-etudes/ },
-    { g: "tx", re: /evalu|ccf|baccalaureat|\bbac\b|brevet|dnb|certifi|\bafl\b|inaptitude/ }]],
+    { g: "tx", re: /evalu|ccf|baccalaureat|\bbac\b|brevet|dnb|certifi|\bafl\b|inaptitude|handicap|inclusi/ }]],
   "agreg-ext": [[
     { g: "e1", th: ["D"], per: P1918 }, { g: "e1", th: ["G"], per: P1918 }, { g: "e1", th: ["T"], per: P1918 },
     { g: "e1", re: /loisir|jeunes|jeunesse|plein air|sport de masse|club|federation|sports? de nature|glisse/, per: P1918 }], [
@@ -4630,18 +4889,70 @@ function inConc(c){
 }
 const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
+/* Sujets d'entraînement de l'interne et des agrégations (citation, consigne, situation fictive pour l'interne).
+   Conçus par Bristol EPS ; chaque citation est retrouvée mot pour mot dans deux documents (contenu/sujets-interne-agreg-sources.md).
+   Les cartes utiles sont choisies comme pour les annales (annCards), selon le concours. */
+const XSUB = {
+  "cint": [
+  {"id": "xi01", "e": "ei", "th": "Le projet pédagogique EPS (programme du lycée général et technologique)", "t": "« Le projet pédagogique d’EPS formalise et planifie, de la classe de seconde à celle de terminale, les acquisitions nécessaires pour atteindre les attendus de fin de lycée. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019]. Pourquoi et comment l’enseignant d’EPS peut-il faire vivre ce projet pédagogique pour les élèves du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée général et technologique de 1 350 élèves dans une ville moyenne ; un tiers des élèves arrive de collèges ruraux par le car scolaire. Classe de seconde : 34 élèves (19 filles, 15 garçons) ; 4 élèves ne savent pas nager, 3 n’ont jamais pratiqué de sport collectif en club, 2 garçons jouent au football à bon niveau. Programmation de seconde : demi-fond, badminton, acrosport. Équipe de 5 enseignants d’EPS, dont 2 nouvellement nommés ; le projet pédagogique d’EPS n’a pas été réécrit depuis 2019 et les attendus de fin de lycée y sont peu déclinés par niveau. Association sportive : 120 licenciés, surtout des garçons de seconde (futsal, badminton, escalade). Axe du projet d’établissement : accompagner l’orientation et prévenir le décrochage en seconde."},
+    {"id": "xi02", "e": "ei", "th": "L’association sportive dans le second degré (voie professionnelle)", "t": "« L’association sportive (AS) s’inscrit dans le prolongement de l’EPS obligatoire. »¹ [¹ Programme d’enseignement d’éducation physique et sportive des classes préparant au CAP et au baccalauréat professionnel, annexe de l’arrêté du 3-4-2019, BO spécial n°5 du 11 avril 2019]. Pourquoi et comment l’enseignant d’EPS peut-il faire de l’association sportive un prolongement de l’EPS obligatoire pour les élèves du lycée professionnel présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée professionnel de 520 élèves en périphérie d’une grande ville, filières commerce, accueil et maintenance des véhicules. Classe de première baccalauréat professionnel Métiers du commerce et de la vente : 24 élèves (17 filles, 7 garçons) ; plusieurs élèves ont un emploi le week-end, les périodes de formation en milieu professionnel morcellent l’année. Peu d’élèves pratiquent une activité physique hors du lycée ; 4 élèves présentent des inaptitudes partielles répétées. Programmation : course de haies, badminton, step. Association sportive : 35 licenciés, un seul créneau le mercredi après-midi, peu de filles. Le projet d’EPS affiche un axe sur l’engagement et la prise de responsabilités."},
+    {"id": "xi03", "e": "ei", "th": "Les programmes EPS de la voie professionnelle (santé, lien EPS et PSE)", "t": "« La formation en PSE et le parcours des élèves en EPS sont liés par des objectifs communs : la santé et l’équilibre de vie, les principes de base d’une alimentation équilibrée, la prévention (…) »¹ [¹ Programme d’enseignement d’éducation physique et sportive des classes préparant au CAP et au baccalauréat professionnel, annexe de l’arrêté du 3-4-2019, BO spécial n°5 du 11 avril 2019]. Pourquoi et comment l’enseignant d’EPS peut-il s’appuyer sur ces objectifs communs pour les élèves du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée professionnel de 380 élèves, filières du bâtiment et de l’hôtellerie-restauration. Classe de première année de CAP Cuisine : 15 élèves (12 garçons, 3 filles), âgés de 15 à 19 ans ; plusieurs élèves décrivent des horaires décalés pendant les stages, un sommeil court, une consommation fréquente de boissons énergisantes. Deux élèves ont un aménagement pour un trouble des apprentissages. Programmation : musculation, handball, relais-vitesse. L’infirmière est présente deux jours par semaine ; l’enseignante de prévention-santé-environnement (PSE) souhaite un projet commun. Association sportive : 28 licenciés, activité principale le futsal."},
+    {"id": "xi04", "e": "ei", "th": "Les programmes EPS du lycée : élèves en situation de handicap et à besoins éducatifs particuliers", "t": "« Une attention particulière doit être portée aux élèves en situation de handicap, atteints de maladies ou à besoins éducatifs particuliers. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019]. Pourquoi et comment l’enseignant d’EPS peut-il répondre à cette exigence du programme pour les élèves du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée général et technologique de 900 élèves, avec une unité localisée pour l’inclusion scolaire (ULIS) de 10 élèves. Classe de première générale : 30 élèves, dont un élève en fauteuil roulant, une élève avec un trouble du spectre de l’autisme accompagnée d’une AESH, deux élèves diabétiques ayant un projet d’accueil individualisé (PAI) et un élève en inaptitude partielle au genou pour l’année. Programmation de première : natation (piscine à 6 km), volley-ball, danse. Gymnase accessible, mais pas le mur d’escalade. Équipe de 4 enseignants d’EPS ; aucune action de sport partagé à l’association sportive (55 licenciés)."},
+    {"id": "xi05", "e": "ei", "th": "Les programmes EPS du lycée et l’égalité filles-garçons (projet pédagogique, AS)", "t": "Le programme d’EPS du lycée général et technologique précise que le parcours de formation de l’élève « tient compte des aspirations et des besoins du public scolaire local ; celles des élèves filles doivent faire l’objet d’une attention particulière »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019]. Pourquoi et comment l’enseignant d’EPS peut-il prendre en compte les aspirations et les besoins des élèves filles du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée technologique de 700 élèves (séries STMG et ST2S), 68 % de filles. Classe de terminale ST2S : 32 élèves, dont 27 filles. Au baccalauréat de la session précédente, la moyenne d’EPS des filles du lycée était inférieure de deux points à celle des garçons ; les dispenses ponctuelles sont fréquentes en natation et en course. Plusieurs élèves déclarent n’avoir aucune pratique physique hors du lycée. Menu de terminale : course en durée, volley-ball, danse. Association sportive : 70 licenciés, dont 15 filles ; activités proposées : futsal, musculation, badminton."},
+    {"id": "xi06", "e": "ei", "th": "L’évaluation en EPS dans le second degré (lycée, évaluation formative et certificative)", "t": "« Cela suppose notamment de construire et de leur faire partager des indicateurs précis qui leur permettent de repérer leur engagement, en lien avec les attendus de fin de lycée. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019, partie « Évaluation »]. Pourquoi et comment l’enseignant d’EPS peut-il construire et faire partager de tels indicateurs aux élèves du lycée présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce lycée.", "ctx": "Lycée polyvalent de 1 600 élèves, en centre-ville. Classe de terminale générale : 35 élèves, très attentifs à leurs notes en raison des vœux d’orientation dans l’enseignement supérieur ; une partie de la classe trouve les critères de l’évaluation certificative peu lisibles. Menu de terminale : escalade, badminton, musculation. L’équipe d’EPS (7 enseignants) utilise des référentiels communs mais des outils d’observation propres à chacun ; les élèves disposent de tablettes en prêt. Association sportive : 150 licenciés et un groupe de jeunes officiels en badminton."},
+    {"id": "xi07", "e": "ei", "th": "Les programmes EPS au collège (socle commun, domaine 3) et l’association sportive", "t": "« L’élève coopère et fait preuve de responsabilité vis-à-vis d’autrui. »¹ [¹ Socle commun de connaissances, de compétences et de culture, annexe du décret n° 2015-372 du 31 mars 2015, BO n°17 du 23 avril 2015, domaine 3 « La formation de la personne et du citoyen »]. Pourquoi et comment l’enseignant d’EPS peut-il contribuer à cette ambition du socle commun pour les élèves du collège présenté en annexe ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce collège.", "ctx": "Collège de 450 élèves classé en réseau d’éducation prioritaire, dans un quartier urbain. Classe de cinquième : 26 élèves (12 filles, 14 garçons) ; trois élèves ont été exclus temporairement au premier trimestre ; les jeux collectifs donnent lieu à des conflits entre filles et garçons et à des refus de travailler ensemble. Un élève est accompagné par une AESH. Programmation de cinquième : relais-vitesse, handball, acrosport, course d’orientation. Association sportive : 90 licenciés, surtout en futsal ; peu de jeunes officiels. Le projet d’EPS fait du vivre ensemble une priorité."},
+    {"id": "xi08", "e": "ei", "th": "L’évaluation en EPS au collège (socle commun, domaine 3)", "t": "« Il exploite ses facultés intellectuelles et physiques en ayant confiance en sa capacité à réussir et à progresser. »¹ [¹ Socle commun de connaissances, de compétences et de culture, annexe du décret n° 2015-372 du 31 mars 2015, BO n°17 du 23 avril 2015, domaine 3 « La formation de la personne et du citoyen » ; « il » désigne l’élève]. Pourquoi et comment l’enseignant d’EPS peut-il, notamment par ses pratiques d’évaluation, aider les élèves du collège présenté en annexe à construire cette confiance ? Vous êtes enseignant d’EPS de cet établissement, vous présenterez et justifierez des propositions au sein de vos cours d’EPS pour les élèves de la classe décrite en annexe et, plus largement, au sein de ce collège.", "ctx": "Collège rural de 300 élèves ; la plupart des élèves dépendent du car scolaire. Classe de quatrième : 24 élèves ; 6 élèves sont en grande difficulté scolaire, une élève a un plan d’accompagnement personnalisé (PAP) pour une dyspraxie, deux élèves refusent souvent de courir devant la classe. Le collège évalue par compétences sur quatre niveaux de maîtrise ; en EPS, les bilans de fin de cycle sont peu expliqués aux élèves et aux familles. Programmation de quatrième : course de demi-fond, escalade sur structure artificielle, danse, volley-ball. Association sportive : 40 % des élèves licenciés, entraînements sur la pause méridienne."}
+  ],
+  "aint_e1": [
+  {"id": "xa1-01", "e": "e1", "th": "Les élèves dans la leçon d’EPS", "t": "« Le service public de l’éducation est conçu et organisé en fonction des élèves et des étudiants. »¹ [¹ Loi n° 89-486 du 10 juillet 1989 d’orientation sur l’éducation, article 1]. Vous analyserez et discuterez cette citation au regard de l’évolution de la place accordée aux élèves dans la leçon d’EPS de 1975 à nos jours."},
+    {"id": "xa1-02", "e": "e1", "th": "Les savoirs enseignés et les modalités d’évaluation en EPS", "t": "« L’évaluation des attendus de fin de lycée se réalise dans des activités physiques sportives ou artistiques, et s’organise à l’issue d’une séquence d’enseignement suffisamment longue pour permettre les apprentissages. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019, partie « Évaluation »]. Vous analyserez et discuterez cette citation au regard de l’évolution des liens entre les savoirs enseignés et les modalités d’évaluation en EPS de 1975 à nos jours."},
+    {"id": "xa1-03", "e": "e1", "th": "Les cultures professionnelles des enseignants d’EPS", "t": "À propos du projet pédagogique d’EPS, le programme du lycée général et technologique précise : « Il est le fruit d’une conception collective et engage la responsabilité de l’ensemble de l’équipe pédagogique d’EPS. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019]. Vous analyserez et discuterez cette citation au regard de l’évolution des cultures professionnelles des enseignants d’EPS de 1975 à nos jours."},
+    {"id": "xa1-04", "e": "e1", "th": "Les élèves dans la leçon d’EPS", "t": "« Respectueuse des différences de potentiels, de ressources, luttant contre les stéréotypes sociaux ou sexués et résolument inscrite dans une école inclusive, l’EPS offre à tous l’occasion d’une pratique physique qui fait toute sa place au plaisir d’agir. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019, préambule]. Vous analyserez et discuterez cette citation au regard de l’évolution de la prise en compte de la diversité des élèves dans la leçon d’EPS de 1975 à nos jours."},
+    {"id": "xa1-05", "e": "e1", "th": "Les jeunes, les pratiques physiques et les incidences en EPS", "t": "Les pratiques physiques que les jeunes choisissent hors de l’école (pratiques auto-organisées, sports de nature et de glisse, activités de forme, pratiques diffusées par les écrans) ont-elles transformé les contenus et les formes de pratique proposés en EPS ? Vous analyserez et discuterez cette question de 1975 à nos jours."},
+    {"id": "xa1-06", "e": "e1", "th": "Les savoirs enseignés et les modalités d’évaluation en EPS", "t": "Des techniques sportives aux compétences : vous analyserez l’évolution des savoirs enseignés en EPS de 1975 à nos jours et vous en discuterez les effets sur les pratiques professionnelles des enseignants."}
+  ],
+  "aint_e2": [
+  {"id": "xa2-01", "e": "e2", "th": "Les objectifs de santé et l’acquisition de techniques corporelles en EPS", "t": "À propos de l’élève en fin de scolarité obligatoire, le socle commun indique : « Il est conscient des enjeux de bien-être et de santé des pratiques alimentaires et physiques. »¹ [¹ Socle commun de connaissances, de compétences et de culture, annexe du décret n° 2015-372 du 31 mars 2015, BO n°17 du 23 avril 2015, domaine 4 « Les systèmes naturels et les systèmes techniques »]. En quoi et comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut-il relier l’acquisition de techniques corporelles et la construction de cette conscience des enjeux de santé ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : collège de 620 élèves en périphérie urbaine ; classe de troisième de 28 élèves, dont un tiers déclare moins d’une heure d’activité physique par semaine hors de l’EPS ; programmation : course de demi-fond, natation, badminton, acrosport.]"},
+    {"id": "xa2-02", "e": "e2", "th": "Le développement des qualités physiques et des compétences en EPS", "t": "« Par son engagement dans les apprentissages, l’élève apprend à gérer sa pratique physique, seul et avec d’autres. Il apprend à se connaître, à faire des choix, à se préparer, à conduire et réguler ses efforts. »¹ [¹ Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019, objectif général « savoir se préparer et s’entraîner »]. À quelles conditions didactiques et pédagogiques l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut-il faire du développement des qualités physiques un levier de la construction de compétences ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : lycée général et technologique de 1 100 élèves ; classe de première de 33 élèves, dont plusieurs pratiquent la musculation en salle privée sans connaissances sur l’entraînement ; programmation : demi-fond, musculation, escalade, basket-ball.]"},
+    {"id": "xa2-03", "e": "e2", "th": "Les stratégies d’intervention de l’enseignant d’EPS au service des transformations de tous les élèves", "t": "« La voie professionnelle a cependant ses spécificités qui se caractérisent notamment par une forte diversité des formations, des publics et des motivations. »¹ [¹ Programme d’enseignement d’éducation physique et sportive des classes préparant au CAP et au baccalauréat professionnel, annexe de l’arrêté du 3-4-2019, BO spécial n°5 du 11 avril 2019, préambule]. Comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut-il adapter ses stratégies d’intervention à cette diversité pour permettre à tous les élèves de se transformer ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : lycée professionnel de 450 élèves ; classe de seconde baccalauréat professionnel Maintenance des matériels de 26 élèves (24 garçons, 2 filles), plusieurs orientés par défaut, absentéisme élevé le lundi ; programmation : relais-vitesse, rugby, step.]"},
+    {"id": "xa2-04", "e": "e2", "th": "Le parcours de formation de l’élève en EPS et son évaluation", "t": "Pourquoi et comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut-il concevoir l’évaluation comme un outil au service du parcours de formation de chaque élève, de la seconde à la terminale ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : lycée polyvalent de 1 300 élèves ; classe de seconde de 35 élèves aux expériences sportives très inégales ; menus de terminale au choix entre deux ensembles d’APSA ; programmation de seconde : course de haies, natation de distance, badminton, acrosport.]"},
+    {"id": "xa2-05", "e": "e2", "th": "Les objectifs de santé et l’acquisition de techniques corporelles en EPS", "t": "Acquérir des techniques corporelles en EPS permet-il aux élèves de pratiquer plus souvent, plus longtemps et plus sûrement ? Vous discuterez cette question et montrerez comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut organiser ses enseignements pour lier techniques corporelles et objectifs de santé. Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : collège rural de 280 élèves, piscine intercommunale à 15 km ; classe de sixième de 25 élèves, dont 7 ne valident pas l’attestation du savoir-nager ; programmation : natation, course d’orientation, jeux de raquettes, danse.]"},
+    {"id": "xa2-06", "e": "e2", "th": "Les stratégies d’intervention de l’enseignant d’EPS au service des transformations de tous les élèves", "t": "Comment l’enseignant d’EPS, dans le contexte d’établissement décrit en annexe, peut-il différencier ses interventions pour que chaque élève progresse, sans renoncer à des exigences communes pour toute la classe ? Vous illustrerez vos propositions en vous appuyant notamment sur la classe présentée et sur au moins deux activités physiques sportives et artistiques (APSA), relevant de deux champs d’apprentissage différents, inscrites dans la programmation de l’établissement. [Annexe (situation fictive) : collège de 700 élèves avec une ULIS ; classe de cinquième de 27 élèves dont 3 élèves de l’ULIS inclus en EPS, 2 élèves à haut niveau en club et un groupe qui se met en retrait ; programmation : relais-vitesse, escalade, acrosport, basket-ball.]"}
+  ],
+  "aext_e1": [
+  {"id": "xe1-01", "e": "e1", "th": "Apprentissages moteurs et techniques corporelles", "t": "Extrait : Marcel Mauss définit les techniques du corps comme « les façons dont les hommes, société par société, d’une façon traditionnelle, savent se servir de leur corps » (Marcel Mauss, « Les techniques du corps », repris dans Sociologie et anthropologie, Paris, PUF, p. 365). Consigne : Discutez cette définition au regard des techniques corporelles enseignées en éducation physique de 1918 à nos jours."},
+    {"id": "xe1-02", "e": "e1", "th": "Enjeux, débats et controverses", "t": "Extrait : « L’enseignement d’éducation physique et sportive a beaucoup évolué durant les deux dernières décennies. Le changement d’affiliation ministérielle en 1981 (du ministère de la jeunesse et des sports vers le ministère de l’éducation nationale) a suscité des réflexions professionnelles nombreuses, des modifications réglementaires successives. » (Programme d’éducation physique et sportive de la classe de seconde générale et technologique, BO hors-série n°6 du 31 août 2000 ; même passage dans le programme de la classe de première, BO hors-série n°7 du 31 août 2000). Consigne : En vous appuyant sur ce texte, vous analyserez les enjeux et les débats qu’ont suscités les rattachements institutionnels successifs de l’éducation physique de 1918 à nos jours."},
+    {"id": "xe1-03", "e": "e1", "th": "Les jeunes et les pratiques physiques de loisirs", "t": "Les pratiques physiques de loisir des jeunes ont-elles été, pour l’éducation physique scolaire, une concurrence ou une ressource ? Vous discuterez cette question de 1918 à nos jours."},
+    {"id": "xe1-04", "e": "e1", "th": "Valeurs, transmission, incorporation", "t": "Former le corps pour former le caractère : dans quelle mesure l’éducation physique scolaire a-t-elle cherché à transmettre des valeurs par l’incorporation de règles et de conduites, de 1918 à nos jours ?"},
+    {"id": "xe1-05", "e": "e1", "th": "Enjeux, débats et controverses", "t": "Pourquoi le sport scolaire (associations sportives d’établissement et fédérations scolaires) s’est-il développé à côté de l’éducation physique obligatoire, et quels débats cette coexistence a-t-elle suscités de 1918 à nos jours ?"},
+    {"id": "xe1-06", "e": "e1", "th": "Apprentissages moteurs et techniques corporelles", "t": "Savoir nager : vous analyserez comment et pourquoi l’apprentissage de la natation est devenu un enjeu de l’école, et comment ont évolué les manières de l’enseigner, de 1918 à nos jours."}
+  ],
+  "aext_e2": [
+  {"id": "xe2-01", "e": "e2", "th": "Émotions et interactions sociales", "t": "Citation : « Ainsi, l’élève développe des compétences et renforce son pouvoir d’agir. Il éprouve des sensations, vit des émotions et accroît ses capacités de raisonnement et son esprit critique. » (Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019, préambule). Consigne : Discutez l’idée selon laquelle les émotions vécues par les élèves en EPS sont une ressource pour leurs apprentissages autant qu’un obstacle."},
+    {"id": "xe2-02", "e": "e2", "th": "Apprentissages moteurs et techniques corporelles", "t": "Citation : « L’enrichissement de cette motricité, quand elle est perçue comme une réussite par l’élève, favorise la confiance en soi et le sentiment de compétence, sources d’un épanouissement personnel et professionnel. » (Programme d’enseignement d’éducation physique et sportive des classes préparant au CAP et au baccalauréat professionnel, annexe de l’arrêté du 3-4-2019, BO spécial n°5 du 11 avril 2019, objectifs généraux). Consigne : Discutez l’idée selon laquelle le sentiment de compétence des élèves en EPS dépend d’abord de leurs progrès techniques."},
+    {"id": "xe2-03", "e": "e2", "th": "Engagement dans un mode de vie actif, solidaire et durable", "t": "Citation : « L’association sportive du lycée doit être le début d’un engagement volontaire dans un mode de vie actif et citoyen. » (Programme d’éducation physique et sportive du lycée général et technologique, enseignement commun, annexe 1 de l’arrêté du 17-1-2019, BO spécial n°1 du 22 janvier 2019). Consigne : Dans quelle mesure l’EPS et l’association sportive peuvent-elles engager durablement les élèves dans un mode de vie actif, solidaire et citoyen ?"},
+    {"id": "xe2-04", "e": "e2", "th": "EPS et continuité éducative", "t": "Citation : « Il s’exprime par des activités, physiques, sportives ou artistiques, impliquant le corps. » (Socle commun de connaissances, de compétences et de culture, annexe du décret n° 2015-372 du 31 mars 2015, BO n°17 du 23 avril 2015, domaine 1 « Les langages pour penser et communiquer » ; « il » désigne l’élève). Consigne : En vous appuyant sur cet extrait, discutez les conditions d’une continuité des apprentissages corporels et expressifs de l’école élémentaire au lycée."},
+    {"id": "xe2-05", "e": "e2", "th": "Émotions et interactions sociales", "t": "Le conflit entre élèves en EPS : un obstacle à écarter ou un objet d’apprentissage ? Discutez et illustrez."},
+    {"id": "xe2-06", "e": "e2", "th": "EPS et continuité éducative ; engagement dans un mode de vie actif", "t": "Discutez l’idée selon laquelle l’EPS ne peut atteindre ses objectifs de santé qu’en s’articulant avec les autres temps de pratique physique des élèves (association sportive, activité physique quotidienne, pratiques familiales et de loisir)."}
+  ]
+};
+const xsubMemo = {};
+function xSubjects(k){
+  const m = prefs.concours + ":" + k; if (xsubMemo[m]) return xsubMemo[m];
+  return (xsubMemo[m] = XSUB[k].map(x => ({ id: x.id, epr: x.e === "e1" ? "e1" : "e2", th: "X", t: x.t, ctx: x.ctx, ep: [], c: annCards({ t: x.t, e: x.e }), label: "Sujet d'entraînement · " + x.th })));
+}
 const CPROF = {
   "capeps-l3": { e1: { l: "Écrit 1 : questions", own: () => SUBJECTS_B1, ann: a => a.co === "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : épisodes", own: () => SUBJECTS_B2, ann: a => a.co === "CAPEPS externe bac+3" } },
   "capeps-m2": { e1: { l: "Écrit 1 : dissertation", own: () => SUBJECTS, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2.filter(x => x.th !== "IN"), ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" } },
-  "capeps-int": { e2: { l: "Écrit : étude de cas", own: () => [], ann: a => a.f === "cint" } },
-  "agreg-ext": { e1: { l: "Écrit 1 : APSA et civilisations", own: () => [], ann: a => a.f === "aext" }, e2: { l: "Écrit 2 : développement de la personne", own: () => [], ann: a => a.f === "aext" } },
-  "agreg-int": { e1: { l: "Écrit 1 : dissertation", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => [], ann: a => a.f === "aint" } }
+  "capeps-int": { e2: { l: "Écrit : étude de cas", own: () => xSubjects("cint"), ann: a => a.f === "cint" } },
+  "agreg-ext": { e1: { l: "Écrit 1 : APSA et civilisations", own: () => xSubjects("aext_e1"), ann: a => a.f === "aext" }, e2: { l: "Écrit 2 : développement de la personne", own: () => xSubjects("aext_e2"), ann: a => a.f === "aext" } },
+  "agreg-int": { e1: { l: "Écrit 1 : dissertation", own: () => xSubjects("aint_e1"), ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => xSubjects("aint_e2"), ann: a => a.f === "aint" } }
 };
 CPROF["capeps-3"] = CPROF["capeps-l3"];
 /* Intitulé d'un thème de sujet : celui du programme du concours quand il existe (CAPEPS transitoire). */
 const SJ_TH_PROG = { "capeps-m2": { AM: 0, EF: 1, DA: 2, EX: 2 } };
 function sjThName(k){ const m = SJ_TH_PROG[prefs.concours], c = m && concById(prefs.concours); return m && c && m[k] != null && c.prog[1] ? c.prog[1].i[m[k]] : THEMES[k]; }
-const sjThIs = (s, k) => k === "Tous" || s.th === k || (!!SJ_TH_PROG[prefs.concours] && SJ_TH_PROG[prefs.concours][s.th] != null && SJ_TH_PROG[prefs.concours][s.th] === SJ_TH_PROG[prefs.concours][k]);
+const sjThIs = (s, k) => k === "Tous" || s.th === k || s.th === "X" || (!!SJ_TH_PROG[prefs.concours] && SJ_TH_PROG[prefs.concours][s.th] != null && SJ_TH_PROG[prefs.concours][s.th] === SJ_TH_PROG[prefs.concours][k]);
 function sjPools(e){
   const x = (CPROF[prefs.concours] || {})[e];
   if (!x) return { l: e === "e2" ? "Écrit 2 : composition" : "Écrit 1 : dissertation", own: e === "e2" ? SUBJECTS2 : SUBJECTS, ann: ANNALES.filter(a => annE(a, e)) };
@@ -7443,7 +7754,7 @@ function blancSubmit(m, auto){
   if (focusMode) { focusMode = false; document.documentElement.classList.remove("focus"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} }
   m = Object.assign({}, m, { state: "done", end: auto ? m.start + m.dur * 1000 : Date.now() });
   blancPut(m); bl.view = m.id; bl.confirm = null;
-  persist();
+  persist(); track("write1");
   if (view === "blanc") render(); else if (view === "home") renderHome();
   toast(auto ? "Temps écoulé : ta copie est rendue." : "Copie rendue.");
 }
@@ -7645,7 +7956,7 @@ async function askCopie(m){
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
-    fbSave(key, res.text); ach.f++; persist();
+    fbSave(key, res.text); ach.f++; persist(); track("blanc1"); track("feedback1");
   } catch (e) {
     if (fb.ctl !== ctl) return;
     fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
@@ -7910,6 +8221,9 @@ document.addEventListener("click", e => {
   if (d.act === "save-progress") { openAccount("register"); return; }
   if (d.act === "paywall") { paywall(d.why || "menu"); return; }
   if (d.act === "pw-close") { closePaywall(); return; }
+  if (d.act === "res-pick") { rs.r = d.r === "admissible" ? "admissible" : "non"; renderHome(); const h = $("#res-h"); if (h) h.focus(); return; }
+  if (d.act === "res-later") { resSet({ later: new Date(Date.now() + 14 * DAY).toISOString().slice(0, 10) }); renderHome(); toast("D'accord, on te redemandera dans deux semaines."); return; }
+  if (d.act === "res-send") { resSend(!!d.skip); return; }
   if (d.act === "pw-code") { pw.code = true; renderPaywall(); const i = $("#pw-code-in"); if (i) i.focus(); return; }
   if (d.pwplan) { if (t.getAttribute("aria-disabled") === "true") { toast("Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le."); return; } pwCheckout(d.pwplan); return; }
   if (d.act === "billing-portal") { (async () => { const r = await api("POST", "/api/billing/portal", {}); if (r.status === 200 && r.data.url) location.href = r.data.url; else toast("Le portail d'abonnement n'est pas disponible pour l'instant."); })(); return; }
@@ -8009,7 +8323,7 @@ document.addEventListener("click", e => {
     trialAsk = true; askFeedback(k).finally(() => { trialAsk = false; render(); }); return;
   }
   if (d.act === "fb-ask") { askFeedback(["intro", "para"].includes(d.kind) ? d.kind : "plan"); return; }
-  if (d.sjsrc) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.src = d.sjsrc; sj.cur = null; sj.axe = "Tous"; render(); const b = document.querySelector(`[data-sjsrc="${d.sjsrc}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.sjsrc) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.src = d.sjsrc; sj.srcPicked = true; sj.cur = null; sj.axe = "Tous"; render(); const b = document.querySelector(`[data-sjsrc="${d.sjsrc}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.sjmode) { sj.mode = d.sjmode; render(); const b = document.querySelector(`[data-sjmode="${d.sjmode}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.tdur) { tm.dur = +d.tdur * 60; tmReset(); render(); return; }
   if (d.act === "tm-start") { tmStart(); return; }
@@ -8147,6 +8461,23 @@ async function api(method, path, body){
   } catch (e) { return { status: 0, data: { error: "network" } }; }
   let data = {}; try { data = await res.json(); } catch (e) {}
   return { status: res.status, data };
+}
+/* Mesure d'audience anonyme (site seulement) : chaque étape du parcours est envoyée une seule fois
+   par appareil ; « active » une fois par jour. Ni cookie ni identifiant : le serveur ajoute +1 à un compteur. */
+const EV_KEY = "bristol-eps-ev";
+function track(e){
+  if (!STANDALONE) return;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem(EV_KEY) || "{}") || {}; } catch (x) {}
+  const mark = e === "active" ? dayKey() : 1;
+  if (seen[e] === mark) return;
+  seen[e] = mark; try { localStorage.setItem(EV_KEY, JSON.stringify(seen)); } catch (x) { return; }
+  try { fetch("/api/event", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ e, c: prefs.concours || "" }) }).catch(() => {}); } catch (x) {}
+}
+/* Retour après 7 et 30 jours : comptés au premier jour actif qui suit, depuis le premier jour de révision. */
+function trackReturn(){
+  const days = Object.keys(log).filter(k => (log[k].a || 0) > 0).sort(); if (!days.length) return;
+  const gap = (Date.parse(dayKey()) - Date.parse(days[0])) / DAY;
+  if (gap >= 7) track("d7"); if (gap >= 30) track("d30");
 }
 const ACCT_ERR = {
   email_taken: "Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.",
@@ -8401,6 +8732,7 @@ function ccClose(noFocus){
 }
 function chooseConcours(id){
   const c = concById(id);
+  if (c) track("concours");
   prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d ? { examDate: c.d } : {});
   const rel = relGroups(); setGrp(rel.includes(grp) ? grp : rel[0]);
   an.f = null; an.e = "tous"; an.all = false; me.f = null;
@@ -8601,6 +8933,7 @@ buildQueue(); render(); blancCheck();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
+track("open");
 </script>
 
 </body>

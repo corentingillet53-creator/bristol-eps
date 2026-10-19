@@ -1,6 +1,7 @@
 import { currentUser } from "./account.js";
 import { getPlan } from "./plan.js";
 import { take, gate, bump, peek, forget, ipTag } from "./usage.js";
+import { recordEvent } from "./event.js";
 // Bristol EPS — fonction serveur du retour de Claude (Cloudflare Pages Functions).
 // Elle reçoit le sujet, le texte du candidat et les faits utiles, vérifie le code
 // d'accès et le quota, construit le prompt ici (jamais dans le navigateur), puis
@@ -538,6 +539,8 @@ export async function onRequestPost({ request, env, ctx }) {
     if (await take(env, "trialday:" + day, 1, num(env.TRIAL_DAILY, 30), 2 * DAY) === null) { await trialUndo(); return json(503, "trial_closed"); }
     undoTrial.push(() => bump(env, "trialday:" + day, -1, 2 * DAY));
   }
+  // Compté une fois le retour offert vraiment produit (voir onDone).
+  const countTrial = trialUser ? () => recordEvent(env, "trial") : () => {};
   // Même sujet, même texte : on renvoie le retour déjà produit, sans nouvel appel.
   const trialHdr = trialUser ? { "x-trial": "1" } : {};
   if (env.QUOTA) {
@@ -583,6 +586,7 @@ export async function onRequestPost({ request, env, ctx }) {
   Object.assign(headers, trialHdr);
   const onDone = async ({ usage, text, meta }) => {
     await fair.settle(costMicro(env, usage));
+    if (text.trim()) await countTrial();
     if (env.QUOTA && text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
   };
   return new Response(toTextStream(upstream.body, onDone, ctx), { headers });

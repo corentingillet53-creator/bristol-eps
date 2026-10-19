@@ -1,0 +1,34 @@
+// Serveur : mesure d'audience anonyme (/api/event, /api/stats) et résultats déclarés (/api/result).
+import { handleEvent, recordEvent } from "../functions/api/event.js";
+import { makeD1 } from "./d1mock.mjs";
+const ok = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.exitCode = 1; };
+const DB = makeD1(), env = { DB, ADMIN_TOKEN: "jeton-admin-assez-long" };
+const q = (sql, ...a) => DB.sqlite.prepare(sql).get(...a);
+const post = (path, body, ip = "1.1.1.1") => handleEvent(new Request("https://x.dev" + path, { method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": ip }, body: JSON.stringify(body) }), env, path);
+const get = (qs = "", h = {}) => handleEvent(new Request("https://x.dev/api/stats" + qs, { headers: h }), env, "/api/stats");
+
+ok((await post("/api/event", { e: "open", c: "capeps-int" })).status === 200, "étape connue acceptée");
+await post("/api/event", { e: "open", c: "capeps-int" }, "2.2.2.2");
+await post("/api/event", { e: "review1", c: "pas-un-concours" });
+ok((await post("/api/event", { e: "signup" })).status === 400, "étape serveur refusée depuis le navigateur");
+ok((await post("/api/event", { e: "nimporte" })).status === 400, "étape inconnue refusée");
+ok(q("SELECT n FROM stats WHERE e = 'open' AND c = 'capeps-int'").n === 2, "compteur du jour : +1 par envoi");
+ok(q("SELECT c FROM stats WHERE e = 'review1'").c === "", "concours inconnu ramené à vide");
+ok(q("SELECT COUNT(*) AS n FROM sqlite_master WHERE sql LIKE '%ip%' AND name = 'stats'").n === 0, "aucune colonne d'adresse ni d'identifiant");
+for (let i = 0; i < 305; i++) await post("/api/event", { e: "active" }, "3.3.3.3");
+ok(q("SELECT n FROM stats WHERE e = 'active'").n === 300, "300 envois par jour et par connexion au plus");
+await recordEvent(env, "signup"); await recordEvent(env, "paid_pass", "agreg-int");
+ok((await get()).status === 404 && (await get("?t=faux-jeton-de-meme-taille")).status === 404, "tableau réservé au jeton");
+const html = await (await get("?t=jeton-admin-assez-long")).text();
+ok(/Première ouverture de l'appli<\/td><td>2<\/td>/.test(html) && /Pass session payé/.test(html) && /capeps-int 2/.test(html), "tableau lisible avec le jeton");
+const js = await (await get("?format=json", { "x-admin-token": "jeton-admin-assez-long" })).json();
+ok(js.stats.open.t === 2 && js.stats.signup.t === 1, "chiffres bruts en JSON");
+ok((await post("/api/result", { c: "capeps-int", y: 2027, r: "admissible", txt: "Les retours sur mes plans m'ont fait progresser.", pub: true, prenom: "Léa" })).status === 200, "résultat avec témoignage public");
+ok((await post("/api/result", { c: "agreg-int", y: 2027, r: "non", txt: "Privé", pub: false, prenom: "Paul" })).status === 200, "résultat avec témoignage privé");
+ok((await post("/api/result", { c: "agreg-int", y: 2027, r: "peut-être" })).status === 400, "résultat inconnu refusé");
+ok(q("SELECT prenom FROM results WHERE r = 'non'").prenom === "", "prénom non gardé sans accord de publication");
+ok(q("SELECT n FROM stats WHERE e = 'result' AND c = 'capeps-int'").n === 1, "résultat compté dans le parcours");
+const h2 = await (await get("?t=jeton-admin-assez-long")).text();
+ok(/Résultats déclarés/.test(h2) && /signé Léa/.test(h2) && /<i>privé<\/i>/.test(h2), "résultats et témoignages dans le tableau");
+let st = 0; for (let i = 0; i < 6; i++) st = (await post("/api/result", { c: "capeps-l3", y: 2027, r: "admis" }, "9.9.9.9")).status;
+ok(st === 429, "5 résultats par jour et par connexion au plus");

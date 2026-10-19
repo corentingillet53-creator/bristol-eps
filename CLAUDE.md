@@ -25,6 +25,7 @@ Site de révision payant pour les écrits du CAPEPS et de l'agrégation d'EPS, p
 | `build.py` | Écrit `public/app/index.html` et `public/index.html`, met `SITE_MAJ` à la date du jour, régénère `public/_headers` (CSP par empreintes sha256 des scripts en ligne). Écrit aussi `robots.txt`, `sitemap.xml` et `llms.txt` ; `SITE_URL` (adresse publique) et `INDEXER` (False = noindex jusqu'au lancement, à passer à True seulement avec l'accord de Corentin) sont en tête du fichier. Ne jamais éditer `public/app/index.html` à la main. |
 | `worker.js` | Routeur du Worker vers `functions/api/*`. |
 | `functions/api/feedback.js` | Appel à Claude (retours d'écriture, correction de copie), quota KV, cache. Les prompts y sont dupliqués depuis la page : garder les deux identiques (`promptB3`, le bloc `FB_FMTS`/`FB_WHO`/`FB_SPEC`/`promptFb`, `COPIE_EPR`/`COPIE_MID` et la copie, `bilanTail`). `tests/prompts.mjs` vérifie l'égalité. |
+| `functions/api/event.js` | Mesure d'audience anonyme (table `stats`, étapes envoyées par `track()` dans la page ou comptées par le serveur via `recordEvent`), résultats et témoignages après les écrits (table `results`), tableau `/api/stats?t=<ADMIN_TOKEN>`. |
 | `functions/api/usage.js` | Compteurs atomiques D1 (table `usage`) : usage raisonnable, essais gratuits, codes. |
 | `functions/api/account.js`, `billing.js`, `plan.js`, `push.js`, `report.js` | Comptes (Google), Stripe, offre, notifications, signalements. |
 | `migrations/` | Schéma D1 (`bristol-db`). |
@@ -56,6 +57,7 @@ node axe.js             # accessibilité : aucune sortie = aucune violation (len
 node csp.js             # seule violation attendue : le script injecté exprès
 node --no-warnings trial.mjs   # serveur : retour offert (D1 simulée par node:sqlite, tests/d1mock.mjs)
 node --no-warnings usage.mjs   # serveur : plafonds de coût, codes, paiement, suppression de compte
+node --no-warnings event.mjs   # serveur : mesure anonyme, tableau /api/stats, résultats déclarés
 node prompts.mjs        # prompts identiques page/serveur pour chaque concours → « ALL OK »
 ```
 Chromium est dans `/opt/pw-browsers` ; ne pas lancer `playwright install`.

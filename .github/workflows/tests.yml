@@ -31,6 +31,7 @@ jobs:
         run: |
           node --no-warnings trial.mjs | tee trial.log; ! grep -q '^FAIL' trial.log
           node --no-warnings usage.mjs | tee usage.log; ! grep -q '^FAIL' usage.log
+          node --no-warnings event.mjs | tee event.log; ! grep -q '^FAIL' event.log
       - name: Parcours dans le navigateur
         working-directory: tests
         run: |
