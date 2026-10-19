@@ -58,4 +58,4 @@ node prompts.mjs        # prompts identiques page/serveur pour chaque concours �
 Chromium est dans `/opt/pw-browsers` ; ne pas lancer `playwright install`.
 
 ## En attente côté Corentin
-Épreuves du 3e concours à vérifier ; programme agrég interne 2027 ; pages légales / CGV ; rotation du secret Google ; signalements non notifiés (réponses manuelles).
+Épreuves du 3e concours à vérifier ; sujets d'entraînement au format de l'interne et des agrégations (citation + dossier) ; pages légales / CGV ; rotation du secret Google ; signalements non notifiés (réponses manuelles).
