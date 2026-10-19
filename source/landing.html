@@ -53,6 +53,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 var(--step-body)/1.
 img{max-width:100%;height:auto;display:block}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:#2a1d17;color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+#contenu:focus{outline:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em;line-height:.92;margin:0;text-wrap:balance}
 p{margin:0;text-wrap:pretty}
@@ -147,14 +150,14 @@ p{margin:0;text-wrap:pretty}
 .mo-nav button:active{transform:scale(.94)}
 .mo-bar{margin:28px var(--m) 0;height:6px;background:var(--bg);overflow:hidden}
 .mo-bar span{display:block;height:100%;background:var(--ink);transform-origin:left;transform:scaleX(.15)}
-.mo-row{display:flex;gap:32px;overflow-x:auto;scroll-snap-type:x mandatory;padding:40px var(--m) 8px;scrollbar-width:none}
+.mo-row{display:flex;gap:32px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--m);padding:40px var(--m) 8px;scrollbar-width:none}
 .mo-row::-webkit-scrollbar{display:none}
 .mo{flex:0 0 280px;scroll-snap-align:start;display:flex;flex-direction:column}
 .mo h3{font:700 var(--step-body)/1.25 var(--f-text);letter-spacing:0}
 .mo p{margin-top:8px;font-size:var(--step-body);line-height:1.45;min-height:5.8em}
 .mo figure{margin:0}
 .mo img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top}
-@media (max-width:760px){ .mo{flex-basis:72vw}.mo-row{gap:16px;padding-left:16px;padding-right:16px}.mo-nav{display:none} }
+@media (max-width:760px){ .mo{flex-basis:72vw}.mo-row{gap:16px;padding-left:16px;padding-right:16px;scroll-padding-inline:16px}.mo-nav{display:none} }
 
 /* ---------- Vérifié dans les textes : la liste imprimée ---------- */
 .proof{background:var(--deep);padding:clamp(96px,10vw,150px) 0 0;overflow:hidden;max-height:min(1180px,190svh)}
@@ -200,8 +203,10 @@ details[open] .chev{transform:rotate(180deg)}
 .faq details p{margin-top:10px;font-size:var(--step-body);line-height:1.5;max-width:52ch}
 .faq-go{margin-top:48px;display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
 .faq-r{position:relative;margin-top:-1px;padding-bottom:80px}
+.vid-pause{position:absolute;z-index:2;bottom:96px;right:12px;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--ink);color:var(--paper);font:600 var(--step-small)/1 var(--f-text);cursor:pointer}
+@media (max-width:860px){ .vid-pause{right:28px} }
 .faq-r .tall{width:100%;max-width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:top;display:block;background:var(--paper)}
-.faq-r .sq{position:absolute;left:-40px;bottom:40px;width:40%;aspect-ratio:1;object-fit:cover;object-position:top;outline:8px solid var(--tone)}
+.faq-r .sq{position:absolute;left:-40px;bottom:-24px;width:40%;aspect-ratio:1;object-fit:cover;object-position:top;outline:8px solid var(--tone)}
 @media (max-width:860px){ .faq{grid-template-columns:minmax(0,1fr);padding:0} .faq-r{order:-1;padding:0 16px} .faq-r .tall{aspect-ratio:4/5} .faq-r .sq{left:auto;right:28px;bottom:-24px;width:38%} .faq-l{padding:72px 16px 88px} .faq-go .btn{width:100%} }
 
 /* ---------- La carte-réponse ---------- */
@@ -226,7 +231,7 @@ details[open] .chev{transform:rotate(180deg)}
 .stamp img{aspect-ratio:3/4;object-fit:cover;object-position:top}
 .imprint{grid-column:1 / -1;align-self:end;text-align:center;font-size:var(--step-small);color:var(--muted)}
 .wordmark{font:400 clamp(4rem,1rem + 15vw,15rem)/.8 var(--f-display);letter-spacing:-.02em;color:var(--deep-ink);margin:48px 0 0;white-space:nowrap;text-align:center;transform:translateY(.12em)}
-@media (max-width:860px){ .back{padding:150px 16px 0} .back-card{grid-template-columns:1fr;padding:44px 22px 22px} .back-r{padding-right:0} .back-r{position:static} .stamp{width:64px;top:28px;right:22px} .back-card h2{margin-right:84px} }
+@media (max-width:860px){ .back{padding:150px 16px 0} .back-card{grid-template-columns:1fr;padding:44px 22px 22px} .back-r{padding-right:0} .back-r{position:static} .stamp{position:static;display:block;width:72px;margin:20px 0 0;transform:rotate(2deg)} }
 
 /* ---------- Mouvement : entrées, une fois ; rien ne reste caché sans script ---------- */
 @media (prefers-reduced-motion: no-preference){
@@ -252,7 +257,8 @@ details[open] .chev{transform:rotate(180deg)}
 </style>
 </head>
 <body>
-<main>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<main id="contenu" tabindex="-1">
   <section class="hero" aria-labelledby="h-hero">
     <article class="hero-card fiche" data-rise style="--i:0">
       <h1 id="h-hero">Réviser les écrits d’EPS</h1>
@@ -388,6 +394,7 @@ details[open] .chev{transform:rotate(180deg)}
       <div class="faq-go"><a class="btn" href="/app/">Commencer à réviser</a><a class="link" href="/app/">Ouvrir l’application</a></div>
     </div>
     <div class="faq-r">
+      <button class="vid-pause" type="button" aria-pressed="false" hidden>Mettre en pause</button>
       <video class="tall" src="/img/session.webm" poster="/img/session-poster.webp" width="780" height="1040" muted loop playsinline autoplay preload="none" aria-label="Une séance sur téléphone : la question, la fiche retournée, puis la suivante."></video>
       <img class="sq" src="/img/m-jury.webp" width="780" height="976" alt="Ce que le jury attend, sur téléphone." loading="lazy">
     </div>
@@ -469,8 +476,10 @@ $("mo-next").addEventListener("click", () => row.scrollBy({ left: step(), behavi
   const v = document.querySelector("video.tall"); if (!v) return;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   if (still.matches) { v.removeAttribute("autoplay"); v.pause(); return; }
+  const pb = document.querySelector(".vid-pause"); let stopped = false;
+  if (pb) { pb.hidden = false; pb.addEventListener("click", () => { stopped = !stopped; if (stopped) v.pause(); else v.play().catch(() => {}); pb.setAttribute("aria-pressed", String(stopped)); pb.textContent = stopped ? "Relancer la vidéo" : "Mettre en pause"; }); }
   if (!("IntersectionObserver" in window)) return;
-  new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause(); }), { threshold: .2 }).observe(v);
+  new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { v.preload = "auto"; if (!stopped) v.play().catch(() => {}); } else v.pause(); }), { threshold: .2 }).observe(v);
 })();
 
 /* Entrées : une fois, sans jamais laisser de contenu caché. */

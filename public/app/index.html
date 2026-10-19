@@ -74,6 +74,9 @@ button,select,input,textarea{font:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .hero :focus-visible{outline-color:var(--hero-fill)}
 @media (forced-colors: active){.fc-bar,.bar span,.hm-cell,.boxes i,.sess-bar span,.rd-bar,.rd-bar span,.ach-bar,.ach-bar span{forced-color-adjust:none}.btn.primary,.nav-btn[aria-selected="true"]{border:2px solid ButtonText}}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+#main-c:focus{outline:none}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 svg.ic{width:22px;height:22px;flex:none}
 
@@ -414,7 +417,7 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .bristol.qui{min-height:180px}
 .qui-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:16px}
 .qopt{justify-content:flex-start;text-align:left}
-.qopt:disabled{opacity:1;cursor:default}
+.qopt:disabled,.qopt[aria-disabled="true"]{opacity:1;cursor:default}
 .qopt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
 .qopt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
 .sj-notes{min-height:140px;margin-top:16px}
@@ -534,7 +537,8 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .ann-y{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--accent-text);font-variant-numeric:tabular-nums}
 .ann-e{font-size:13px;font-weight:700;color:var(--muted)}
 .ann-t{margin:0 0 8px;font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.45;max-width:78ch;white-space:pre-line}
-.ann-more summary,.ann-jury summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent-text);margin:4px 0}
+.ann-more summary,.ann-jury summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent-text);margin:4px 0;padding:6px 0;min-height:32px}
+.ann-f a,.ann-f .linkbtn{display:inline-flex;align-items:center;min-height:32px}
 .ann-jury ul{margin:8px 0 4px;padding-left:20px;color:var(--muted);max-width:78ch}
 .ann-jury li{margin:4px 0}
 .ann-f{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:10px;font-size:14px}
@@ -706,6 +710,10 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .express-row{display:flex;flex-wrap:wrap;gap:4px 18px;margin:10px 0 0}
 .express-row .linkbtn{font-size:14px}
 .np-warn{color:var(--mid);margin-top:8px}
+.start-next{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:var(--r-m);background:var(--surface);padding:14px 18px;margin:0 0 16px}
+.start-next h2{font-size:18px;margin:2px 0 4px}
+.sn-k{margin:0;font-size:13px;font-weight:700;color:var(--accent-text);text-transform:none}
+.start-next .row-btns{margin-top:10px;align-items:center}
 .start-nudge{margin:0 0 10px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
 .start-nudge .ic{width:18px;height:18px;color:var(--accent)}
 .linkbtn.muted{color:var(--muted)}
@@ -725,6 +733,40 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .lex dd{margin:0;color:var(--muted)}
 .w-lex{margin:12px 0;scroll-margin-top:84px}
 .w-lex summary{cursor:pointer;font-weight:700}
+.cc-list{list-style:none;margin:14px 0;padding:0;display:grid;gap:8px}
+.cc-item{appearance:none;width:100%;display:grid;gap:2px;text-align:left;border:2px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);padding:12px 14px;font:inherit;cursor:pointer;position:relative}
+.cc-item:hover{border-color:var(--accent)}
+.cc-item.is-mine{border-color:var(--accent)}
+.cc-item .mine-badge{position:absolute;top:10px;right:12px}
+.cc-tag{font-size:13px;color:var(--muted)}
+.cc-d{font-size:14px;color:var(--muted)}
+@media (min-width:960px){ .hero-c .linkbtn[data-act="conc-change"]{display:none} }
+.w-faq{border-top:1px solid var(--line);padding:4px 0}
+.w-faq summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.w-faq p{margin:0 0 10px;color:var(--muted)}
+.keys.hk{display:grid}
+.sect > h2{font-size:27px;line-height:1.1}
+.side-card h2{font-size:22px;line-height:1.15}
+.pw-panel h2{font-size:30px;line-height:1.1}
+#welcome-title{font-size:38px;line-height:1.05}
+#welcome-title:focus,#pw-title:focus{outline:none}
+.fold{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface)}
+.fold > summary{cursor:pointer;list-style:none;display:flex;align-items:center;min-height:56px;padding:12px 20px;font:400 22px/1.2 var(--f-serif)}
+.fold > summary::-webkit-details-marker{display:none}
+.fold > summary::after{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:auto}
+.fold[open] > summary::after{transform:rotate(-135deg)}
+.fold > .sect,.fold-grid{border:0;box-shadow:none;margin:0}
+.fold-grid{display:grid;gap:16px;padding:0 0 16px}
+.fold > .sect > h2:first-child{display:none}
+.sj-filter{margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.sj-filter summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:10px 14px;min-height:44px;font-weight:700}
+.sj-filter summary::-webkit-details-marker{display:none}
+.sj-filter summary::after{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:auto}
+.sj-filter[open] summary::after{transform:rotate(-135deg)}
+.sj-f-v{font-weight:400;color:var(--muted)}
+.sj-filter .chips{padding:0 14px 12px;margin:0}
+.bl-ask{border:2px solid var(--accent);border-radius:var(--r-m);background:var(--surface);padding:16px 18px;margin:12px 0 18px}
+.bl-ask p{margin:0 0 10px}
 .paper-run{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-m);padding:16px 18px;margin:12px 0 18px}
 .paper-run p{margin:0}
 .ph{margin:18px 0}
@@ -743,7 +785,15 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 #panel-revise .bristol[data-swipe="su"]{box-shadow:0 0 0 3px var(--ok)}
 #panel-revise .bristol[data-swipe="rate"]{box-shadow:0 0 0 3px var(--bad)}
 .touch-only{display:none}
-@media (pointer:coarse){ .touch-only{display:inline} p.touch-only{display:block} }
+@media (pointer:coarse){ .touch-only{display:inline} p.touch-only{display:block} .btn .k,.keys{display:none} }
+/* Liens du contenu : couleur de la charte, jamais le bleu du navigateur. */
+main a:not(.btn):not(.skip){color:var(--accent-text)}
+main a:not(.btn):not(.skip):visited{color:var(--accent-text)}
+html{scroll-padding-top:76px;scroll-padding-bottom:96px}
+@media (min-width:960px){ html{scroll-padding-top:24px;scroll-padding-bottom:24px} }
+@media (max-width:959px){ .subnav{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)} .subnav.at-end{-webkit-mask-image:none;mask-image:none} }
+input[type="search"]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;height:16px;width:16px;cursor:pointer;background:linear-gradient(45deg,transparent 44%,var(--muted) 44%,var(--muted) 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,var(--muted) 44%,var(--muted) 56%,transparent 56%)}
+::placeholder{color:var(--muted);opacity:1}
 @media (max-width:959px){ .rev-actions{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:6;background:var(--paper);padding:10px 0 8px;margin-bottom:-4px} }
 .recap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px;margin:12px 0 18px;max-width:520px}
 .recap-h{font-family:var(--f-display);font-weight:800;font-size:22px;margin:0 0 10px;color:var(--ink)}
@@ -822,7 +872,10 @@ html.gs-on{overflow:hidden}
 .pw-plan{appearance:none;display:grid;gap:4px;text-align:left;border:2px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);padding:16px;cursor:pointer;font:inherit}
 .pw-plan:hover:not([disabled]){border-color:var(--accent)}
 .pw-plan.best{border-color:var(--accent);background:var(--soft)}
-.pw-plan[disabled]{opacity:.55;cursor:not-allowed}
+.pw-plan[disabled]{opacity:.7;cursor:progress}
+.pw-plan[aria-disabled="true"]{cursor:default;border-style:dashed}
+#pw-title:focus{outline:none}
+#pw-title:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:6px}
 .pw-name{font-weight:700}
 .pw-price{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.02em}
 .pw-price small{font-family:var(--f-body);font-size:15px;font-weight:400;color:var(--muted)}
@@ -899,6 +952,7 @@ a.g-btn{text-decoration:none}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:var(--r-m);font-size:15px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 12px 30px -10px var(--shadow)}
 @media (min-width:960px){ .toast{bottom:24px;left:calc(50% + 124px)} }
+@media (max-width:959px){ .toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))} }
 
 /* ---------- Texte plus grand ---------- */
 /* Tout le texte et les boutons grandissent d'un huitième, comme un zoom du navigateur. */
@@ -917,7 +971,7 @@ html.big body{zoom:1.125}
 }
 
 /* ---------- Identité : les grands titres et les grands chiffres en Imbue ---------- */
-.brand,.page-h,.hero-j,.hero-title,.empty h2,.pt-h,.fil-head h2,.rd-pct b{font-family:var(--f-serif);font-weight:400;font-variation-settings:normal;letter-spacing:-.01em}
+.brand,.page-h,.hero-j,.hero-title,.empty h2,.pt-h,.fil-head h2,.rd-pct b,#welcome-title,.sect > h2,.pw-panel h2,.side-card h2{font-family:var(--f-serif);font-weight:400;font-variation-settings:normal;letter-spacing:-.01em}
 .brand{font-size:26px}
 .brand-mark{font-family:var(--f-serif);font-weight:400;font-size:21px;border-radius:4px}
 .page-h{font-size:44px;line-height:.98}
@@ -932,6 +986,8 @@ html.big body{zoom:1.125}
 .bristol{border:0;border-radius:6px;border-top:6px solid var(--accent);box-shadow:0 22px 44px -32px var(--shadow)}
 </style>
 
+<a class="skip" href="#main-c">Aller au contenu</a>
+<div id="sr-live" class="sr-only" aria-live="polite"></div>
 <div class="app">
   <header class="side">
     <p class="brand"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</p>
@@ -953,7 +1009,7 @@ html.big body{zoom:1.125}
     </div>
   </header>
 
-  <main class="main">
+  <main class="main" id="main-c" tabindex="-1">
     <section id="account" class="welcome" aria-labelledby="account-title" hidden></section>
     <section id="welcome" class="welcome" aria-labelledby="welcome-title" hidden></section>
 
@@ -1046,6 +1102,7 @@ html.big body{zoom:1.125}
 </div>
 <div class="gs" id="gsearch" hidden></div>
 <div class="gs pw" id="paywall" hidden></div>
+<div class="gs pw" id="cchoose" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -2063,10 +2120,19 @@ function homeSession(){
 function homeTrain(){
   const x = homeTrain0();
   let twLater = false; try { twLater = localStorage.getItem("bristol-eps-tw-later") === dayKey(); } catch (e) {}
+  const sn = startNextHTML(); if (sn) return sn + x;
   if (prefs.examDate && !hasTime() && isPremium() && !twLater && !blancActive()) return `<p class="start-nudge">${icon("clock")} <button class="linkbtn" data-act="plan-time">Combien de temps as-tu par jour ? Règle ton plan</button> <button class="linkbtn muted" data-act="tw-later">Plus tard</button></p>` + x;
-  if (startOff() || blancActive() || !ptLast() || activeDays() >= 7 || Object.keys(progress).length >= 80) return x;
-  const st = startSteps(), dn = st.filter(y => y.ok).length;
-  return (dn < st.length - 2 ? `<p class="start-nudge"><button class="linkbtn" data-act="start-open">Tu pars de zéro ? Par où commencer : ${st.length} étapes, avec le temps à prévoir</button></p>` : "") + x;
+  return x;
+}
+/* Accueil : la prochaine étape du parcours « Par où commencer », tant qu'il n'est pas terminé. */
+function startNextHTML(){
+  if (startOff() || blancActive() || !prefs.concours || activeDays() >= 14) return "";
+  const st = startSteps(), i = st.findIndex(y => !y.ok);
+  if (i <= 0) return "";
+  const x = st[i];
+  return `<section class="start-next" aria-labelledby="sn-h"><p class="sn-k">Par où commencer · étape ${i + 1} sur ${st.length}</p>
+    <h2 id="sn-h">${esc(x.t)} <span class="start-m">${esc(x.m)}</span></h2><p class="start-d">${esc(x.d)}${x.prog ? ` <b>${esc(x.prog)}</b>` : ""}</p>
+    <div class="row-btns">${x.b.replace('btn small', 'btn small primary')}<button class="linkbtn" data-act="start-open">Tout le parcours</button><button class="linkbtn muted" data-act="start-hide">Masquer</button></div></section>`;
 }
 function homeTrain0(){
   const bm = blancActive();
@@ -2372,6 +2438,22 @@ function gsResults(q){
   const words = normTxt(q).split(/\s+/).filter(w => w.length > 1);
   if (!words.length) return null;
   const R = [];
+  /* Outils et écrans du site, pour aller vite : « tarifs », « concours blanc », « changer de concours »… */
+  const TOOLS = [
+    ["Tarifs et accès complet", "tarif prix abonnement payer paiement pass mensuel acces complet debloquer", `data-act="paywall" data-why="menu"`, STANDALONE && !isPremium()],
+    ["Concours blanc", "concours blanc epreuve chronometre examen copie complete", `data-tab="blanc"`, true],
+    ["Annales de ton concours", "annales sujets officiels rapport jury", `data-tab="annales"`, true],
+    ["Méthode des écrits", "methode dissertation composition etude cas gestion temps", `data-tab="methode"`, true],
+    ["Changer de concours", "changer concours capeps agregation interne externe troisieme", `data-act="conc-change"`, true],
+    ["Régler mon plan et mon temps", "plan temps semaine week-end planning programme travail", `data-act="plan-time"`, true],
+    ["Test de positionnement", "test positionnement niveau evaluer", `data-act="pt-start"`, true],
+    ["Par où commencer", "commencer debut debutant zero parcours etapes", `data-act="start-open"`, true],
+    ["Rappels et agenda", "rappel notification agenda calendrier", `data-tab="stats"`, true],
+    ["Les sigles du concours", "sigle sigles lexique abreviation vocabulaire", `data-act="lex-open"`, true],
+    ["Mode écoute", "ecoute audio ecouter sans ecran", `data-act="listen-home"`, typeof canListen === "function" && canListen()],
+    ["Aide", "aide help comment marche faq question", `data-act="help-open"`, true]
+  ].filter(t => t[3] && words.every(w => normTxt(t[0] + " " + t[1]).includes(w)));
+  if (TOOLS.length) R.push({ k: "tools", t: "Aller à", n: TOOLS.length, items: TOOLS.map(([l, , act]) => ({ html: `<span class="gs-t">${esc(l)}</span>`, act })) });
   const lex = LEX_ALL.filter(x => gsMatch([x.k, x.d], words));
   R.push({ k: "lex", t: "Sigles", n: lex.length, items: lex.slice(0, 5).map(x => ({ html: `<span class="gs-meta">${esc(x.g)}</span><span class="gs-t">${gsHighlight(x.k, words)}</span><span class="gs-a">${gsHighlight(x.d, words, 220)}</span>`, act: `data-act="lex-open"` })) });
   const cards = relCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
@@ -2481,7 +2563,7 @@ async function paywall(why){
   await billCfg();
   renderPaywall();
   document.documentElement.classList.add("gs-on");
-  const b = $("#paywall [data-pwplan]") || $("#paywall button"); if (b) b.focus();
+  const b = $("#paywall [data-pwplan]:not([aria-disabled='true']):not([disabled])") || $("#pw-title"); if (b) b.focus();
 }
 function closePaywall(){
   pw.open = false; const el = $("#paywall"); if (el) { el.hidden = true; el.innerHTML = ""; }
@@ -2491,11 +2573,11 @@ function closePaywall(){
 function untilTxt(iso){ return new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); }
 function renderPaywall(){
   const el = $("#paywall"); if (!el || !pw.open) return;
-  const c = bill.cfg || {}, on = !!c.enabled, n = allCards().length, dis = pw.busy || !on ? " disabled" : "";
+  const c = bill.cfg || {}, on = !!c.enabled, n = allCards().length, dis = pw.busy ? " disabled" : !on ? ' aria-disabled="true" aria-describedby="pw-soon"' : "";
   el.hidden = false;
   el.innerHTML = `<div class="pw-panel" role="dialog" aria-modal="true" aria-labelledby="pw-title">
     <button class="pw-x" data-act="pw-close" aria-label="Fermer">×</button>
-    <h2 id="pw-title">Prépare tous tes écrits, sans limite</h2>
+    <h2 id="pw-title" tabindex="-1">Prépare tous tes écrits, sans limite</h2>
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
       <li>${icon("check")} Tous les écrits de ton concours : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
@@ -2508,7 +2590,7 @@ function renderPaywall(){
       <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
-    ${!on ? `<p class="pw-note">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
+    ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
       : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée.</p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail.</p>`}
     ${pw.code ? `<form class="pw-code" data-pwcode="1" novalidate><label for="pw-code-in">Code d'accès</label><div class="row-btns"><input id="pw-code-in" autocomplete="off" spellcheck="false" placeholder="Ton code"><button class="btn" type="submit"${pw.busy ? " disabled" : ""}>Activer</button></div></form>`
       : `<p><button class="linkbtn" data-act="pw-code">J'ai un code d'accès</button></p>`}
@@ -3602,8 +3684,11 @@ function renderSujets(){
   const eprList = [["e1", sjPools("e1").l], ["e2", sjPools("e2").l]].filter(([k]) => relHas(k));
   const eprChips = eprList.length < 2 ? "" : `<div class="seg sj-epr" role="tablist" aria-label="Écrit">${eprList.map(([k, l]) => `<button role="tab" data-sjepr="${k}" aria-selected="${k === sj.epr}"${k === sj.epr ? "" : ' tabindex="-1"'}>${esc(l)}</button>`).join("")}</div>`;
   const srcChips = P.own.length && P.ann.length ? `<div class="chips sj-src" role="group" aria-label="Source des sujets"><button class="chip" data-sjsrc="own" aria-pressed="${sj.src === "own"}">Sujets d'entraînement (${P.own.length})</button><button class="chip" data-sjsrc="ann" aria-pressed="${sj.src === "ann"}">Annales officielles (${P.ann.length})</button></div>` : "";
-  const chips = eprChips + srcChips + (sj.src === "ann" ? "" : `<div class="chips era-chips" aria-label="Thème des sujets">` + [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"]).map(k => [k, THEMES[k]]))
-    .map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`);
+  const axeList = [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"]).map(k => [k, THEMES[k]]));
+  const axeChips = sj.src === "ann" ? "" : `<div class="chips era-chips" role="group" aria-label="Thème des sujets">` + axeList.map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`;
+  /* Source et thème des sujets : repliés dans « Choisir le sujet », comme le filtre de Réviser. */
+  const fSum = [srcChips ? (sj.src === "ann" ? "Annales officielles" : "Sujets d'entraînement") : "", axeChips ? (axeList.find(([k]) => k === sj.axe) || axeList[0])[1] : ""].filter(Boolean).join(" · ");
+  const chips = eprChips + (srcChips || axeChips ? `<details class="sj-filter"${sj.fOpen ? " open" : ""}><summary><span class="sj-f-l">Choisir le sujet</span> <span class="sj-f-v">${esc(fSum)}</span></summary>${srcChips}${axeChips}</details>` : "");
   const ML = b3 ? (e2 ? { intro: "Introduction : la notion", para: "Partie sur un épisode", plan: "Préparation" } : { plan: "Problématique et plan", intro: "Problématique chronométrée", para: "Paragraphe argumenté" })
     : { plan: "Plan complet", intro: "Introduction chronométrée", para: e2 ? "Partie illustrée" : "Paragraphe argumenté" };
   const MO = b3 && e2 ? ["intro", "para", "plan"] : ["plan", "intro", "para"];
@@ -3968,7 +4053,10 @@ function ptAnswer(k){
   const q = pt.qs[pt.i]; if (!q || q.r !== null) return;
   q.r = k === "?" ? "?" : q.opts[+k] === q.a ? "ok" : "ko"; q.k = k;
   renderTest(); const b = $("#panel-test [data-act=pt-next]"); if (b) b.focus({ preventScroll: true });
+  srSay(q.r === "ok" ? "Juste." : (q.r === "?" ? "" : "Pas tout à fait. ") + "La réponse : " + q.a);
 }
+/* Annonce aux lecteurs d'écran, dans une zone vivante permanente. */
+function srSay(t){ const el = $("#sr-live"); if (!el) return; el.textContent = ""; setTimeout(() => { el.textContent = t; }, 60); }
 function ptNext(){
   if (pt.i < pt.qs.length - 1) { pt.i++; renderTest(); const b = $("#panel-test .pt-opt"); if (b) b.focus({ preventScroll: true }); return; }
   ptFinish();
@@ -4029,8 +4117,8 @@ function renderTest(){
     <article class="bristol qui"><div class="band"><span class="period">${esc(thName(c))}</span><span class="band-r">${esc(pLabel(c))}</span></div><p class="q">${esc(c.q)}</p></article>
     <div class="qui-opts pt-opts" role="group" aria-label="Réponses">${q.opts.map((o, i) => {
       const cls = !ans ? "" : o === q.a ? " right" : String(i) === q.k ? " wrong" : "";
-      return `<button class="btn qopt pt-opt${cls}" data-pt="${i}"${ans ? " disabled" : ""}>${esc(o)}</button>`; }).join("")}</div>
-    ${ans ? `<p class="pt-fb" role="status">${q.r === "ok" ? "Juste." : q.r === "?" ? "La réponse : " + esc(q.a) : "Pas tout à fait. La réponse : " + esc(q.a)}</p>
+      return `<button class="btn qopt pt-opt${cls}" data-pt="${i}"${ans ? ' aria-disabled="true"' : ""}>${esc(o)}${ans && o === q.a ? `<span class="sr-only"> (bonne réponse)</span>` : ans && String(i) === q.k ? `<span class="sr-only"> (ta réponse)</span>` : ""}</button>`; }).join("")}</div>
+    ${ans ? `<p class="pt-fb" id="pt-fb">${q.r === "ok" ? "Juste." : q.r === "?" ? "La réponse : " + esc(q.a) : "Pas tout à fait. La réponse : " + esc(q.a)}</p>
       <div class="actions"><button class="btn primary wide" data-act="pt-next">${pt.i < pt.qs.length - 1 ? "Question suivante" : "Voir mon résultat"} <span class="k">Entrée</span></button></div>`
       : `<div class="actions"><button class="btn wide" data-pt="?">Je ne sais pas</button></div>`}
     <p class="hint"><button class="linkbtn" data-act="pt-quit">Arrêter le test</button></p></div>`;
@@ -7092,7 +7180,8 @@ function blancHomeHTML(){
     ${STANDALONE ? `<fieldset class="blanc-f"><legend>Copie</legend><div class="chips"><button class="chip" data-blpaper="0" aria-pressed="${!bl.paper}">Au clavier</button><button class="chip" data-blpaper="1" aria-pressed="${bl.paper}">Sur papier, comme le jour J</button></div>${bl.paper ? `<p class="sj-help">Tu composes sur tes feuilles ; à la fin, tu photographies tes pages et Claude corrige ta copie manuscrite.</p>` : ""}</fieldset>` : ""}
     <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button></p>`}
-    <div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>
+    ${bl.ask && isPremium() ? `<div class="bl-ask" role="alertdialog" aria-labelledby="bl-ask-h" aria-describedby="bl-ask-d"><p id="bl-ask-h"><b>Lancer une épreuve de ${h} h ?</b></p><p id="bl-ask-d">Le sujet est tiré au sort au moment de commencer. Le chrono ne s'arrête plus, même si tu fermes la page : à la fin du temps, la copie est rendue d'office.${bl.paper ? " Prépare tes feuilles avant de commencer." : ""}</p><div class="row-btns"><button class="btn primary" data-act="blanc-start" data-ok="1">Commencer maintenant</button><button class="btn" id="bl-no" data-act="blanc-nostart">Pas maintenant</button></div></div>`
+      : `<div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>`}
     ${juryBoxHTML(bl.k === "e1" ? "e1" : "e2")}
   </div>
   ${blancsDone() ? `<div class="sect"><h2>Ma progression</h2>${blancChartsHTML()}</div>` : ""}
@@ -7216,7 +7305,7 @@ function renderStats(){
     ${weekHTML(false)}
     ${heatmapHTML()}
     ${forecastHTML()}
-    ${agendaHTML()}
+    <details class="fold span2"><summary>Rappels et agenda</summary>${agendaHTML()}</details>
     ${blancsDone() ? `<div class="sect span2"><h2>Concours blancs</h2>${blancChartsHTML()}<div class="row-btns"><button class="btn" data-sec="train" data-gotab="blanc">Voir mes concours blancs</button></div></div>` : ""}
     <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
@@ -7224,10 +7313,11 @@ function renderStats(){
       <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
       <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
     </div></div>
-    <div class="span2">${achHTML()}</div>
-    <p class="legend-row span2"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
+    <details class="fold span2"><summary>Mes succès (${ACHS.filter(a => ach.u[a.id]).length} sur ${ACHS.length})</summary>${achHTML()}</details>
+    <details class="fold span2"><summary>Détail par thème${byP ? " et par période" : ""}</summary><div class="fold-grid">
+    <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h2>Par thème</h2>${byTh}</div>
-    ${byP ? `<div class="sect"><h2>Par période</h2>${byP}</div>` : ""}
+    ${byP ? `<div class="sect"><h2>Par période</h2>${byP}</div>` : ""}</div></details>
     <div class="sect span2"><h2>Points faibles</h2>${weak.length
       ? `<ul class="list">${weak.map(c => `<li class="item"><div class="ip">${esc(thName(c))} · ${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div><div class="is"><span class="due now">Ratée ${progress[c.id].l} fois</span></div></li>`).join("")}</ul>
          <div class="row-btns actions" style="margin-top:14px"><button class="btn primary" data-act="weak-revise">Réviser ces ${weak.length} cartes</button></div>`
@@ -7252,6 +7342,25 @@ const INTROS = {
   methode: "La démarche pas à pas pour chaque écrit, et ce que les rapports de jury répètent d'une session à l'autre.",
   get annales(){ return (prefs.concours ? "Les sujets officiels de ton concours" : "Les sujets officiels des écrits") + " depuis 2015, avec ce que les jurys ont relevé dans leurs rapports. Chacun sert aussi d'entraînement, avec le retour de Claude."; }
 };
+/* Une adresse par écran (#revise, #methode…) : Retour, actualisation et liens directs fonctionnent. */
+const ROUTE_SKIP = new Set(["test", "add"]);
+let routeSilent = false;
+function routePush(v){
+  if (routeSilent || ROUTE_SKIP.has(v)) return;
+  const h = "#" + (v === "home" ? "" : v);
+  if ((location.hash || "#") === h) return;
+  try { history.pushState({ v }, "", h === "#" ? location.pathname + location.search : h); } catch (e) {}
+}
+function routeFromHash(){
+  const v = (location.hash || "").slice(1);
+  if (!v) return "home";
+  return SEC_OF[v] && !ROUTE_SKIP.has(v) ? v : null;
+}
+addEventListener("popstate", () => {
+  const v = routeFromHash(); if (!v || v === view) return;
+  if (pw.open) closePaywall(); if (typeof cc !== "undefined" && cc.open) ccClose(true); if (gs.open) gsClose(false);
+  routeSilent = true; try { setView(v); } finally { routeSilent = false; }
+});
 function setView(v, focus){
   if (["fils", "frise", "qui"].includes(v) && !relHas("e1")) v = "revise";
   if (listen.on && v !== "revise") listenStop(false);
@@ -7261,10 +7370,16 @@ function setView(v, focus){
   if (v !== "test") lastSub[SEC_OF[v]] = v;
   if (v === "revise" && !queue.length) buildQueue();
   render();
+  routePush(v);
   if (v === "add") $("#f-q").focus();
   else if (focus) { const t = $(focus); if (t) t.focus(); }
 }
+/* Sous-onglets défilants sur téléphone : fondu au bord tant qu'il reste des onglets à droite. */
+function subnavEnds(){ document.querySelectorAll(".subnav").forEach(n => n.classList.toggle("at-end", n.scrollLeft + n.clientWidth >= n.scrollWidth - 4)); }
+document.addEventListener("scroll", e => { const t = e.target; if (t && t.classList && t.classList.contains("subnav")) t.classList.toggle("at-end", t.scrollLeft + t.clientWidth >= t.scrollWidth - 4); }, true);
+addEventListener("resize", () => subnavEnds());
 function render(focusActions){
+  setTimeout(subnavEnds, 0);
   if (prefs.concours && typeof relHas === "function" && !relHas(grp)) { const g = ["e1", "e2", "tx"].find(relHas); if (g) setGrp(g); }
   const gate = !prefs.concours;
   document.documentElement.classList.toggle("gate", gate);
@@ -7305,8 +7420,10 @@ function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = 
 document.addEventListener("click", e => {
   if (gs.open && e.target.id === "gsearch") { gsClose(); return; }
   if (pw.open && e.target.id === "paywall") { closePaywall(); return; }
+  if (cc.open && e.target.id === "cchoose") { ccClose(); return; }
   const t = e.target.closest("button"); if (!t) return;
   const d = t.dataset;
+  if (gs.open && t.classList.contains("gs-item") && !Object.keys(d).some(k => /^gs/.test(k))) gsClose(false);
   if (d.act === "focus") { setFocus(!focusMode); return; }
   if (d.outpos !== undefined) { const ta = document.getElementById(d.outta); if (ta) taGoto(ta, +d.outpos); return; }
   if (d.act === "push-on" || d.act === "push-save" || d.act === "push-test" || d.act === "push-off") { pushAction(d.act); return; }
@@ -7327,7 +7444,10 @@ document.addEventListener("click", e => {
   if (d.act === "pt-quit") { pt.on = false; setView("home"); return; }
   if (d.act === "pt-go") { pt.on = false; const g = relGroups().find(x => !grpLocked(x) && grpGoal(x).todo) || freeGrp(); setGrp(g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-prog") { pt.on = false; setView("stats"); const c = $("#panel-stats .cov"); if (c) try { c.scrollIntoView({ block: "start" }); } catch (e) {} return; }
-  if (d.act === "conc-change") { conc.cur = null; conc.list = true; setView("concours"); const b = $("#panel-concours .conc-card"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "conc-change") { ccOpen(); return; }
+  if (d.act === "cc-close") { ccClose(); return; }
+  if (d.act === "cc-details") { ccClose(true); conc.cur = null; conc.list = true; setView("concours"); const b = $("#panel-concours .conc-card"); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.cpick) { const same = d.cpick === prefs.concours; ccClose(); if (same) return; const c = chooseConcours(d.cpick); if (c) toast(`C'est ton concours : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}. Le site n'affiche plus que ce qui le concerne.`); return; }
   if (d.act === "prog-rev") { startProg(d.c, +d.b, +d.i); return; }
   if (d.act === "go-sources") { if (welcomeOpen) hideWelcome(); setView("sources"); return; }
   if (d.onb) {
@@ -7351,7 +7471,8 @@ document.addEventListener("click", e => {
   if (d.phdel !== undefined) { const L = bl.photos[d.bid] || []; L.splice(+d.phdel, 1); renderBlanc(); const b = $("#ph-add"); if (b) b.focus(); return; }
   if (d.blh) { bl.h = +d.blh; renderBlanc(); const b = $(`[data-blh="${d.blh}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blopen) { bl.view = d.blopen; renderBlanc(); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
-  if (d.act === "blanc-start") { if (!isPremium()) { paywall("blanc"); return; } if (!blancActive()) blancStart(); return; }
+  if (d.act === "blanc-start") { if (!isPremium()) { paywall("blanc"); return; } if (blancActive()) return; if (!d.ok) { bl.ask = true; renderBlanc(); const n = $("#bl-no"); if (n) n.focus(); return; } bl.ask = false; blancStart(); return; }
+  if (d.act === "blanc-nostart") { bl.ask = false; renderBlanc(); const b = $('[data-act="blanc-start"]'); if (b) b.focus(); return; }
   if (d.act === "blanc-go") { setView("blanc"); const t = $("#blanc-copy"); if (t) t.focus(); return; }
   if (d.act === "blanc-cancel") { bl.confirm = null; renderBlanc(); const t = $("#blanc-copy"); if (t) t.focus(); return; }
   if (d.act === "blanc-submit" || d.act === "blanc-quit") {
@@ -7382,7 +7503,7 @@ document.addEventListener("click", e => {
   if (d.act === "paywall") { paywall(d.why || "menu"); return; }
   if (d.act === "pw-close") { closePaywall(); return; }
   if (d.act === "pw-code") { pw.code = true; renderPaywall(); const i = $("#pw-code-in"); if (i) i.focus(); return; }
-  if (d.pwplan) { pwCheckout(d.pwplan); return; }
+  if (d.pwplan) { if (t.getAttribute("aria-disabled") === "true") { toast("Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le."); return; } pwCheckout(d.pwplan); return; }
   if (d.act === "billing-portal") { (async () => { const r = await api("POST", "/api/billing/portal", {}); if (r.status === 200 && r.data.url) location.href = r.data.url; else toast("Le portail d'abonnement n'est pas disponible pour l'instant."); })(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -7499,6 +7620,7 @@ document.addEventListener("input", e => {
   if (document.getElementById("outl-sj-notes")) outlineRefresh(e.target);
   if (!ach.w[k] && e.target.value.trim().length >= WRITE_MIN) { ach.w[k] = Date.now(); persist(); }
 });
+document.addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("sj-filter")) sj.fOpen = e.target.open; }, true);
 document.addEventListener("change", e => {
   if (e.target.id === "ph-in") { const id = e.target.dataset.bid, f = e.target.files; photosAdd(id, f); e.target.value = ""; return; }
   if (e.target.id === "tw-wk" || e.target.id === "tw-we") {
@@ -7534,6 +7656,11 @@ document.addEventListener("keydown", e => {
   if (e.target.id === "ph-add" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const i = $("#ph-in"); if (i) i.click(); }
 });
 document.addEventListener("keydown", e => {
+  if (cc.open) {
+    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); ccClose(); return; }
+    if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#cchoose button")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
+    return;
+  }
   if (pw.open) {
     if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closePaywall(); return; }
     if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#paywall button:not([disabled]), #paywall input")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
@@ -7824,6 +7951,25 @@ const relGroups = () => REL_GRP[prefs.concours] || ["e1", "e2", "tx"];
 const relHas = g => relGroups().includes(g);
 const relCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 /* Choisir son concours : le site ne montre plus que ce qui le concerne, et la date des écrits est réglée. */
+/* Changer de concours en un clic, sans quitter l'écran en cours. */
+const cc = { open: false, opener: null };
+function ccOpen(){
+  const el = $("#cchoose"); if (!el) return;
+  cc.open = true; cc.opener = document.activeElement; el.hidden = false;
+  el.innerHTML = `<div class="pw-panel cc-panel" role="dialog" aria-modal="true" aria-labelledby="cc-title">
+    <button class="pw-x" data-act="cc-close" aria-label="Fermer">×</button>
+    <h2 id="cc-title">Quel concours prépares-tu ?</h2>
+    <p class="pw-why">Tout le site se règle sur ton choix : épreuves, sujets, annales, programme et date des écrits.</p>
+    <ul class="cc-list">${CONCOURS.map(c => `<li><button class="cc-item${c.id === prefs.concours ? " is-mine" : ""}" data-cpick="${c.id}"${c.id === prefs.concours ? ' aria-current="true"' : ""}><span class="cc-tag">${esc(c.tag)}</span><b>${esc(c.t)}</b><span class="cc-d">Écrits : ${esc(c.ecrits)}</span>${c.id === prefs.concours ? `<span class="mine-badge">Mon concours</span>` : ""}</button></li>`).join("")}</ul>
+    <p><button class="linkbtn" data-act="cc-details">Comparer les concours en détail</button></p></div>`;
+  document.documentElement.classList.add("gs-on");
+  const b = el.querySelector(".cc-item.is-mine") || el.querySelector(".cc-item"); if (b) b.focus();
+}
+function ccClose(noFocus){
+  cc.open = false; const el = $("#cchoose"); if (el) { el.hidden = true; el.innerHTML = ""; }
+  document.documentElement.classList.remove("gs-on");
+  if (!noFocus && cc.opener && cc.opener.focus) try { cc.opener.focus(); } catch (e) {}
+}
 function chooseConcours(id){
   const c = concById(id);
   prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d ? { examDate: c.d } : {});
@@ -7881,10 +8027,33 @@ function renderWelcome(){
     <p class="w-sub">Bon à savoir</p>
     <p class="w-note">Les thèmes de l'écrit 1 regroupent les cartes d'histoire de l'EPS par grands axes, et seules les périodes au programme de ton concours sont proposées. Le classement de chaque carte dans un axe est un choix de travail, à discuter. Chaque carte revient juste avant le moment où tu risques de l'oublier (algorithme FSRS) : quelques jours au début, puis des semaines. Le contenu de base est à recouper avec tes ouvrages de préparation.</p>
     </div></div>
+    ${welcomeHelp ? helpExtraHTML() : ""}
     <details class="w-lex" id="w-lex"><summary>Les sigles du concours (${LEX_ALL.length})</summary>${lexHTML()}</details>
     ${installHTML()}
     <div class="w-disp"><p class="w-sub">Affichage</p>${themeChipsHTML()}</div>
     </details>`;
+  if (welcomeHelp) {
+    /* Mode Aide : une vraie page d'aide, sans les boutons de démarrage. */
+    const t = el.querySelector("#welcome-title"); if (t) t.textContent = "Aide";
+    const p = el.querySelector(".w-pos"); if (p) p.textContent = "Comment fonctionne le site, les raccourcis, les questions fréquentes et les sigles. Tu peux aussi tout chercher avec la loupe.";
+    const go = el.querySelector(".w-go"); if (go) go.innerHTML = `<button class="btn" data-act="gs-open">Rechercher dans le site</button><button class="btn" data-act="welcome-close">Fermer l'aide</button>`;
+    const m = el.querySelector(".w-more summary"); if (m) m.textContent = "Comment ça marche";
+  }
+}
+function helpExtraHTML(){
+  const touch = typeof matchMedia === "function" && matchMedia("(pointer:coarse)").matches;
+  const faq = [
+    ["Où sont gardées ma progression et mes copies ?", "Sur cet appareil, et dans ton compte si tu te connectes : tu les retrouves alors sur tous tes appareils. Rien n'est publié."],
+    ["Quand mon texte est-il envoyé à Claude ?", "Seulement quand tu demandes un retour ou une correction. Le serveur ne garde pas le texte à cette occasion."],
+    ["Le site marche-t-il sans connexion ?", "Oui pour les fiches, les sujets et la méthode. Les retours de Claude et la synchronisation demandent une connexion."],
+    ["Comment changer de concours ?", "Avec « Changer » à côté du nom de ton concours, ou depuis l'accueil. Tout le site se règle alors sur le nouveau concours ; ta progression est gardée."],
+    ["Comment régler mon plan ?", "Dans Progrès, indique ton temps en semaine et le week-end : le plan règle le nombre de nouvelles cartes et la place des sujets et des concours blancs."],
+    ["J'ai trouvé une erreur dans une fiche.", "Au dos de la fiche, « Signaler une erreur » : chaque signalement est lu, et tu peux laisser ton adresse pour être prévenu de la correction."]
+  ];
+  return `<details class="w-more w-help" open><summary>Questions fréquentes</summary>${faq.map(([q, a]) => `<details class="w-faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}
+    <p><button class="linkbtn" data-act="go-sources">D'où vient le contenu, qui est derrière le site, proposer une relecture</button></p></details>
+    ${touch ? `<details class="w-more w-help"><summary>Gestes</summary><ul class="w-steps"><li>Touche la carte pour la retourner.</li><li>Glisse-la à droite pour « Su », à gauche pour « Raté ».</li></ul></details>`
+      : `<details class="w-more w-help"><summary>Raccourcis clavier</summary><ul class="keys hk"><li><span class="k">Espace</span>Retourner la carte</li><li><span class="k">1</span><span class="k">2</span><span class="k">3</span>Raté, Hésité, Su</li><li><span class="k">U</span>Annuler la dernière réponse</li><li><span class="k">Entrée</span>Question suivante du test</li><li><span class="k">Échap</span>Fermer une fenêtre</li></ul></details>`}`;
 }
 /* ---------- Application installable et hors ligne (site uniquement) ---------- */
 let installEvt = null;
@@ -7998,6 +8167,7 @@ try {
 } catch (e) {}
 try { const u = new URL(location.href), q = u.searchParams.get("concours"); if (q) { u.searchParams.delete("concours"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); if (concById(q) && prefs.concours !== q) chooseConcours(q); } } catch (e) {}
 buildQueue(); render(); blancCheck();
+{ const v0 = routeFromHash(); if (v0 && v0 !== "home" && prefs.concours) { routeSilent = true; try { setView(v0); } finally { routeSilent = false; } } }
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
