@@ -2843,9 +2843,10 @@ function renderFilters(){
 function renderGrpSeg(){
   const el = $("#grp-seg"); if (!el) return;
   el.innerHTML = EPR.filter(e => relHas(e.id)).map(e => { const x = grpGoal(e.id), on = e.id === grp;
-    const lab = e.id === "tx" ? `<span class="tl-long">${esc(e.s)}</span><span class="tl-short" aria-hidden="true">Textes</span>` : esc(e.s);
+    /* Nom accessible = texte visible (« Textes » sur mobile), complété hors écran : pas d'écart entre ce qu'on lit et ce qu'on entend. */
+    const lab = e.id === "tx" ? `Textes<span class="tl-long"> officiels</span>` : esc(e.s);
     const lk = grpLocked(e.id);
-    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}${e.id === "tx" || lk ? ` aria-label="${esc(e.s)}${lk ? ", accès complet" : x.todo ? ", " + x.todo + " à faire" : ""}"` : ""}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span>` : x.todo ? ` <span class="seg-n">${x.todo}</span>` : ""}</button>`; }).join("");
+    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span><span class="sr-only">, accès complet</span>` : x.todo ? ` <span class="seg-n">${x.todo}<span class="sr-only"> à faire</span></span>` : ""}</button>`; }).join("");
 }
 function renderRevise(){
   renderGrpSeg();
@@ -3883,7 +3884,7 @@ function renderSujets(){
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
-  $("#panel-sujets").innerHTML = `<div class="chips era-chips" aria-label="Axe des sujets">${chips}</div>${modes}${body}
+  $("#panel-sujets").innerHTML = `<div class="chips era-chips" role="group" aria-label="Axe des sujets">${chips}</div>${modes}${body}
     <p class="sj-help">${sj.cur && sj.cur.annale ? "Sujet officiel de concours. Le retour de Claude est un premier regard, pas le corrigé du jury : relis aussi le rapport du jury dans l'onglet Annales." : (sj.cur && isB3(sj.cur) ? "Sujet conçu par Bristol EPS sur le modèle du sujet officiel de 2026 ; ce n'est pas un sujet de concours." : !sj.cur && sj.src === "ann" ? "Sujets officiels de ton concours. Le retour de Claude est un premier regard, pas le corrigé du jury." : "Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels.")} Les cartes proposées sont des points d'appui, pas un plan.</p>`;
 }
 
