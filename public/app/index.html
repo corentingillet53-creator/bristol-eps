@@ -750,6 +750,15 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .pw-panel h2{font-size:30px;line-height:1.1}
 #welcome-title{font-size:38px;line-height:1.05}
 #welcome-title:focus,#pw-title:focus{outline:none}
+.rd-two{display:grid;gap:8px;margin:14px 0 6px}
+.rd-vol span:first-child{font-weight:700}
+.rd-det{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.rd-det > summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+.sk-row small{color:var(--muted);font-weight:400}
+.sk-weak-conf .rd-bar span{opacity:.55}
+.sk-sum p{margin:6px 0}
+.sk-advice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--paper);border-radius:var(--r-m);padding:10px 14px;margin:10px 0}
+.sk-advice p{margin:0;flex:1 1 220px}
 .fold{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface)}
 .fold > summary{cursor:pointer;list-style:none;display:flex;align-items:center;min-height:56px;padding:12px 20px;font:400 22px/1.2 var(--f-serif)}
 .fold > summary::-webkit-details-marker{display:none}
@@ -1943,6 +1952,128 @@ function readiness(list){
   const sum = list.reduce((t, c) => t + (progress[c.id] ? BOX_W[progress[c.id].b] || 0 : 0), 0);
   return Math.round(100 * sum / list.length);
 }
+
+/* ---------- Compétences d'écriture : le second volet du niveau de préparation ----------
+   Mesures : la ligne « BILAN » que Claude ajoute à chaque retour (2 réussi, 1 à améliorer, 0 absent),
+   les grilles d'auto-évaluation cochées (poids moitié) et, au concours blanc, une copie terminée ou non.
+   Tout est recalculé à partir des textes enregistrés (synchronisés avec le compte). */
+const SK_DESC = { sujet: "l'analyse du sujet ou de la citation", prob: "la problématique", plan: "le plan et la périodisation, ou l'organisation de la réponse", intro: "l'introduction", arg: "l'argumentation appuyée sur des exemples précis et datés", concl: "la conclusion ou le bilan", notion: "la caractérisation de la notion", analyse: "l'analyse des comportements d'élèves", conn: "la précision et la pertinence des connaissances mobilisées", prop: "les propositions d'intervention", contexte: "la prise en compte du contexte de l'établissement", etab: "le volet établissement (équipe EPS, AS, projet)" };
+const SK_LBL = { sujet: "Analyse du sujet", prob: "Problématique", plan: "Plan et périodisation", intro: "Introduction", arg: "Argumentation et exemples", concl: "Conclusion", notion: "Caractériser la notion", analyse: "Analyse des comportements", conn: "Connaissances mobilisées", prop: "Propositions d'intervention", contexte: "Prise en compte du contexte", etab: "Volet établissement", temps: "Gestion du temps" };
+const SK_LBL_FMT = { cint: { sujet: "Analyse de la citation", prop: "Propositions pour la classe", concl: "Bilan prospectif" }, b3e1: { plan: "Organisation de la réponse", conn: "Repères précis" }, comp: { plan: "Plan" } };
+const SK_SETS = { diss: ["sujet", "prob", "plan", "intro", "arg", "concl", "temps"], comp: ["sujet", "prob", "contexte", "analyse", "conn", "prop", "intro", "temps"], b3e1: ["prob", "plan", "arg", "conn", "temps"], b3e2: ["notion", "analyse", "conn", "prop", "temps"], cint: ["sujet", "contexte", "prop", "etab", "concl", "temps"] };
+const SK_ASK = {
+  diss: { plan: ["sujet", "prob", "plan", "arg"], intro: ["intro", "sujet", "prob", "plan"], para: ["arg", "sujet"], copie: ["sujet", "prob", "plan", "intro", "arg", "concl"] },
+  comp: { plan: ["sujet", "prob", "analyse", "prop", "conn"], intro: ["intro", "sujet", "prob", "contexte"], para: ["analyse", "conn", "prop"], copie: ["sujet", "prob", "contexte", "analyse", "conn", "prop", "intro"] },
+  b3e1: { plan: ["prob", "plan", "arg"], intro: ["prob"], para: ["arg", "conn"], copie: ["prob", "plan", "arg", "conn"] },
+  b3e2: { plan: ["notion", "analyse", "prop"], intro: ["notion"], para: ["analyse", "conn", "prop"], copie: ["notion", "analyse", "conn", "prop"] },
+  cint: { plan: ["sujet", "contexte", "prop", "etab", "concl"], intro: ["sujet", "contexte"], para: ["prop"], copie: ["sujet", "contexte", "prop", "etab", "concl"] }
+};
+/* Grilles d'auto-évaluation : à chaque case, la compétence qu'elle mesure. */
+const SK_GRID = { INTRO: ["intro", "sujet", "sujet", "intro", "prob", "plan"], PARA: ["arg", "arg", "arg", "arg", "sujet"], AE: ["intro", "sujet", "sujet", "prob", "plan"], INTRO2: ["intro", "sujet", "prob", "contexte", "plan"], ILLU: ["analyse", "conn", "prop", "prop", "sujet"], B1: ["prob", "prob", "prob", "prob"], B2I: ["notion", "notion", "notion", "notion"], B2P: ["analyse", "analyse", "conn", "prop", "prop"] };
+function skFmt(e){
+  const c = prefs.concours;
+  if (c === "capeps-int") return "cint";
+  if (isB3Conc()) return e === "e2" ? "b3e2" : "b3e1";
+  if (c === "agreg-ext") return "diss";
+  return e === "e2" ? "comp" : "diss";
+}
+const skLabel = (k, f) => (SK_LBL_FMT[f] || {})[k] || SK_LBL[k] || k;
+const skAsk = (e, kind) => ((SK_ASK[skFmt(e)] || {})[kind] || []).slice();
+/* Consigne ajoutée à chaque demande de retour (même texte sur le serveur). */
+function bilanTail(keys){
+  const k = (keys || []).filter(x => SK_DESC[x]); if (!k.length) return "";
+  return `\n\nTermine ta réponse par une dernière ligne, seule, au format exact « BILAN: ${k.map(x => x + "=n").join("; ")} », où n vaut 2 si l'élément est réussi, 1 s'il est à améliorer, 0 s'il est absent ou insuffisant. Les éléments : ${k.map(x => x + " (" + SK_DESC[x] + ")").join(", ")}. Cette ligne sert au suivi du candidat : ne la commente pas.`;
+}
+const BILAN_RX = /^[ \t*_]*BILAN[ \t*_]*:(.*)$/gm;
+/* La ligne de bilan sert au suivi : elle n'est jamais affichée (y compris pendant qu'elle s'écrit). */
+const bilanStrip = t => String(t || "").replace(BILAN_RX, "").replace(/\n[ \t*_]*B(?:I(?:L(?:A(?:N)?)?)?)?[ \t*_]*$/, "").replace(/\s+$/, "");
+function bilanParse(t){
+  const all = [...String(t || "").matchAll(BILAN_RX)], m = all[all.length - 1]; if (!m) return [];
+  const out = []; let r; const rx = /([a-z]+)\s*=\s*([012])/g;
+  while ((r = rx.exec(m[1]))) if (SK_DESC[r[1]]) out.push([r[1], +r[2]]);
+  return out;
+}
+function subjById(id){
+  const x = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(y => y.id === id); if (x) return x;
+  const a = ANNALES.find(y => y.id === id); return a ? Object.assign(annSubject(a), { ae: a.e }) : null;
+}
+const subjEpr = x => x && (x.ae === "ei" ? "e2" : isE2(x) ? "e2" : "e1");
+function skMeasures(){
+  const M = [], push = (e, k, v, t, w, src) => { if ((SK_SETS[skFmt(e)] || []).includes(k) && relHas(e)) M.push({ e, k, v, t: t || 0, w, src }); };
+  for (const [key, ent] of Object.entries(texts)) {
+    if (!ent || !ent.v) continue;
+    if (key.startsWith("f:b:")) {
+      const m = blancGet(key.slice(4)); if (!m) continue;
+      const e = m.k === "e1" ? "e1" : "e2";
+      bilanParse(ent.v).forEach(([k, v]) => push(e, k, v, ent.t, 1, "copie"));
+    } else if (key.startsWith("f:")) {
+      const sid = key.slice(2).replace(/^[ip]:/, ""), x = subjById(sid); if (!x) continue;
+      bilanParse(ent.v).forEach(([k, v]) => push(subjEpr(x), k, v, ent.t, 1, "claude"));
+    } else if (key.startsWith("c:")) {
+      const raw = key.slice(2), para = raw.startsWith("p-"), x = subjById(para ? raw.slice(2) : raw); if (!x) continue;
+      const done = (txGet((para ? "p:" : "i:") + x.id) || "").trim().length >= 100; if (!done) continue;
+      let chk = []; try { chk = JSON.parse(ent.v) || []; } catch (er) {} if (!chk.length) continue;
+      const e = subjEpr(x), f = skFmt(e);
+      const g = para ? (f === "b3e2" ? "B2P" : e === "e2" ? "ILLU" : "PARA") : (f === "b3e1" ? "B1" : f === "b3e2" ? "B2I" : prefs.concours === "agreg-ext" && e === "e2" ? "AE" : e === "e2" ? "INTRO2" : "INTRO");
+      const by = {}; SK_GRID[g].forEach((k, i) => { (by[k] = by[k] || []).push(chk.includes(i)); });
+      Object.entries(by).forEach(([k, a]) => { const n = a.filter(Boolean).length; push(e, k, n === a.length ? 2 : n ? 1 : 0, ent.t, 0.5, "grille"); });
+    }
+  }
+  /* Concours blanc tapé au clavier : la copie est-elle terminée (conclusion présente) ? */
+  blancList().filter(m => m.state === "done" && !m.paper).forEach(m => {
+    const txt = txGet("b:" + m.id) || ""; if (wordCount(txt) < 150) return;
+    const tail = txt.slice(Math.floor(txt.length * 0.75));
+    const fin = outline(txt).items.some(it => /^conclu/i.test(it.t)) || /\b(en conclusion|pour conclure|conclusion|en guise de bilan|bilan)\b/i.test(tail);
+    push(m.k === "e1" ? "e1" : "e2", "temps", fin ? 2 : 0, m.end || m.start, 1, "temps");
+  });
+  return M;
+}
+/* Score d'une compétence : moyenne pondérée de ses 6 dernières mesures ; confiance pleine à partir de 3 mesures. */
+function skStats(){
+  const M = skMeasures(), out = [];
+  ["e1", "e2"].filter(relHas).forEach(e => {
+    const f = skFmt(e);
+    (SK_SETS[f] || []).forEach(k => {
+      const L = M.filter(m => m.e === e && m.k === k).sort((a, b) => b.t - a.t).slice(0, 6);
+      const wsum = L.reduce((t, m) => t + m.w, 0);
+      const sc = wsum ? Math.round(100 * L.reduce((t, m) => t + m.w * m.v / 2, 0) / wsum) : null;
+      const n = L.length, last = L.slice(0, 3), abs = last.filter(m => m.v === 0).length;
+      out.push({ e, f, k, l: skLabel(k, f), sc, n, conf: Math.min(1, n / 3), abs, last: last.length, srcs: [...new Set(L.map(m => m.src))] });
+    });
+  });
+  return out;
+}
+function writeReadiness(st){ st = st || skStats(); if (!st.length) return 0; return Math.round(st.reduce((t, x) => t + (x.sc || 0) * x.conf, 0) / st.length); }
+function readyAll(){ const kn = readiness(relCards()), wr = writeReadiness(); return { kn, wr, all: Math.round((kn + wr) / 2) }; }
+/* Exercice conseillé pour une compétence. */
+function skTrain(x){
+  if (x.k === "temps") return { l: "Un concours blanc en temps réel", act: `data-tab="blanc"` };
+  const mode = ["intro", "notion"].includes(x.k) || (x.k === "prob" && x.f === "b3e1") ? "intro" : ["arg", "analyse", "conn", "prop"].includes(x.k) && x.f !== "cint" ? "para" : "plan";
+  const b3 = x.f.startsWith("b3"), e2 = x.e === "e2";
+  const ML = x.f === "cint" ? { plan: "Une étude de cas : analyse de la citation et plan détaillé", intro: "Une introduction sur la citation et le contexte", para: "Un développement pour la classe" } : b3 ? (e2 ? { intro: "Une introduction sur la notion", para: "Une partie sur un épisode", plan: "Une préparation d'épisodes" } : { plan: "Une problématique et un plan", intro: "Une problématique chronométrée", para: "Un paragraphe argumenté" })
+    : { plan: "Un plan complet sur un sujet", intro: "Une introduction chronométrée", para: e2 ? "Une partie illustrée" : "Un paragraphe argumenté" };
+  return { l: ML[mode], act: `data-act="sk-train" data-e="${x.e}" data-mode="${mode}"` };
+}
+function skWeak(st){ return (st || skStats()).filter(x => x.n >= 3 && x.sc !== null && x.sc < 60).sort((a, b) => a.sc - b.sc)[0] || null; }
+function skWhy(x){ return x.abs ? `jugé absent ou insuffisant dans ${x.abs} de tes ${x.last} dernières mesures` : `à améliorer dans tes dernières mesures (${x.sc} %)`; }
+function writingHTML(st){
+  st = st || skStats();
+  const any = st.some(x => x.n);
+  const byE = ["e1", "e2"].filter(relHas).map(e => [e, st.filter(x => x.e === e)]).filter(([, L]) => L.length);
+  const eName = e => { const P = sjPools(e); return P.l; };
+  const row = x => `<div class="rd-row sk-row${x.n < 3 ? " sk-weak-conf" : ""}"><span>${esc(x.l)}${x.n ? `<small> · ${plural(x.n, "mesure")}${x.n < 3 ? ", à confirmer" : ""}</small>` : `<small> · pas encore mesurée</small>`}</span><span class="rd-bar" aria-hidden="true"><span style="width:${x.sc || 0}%"></span></span><b>${x.sc === null ? "–" : x.sc + " %"}</b></div>`;
+  const strong = st.filter(x => x.n >= 3 && x.sc >= 75).sort((a, b) => b.sc - a.sc).slice(0, 3);
+  const weak = st.filter(x => x.n >= 3 && x.sc < 60).sort((a, b) => a.sc - b.sc).slice(0, 3);
+  const w0 = weak[0], tr = w0 && skTrain(w0);
+  const free = STANDALONE && !isPremium() && !codeGet();
+  return `<div class="sk">
+    ${!any ? `<p class="goal-sub">Pas encore de mesure. ${free ? "Coche ta grille d'auto-évaluation après chaque exercice d'écriture ; avec l'accès complet, chaque retour de Claude et chaque concours blanc corrigé viennent compléter ce suivi." : "Chaque retour de Claude, chaque grille d'auto-évaluation cochée et chaque concours blanc viennent alimenter ce suivi, compétence par compétence."}</p>` : ""}
+    ${weak.length || strong.length ? `<div class="sk-sum">${strong.length ? `<p><b>Points forts :</b> ${strong.map(x => esc(x.l)).join(", ")}.</p>` : ""}${weak.length ? `<p><b>À travailler :</b> ${weak.map(x => esc(x.l)).join(", ")}.</p>` : ""}</div>` : ""}
+    ${w0 ? `<div class="sk-advice"><p><b>${esc(w0.l)}</b> : ${esc(skWhy(w0))}.</p><button class="btn small primary" ${tr.act}>${esc(tr.l)}</button></div>` : ""}
+    ${byE.map(([e, L]) => `<p class="rd-h">${esc(eName(e))}</p>${L.map(row).join("")}`).join("")}
+    <p class="goal-sub">Mesures : les retours de Claude (ligne de bilan), tes grilles d'auto-évaluation (comptées pour moitié) et tes concours blancs. Une compétence compte pleinement à partir de 3 mesures. C'est un repère pour t'entraîner, pas une note de jury.</p>
+  </div>`;
+}
 function rankOf(pct){ let i = 0; RANKS.forEach(([min], k) => { if (pct >= min) i = k; }); return i; }
 
 /* ---------- Succès ---------- */
@@ -1986,7 +2117,7 @@ function checkAch(silent){
     let ok = false; try { const [v, max] = a.v(); ok = v >= max; } catch (e) {}
     if (ok) { ach.u[a.id] = now; fresh.push(a); }
   }
-  const rk = rankOf(readiness(relCards())), up = rk > ach.r;
+  const rk = rankOf(readyAll().all), up = rk > ach.r;
   if (up) ach.r = rk;
   if (!silent && (fresh.length || up)) {
     const msg = fresh.length === 1 ? "Succès obtenu : " + fresh[0].t + "."
@@ -2010,14 +2141,17 @@ function axisRows(compact){
   return EPR.filter(g => relHas(g.id)).map(g => `<p class="rd-h">${esc(g.t)}</p>` + g.th.map(k => row(THEMES[k], all.filter(c => c.th === k))).join("")).join("");
 }
 function readinessHTML(){
-  const all = relCards(), pct = readiness(all), rk = rankOf(pct);
+  const st = skStats(), kn = readiness(relCards()), wr = writeReadiness(st), pct = Math.round((kn + wr) / 2), rk = rankOf(pct);
   const next = RANKS[rk + 1];
   const rows = axisRows();
   return `<div class="sect rd"><h2>Niveau de préparation</h2>
     <div class="rd-top"><div class="rd-pct"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
       <div class="rd-main"><div class="goal-bar" role="progressbar" aria-label="Niveau de préparation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
-      <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes jusqu'au concours."} Une carte compte pleinement en boîte 5, partiellement avant.</p></div></div>
-    <div class="rd-rows">${rows}</div>
+      <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes et ton écriture jusqu'au concours."} La moyenne de tes connaissances et de ton écriture : les jurys notent une copie, pas des fiches.</p></div></div>
+    <div class="rd-two"><div class="rd-row rd-vol"><span>Connaissances</span><span class="rd-bar" aria-hidden="true"><span style="width:${kn}%"></span></span><b>${kn} %</b></div>
+      <div class="rd-row rd-vol"><span>Écriture</span><span class="rd-bar" aria-hidden="true"><span style="width:${wr}%"></span></span><b>${wr} %</b></div></div>
+    <details class="rd-det" open><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
+    <details class="rd-det"><summary>Connaissances, thème par thème</summary><p class="goal-sub">Une carte compte pleinement en boîte 5, partiellement avant.</p><div class="rd-rows">${rows}</div></details>
   </div>`;
 }
 function achHTML(){
@@ -2152,6 +2286,8 @@ function homeTrain0(){
   const p = planWeeks(), w0 = p && p.weeks[0];
   const recent = blancList().some(m => m.start > Date.now() - 7 * DAY);
   if (w0 && !recent && w0.items.some(i => i.includes("concours blanc"))) return card("clock", "Cette semaine : un concours blanc", "Une copie complète en temps réel, comme le jour J. Garde-toi un créneau.", `<button class="btn" data-tab="blanc">Préparer</button>`);
+  const wk = skWeak(), wDone0 = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
+  if (wk && !wDone0) { const tr = skTrain(wk); return card("pen", "Point à travailler : " + esc(wk.l.toLowerCase()), `${esc(cap(skWhy(wk)))}. ${esc(tr.l)} pour progresser.`, `<button class="btn primary" ${tr.act}>Commencer</button>`); }
   const e1 = relHas("e1"), s = e1 ? subjectOfDay() : subjectOfDay2();
   if (!s) return "";
   const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
@@ -3519,6 +3655,7 @@ async function serverSample(payload, { signal, onText }){
 }
 const fb = { sid: null, status: "idle", text: "", note: "", ctl: null };
 function mdLite(t){
+  t = bilanStrip(t);
   const lines = esc(t).split("\n"); let out = "", inList = false;
   for (let l of lines) {
     l = l.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
@@ -3644,10 +3781,11 @@ Sous chaque titre, 1 à 3 puces qui commencent par "- ". Évalue si la probléma
     const el = document.getElementById("sj-fb");
     if (el && sj.cur && fbKey(sj.cur, sj.mode) === key) el.innerHTML = fbInner(s, kind);
   } };
+  const sk = skAsk(subjEpr(s), kind), promptB = prompt + bilanTail(sk);
   /* Sur ton site, le serveur construit lui-même le prompt à partir de ces données. */
-  if (STANDALONE) opts.payload = { kind, fmt: isB3(s) ? "b3" : "", epreuve: isE2(s) ? "e2" : "e1", contexte: isB3(s) ? ctxText(s).slice(0, 4000) : isE2(s) ? ctxText(s).slice(0, 3000) : "", subject: s.t, axe: s.axe || THEMES[s.th], notes: notes.slice(0, 6000), facts: cards.map(c => `[${pLabel(c)}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`) };
+  if (STANDALONE) opts.payload = { kind, fmt: isB3(s) ? "b3" : "", epreuve: isE2(s) ? "e2" : "e1", contexte: isB3(s) ? ctxText(s).slice(0, 4000) : isE2(s) ? ctxText(s).slice(0, 3000) : "", subject: s.t, axe: s.axe || THEMES[s.th], notes: notes.slice(0, 6000), facts: cards.map(c => `[${pLabel(c)}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`), sk };
   try {
-    const res = await sampleFn(prompt, opts);
+    const res = await sampleFn(promptB, opts);
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
@@ -6724,6 +6862,7 @@ function planWeeks(){
     });
     }
     if (!last && !final && rel.includes("e2")) items.push("Références : en apprendre cinq et les placer dans un paragraphe.");
+    if (w === 0 && !last) { const wk = skWeak(); if (wk) items.push(`Point à travailler : ${wk.l.toLowerCase()} (${skWhy(wk)}). ${skTrain(wk).l}.`); }
     if (last) items.push("Relis tes plans, tes références et ta frise ; pas de copie complète, repos la veille.");
     const a = new Date(t0); a.setDate(a.getDate() + d0);
     const b = new Date(t0); b.setDate(b.getDate() + d1);
@@ -7252,6 +7391,7 @@ async function askCopie(m){
   const o = { epreuve: m.k === "e1" ? "e1" : "e2", concours: m.co || "", subject: s ? s.t : "", contexte: s && (s.ctx || isB3(s)) ? ctxText(s).slice(0, 4000) : "",
     duree: m.dur / 3600 + " h", minutes: Math.round((m.end - m.start) / 6e4), notes: copy.slice(0, 60000),
     facts: cards.slice(0, 25).map(c => `[${pLabel(c)}] ${c.q} → ${c.a}`), jury: blancJury(m) };
+  o.sk = skAsk(o.epreuve, "copie");
   const ctl = new AbortController();
   Object.assign(fb, { sid: key, status: "thinking", text: "", note: "", ctl });
   render();
@@ -7261,7 +7401,7 @@ async function askCopie(m){
   } };
   if (STANDALONE) opts.payload = Object.assign({ kind: "copie", axe: "Concours blanc" }, o, pics.length ? { notes: "", images: pics.map(x => x.data) } : {});
   try {
-    const res = await sampleFn(promptCopie(o), opts);
+    const res = await sampleFn(promptCopie(o) + bilanTail(o.sk), opts);
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
@@ -7535,6 +7675,15 @@ document.addEventListener("click", e => {
     const before = deckPage.n; deckPage.n = d.act === "deck-all" ? 1e6 : deckPage.n + DECK_STEP; renderDeck();
     const items = document.querySelectorAll("#panel-deck .item"); const f = items[before]; if (f) { f.tabIndex = -1; f.focus({ preventScroll: false }); }
     return;
+  }
+  if (d.act === "sk-train") {
+    /* L'exercice qui cible la compétence la plus faible, sur un sujet pas encore travaillé dans ce mode. */
+    const e = d.e === "e2" ? "e2" : "e1", mode = ["plan", "intro", "para"].includes(d.mode) ? d.mode : "plan", P = sjPools(e);
+    const L = P.ann.map(annSubject).concat(P.own), free = L.filter(x => !noteGet(fbKey(x, mode)).trim());
+    const pool = free.length ? free : L, x = pool.length ? pool[Math.floor(startOfDay().getTime() / DAY) % pool.length] : null;
+    if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
+    sj.epr = e; sj.mode = mode; sj.axe = "Tous"; sj.cur = x; sj.shown = false; setView("sujets");
+    const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true }); try { window.scrollTo({ top: 0 }); } catch (er) {} return;
   }
   if (d.act === "help-open") { if (view !== "home") setView("home"); showWelcome(true); try { window.scrollTo({ top: 0 }); } catch (e) {} return; }
   if (d.act === "welcome-close") { hideWelcome(); $("#help-open").focus(); return; }

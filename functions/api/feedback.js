@@ -186,6 +186,17 @@ Corrige cette copie comme un correcteur exigeant et bienveillant, en français, 
 ## Trois priorités pour la prochaine copie
 Sous chaque titre, 1 à 4 puces qui commencent par "- ". Sous « Note indicative », donne une fourchette sur 20 (par exemple « 9 à 11 / 20 ») et une phrase qui la justifie, en rappelant qu'elle ne remplace pas la note d'un jury. Cite de courts passages de la copie quand c'est utile. Signale toute erreur factuelle ou date fausse. Si la copie est inachevée, dis-le et évalue ce qui est écrit. Ne réécris pas la copie.`;
 }
+// Suivi des compétences d'écriture : Claude termine son retour par une ligne « BILAN » que l'application lit
+// puis masque. Mêmes libellés que dans l'application ; seules ces clés sont acceptées.
+const SK_DESC = { sujet: "l'analyse du sujet ou de la citation", prob: "la problématique", plan: "le plan et la périodisation, ou l'organisation de la réponse", intro: "l'introduction", arg: "l'argumentation appuyée sur des exemples précis et datés", concl: "la conclusion ou le bilan", notion: "la caractérisation de la notion", analyse: "l'analyse des comportements d'élèves", conn: "la précision et la pertinence des connaissances mobilisées", prop: "les propositions d'intervention", contexte: "la prise en compte du contexte de l'établissement", etab: "le volet établissement (équipe EPS, AS, projet)" };
+function readSkills(sk) {
+  return Array.isArray(sk) ? [...new Set(sk.filter((k) => typeof k === "string" && Object.prototype.hasOwnProperty.call(SK_DESC, k)))].slice(0, 8) : [];
+}
+function bilanTail(keys) {
+  if (!keys.length) return "";
+  return `\n\nTermine ta réponse par une dernière ligne, seule, au format exact « BILAN: ${keys.map((x) => x + "=n").join("; ")} », où n vaut 2 si l'élément est réussi, 1 s'il est à améliorer, 0 s'il est absent ou insuffisant. Les éléments : ${keys.map((x) => x + " (" + SK_DESC[x] + ")").join(", ")}. Cette ligne sert au suivi du candidat : ne la commente pas.`;
+}
+
 function readCopie(body) {
   const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
   const list = (v, n, max) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).slice(0, n).map((x) => x.trim().slice(0, max)) : []);
@@ -479,6 +490,7 @@ export async function onRequestPost({ request, env }) {
   prompt = b3 ? promptB3(kind, e2 ? "e2" : "e1", subject, contexte, notes, facts.map((f) => "- " + f).join("\n"))
     : e2 ? buildPrompt2(kind, subject, axe, contexte, notes, facts) : buildPrompt(kind, subject, axe, notes, facts);
   }
+  prompt += bilanTail(readSkills(body.sk));
 
   const model = env.MODEL || DEFAULT_MODEL;
   const cacheKey = "h:" + (await sha256(model + "|" + prompt + "|" + images.join("|")));
