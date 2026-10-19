@@ -14,6 +14,7 @@ import { getPlan } from "./plan.js";
 //   MIN_INTERVAL_S (60)       délai minimal entre deux demandes d'un même abonné
 //   GLOBAL_DAILY_CENTS (1000) coupe-circuit : dépense totale maximale par jour
 //   PRICE_IN, PRICE_OUT (2, 10) prix du modèle en dollars par million de jetons
+//   TRIAL_DAILY (30)          retours offerts (un par compte gratuit) au plus par jour ; 0 pour les couper
 //   MODEL              (facultatif)           modèle Claude, par défaut claude-sonnet-5-5
 //   ANTHROPIC_WORKSPACE_ID (facultatif)       ID d'espace de travail, si la clé n'y est pas rattachée
 // Liaison KV facultative mais recommandée (Settings > Bindings) : QUOTA
@@ -449,17 +450,25 @@ export async function onRequestPost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY) return json(500, "server_not_configured");
   const shape = badRequestShape(request); if (shape) return shape;
 
-  // Accès : un compte abonné (cookie de session), ou à défaut un code d'accès bêta.
-  let who = null;
+  // Accès : un compte abonné (cookie de session), un code d'accès bêta,
+  // ou le retour offert : un seul par compte gratuit, sur un plan, une introduction ou un paragraphe.
+  let who = null, trialUser = null, user = null;
   if (env.DB) {
-    const user = await currentUser(request, env).catch(() => null);
+    user = await currentUser(request, env).catch(() => null);
     if (user && (await getPlan(env, user.id)).active) who = "u:" + user.id;
   }
   if (!who) {
     const code = String(request.headers.get("x-access-code") || "").trim();
     const codes = String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean);
     if (code && codes.includes(code)) who = code;
-    else return json(code ? 401 : 402, code ? "invalid_code" : "premium_required");
+    else if (code) return json(401, "invalid_code");
+    else if (request.headers.get("x-trial") === "1" && env.QUOTA) {
+      if (!user) return json(401, "login_required");
+      if (await env.QUOTA.get("trial:" + user.id)) return json(402, "trial_used");
+      const day = new Date().toISOString().slice(0, 10), n = parseInt((await env.QUOTA.get("trialday:" + day)) || "0", 10) || 0;
+      if (n >= num(env.TRIAL_DAILY, 30)) return json(503, "trial_closed");
+      trialUser = user.id; who = "t:" + user.id;
+    } else return json(402, "premium_required");
   }
 
   let body;
@@ -490,6 +499,7 @@ export async function onRequestPost({ request, env }) {
   prompt = b3 ? promptB3(kind, e2 ? "e2" : "e1", subject, contexte, notes, facts.map((f) => "- " + f).join("\n"))
     : e2 ? buildPrompt2(kind, subject, axe, contexte, notes, facts) : buildPrompt(kind, subject, axe, notes, facts);
   }
+  if (trialUser && isCopie) return json(402, "premium_required");
   prompt += bilanTail(readSkills(body.sk));
 
   const model = env.MODEL || DEFAULT_MODEL;
@@ -498,12 +508,24 @@ export async function onRequestPost({ request, env }) {
     ? images.map((data) => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data } })).concat([{ type: "text", text: prompt }])
     : prompt;
   // Même sujet, même texte : on renvoie le retour déjà produit, sans nouvel appel.
+  const trialHdr = trialUser ? { "x-trial": "1" } : {};
   if (env.QUOTA) {
     const hit = await env.QUOTA.get(cacheKey);
-    if (hit) return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1" } });
+    if (hit) {
+      if (trialUser) await env.QUOTA.put("trial:" + trialUser, String(Date.now()));
+      return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1", ...trialHdr } });
+    }
   }
   const fair = env.QUOTA ? await fairUseCheck(env, who, isCopie) : null;
   if (fair && fair.error) return fair.error;
+  // Le retour offert est marqué comme utilisé avant l'appel (deux onglets ne l'obtiennent pas deux fois),
+  // et rendu si l'appel échoue.
+  const trialDay = "trialday:" + new Date().toISOString().slice(0, 10);
+  if (trialUser) {
+    await env.QUOTA.put("trial:" + trialUser, String(Date.now()));
+    await env.QUOTA.put(trialDay, String((parseInt((await env.QUOTA.get(trialDay)) || "0", 10) || 0) + 1), { expirationTtl: 60 * 60 * 48 });
+  }
+  const trialUndo = async () => { if (trialUser) { try { await env.QUOTA.delete("trial:" + trialUser); } catch (e) {} } };
   let upstream;
   try {
     upstream = await fetch((env.ANTHROPIC_API_URL || "https://api.anthropic.com") + "/v1/messages", {
@@ -518,10 +540,12 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (e) {
     console.error("API Claude injoignable :", String(e));
+    await trialUndo();
     return json(502, "upstream_error", { detail: "API Claude injoignable" });
   }
 
   if (!upstream.ok || !upstream.body) {
+    await trialUndo();
     const err = await readApiError(upstream);
     console.error("Réponse de l'API Claude :", err.status, err.type, err.message);
     const detail = `${err.status} ${err.type} ${err.message}`.trim();
@@ -534,6 +558,7 @@ export async function onRequestPost({ request, env }) {
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
   if (fair && fair.high) headers["x-usage-high"] = "1";
+  Object.assign(headers, trialHdr);
   const onDone = env.QUOTA ? async ({ usage, text, meta }) => {
     const micro = costMicro(env, usage);
     await fairUseRecord(env, who, micro);

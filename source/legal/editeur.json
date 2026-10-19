@@ -1,0 +1,11 @@
+{
+  "_lisez-moi": "Champs repris dans les pages légales par build.py. Remplacer chaque valeur entre crochets ; build.py signale ceux qui restent.",
+  "nom": "[à compléter : prénom et nom de l'éditeur]",
+  "statut": "[à compléter : entrepreneur individuel (micro-entreprise), par exemple]",
+  "siret": "[à compléter : numéro Siret]",
+  "adresse": "[à compléter : adresse postale]",
+  "email": "[à compléter : adresse e-mail de contact]",
+  "tva": "[à compléter : « TVA non applicable, article 293 B du CGI » ou numéro de TVA intracommunautaire]",
+  "mediateur": "[à compléter : nom et site du médiateur de la consommation choisi]",
+  "maj": "19 octobre 2026"
+}
