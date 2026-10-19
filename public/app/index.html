@@ -94,7 +94,7 @@ svg.ic{width:22px;height:22px;flex:none}
 .status[data-mode="saving"] .dot{background:var(--gold)}
 @media (max-width:959px){ .tool .tlab,.status .tlab{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap} .tool{padding:0} }
 
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
 .nav-btn{appearance:none;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:12px;font-weight:700;cursor:pointer;min-height:54px;min-width:0}
 .nav-btn .ni{display:grid;place-items:center;width:56px;height:30px;border-radius:999px}
 .nav-btn .nl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -116,8 +116,9 @@ svg.ic{width:22px;height:22px;flex:none}
   .tool:hover{background:var(--chip);color:var(--ink)}
   .status{padding:6px 12px 10px}
   .main{width:100%;max-width:1200px;padding:44px 48px 72px}
-  .seg{max-width:680px}
+  .seg{max-width:880px}
   #area-train > section,#area-train > .intro{max-width:880px}
+  .sj-epr{max-width:none}
   .welcome{padding:32px 36px}
 }
 /* Grand écran : deux colonnes */
@@ -134,6 +135,7 @@ svg.ic{width:22px;height:22px;flex:none}
 .side-stats div{background:var(--paper);border-radius:var(--r-m);padding:10px 12px}
 .side-stats b{display:block;font-family:var(--f-display);font-weight:800;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
 .side-stats span{font-size:13px;color:var(--muted)}
+.side-stats div{min-width:0;padding:10px 8px}
 .keys{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px;color:var(--muted)}
 .keys li{display:flex;gap:10px;align-items:center}
 .keys .k{min-width:52px;text-align:center;padding:4px 6px;color:var(--ink)}
@@ -256,6 +258,9 @@ textarea{min-height:96px;resize:vertical;line-height:1.55}
 .ts.done .ts-ic{background:var(--accent);color:var(--accent-ink)}
 .tw{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 14px 14px 16px}
 .tw-tx{flex:1;min-width:0}
+.tw p.tw-j{-webkit-line-clamp:3;margin-top:6px}
+.tw + .tw{margin-top:12px}
+.an-years{margin:0 0 20px}
 .tw h2{font-size:17px;margin:0}
 .tw p{margin:2px 0 0;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tw .btn{flex:none;min-height:44px}
@@ -361,7 +366,9 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .band{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 22px}
 .period{font-size:13px;font-weight:700;color:var(--accent-text);background:var(--soft);padding:5px 12px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .q{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.28;letter-spacing:-.015em;margin:0;text-wrap:pretty}
-.q.q-long{font-size:19px;line-height:1.42;letter-spacing:0}
+.q.q-long{font-family:var(--f-body);font-weight:400;font-size:17px;line-height:1.55;letter-spacing:0}
+.q-note{font-size:13px;line-height:1.45;color:var(--muted);margin:8px 0 0}
+.q sup,.ann-t sup{font-size:.7em;line-height:0}
 .sj-dos{margin-top:14px}
 .sj-dos textarea{width:100%;min-height:120px;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--paper);color:var(--ink);resize:vertical}
 .reveal{margin-top:24px;padding-top:22px;border-top:2px dashed var(--line);animation:rise .25s ease-out}
@@ -541,7 +548,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .ann-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 10px}
 .ann-y{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--accent-text);font-variant-numeric:tabular-nums}
 .ann-e{font-size:13px;font-weight:700;color:var(--muted)}
-.ann-t{margin:0 0 8px;font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.45;max-width:78ch;white-space:pre-line}
+.ann-t{margin:0 0 8px;font-family:var(--f-body);font-weight:400;font-size:16px;line-height:1.55;max-width:78ch;white-space:pre-line}
 .ann-more summary,.ann-jury summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent-text);margin:4px 0;padding:6px 0;min-height:32px}
 .ann-f a,.ann-f .linkbtn{display:inline-flex;align-items:center;min-height:32px}
 .ann-jury ul{margin:8px 0 4px;padding-left:20px;color:var(--muted);max-width:78ch}
@@ -558,7 +565,7 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .conc-maj{color:var(--muted);font-size:13px;margin:16px 0 0;max-width:70ch}
 .conc-note{background:var(--soft);border-radius:var(--r-m);padding:12px 16px;margin:0 0 16px;max-width:none}
 .conc-actions{margin:0 0 20px}
-.conc-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:0 0 32px}
+.conc-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));align-items:start;gap:10px;margin:0 0 32px}
 .conc-facts div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:14px 16px}
 .conc-facts dt{font-family:var(--f-display);font-weight:700;font-size:15px;margin:0 0 4px}
 .conc-facts dd{margin:0;font-size:15px}
@@ -699,7 +706,7 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .write-grid .sj-notes{margin-top:0}
 @media (min-width:1100px){ .write-grid{grid-template-columns:minmax(0,1fr) 240px;align-items:start} .write-side{position:sticky;top:96px} html.focus .write-side{top:90px} }
 .outl-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:8px 12px}
-.outl-box summary{cursor:pointer;font-weight:700;font-size:14px;min-height:36px;display:flex;align-items:center}
+.outl-box summary{cursor:pointer;font-weight:700;font-size:14px;min-height:36px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
 .outl{list-style:none;margin:4px 0 6px;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
 .write-side,.outl-box{min-width:0}
 .outl-go{appearance:none;display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:6px 6px;min-height:36px;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
@@ -765,6 +772,7 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 .sk-advice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--paper);border-radius:var(--r-m);padding:10px 14px;margin:10px 0}
 .sk-advice p{margin:0;flex:1 1 220px}
 .fold{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface)}
+.stats-grid > .fold{margin:0 0 20px}
 .fold > summary{cursor:pointer;list-style:none;display:flex;align-items:center;min-height:56px;padding:12px 20px;font:400 22px/1.2 var(--f-serif)}
 .fold > summary::-webkit-details-marker{display:none}
 .fold > summary::after{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:auto}
@@ -809,6 +817,8 @@ html.focus #sj-notes{min-height:calc(100vh - 220px)}
 #panel-revise .bristol[data-swipe="rate"]{box-shadow:0 0 0 3px var(--bad)}
 .touch-only{display:none}
 @media (pointer:coarse){ .touch-only{display:inline} p.touch-only{display:block} .btn .k,.keys{display:none} }
+@media (max-width:600px){ .btn .k{display:none} }
+@media (max-width:959px){ .reveal{scroll-margin-bottom:190px} }
 /* Liens du contenu : couleur de la charte, jamais le bleu du navigateur. */
 main a:not(.btn):not(.skip){color:var(--accent-text)}
 main a:not(.btn):not(.skip):visited{color:var(--accent-text)}
@@ -896,7 +906,9 @@ html.gs-on{overflow:hidden}
 .pw-plan:hover:not([disabled]){border-color:var(--accent)}
 .pw-plan.best{border-color:var(--accent);background:var(--soft)}
 .pw-plan[disabled]{opacity:.7;cursor:progress}
-.pw-plan[aria-disabled="true"]{cursor:default;border-style:dashed}
+.pw-plan[aria-disabled="true"]{cursor:default}
+.pw-also{font-size:14px;color:var(--muted);margin:0 0 16px}
+.pw-note a,a.link{color:var(--accent-text);text-decoration:underline;text-underline-offset:2px}
 #pw-title:focus{outline:none}
 #pw-title:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:6px}
 .pw-name{font-weight:700}
@@ -985,7 +997,7 @@ html.big body{zoom:1.125}
   .page-h{font-size:30px}
   .bristol{padding:18px 18px 24px;border-radius:var(--r-l)}
   .q{font-size:22px} .a{font-size:20px}
-  .q.q-long{font-size:17px}
+  .q.q-long{font-size:16px}
   .grades .k{display:none}
   .seg button{font-size:14px;padding:6px 4px;white-space:nowrap}
   .seg.sj-epr button{white-space:normal;line-height:1.2}
@@ -1016,7 +1028,7 @@ html.big body{zoom:1.125}
   <header class="side">
     <p class="brand"><span class="brand-mark" aria-hidden="true">B</span>Bristol EPS</p>
     <button class="conc-chip" id="conc-chip" type="button" data-act="conc-change" hidden><span class="cc-l">Mon concours</span><span class="cc-t"></span><span class="cc-x">Changer</span></button>
-    <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="vertical">
+    <nav class="nav" role="tablist" aria-label="Espaces" aria-orientation="horizontal">
       <button class="nav-btn" role="tab" id="sec-home" data-sec="home" aria-controls="area-home" aria-selected="true"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg></span><span class="nl">Accueil</span></button>
       <button class="nav-btn" role="tab" id="sec-revise" data-sec="revise" aria-controls="area-revise" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="14" rx="3"/><path d="M7 3.5h10.5a3 3 0 0 1 3 3V17"/></svg></span><span class="nl">Réviser</span></button>
       <button class="nav-btn" role="tab" id="sec-train" data-sec="train" aria-controls="area-train" aria-selected="false" tabindex="-1"><span class="ni"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14.5 7.5 3 3"/></svg></span><span class="nl">Écrire</span></button>
@@ -1762,8 +1774,8 @@ function srcHTML(c){
   const note = cnEdit === c.id
     ? `<span class="cn-edit"><label class="sr-only" for="cn-input">Ma note sur cette fiche</label><textarea id="cn-input" data-cid="${esc(c.id)}" rows="3" placeholder="Un lien avec un autre fait, un moyen mnémotechnique, une nuance…">${esc(cn)}</textarea><span class="row-btns"><button class="btn small" data-cnsave="${esc(c.id)}">Enregistrer</button><button class="btn small" data-cncancel="1">Annuler</button></span></span>`
     : `<span>Ma note : ${cn ? `<span class="cn-txt">${esc(cn)}</span>` : "aucune"} <button class="linkbtn" data-cnedit="${esc(c.id)}">${cn ? "Modifier" : "Ajouter"}</button></span>`;
-  const hist = hr.length ? `<span>Pour approfondir : ${hr.map(r => `<i>${esc(refShort(r))}</i>`).join(" ; ")}</span>` : "";
-  return `<div class="src">${src}${hist}${ref}${note}${reportHTML(c)}</div>`;
+  const hist = hr.length ? `<span>Historiographie : ${hr.map(r => `<i>${esc(refShort(r))}</i>`).join(" ; ")}</span>` : "";
+  return `<div class="src">${hist}${src}${ref}${note}${reportHTML(c)}</div>`;
 }
 function saveRef(id, v){
   v = String(v || "").trim().slice(0, 300);
@@ -2085,7 +2097,7 @@ function writingHTML(st){
     ${!any ? `<p class="goal-sub">Pas encore de mesure. ${free ? "Coche ta grille d'auto-évaluation après chaque exercice d'écriture ; avec l'accès complet, chaque retour de Claude et chaque concours blanc corrigé viennent compléter ce suivi." : "Chaque retour de Claude, chaque grille d'auto-évaluation cochée et chaque concours blanc viennent alimenter ce suivi, compétence par compétence."}</p>` : ""}
     ${weak.length || strong.length ? `<div class="sk-sum">${strong.length ? `<p><b>Points forts :</b> ${strong.map(x => esc(x.l)).join(", ")}.</p>` : ""}${weak.length ? `<p><b>À travailler :</b> ${weak.map(x => esc(x.l)).join(", ")}.</p>` : ""}</div>` : ""}
     ${w0 ? `<div class="sk-advice"><p><b>${esc(w0.l)}</b> : ${esc(skWhy(w0))}.</p><button class="btn small primary" ${tr.act}>${esc(tr.l)}</button></div>` : ""}
-    ${byE.map(([e, L]) => `<p class="rd-h">${esc(eName(e))}</p>${L.map(row).join("")}`).join("")}
+    ${!any ? `<div class="row-btns"><button class="btn small primary" data-act="me-train" data-e="${byE.length ? byE[0][0] : "e1"}">Faire mon premier plan sur un sujet</button></div>` : byE.map(([e, L]) => `<p class="rd-h">${esc(eName(e))}</p>${L.map(row).join("")}`).join("")}
     <p class="goal-sub">Mesures : les retours de Claude (ligne de bilan), tes grilles d'auto-évaluation (comptées pour moitié) et tes concours blancs. Une compétence compte pleinement à partir de 3 mesures. C'est un repère pour t'entraîner, pas une note de jury.</p>
   </div>`;
 }
@@ -2107,17 +2119,17 @@ const ACHS = [
   { id: "o7", c: "reg", t: "Sept objectifs", d: "Atteindre l'objectif du jour 7 fois.", v: () => [Object.keys(ach.g).length, 7] },
   { id: "m1", c: "mai", t: "Première maîtrise", d: "Faire monter une carte en boîte 5.", v: () => [allCards().filter(c => progress[c.id] && progress[c.id].b === 5).length, 1] },
   { id: "m50", c: "mai", t: "Cinquante", d: "Maîtriser 50 cartes.", v: () => [allCards().filter(c => progress[c.id] && progress[c.id].b === 5).length, 50] },
-  { id: "seen", c: "mai", t: "Tour complet", d: "Voir au moins une fois toutes les cartes du paquet.", v: () => [BASE.filter(c => progress[c.id]).length, BASE.length] },
-  { id: "fil", c: "mai", t: "Fil rouge tenu", d: "Maîtriser toutes les cartes d'un fil rouge.", v: () => [Math.max(0, ...FILS.map(f => { const l = filCards(f); return l.length ? Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length) : 0; })), 100], pct: true },
-  { id: "axe", c: "mai", t: "Axe bouclé", d: "Maîtriser toutes les cartes d'un axe.", v: () => [Math.max(0, ...TH_ORDER.map(k => { const l = BASE.filter(c => c.th === k); return Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length); })), 100], pct: true },
+  { id: "seen", c: "mai", t: "Tour complet", d: "Voir au moins une fois toutes les cartes de ton concours.", v: () => { const L = relCards().filter(c => !c.custom); return [L.filter(c => progress[c.id]).length, L.length]; } },
+  { id: "fil", c: "mai", on: () => relHas("e1"), t: "Fil rouge tenu", d: "Maîtriser toutes les cartes d'un fil rouge.", v: () => [Math.max(0, ...FILS.map(f => { const l = filCards(f); return l.length ? Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length) : 0; })), 100], pct: true },
+  { id: "axe", c: "mai", on: () => relHas("e1"), t: "Axe bouclé", d: "Maîtriser toutes les cartes d'un axe.", v: () => [Math.max(0, ...TH_ORDER.map(k => { const l = BASE.filter(c => c.th === k); return Math.round(100 * l.filter(c => progress[c.id] && progress[c.id].b === 5).length / l.length); })), 100], pct: true },
   { id: "rev", c: "mai", t: "Revanche", d: "Maîtriser une carte ratée au moins 3 fois.", v: () => [allCards().some(c => progress[c.id] && progress[c.id].b === 5 && (progress[c.id].l || 0) >= 3) ? 1 : 0, 1] },
-  { id: "all", c: "mai", t: "Paquet complet", d: "Maîtriser toutes les cartes du paquet.", v: () => [BASE.filter(c => progress[c.id] && progress[c.id].b === 5).length, BASE.length] },
-  { id: "fr", c: "ent", t: "Chronologiste", d: "Placer 50 événements au bon endroit dans la frise.", v: () => [games.frise.g, 50] },
-  { id: "qui", c: "ent", t: "Qui est qui", d: "Donner 50 bonnes réponses à « Qui ? ».", v: () => [games.qui.g, 50] },
+  { id: "all", c: "mai", t: "Paquet complet", d: "Maîtriser toutes les cartes de ton concours.", v: () => { const L = relCards().filter(c => !c.custom); return [L.filter(c => progress[c.id] && progress[c.id].b === 5).length, L.length]; } },
+  { id: "fr", c: "ent", on: () => relHas("e1"), t: "Chronologiste", d: "Placer 50 événements au bon endroit dans la frise.", v: () => [games.frise.g, 50] },
+  { id: "qui", c: "ent", on: () => relHas("e1"), t: "Qui est qui", d: "Donner 50 bonnes réponses à « Qui ? ».", v: () => [games.qui.g, 50] },
   { id: "w1", c: "red", t: "Première copie", d: "Rédiger un premier texte sur un sujet (plan, introduction ou paragraphe).", v: () => [Object.keys(ach.w).length, 1] },
-  { id: "wint", c: "red", t: "Introduction complète", d: "Cocher les six éléments de la grille sur une introduction.", v: () => [Math.max(0, ...SUBJECTS.map(x => chkGet(x.id).length)), 6] },
+  { id: "wint", c: "red", on: () => relHas("e1") && !isB3Conc(), t: "Introduction complète", d: "Cocher les six éléments de la grille sur une introduction.", v: () => [Math.max(0, ...SUBJECTS.map(x => chkGet(x.id).length)), 6] },
   { id: "w10", c: "red", t: "Dix paragraphes", d: "Rédiger un paragraphe argumenté sur 10 sujets différents.", v: () => [writtenBy("p:").length, 10] },
-  { id: "wax", c: "red", t: "Sur tous les fronts", d: "Travailler au moins un sujet dans chacun des trois axes.", v: () => [new Set(Object.keys(ach.w).map(k => (subjOf(k) || {}).th).filter(Boolean)).size, 3] },
+  { id: "wax", c: "red", on: () => relHas("e1") && !isB3Conc(), t: "Sur tous les fronts", d: "Travailler au moins un sujet dans chacun des trois axes.", v: () => [new Set(Object.keys(ach.w).map(k => (subjOf(k) || {}).th).filter(Boolean)).size, 3] },
   { id: "fb1", c: "red", t: "Regard extérieur", d: "Recevoir un premier retour de Claude.", v: () => [ach.f, 1] },
   { id: "bl1", c: "ent", t: "Conditions réelles", d: "Rendre une première copie de concours blanc.", v: () => [blancsDone(), 1] },
   { id: "bl5", c: "ent", t: "Endurance", d: "Rendre cinq copies de concours blanc.", v: () => [blancsDone(), 5] }
@@ -2159,17 +2171,19 @@ function readinessHTML(){
   const st = skStats(), kn = readiness(relCards()), wr = writeReadiness(st), pct = Math.round((kn + wr) / 2), rk = rankOf(pct);
   const next = RANKS[rk + 1];
   const rows = axisRows();
-  return `<div class="sect rd"><h2>Niveau de préparation</h2>
+  return `<div class="sect rd span2"><h2>Niveau de préparation</h2>
     <div class="rd-top"><div class="rd-pct"><b>${pct} %</b><span>${esc(RANKS[rk][1])}</span></div>
       <div class="rd-main"><div class="goal-bar" role="progressbar" aria-label="Niveau de préparation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
       <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes et ton écriture jusqu'au concours."} La moyenne de tes connaissances et de ton écriture : les jurys notent une copie, pas des fiches.</p></div></div>
     <div class="rd-two"><div class="rd-row rd-vol"><span>Connaissances</span><span class="rd-bar" aria-hidden="true"><span style="width:${kn}%"></span></span><b>${kn} %</b></div>
       <div class="rd-row rd-vol"><span>Écriture</span><span class="rd-bar" aria-hidden="true"><span style="width:${wr}%"></span></span><b>${wr} %</b></div></div>
-    <details class="rd-det" open><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
+    <details class="rd-det"${st.some(x => x.n) ? " open" : ""}><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
     <details class="rd-det"><summary>Connaissances, thème par thème</summary><p class="goal-sub">Une carte compte pleinement en boîte 5, partiellement avant.</p><div class="rd-rows">${rows}</div></details>
   </div>`;
 }
+const achList = () => ACHS.filter(a => !a.on || a.on());
 function achHTML(){
+  const ACHS = achList();
   const got = ACHS.filter(a => ach.u[a.id]).length;
   const fmt = t => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
   const groups = ACH_CATS.map(([c, label]) => {
@@ -2214,9 +2228,9 @@ function subjectOfDay(){ return pickDay(daySubjects("e1")); }
 const plural = (n, w) => n + " " + w + (n > 1 ? "s" : "");
 function heroHTML(){
   const g = goalInfo(), st = streaks(), myC = concById(prefs.concours);
-  const stats = `<div class="hero-stats">
+  const stats = st.cur ? `<div class="hero-stats">
       <div class="hstat"><b>${icon("flame")}${st.cur}</b><span>jour${st.cur > 1 ? "s" : ""} d'affilée</span></div>
-    </div>`;
+    </div>` : "";
   if (!g && !myC && !goalEdit) {
     return `<section class="hero" id="goal" aria-labelledby="hero-title">
       <div class="hero-top"><div><h2 class="hero-title" id="hero-title">Quel concours prépares-tu ?</h2>
@@ -2295,19 +2309,27 @@ function startNextHTML(){
 function homeTrain0(){
   const bm = blancActive();
   if (bm && blancLeft(bm) > 0 && !bl.iv) bl.iv = setInterval(blancTick, 1000);
-  const card = (ic, h, sub, btn) => `<section class="tw" aria-labelledby="tw-h"><span class="ts-ic">${icon(ic)}</span><div class="tw-tx"><h2 id="tw-h">${h}</h2><p>${sub}</p></div>${btn}</section>`;
+  const card = (ic, h, sub, btn, more) => `<section class="tw" aria-labelledby="tw-h"><span class="ts-ic">${icon(ic)}</span><div class="tw-tx"><h2 id="tw-h">${h}</h2><p>${sub}</p>${more || ""}</div>${btn}</section>`;
   if (bm) return card("clock", "Concours blanc en cours", `${esc(bm.s)} · <span id="home-blanc-left">${fmtHMS(blancLeft(bm)).replace(/ \d+ s$/, "")}</span> restantes`, `<button class="btn primary" data-act="blanc-go">Reprendre</button>`);
-  if (!ptLast() && Object.keys(progress).length < 30) return card("star", "Où en es-tu ?", `Un test de ${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.`, `<button class="btn" data-act="pt-start">Faire le test</button>`);
+  if (!ptLast() && Object.keys(progress).length < 30) return card("star", "Où en es-tu ?", `Un test de ${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.`, `<button class="btn" data-act="pt-start">Faire le test</button>`) + dayWriteHTML(card);
   const p = planWeeks(), w0 = p && p.weeks[0];
   const recent = blancList().some(m => m.start > Date.now() - 7 * DAY);
   if (w0 && !recent && w0.items.some(i => i.includes("concours blanc"))) return card("clock", "Cette semaine : un concours blanc", "Une copie complète en temps réel, comme le jour J. Garde-toi un créneau.", `<button class="btn" data-tab="blanc">Préparer</button>`);
   const wk = skWeak(), wDone0 = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
   if (wk && !wDone0) { const tr = skTrain(wk); return card("pen", "Point à travailler : " + esc(wk.l.toLowerCase()), `${esc(cap(skWhy(wk)))}. ${esc(tr.l)} pour progresser.`, `<button class="btn primary" ${tr.act}>Commencer</button>`); }
+  return dayWriteHTML(card);
+}
+/* Accueil : l'écrit du jour (sujet de ton concours ou annale, avec une remarque du jury) et la tâche d'écriture de la semaine. */
+function dayWriteHTML(card){
   const e1 = relHas("e1"), s = e1 ? subjectOfDay() : subjectOfDay2();
   if (!s) return "";
   const wDone = Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts));
-  const st = s.t.length > 200 ? s.t.slice(0, 197).replace(/\s+\S*$/, "") + "…" : s.t;
-  return card(wDone ? "check" : "pen", wDone ? "Écrit du jour fait" : s.annale ? "Un plan sur une annale" : e1 ? "Un paragraphe argumenté" : isB3Conc() ? "Une partie sur un épisode" : paraNames(true, false).l, `${esc(st)}`, `<button class="btn" data-act="home-write" data-sid="${s.id}">${wDone ? "Un autre" : "Écrire"}</button>`);
+  const cut = (t, n) => t.length > n ? t.slice(0, n - 3).replace(/\s+\S*$/, "") + "…" : t;
+  const st = cut(sjNotes(s.t).body, 200), a = s.annale && ANNALES.find(x => x.id === s.id);
+  let wk = ""; try { const p = isPremium() && hasTime() ? planWeeks() : null, w0 = p && p.weeks[0]; wk = (w0 && w0.items.find(i => /^écrit|^l'écrit|^ton écrit/i.test(i))) || ""; } catch (e) {}
+  const title = wDone ? "Écrit du jour fait" : a ? `Sujet du jour : annale ${a.y}${relHas("e1") && relHas("e2") ? ", écrit " + (a.e === "e1" ? "1" : "2") : ""}` : s.annale ? "Un plan sur une annale" : e1 ? "Un paragraphe argumenté" : isB3Conc() ? "Une partie sur un épisode" : paraNames(true, false).l;
+  const more = (a && a.j && a.j.length && !wDone ? `<p class="tw-j"><b>Le jury :</b> ${esc(cut(a.j[0], 150))}</p>` : "") + (wk && !wDone ? `<p class="tw-j"><b>Cette semaine :</b> ${esc(wk)}</p>` : "");
+  return card(wDone ? "check" : "pen", title, esc(st), `<button class="btn" data-act="home-write" data-sid="${s.id}">${wDone ? "Un autre" : "Écrire"}</button>`, more);
 }
 function quoteOfDay(){
   const qs = QUOTES.filter(x => x.text.length < 260).filter(x => { const r = x.ref && REFS.find(y => y.id === x.ref); return r ? relHas(r.g) : relHas("e1"); }); if (!qs.length) return null;
@@ -2327,7 +2349,8 @@ function buildQueue(){
   const now = Date.now();
   const cards = allCards().filter(inFilter);
   const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).sort((a, b) => progress[a.id].d - progress[b.id].d);
-  let pool = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p));
+  const y0 = { "agreg-int": 1975 }[prefs.concours], early = c => { if (!y0 || grpOf(c) !== "e1") return 0; const m = /\b(1[89]\d\d|20\d\d)\b/.exec(c.q); return m && +m[1] < y0 ? 1 : 0; };
+  let pool = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p) || early(a) - early(b));
   if (grp !== "e1") { /* écrit 2 et textes : on alterne les thèmes */
     const by = {}; pool.forEach(c => { (by[c.th] = by[c.th] || []).push(c); });
     const ls = Object.values(by), mixed = [];
@@ -2747,18 +2770,21 @@ function untilTxt(iso){ return new Date(iso + "T12:00:00").toLocaleDateString("f
 function renderPaywall(){
   const el = $("#paywall"); if (!el || !pw.open) return;
   const c = bill.cfg || {}, on = !!c.enabled, n = allCards().length, dis = pw.busy ? " disabled" : !on ? ' aria-disabled="true" aria-describedby="pw-soon"' : "";
+  const one = !!prefs.concours && ["e1", "e2"].filter(relHas).length === 1, cint = prefs.concours === "capeps-int", agr = /^agreg/.test(prefs.concours || "");
+  const ids = typeof myAnnIds === "function" ? myAnnIds() : null, nAnn = ids ? ids.size : 0;
   el.hidden = false;
   el.innerHTML = `<div class="pw-panel" role="dialog" aria-modal="true" aria-labelledby="pw-title">
     <button class="pw-x" data-act="pw-close" aria-label="Fermer">×</button>
-    <h2 id="pw-title" tabindex="-1">Prépare tous tes écrits, sans limite</h2>
+    <h2 id="pw-title" tabindex="-1">${one ? "Prépare ton écrit" : "Prépare tous tes écrits"}, sans\u00a0limite</h2>
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
-      <li>${icon("check")} Tous les écrits de ton concours : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
-      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et paragraphes, sans compteur (seule une limite d'usage raisonnable protège le service)</li>
+      <li>${icon("check")} ${one ? "Toutes les fiches de ton écrit" : "Tous les écrits de ton concours"} : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"}, sans compteur (seule une limite d'usage raisonnable protège le service)</li>
       <li>${icon("check")} Le concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative</li>
       <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps, et les rappels</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
+    ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
     <div class="pw-plans">
       <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
@@ -2822,7 +2848,7 @@ function lockHTML(g){
     <p>${list.length} fiches t'attendent sur cet écrit. En version découverte, tu révises ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p>
     <ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>
     <p>Tu peux aussi faire porter ta découverte sur cet écrit : les ${FREE_NEW} nouvelles fiches du jour viendront de lui.</p>
-    <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">Débloquer tous les écrits</button><button class="btn" data-act="free-grp" data-g="${g}">Découvrir ${g === "tx" ? "les textes officiels" : "l'" + esc(e.s.toLowerCase())} à la place</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
+    <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">${["e1", "e2"].filter(relHas).length > 1 ? "Débloquer tous les écrits" : "Débloquer toutes les fiches"}</button><button class="btn" data-act="free-grp" data-g="${g}">Découvrir ${g === "tx" ? "les textes officiels" : /^é/i.test(e.s) ? "l'" + esc(e.s.toLowerCase()) : "les " + esc(e.s.toLowerCase())} à la place</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
 }
 function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button class="btn" data-act="paywall" data-why="claude">${icon("lock")} Avoir le retour de Claude</button></div><p class="fb-note">Réservé à l'accès complet.</p></div>`; }
 function upgradeBanner(){
@@ -2875,7 +2901,16 @@ async function reportSend(form){
 }
 
 /* ---------- Rendu ---------- */
+function addFormFill(){
+  const t = $("#f-t"), p = $("#f-p"); if (!t || !p || t.dataset.c === (prefs.concours || "-")) return;
+  t.dataset.c = prefs.concours || "-";
+  t.innerHTML = EPR.filter(g => !prefs.concours || relHas(g.id)).map(g => { const th = g.th.filter(k => !(prefs.concours === "capeps-int" && g.id === "e2" && k !== "IN")); return th.length ? `<optgroup label="${esc(g.t)}">${th.map(k => `<option value="${k}">${esc(THEMES[k])}</option>`).join("")}</optgroup>` : ""; }).join("") + `<option value="">${NONE_T}</option>`;
+  t.value = "";
+  p.innerHTML = (concPer() || PERIODS).concat([NONE_P]).map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  p.value = NONE_P; p.parentElement.hidden = !!prefs.concours && !relHas("e1");
+}
 function renderFilters(){
+  addFormFill();
   const target = view === "revise" ? "#filters-revise" : view === "deck" ? "#filters-deck" : null;
   $("#filters-deck").hidden = view !== "deck" || !!dq;
   const dsw = $("#deck-search-wrap"); if (dsw) dsw.hidden = view !== "deck";
@@ -2885,9 +2920,9 @@ function renderFilters(){
   if (fs) fs.textContent = themeLabel(theme) + (grp === "e1" ? ", " + (period === "Toutes" ? "toutes les périodes" : period) : "");
   const cards = allCards();
   const opt = (v, l, n) => `<option value="${esc(v)}"${v === theme ? " selected" : ""}>${esc(l)} (${n})</option>`;
-  const inG = cards.filter(c => grpOf(c) === grp);
+  const inG = cards.filter(c => grpOf(c) === grp && (!prefs.concours || inConc(c)));
   const tHTML = opt("Tous", "Tous les thèmes", inG.length)
-    + eprOf(grp).th.map(k => opt(k, THEMES[k], inG.filter(c => c.th === k).length)).join("")
+    + eprOf(grp).th.filter(k => k === theme || inG.some(c => c.th === k)).map(k => opt(k, THEMES[k], inG.filter(c => c.th === k).length)).join("")
     + (inG.some(c => c.custom) ? opt("Mes cartes", "Mes cartes", inG.filter(c => c.custom).length) : "")
     + (inG.some(c => isFav(c.id)) || theme === "Favoris" ? opt("Favoris", "Mes favoris", inG.filter(c => isFav(c.id)).length) : "");
   const gSel = target === "#filters-deck" ? `<div><label for="fg-d">Épreuve</label><select id="fg-d" data-fsel="grp">${EPR.filter(e => !prefs.concours || relHas(e.id)).map(e => `<option value="${e.id}"${e.id === grp ? " selected" : ""}>${esc(e.t)}</option>`).join("")}</select></div>` : "";
@@ -2964,7 +2999,7 @@ function renderReviseSide(){
   el.innerHTML = `<div class="side-card"><h2>${esc(eprOf(grp).t)}</h2><div class="side-stats">
       <div><b>${x.due}</b><span>à revoir</span></div>
       <div><b>${x.left}</b><span>nouvelles</span></div>
-      <div><b>${x.n}</b><span>découvertes</span></div></div>
+      <div><b>${x.n}</b><span>déjà vues</span></div></div>
       <p class="goal-sub" style="margin-top:10px">${today.a || 0} réponse${(today.a || 0) > 1 ? "s" : ""} aujourd'hui, toutes épreuves confondues.</p></div>
     ${!isPremium() ? `<div class="side-card"><h2>Objectif quotidien</h2><p class="goal-sub">Version découverte : ${FREE_NEW} nouvelles fiches par jour sur un écrit.</p><button class="btn small primary" data-act="paywall" data-why="new">Réviser sans limite</button></div>` : `<div class="side-card"><h2>Objectif quotidien</h2>
       <label for="goal-np" class="goal-sub" style="font-weight:400">Nouvelles cartes par jour et par épreuve</label>
@@ -3165,7 +3200,7 @@ function newFrise(){
 }
 function renderFrise(){
   if (!fr.items.length) newFrise();
-  const chips = friseEras().map(([k, l]) => `<button class="chip" data-era="${k}" aria-pressed="${k === fr.era}">${esc(l)}</button>`).join("");
+  const chips = friseEras().length < 2 ? "" : friseEras().map(([k, l]) => `<button class="chip" data-era="${k}" aria-pressed="${k === fr.era}">${esc(l)}</button>`).join("");
   let body;
   if (!fr.checked) {
     body = `<p class="lead">Touche les événements du plus ancien au plus récent. Touche un événement déjà numéroté pour reprendre à partir de lui.</p>
@@ -3178,7 +3213,7 @@ function renderFrise(){
       <ol class="frise-list">${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<li class="fr-res"><span class="yr">${e.y}</span><span>${esc(e.t)}</span><span class="verdict ${ok ? "ok" : "ko"}">${ok ? "Bien placé" : "Tu l'avais mis en n° " + (fr.picks.indexOf(i) + 1)}</span></li>`; }).join("")}</ol>
       <div class="row-btns actions"><button class="btn primary" data-act="fr-new">Nouvelle frise</button></div>`;
   }
-  $("#panel-frise").innerHTML = `<div class="chips era-chips" aria-label="Période de la frise">${chips}</div>
+  $("#panel-frise").innerHTML = `${chips ? `<div class="chips era-chips" role="group" aria-label="Période de la frise">${chips}</div>` : ""}
     ${fr.total ? `<p class="scoreline">Cette session : ${fr.good} / ${fr.total} événements bien placés</p>` : ""}${body}`;
 }
 function newQui(){
@@ -3854,7 +3889,7 @@ function fbBlock(s, kind){
   if (STANDALONE && !isPremium() && !codeGet()) return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-trial" data-kind="${kind}"${busy ? " disabled" : ""}>Avoir mon retour offert sur ${what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
     <p class="fb-note">Un retour de Claude t'est offert pour essayer, avec un compte gratuit. Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
-  return `<div class="fb"><div class="row-btns"><button class="btn" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
+  return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
     ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
 }
@@ -3950,7 +3985,7 @@ function drawSubject(){
   const P = sjPools(sj.epr);
   if (sj.src === "ann" && !P.ann.length) sj.src = "own";
   if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
-  const pool = sj.src === "ann" ? P.ann.map(annSubject) : P.own.filter(s => sj.axe === "Tous" || s.th === sj.axe);
+  const pool = sj.src === "ann" ? P.ann.map(annSubject) : P.own.filter(s => sjThIs(s, sj.axe));
   const others = pool.filter(s => !sj.cur || s.id !== sj.cur.id);
   const list = others.length ? others : pool;
   sj.cur = list[Math.floor(Math.random() * list.length)] || null; sj.shown = false;
@@ -3966,7 +4001,9 @@ function renderSujets(){
   const eprList = [["e1", sjPools("e1").l], ["e2", sjPools("e2").l]].filter(([k]) => relHas(k));
   const eprChips = eprList.length < 2 ? "" : `<div class="seg sj-epr" role="tablist" aria-label="Écrit">${eprList.map(([k, l]) => `<button role="tab" data-sjepr="${k}" aria-selected="${k === sj.epr}"${k === sj.epr ? "" : ' tabindex="-1"'}>${esc(l)}</button>`).join("")}</div>`;
   const srcChips = P.own.length && P.ann.length ? `<div class="chips sj-src" role="group" aria-label="Source des sujets"><button class="chip" data-sjsrc="own" aria-pressed="${sj.src === "own"}">Sujets d'entraînement (${P.own.length})</button><button class="chip" data-sjsrc="ann" aria-pressed="${sj.src === "ann"}">Annales officielles (${P.ann.length})</button></div>` : "";
-  const axeList = [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"]).map(k => [k, THEMES[k]]));
+  const thSeen = new Set();
+  const axeList = [["Tous", e2 ? "Tous les thèmes" : "Tous les axes"]].concat((e2 ? (b3 ? ["AM","EF","EX","DA"] : ["AM","EF","EX","DA","IN"]) : ["T","G","D"])
+    .filter(k => P.own.some(x => x.th === k)).map(k => [k, sjThName(k)]).filter(([, l]) => !thSeen.has(l) && thSeen.add(l)));
   const axeChips = sj.src === "ann" ? "" : `<div class="chips era-chips" role="group" aria-label="Thème des sujets">` + axeList.map(([k, l]) => `<button class="chip" data-sjaxe="${k}" aria-pressed="${k === sj.axe}">${esc(l)}</button>`).join("") + `</div>`;
   /* Source et thème des sujets : repliés dans « Choisir le sujet », comme le filtre de Réviser. */
   const fSum = [srcChips ? (sj.src === "ann" ? "Annales officielles" : "Sujets d'entraînement") : "", axeChips ? (axeList.find(([k]) => k === sj.axe) || axeList[0])[1] : ""].filter(Boolean).join(" · ");
@@ -3990,7 +4027,7 @@ function renderSujets(){
       : sj.mode === "intro"
       ? `<p class="lead">Tire un sujet et rédige son introduction en temps limité : enjeu, notions définies et reliées, problématique, prise en compte du contexte, annonce du plan.</p>`
       : `<p class="lead">${SUBJECTS2.length} sujets d'entraînement à la composition de l'écrit 2, chacun avec un contexte d'établissement et des épisodes de classe. Construis ta problématique et ton plan, puis affiche les connaissances utiles.</p>`)
-      + (prefs.concours === "agreg-int" ? `<p class="sj-help">Ces sujets suivent le format de la composition du CAPEPS (un contexte court et des épisodes), pas celui de l'agrégation interne (une citation, un dossier d'établissement et une classe) : ils servent à travailler l'analyse et les propositions. Pour le format exact, prends les annales.</p>` : "")
+
       : sj.mode === "para"
       ? `<p class="lead">Tire un sujet et rédige un seul paragraphe argumenté, la brique de base de la dissertation : une idée, un argument, un exemple précis et daté, une nuance, un lien au sujet. Compte une quinzaine de minutes.</p>`
       : sj.mode === "intro"
@@ -4027,14 +4064,14 @@ function renderSujets(){
         ${gridHTML(s, "plan", "pl-" + s.id, isB3Conc() ? "La grille du jury 2026" : "Ta grille d'auto-évaluation")}
         ${fbBlock(s, "plan")}`;
     }
-    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + THEMES[s.th])}</span></div><p class="q${s.t.length > 400 ? " q-long" : ""}">${esc(s.t)}</p>${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : s.annale && annSrc(annOf(s)) && !annDossier(annOf(s)) ? `<p class="sj-help"><a href="${esc(annSrc(annOf(s)))}" target="_blank" rel="noopener">Ouvrir le sujet officiel complet</a></p>` : ""}</article>
+    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + sjThName(s.th))}</span></div>${sjTxtHTML(s.t, "q" + (s.t.length > 400 ? " q-long" : ""))}${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : s.annale && annSrc(annOf(s)) && !annDossier(annOf(s)) ? `<p class="sj-help"><a href="${esc(annSrc(annOf(s)))}" target="_blank" rel="noopener">Ouvrir le sujet officiel complet</a></p>` : ""}</article>
       ${dossierHTML(s)}
       ${juryBoxHTML(s.epr)}
       ${work}
       ${sj.shown
         ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
-        : `<div class="row-btns actions" style="margin-top:16px"><button class="btn primary" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
+        : `<div class="row-btns actions" style="margin-top:16px"><button class="btn" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
   $("#panel-sujets").innerHTML = `<div class="chips era-chips" role="group" aria-label="Axe des sujets">${chips}</div>${modes}${body}
     <p class="sj-help">${sj.cur && sj.cur.annale ? "Sujet officiel de concours. Le retour de Claude est un premier regard, pas le corrigé du jury : relis aussi le rapport du jury dans l'onglet Annales." : (sj.cur && isB3(sj.cur) ? "Sujet conçu par Bristol EPS sur le modèle du sujet officiel de 2026 ; ce n'est pas un sujet de concours." : !sj.cur && sj.src === "ann" ? "Sujets officiels de ton concours. Le retour de Claude est un premier regard, pas le corrigé du jury." : "Ces sujets sont écrits pour l'entraînement ; ce ne sont pas des sujets officiels.")} Les cartes proposées sont des points d'appui, pas un plan.</p>`;
@@ -4395,7 +4432,7 @@ function renderTest(){
   const myC = concById(prefs.concours);
   if (!pt.on || !pt.qs.length) {
     const last = ptLast();
-    el.innerHTML = `<div class="pt"><p class="period">Test de positionnement</p><h2 class="pt-h">Où en es-tu ?</h2>
+    el.innerHTML = `<div class="pt"><h2 class="pt-h">Où en es-tu ?</h2>
       <p class="lead">${PT_N} questions tirées des fiches ${myC ? "de ton concours (" + esc(myC.t) + ")" : "des trois écrits"}, réparties sur tous les thèmes. Environ 3 minutes.</p>
       <ul class="pt-how"><li>Réponds sans chercher : « Je ne sais pas » vaut mieux qu'une réponse au hasard.</li><li>À la fin : ton niveau par thème et tes priorités.</li><li>Les fiches réussies comptent comme vues : tu ne repars pas de zéro.</li></ul>
       ${last ? `<p class="hint">Dernier test le ${esc(new Date(last.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : ${last.ok} sur ${last.n}.</p>` : ""}
@@ -4580,12 +4617,16 @@ const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
 const CPROF = {
   "capeps-l3": { e1: { l: "Écrit 1 : questions", own: () => SUBJECTS_B1, ann: a => a.co === "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : épisodes", own: () => SUBJECTS_B2, ann: a => a.co === "CAPEPS externe bac+3" } },
-  "capeps-m2": { e1: { l: "Écrit 1 : dissertation", own: () => SUBJECTS, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" } },
+  "capeps-m2": { e1: { l: "Écrit 1 : dissertation", own: () => SUBJECTS, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2.filter(x => x.th !== "IN"), ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" } },
   "capeps-int": { e2: { l: "Écrit : étude de cas", own: () => [], ann: a => a.f === "cint" } },
   "agreg-ext": { e1: { l: "Écrit 1 : APSA et civilisations", own: () => [], ann: a => a.f === "aext" }, e2: { l: "Écrit 2 : développement de la personne", own: () => [], ann: a => a.f === "aext" } },
-  "agreg-int": { e1: { l: "Écrit 1 : dissertation", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "aint" } }
+  "agreg-int": { e1: { l: "Écrit 1 : dissertation", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => [], ann: a => a.f === "aint" } }
 };
 CPROF["capeps-3"] = CPROF["capeps-l3"];
+/* Intitulé d'un thème de sujet : celui du programme du concours quand il existe (CAPEPS transitoire). */
+const SJ_TH_PROG = { "capeps-m2": { AM: 0, EF: 1, DA: 2, EX: 2 } };
+function sjThName(k){ const m = SJ_TH_PROG[prefs.concours], c = m && concById(prefs.concours); return m && c && m[k] != null && c.prog[1] ? c.prog[1].i[m[k]] : THEMES[k]; }
+const sjThIs = (s, k) => k === "Tous" || s.th === k || (!!SJ_TH_PROG[prefs.concours] && SJ_TH_PROG[prefs.concours][s.th] != null && SJ_TH_PROG[prefs.concours][s.th] === SJ_TH_PROG[prefs.concours][k]);
 function sjPools(e){
   const x = (CPROF[prefs.concours] || {})[e];
   if (!x) return { l: e === "e2" ? "Écrit 2 : composition" : "Écrit 1 : dissertation", own: e === "e2" ? SUBJECTS2 : SUBJECTS, ann: ANNALES.filter(a => annE(a, e)) };
@@ -6638,16 +6679,20 @@ function annCards(a){
     .filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]).slice(0, 12).map(([c]) => c.id);
   return scored;
 }
+/* Énoncé officiel : l'appel de note « ¹ [¹ source] » du PDF devient une note en petit, sous le texte. */
+function sjNotes(t){ const notes = []; const body = String(t || "").replace(/\s*\[([¹²³])\s*([^\]]+)\]\.?/g, (m, k, n) => { notes.push(k + " " + n.trim()); return ""; }); return { body, notes }; }
+function sjTxtHTML(t, cls){ const x = sjNotes(t); return `<p class="${cls}">${esc(x.body).replace(/([¹²³])/g, "<sup>$1</sup>")}</p>${x.notes.map(n => `<p class="q-note">${esc(n)}</p>`).join("")}`; }
 function annSubject(a){
   return { id: a.id, th: a.e === "e1" ? "T" : "IN", epr: a.e === "e1" ? "e1" : "e2", t: a.t, c: annCards(a), axe: "Sujet d'annale", annale: true,
-    label: `Annale : ${a.co}, session ${a.y}, ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}` };
+    label: `Annale : ${annCo(a)}, session ${a.y}, ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}` };
 }
-function annHTML(a){
+const annCo = a => a.f === "cext" && a.co === "CAPEPS externe" ? "CAPEPS externe bac+5" : a.co;
+function annHTML(a, mine){
   const long = a.t.length > 420;
   const ep = a.e === "e1" ? "Écrit 1" : a.e === "e2" ? "Écrit 2" : "Écrit";
   return `<li class="ann">
-    <div class="ann-h"><span class="ann-y">${a.y}</span><span class="period">${esc(a.co)}</span><span class="ann-e">${ep}</span></div>
-    ${long ? `<p class="ann-t">${esc(a.t.slice(0, 380).replace(/\s+\S*$/, ""))}…</p><details class="ann-more"><summary>Lire le sujet complet</summary><p class="ann-t">${esc(a.t)}</p></details>` : `<p class="ann-t">${esc(a.t)}</p>`}
+    <div class="ann-h"><span class="ann-y">${a.y}</span>${mine ? "" : `<span class="period">${esc(annCo(a))}</span>`}<span class="ann-e">${ep}</span></div>
+    ${long ? `<p class="ann-t">${esc(sjNotes(a.t).body.slice(0, 380).replace(/\s+\S*$/, ""))}…</p><details class="ann-more"><summary>Lire le sujet complet</summary>${sjTxtHTML(a.t, "ann-t")}</details>` : sjTxtHTML(a.t, "ann-t")}
     ${a.j.length ? `<details class="ann-jury"><summary>Ce que le jury a relevé (${a.j.length})</summary><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
     <div class="ann-f"><a href="${esc(a.src[1])}" target="_blank" rel="noopener">Sujet</a>${a.ju ? `<a href="${esc(a.ju)}" target="_blank" rel="noopener">Rapport du jury</a>` : ""}<button class="btn small" data-annwork="${a.id}">M'entraîner sur ce sujet</button></div>
   </li>`;
@@ -6668,8 +6713,9 @@ function renderAnnales(){
     : ANN_FAM.map(([k, l]) => `<button class="chip" data-anf="${k}" aria-pressed="${k === an.f}">${esc(l)}</button>`).join("") + (fam ? `<button class="linkbtn" data-act="an-mine">Revenir à mon concours</button>` : "");
   $("#an-ep").innerHTML = an.f === "cint" ? "" : [["tous", "Tous les écrits"], ["e1", "Écrit 1"], ["e2", "Écrit 2"]].map(([k, l]) => `<button class="chip" data-ane="${k}" aria-pressed="${k === an.e}">${esc(l)}</button>`).join("");
   $("#an-count").textContent = `${list.length} sujet${list.length > 1 ? "s" : ""}`;
-  const years = Array.from(new Set(list.map(a => a.y)));
-  $("#an-list").innerHTML = list.length ? years.map(y => `<div class="sect"><h2>Session ${y}</h2><ul class="ann-list">${list.filter(a => a.y === y).map(annHTML).join("")}</ul></div>`).join("")
+  const years = Array.from(new Set(list.map(a => a.y))), mine = !!own && !an.all;
+  $("#an-list").innerHTML = list.length ? (years.length > 3 ? `<nav class="chips an-years" aria-label="Aller à une session">${years.map(y => `<button class="chip" data-any="${y}">${y}</button>`).join("")}</nav>` : "")
+    + years.map(y => `<div class="sect" id="an-y${y}"><h2>Session ${y}</h2><ul class="ann-list">${list.filter(a => a.y === y).map(a => annHTML(a, mine)).join("")}</ul></div>`).join("")
     : `<div class="empty"><h2>Aucun sujet trouvé.</h2><p>Change de concours ou d'écrit, ou cherche un autre mot.</p></div>`;
 }
 
@@ -7424,7 +7470,7 @@ function blancTick(){
 function blancSubjHTML(m, s){
   if (!s) return `<p class="lead">Sujet introuvable.</p>`;
   const a = s.a;
-  return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${a.co}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div><p class="q${s.t.length > 400 ? " q-long" : ""}">${esc(s.t)}</p>
+  return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${annCo(a)}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div>${sjTxtHTML(s.t, "q" + (s.t.length > 400 ? " q-long" : ""))}
     ${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}
     ${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
     ${a && a.e !== "e1" ? `<p class="sj-help">${a.f === "aext" ? "Le texte complet du sujet officiel" : a.f === "cext" ? "Le dossier du sujet officiel (contexte, documents, épisodes)" : "Le dossier du sujet officiel (établissement, classe, documents)"} n'est pas reproduit ici${a.src ? ` : <a href="${esc(Array.isArray(a.src) ? a.src[1] : a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
@@ -7510,12 +7556,13 @@ function blancHomeHTML(){
   return `<div class="blanc-setup">
     <p class="lead">Le sujet est tiré au sort au moment de commencer. Le chrono continue même si tu fermes la page ; à la fin du temps, la copie est rendue d'office.</p>
     <fieldset class="blanc-f"><legend>Épreuve</legend><div class="chips">${es.map(x => `<button class="chip" data-blk="${x.k}" aria-pressed="${x.k === bl.k}">${esc(x.s)}${x.h ? ` · ${x.h} h` : ""}</button>`).join("")}</div></fieldset>
-    <fieldset class="blanc-f"><legend>Sujet</legend><div class="chips">${nAnn ? `<button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort (${nAnn})</button>` : ""}${nOwn ? `<button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement (${nOwn})</button>` : ""}</div></fieldset>
+    ${nAnn && nOwn ? `<fieldset class="blanc-f"><legend>Sujet</legend><div class="chips"><button class="chip" data-blsrc="ann" aria-pressed="${bl.src === "ann"}">Annale tirée au sort (${nAnn})</button><button class="chip" data-blsrc="sub" aria-pressed="${bl.src === "sub"}">Sujet d'entraînement (${nOwn})</button></div></fieldset>`
+      : `<p class="sj-help"><b>Sujet :</b> ${nAnn ? `une annale de ton concours tirée au sort parmi ${nAnn}` : `un sujet d'entraînement tiré au sort parmi ${nOwn}`}.</p>`}
     ${STANDALONE ? `<fieldset class="blanc-f"><legend>Copie</legend><div class="chips"><button class="chip" data-blpaper="0" aria-pressed="${!bl.paper}">Au clavier</button><button class="chip" data-blpaper="1" aria-pressed="${bl.paper}">Sur papier, comme le jour J</button></div>${bl.paper ? `<p class="sj-help">Tu composes sur tes feuilles ; à la fin, tu photographies tes pages et Claude corrige ta copie manuscrite.</p>` : ""}</fieldset>` : ""}
-    <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div></fieldset>
+    <fieldset class="blanc-f"><legend>Durée</legend><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip" data-blh="${n}" aria-pressed="${n === h}">${n} h${n === hOff ? " (épreuve)" : ""}</button>`).join("")}</div><p class="sj-help">${hOff ? `L'épreuve dure ${hOff} h. Moins pour t'entraîner par étapes, plus si tu as un temps majoré.` : "Choisis la durée de ton épreuve."}</p></fieldset>
     ${concById(prefs.concours) ? "" : `<p class="sj-help">Choisis ton concours pour avoir ses épreuves, leurs durées et ses annales. <button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button></p>`}
     ${bl.ask && isPremium() ? `<div class="bl-ask" role="alertdialog" aria-labelledby="bl-ask-h" aria-describedby="bl-ask-d"><p id="bl-ask-h"><b>Lancer une épreuve de ${h} h ?</b></p><p id="bl-ask-d">Le sujet est tiré au sort au moment de commencer. Le chrono ne s'arrête plus, même si tu fermes la page : à la fin du temps, la copie est rendue d'office.${bl.paper ? " Prépare tes feuilles avant de commencer." : ""}</p><div class="row-btns"><button class="btn primary" data-act="blanc-start" data-ok="1">Commencer maintenant</button><button class="btn" id="bl-no" data-act="blanc-nostart">Pas maintenant</button></div></div>`
-      : `<div class="row-btns actions"><button class="btn primary" data-act="blanc-start">${isPremium() ? "" : icon("lock") + " "}Commencer : ${h} h</button></div>`}
+      : `<div class="row-btns actions"><button class="btn${isPremium() ? " primary" : ""}" data-act="blanc-start">${isPremium() ? `Commencer : ${h} h` : icon("lock") + " Débloquer le concours blanc"}</button></div>`}
     ${juryBoxHTML(bl.k === "e1" ? "e1" : "e2")}
   </div>
   ${blancsDone() ? `<div class="sect"><h2>Ma progression</h2>${blancChartsHTML()}</div>` : ""}
@@ -7636,10 +7683,9 @@ function renderStats(){
   const byP = !relHas("e1") ? "" : (concPer() || PERIODS).map(p => barRow(p, bucket(cards.filter(c => c.p === p)))).join("");
   $("#panel-stats").innerHTML = `<div class="stats-grid">
     ${startHTML()}
-    ${readinessHTML()}
-    ${(() => { const c = concById(prefs.concours); return c ? coverageHTML(c, { mine: true, span: true }) : ""; })()}
-    ${(() => { const t = ptLast(); return `<div class="sect pt-box"><h2>Test de positionnement</h2>${t ? `<p class="lead">Le ${esc(new Date(t.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : <b>${t.ok} sur ${t.n}</b>.${ptPriorities(t.by || {}).length ? " Priorités : " + ptPriorities(t.by).map(esc).join(" et ") + "." : ""}</p>` : `<p class="lead">${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.</p>`}<div class="row-btns"><button class="btn" data-act="pt-start">${t ? "Refaire le test" : "Faire le test"}</button></div></div>`; })()}
     ${planHTML()}
+    ${readinessHTML()}
+    ${(() => { const t = ptLast(); return `<div class="sect pt-box"><h2>Test de positionnement</h2>${t ? `<p class="lead">Le ${esc(new Date(t.t).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))} : <b>${t.ok} sur ${t.n}</b>.${ptPriorities(t.by || {}).length ? " Priorités : " + ptPriorities(t.by).map(esc).join(" et ") + "." : ""}</p>` : `<p class="lead">${PT_N} questions, environ 3 minutes : ton niveau par thème et tes priorités.</p>`}<div class="row-btns"><button class="btn" data-act="pt-start">${t ? "Refaire le test" : "Faire le test"}</button></div></div>`; })()}
     ${weekHTML(false)}
     ${heatmapHTML()}
     ${forecastHTML()}
@@ -7648,10 +7694,10 @@ function renderStats(){
     <div class="sect span2"><div class="kpis">
       <div class="kpi"><b>${seen} / ${cards.length}</b><span>cartes déjà vues</span></div>
       <div class="kpi"><b>${reviews}</b><span>réponses données en séance</span></div>
-      <div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
-      <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>
+      ${relHas("e1") ? `<div class="kpi"><b>${pct(games.frise.g, games.frise.t)}</b><span>bien placés en frise (${games.frise.t} événements)</span></div>
+      <div class="kpi"><b>${pct(games.qui.g, games.qui.t)}</b><span>bonnes réponses à « Qui ? » (${games.qui.t} question${games.qui.t > 1 ? "s" : ""})</span></div>` : ""}
     </div></div>
-    <details class="fold span2"><summary>Mes succès (${ACHS.filter(a => ach.u[a.id]).length} sur ${ACHS.length})</summary>${achHTML()}</details>
+    <details class="fold span2"><summary>Mes succès (${achList().filter(a => ach.u[a.id]).length} sur ${achList().length})</summary>${achHTML()}</details>
     <details class="fold span2"><summary>Détail par thème${byP ? " et par période" : ""}</summary><div class="fold-grid">
     <p class="legend-row"><span><i class="sw m"></i>Maîtrisées (boîte 5)</span><span><i class="sw c"></i>En cours (boîtes 1 à 4)</span><span><i class="sw e"></i>Jamais vues</span></p>
     <div class="sect"><h2>Par thème</h2>${byTh}</div>
@@ -7719,7 +7765,7 @@ addEventListener("resize", () => subnavEnds());
 function render(focusActions){
   setTimeout(subnavEnds, 0);
   eprApply();
-  if (prefs.concours && typeof relHas === "function" && !relHas(grp)) { const g = ["e1", "e2", "tx"].find(relHas); if (g) setGrp(g); }
+  if (prefs.concours && typeof relHas === "function" && !relHas(grp)) { const g = ["e1", "e2", "tx"].find(relHas); if (g) { setGrp(g); if (!cram) { done = 0; buildQueue(); } } }
   const gate = !prefs.concours;
   document.documentElement.classList.toggle("gate", gate);
   if (gate) { view = "home"; welcomeOpen = true; if (!$("#welcome .w-gate")) renderWelcome(); }
@@ -7728,6 +7774,8 @@ function render(focusActions){
   const sec = SEC_OF[view];
   const wl = $("#welcome"); if (wl) wl.hidden = !(typeof welcomeOpen !== "undefined" && welcomeOpen && view === "home");
   SECS.forEach(s => { $("#area-" + s).hidden = s !== sec; const b = $("#sec-" + s); b.setAttribute("aria-selected", String(s === sec)); b.tabIndex = s === sec ? 0 : -1; });
+  const ht = $("#home-title"); if (ht) ht.textContent = view === "test" ? "Test de positionnement" : "Accueil";
+  const nv = $(".nav"); if (nv && typeof matchMedia === "function") nv.setAttribute("aria-orientation", matchMedia("(min-width:960px)").matches ? "vertical" : "horizontal");
   VIEWS.forEach(v => { $("#panel-" + v).hidden = v !== view; const t = $("#tab-" + v); if (t) { t.setAttribute("aria-selected", String(v === view)); t.tabIndex = v === view ? 0 : -1; } });
   $("#intro-train").textContent = SEC_OF[view] === "train" ? INTROS[view] || "" : "";
   const ir = $("#intro-revise"); if (ir) ir.textContent = SEC_OF[view] === "revise" ? INTROS[view] || "" : "";
@@ -7754,7 +7802,7 @@ function render(focusActions){
 }
 /* Carte retournée : le focus va sur la réponse (lue par les lecteurs d'écran), pas sur « Raté » :
    une touche Entrée par réflexe ne note rien. Les touches 1, 2, 3 et Tab restent disponibles. */
-function flipFocus(){ const a = $("#panel-revise .bristol .a"); if (a) { a.setAttribute("tabindex", "-1"); a.focus({ preventScroll: true }); } }
+function flipFocus(){ const a = $("#panel-revise .bristol .a"); if (a) { a.setAttribute("tabindex", "-1"); a.focus({ preventScroll: true }); if (typeof matchMedia === "function" && matchMedia("(max-width:959px)").matches) { const r = a.closest(".reveal"); try { (r || a).scrollIntoView({ block: "end", behavior: "smooth" }); } catch (e) {} } } }
 let toastTimer;
 function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = false; t.onclick = () => { t.hidden = true; }; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms || 2600); }
 
@@ -7796,6 +7844,7 @@ document.addEventListener("click", e => {
   if (d.onb) {
     const fresh = !Object.keys(progress).length;
     const c = chooseConcours(d.onb === "none" ? "" : d.onb); if (fresh) renderWelcome(); else hideWelcome();
+    try { window.scrollTo({ top: 0 }); const w = $("#welcome"); if (w) w.scrollTop = 0; } catch (e) {}
     if (!fresh) toast(c ? `C'est noté : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
     const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
   }
@@ -7806,6 +7855,7 @@ document.addEventListener("click", e => {
   if (d.act === "me-train") { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.e === "e2" ? "e2" : "e1"; sj.axe = "Tous"; sj.cur = null; setView("sujets"); return; }
   if (d.act === "an-all") { an.all = true; an.f = "tous"; renderAnnales(); return; }
   if (d.act === "an-mine") { an.all = false; an.f = ANN_FAM_OF_CONC[prefs.concours] || "tous"; renderAnnales(); return; }
+  if (d.any) { const t = $("#an-y" + d.any); if (t) { t.scrollIntoView({ behavior: "smooth", block: "start" }); const h = t.querySelector("h2"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } return; }
   if (d.anf) { an.f = d.anf; renderAnnales(); const b = document.querySelector(`[data-anf="${d.anf}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.ane) { an.e = d.ane; renderAnnales(); const b = document.querySelector(`[data-ane="${d.ane}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.blk) { bl.k = d.blk; bl.h = null; renderBlanc(); const b = $(`[data-blk="${d.blk}"]`); if (b) b.focus({ preventScroll: true }); return; }

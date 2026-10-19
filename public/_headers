@@ -1,6 +1,6 @@
 # Fichier écrit par build.py : ne pas modifier à la main.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-SUGQdKEl8z4adbNMYHEvanXIxxIgpvhy9Q8qGfGXFY4=' 'sha256-rxGULr6dXwtJdRGOhN4xjTkbUsXOrBDSBUA7uIlISbg=' 'sha256-xIZ71nEsgWr5yfCR0Ox5Gs7oHxVwLkILKP2BZsDmxT0='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-rxGULr6dXwtJdRGOhN4xjTkbUsXOrBDSBUA7uIlISbg=' 'sha256-ufVg5v7p1C+vyD13EBoScVgHhnS/s0f8Rgen8P6jzRg=' 'sha256-z6ez/xEbmNfb93Hgans5R4O7MIGapfqFOu0WK14baYA='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

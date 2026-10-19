@@ -78,7 +78,9 @@ p{margin:0;text-wrap:pretty}
 .fiche::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--accent);border-radius:3px 3px 0 0}
 
 /* ---------- Ouverture : la fiche posée sur le champ vert ---------- */
-.hero{min-height:100svh;background:var(--field);display:grid;place-items:center;padding:var(--m)}
+.hero{min-height:100svh;background:var(--field);display:grid;place-items:center;gap:32px;padding:var(--m)}
+.hero-shot{width:min(260px,72%);height:auto;border-radius:20px;box-shadow:0 30px 60px -30px rgba(0,0,0,.45)}
+@media (min-width:1180px){ .hero{grid-template-columns:minmax(0,920px) 280px;justify-content:center;gap:56px} .hero-shot{width:280px;transform:rotate(2.5deg)} }
 .hero-card{width:min(100%,920px);aspect-ratio:1.42;padding:clamp(28px,3.4vw,52px);display:grid;grid-template-rows:auto 1fr auto;gap:clamp(20px,2.4vw,32px)}
 .hero h1{font-size:var(--step-display);padding-top:6px;max-width:11ch}
 .hero-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,3vw,48px);align-content:start}
@@ -104,7 +106,7 @@ p{margin:0;text-wrap:pretty}
 .dt{list-style:none;margin:clamp(64px,8vw,120px) 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:64px 24px}
 .dt a{display:block;text-decoration:none;min-width:150px}
 .dt b{display:block;font:400 var(--step-head)/.9 var(--f-display);font-variant-numeric:tabular-nums}
-.dt span{display:block;margin-top:12px;font-size:var(--step-body);max-width:17ch;line-height:1.3}
+.dt span{display:block;margin-top:12px;font-size:var(--step-body);max-width:28ch;line-height:1.35}
 .dt span strong{font-weight:600}
 @media (hover:hover) and (pointer:fine){ .dt a:hover b{color:var(--accent-text)} }
 @media (max-width:760px){ .dates-top{display:block} .dates-note{margin-top:20px} .dt{display:grid;grid-template-columns:1fr 1fr;gap:32px 16px} }
@@ -162,7 +164,7 @@ p{margin:0;text-wrap:pretty}
 .mo-bar span{display:block;height:100%;background:var(--ink);transform-origin:left;transform:scaleX(.15)}
 .mo-row{display:flex;gap:32px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--m);padding:40px var(--m) 8px;scrollbar-width:none}
 .mo-row::-webkit-scrollbar{display:none}
-.mo{flex:0 0 280px;scroll-snap-align:start;display:flex;flex-direction:column}
+.mo{flex:0 0 340px;scroll-snap-align:start;display:flex;flex-direction:column}
 .mo h3{font:700 var(--step-body)/1.25 var(--f-text);letter-spacing:0}
 .mo p{margin-top:8px;font-size:var(--step-body);line-height:1.45;min-height:5.8em}
 .mo figure{margin:0}
@@ -171,13 +173,13 @@ p{margin:0;text-wrap:pretty}
 
 /* ---------- Vérifié dans les textes : la liste imprimée ---------- */
 .proof{background:var(--deep);padding:clamp(96px,10vw,150px) 0 0;overflow:hidden;max-height:min(1180px,190svh)}
-.proof-card{width:min(56vw,860px);margin:0 auto;padding:56px;transform:rotate(-1.4deg);text-align:center;min-height:1100px}
+.proof-card{width:min(56vw,860px);margin:0 auto;padding:56px 56px 112px;transform:rotate(-1.4deg);text-align:center}
 .proof h2{font-size:var(--step-head)}
 .proof figure{margin:40px 0}
 .proof img{width:100%;aspect-ratio:16/9;object-fit:cover;object-position:left top}
 .names{font-size:var(--step-body);line-height:1.75;margin:0 auto;max-width:46ch}
 .proof .after{margin:32px auto 0;max-width:46ch;font-size:var(--step-body)}
-@media (max-width:760px){ .proof-card{width:92%;padding:40px 22px;transform:rotate(-1deg);min-height:1000px} }
+@media (max-width:760px){ .proof-card{width:92%;padding:40px 22px 88px;transform:rotate(-1deg)} }
 
 /* ---------- Les prix, comme un menu ---------- */
 .price{padding:clamp(110px,12vw,180px) var(--m)}
@@ -212,15 +214,15 @@ p{margin:0;text-wrap:pretty}
 details[open] .chev{transform:rotate(180deg)}
 .faq details p{margin-top:10px;font-size:var(--step-body);line-height:1.5;max-width:52ch}
 .faq-go{margin-top:48px;display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
-.faq-r{position:relative;margin-top:-1px;padding-bottom:80px}
-.vid-pause{position:absolute;z-index:2;bottom:96px;right:12px;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--ink);color:var(--paper);font:600 var(--step-small)/1 var(--f-text);cursor:pointer}
-@media (max-width:860px){ .vid-pause{right:28px} }
-.faq-r .tall{width:100%;max-width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;object-position:top;display:block;background:var(--paper)}
-.faq-r .sq{position:absolute;left:-40px;bottom:-24px;width:40%;aspect-ratio:1;object-fit:cover;object-position:top;outline:8px solid var(--tone)}
-@media (max-width:860px){ .faq{grid-template-columns:minmax(0,1fr);padding:0} .faq-r{order:-1;padding:0 16px} .faq-r .tall{aspect-ratio:4/5} .faq-r .sq{left:auto;right:28px;bottom:-24px;width:38%} .faq-l{padding:72px 16px 88px} .faq-go .btn{width:100%} }
+.faq-r{position:relative;display:flex;align-items:center;justify-content:center;padding:clamp(80px,9vw,140px) 0}
+.vid-pause{position:absolute;z-index:2;bottom:clamp(20px,3vw,40px);left:50%;transform:translateX(-50%);min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--ink);color:var(--paper);font:600 var(--step-small)/1 var(--f-text);cursor:pointer}
+@media (max-width:860px){ .vid-pause{bottom:auto;top:12px} }
+.faq-r .tall{width:min(340px,62%);height:auto;aspect-ratio:3/4;object-fit:cover;object-position:top;display:block;background:var(--paper);border-radius:28px;box-shadow:0 32px 60px -36px rgba(40,28,20,.45)}
+.faq-r .sq{position:relative;z-index:1;align-self:flex-end;width:min(200px,34%);height:auto;aspect-ratio:780/976;margin:0 0 -32px -56px;object-fit:cover;object-position:top;border-radius:16px;outline:8px solid var(--tone)}
+@media (max-width:860px){ .faq{grid-template-columns:minmax(0,1fr);padding:0} .faq-r{order:-1;padding:56px 16px 32px} .faq-r .tall{width:min(300px,68%)} .faq-r .sq{width:34%;margin:0 0 -16px -40px} .faq-l{padding:72px 16px 88px} .faq-go .btn{width:100%} }
 
 /* ---------- La carte-réponse ---------- */
-.reply{background:var(--deep);color:var(--deep-ink);min-height:80svh;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;padding:clamp(96px,10vw,140px) var(--m) 0;overflow:hidden}
+.reply{background:var(--deep);color:var(--deep-ink);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;padding:clamp(72px,7vw,110px) var(--m) 0;overflow:hidden}
 .reply-p{grid-column:1 / span 4;align-self:end;margin-bottom:64px;font-size:var(--step-lead);line-height:1.35;color:var(--deep-ink)}
 .reply-card{grid-column:6 / span 7;align-self:end;margin-bottom:-60px;aspect-ratio:1.4;padding:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:rotate(2deg)}
 .reply-card h2{font-size:var(--step-head);max-width:13ch}
@@ -230,7 +232,7 @@ details[open] .chev{transform:rotate(180deg)}
 @media (max-width:860px){ .reply{display:block;padding:88px 16px 0;min-height:0} .reply-p{margin:0 0 40px} .reply-card{width:90%;margin:0 auto -40px;transform:rotate(1deg);aspect-ratio:auto;padding:40px 22px} .reply-card .btn{min-height:52px} }
 
 /* ---------- Le dos de la fiche ---------- */
-.back{background:var(--deep);color:var(--deep-ink);padding:clamp(160px,14vw,200px) var(--m) 0;overflow:hidden}
+.back{background:var(--deep);color:var(--deep-ink);padding:clamp(120px,10vw,160px) var(--m) 0;overflow:hidden}
 .back-card{max-width:1100px;margin:0 auto;padding:64px 56px 28px;display:grid;grid-template-columns:1fr 1fr;gap:72px 64px}
 .back-card h2{font-size:var(--step-head)}
 .back-card .msg{margin-top:16px;font-size:var(--step-body);max-width:40ch}
@@ -241,7 +243,7 @@ details[open] .chev{transform:rotate(180deg)}
 .stamp{position:absolute;right:0;top:0;width:88px;padding:6px;background:var(--bg);transform:rotate(3deg)}
 .stamp img{aspect-ratio:3/4;object-fit:cover;object-position:top}
 .imprint{grid-column:1 / -1;align-self:end;text-align:center;font-size:var(--step-small);color:var(--muted)}
-.wordmark{font:400 clamp(4rem,1rem + 15vw,15rem)/.8 var(--f-display);letter-spacing:-.02em;color:var(--deep-ink);margin:48px 0 0;white-space:nowrap;text-align:center;transform:translateY(.12em)}
+.wordmark{font:400 clamp(4rem,1rem + 15vw,15rem)/.8 var(--f-display);letter-spacing:-.02em;color:var(--deep-ink);margin:48px 0 0;white-space:nowrap;text-align:center;padding-bottom:.14em}
 @media (max-width:860px){ .back{padding:150px 16px 0} .back-card{grid-template-columns:1fr;padding:44px 22px 22px} .back-r{padding-right:0} .back-r{position:static} .stamp{position:static;display:block;width:72px;margin:20px 0 0;transform:rotate(2deg)} }
 
 /* ---------- Mouvement : entrées, une fois ; rien ne reste caché sans script ---------- */
@@ -260,7 +262,7 @@ details[open] .chev{transform:rotate(180deg)}
     .drift{animation:drift linear both;animation-timeline:view();animation-range:entry 0% exit 100%}
     @keyframes drift{from{transform:translateY(-4%) scale(1.06)}to{transform:translateY(4%) scale(1.06)}}
     .wordmark{animation:mark linear both;animation-timeline:view();animation-range:entry 0% cover 60%}
-    @keyframes mark{from{transform:translateY(.5em)}to{transform:translateY(.12em)}}
+    @keyframes mark{from{transform:translateY(.4em)}to{transform:none}}
   }
 }
 @keyframes rise{to{opacity:1;transform:none}}
@@ -287,6 +289,7 @@ details[open] .chev{transform:rotate(180deg)}
         <a class="link" href="#tarifs">Tarifs</a>
       </div>
     </article>
+    <img class="hero-shot" src="/img/m-reponse.webp" width="780" height="976" alt="Une fiche retournée dans l’application : la question, la réponse et les boutons Raté, Hésité, Su." fetchpriority="high">
   </section>
 
   <section class="dates" aria-labelledby="h-dates">
@@ -303,7 +306,7 @@ details[open] .chev{transform:rotate(180deg)}
       <ul class="ledger">
         <li data-reveal><b>{{CARDS}}</b><p>fiches : {{E1}} pour l’écrit 1, {{E2}} pour l’écrit 2 et {{TX}} sur les textes officiels.</p></li>
         <li data-reveal><b>{{ANN}}</b><p>sujets d’annales, de {{ANN_MIN}} à {{ANN_MAX}}, avec ce que les rapports de jury en ont dit.</p></li>
-        <li data-reveal><b>{{SUBJ}}</b><p>sujets d’entraînement au format de ton concours, corrigés par Claude selon la grille du jury.</p></li>
+        <li data-reveal><b>{{SUBJ}}</b><p>sujets d’entraînement aux formats du CAPEPS externe (bac+3 et transitoire), relus par Claude selon la grille du jury. Pour le CAPEPS interne et les agrégations, l’entraînement se fait sur les annales.</p></li>
         <li data-reveal><b>{{REFS}}</b><p>références à placer en copie, chacune avec son idée clé.</p></li>
         <li data-reveal><b>{{FILS}}</b><p>fils rouges qui relient les faits, de la fin du XIXe siècle à aujourd’hui.</p></li>
         <li data-reveal><b>90</b><p>pour cent : la probabilité de souvenir sous laquelle une fiche revient. Jamais après la date de ton concours.</p></li>
@@ -328,7 +331,7 @@ details[open] .chev{transform:rotate(180deg)}
       </div>
       <div>
         <h2 id="h-try" data-reveal>Essaie une fiche</h2>
-        <p class="desc" data-reveal style="--i:1">Ce sont de vraies fiches du site. Dans l’application, tu dis ensuite si tu savais : la fiche revient dans dix minutes, dans quelques jours ou dans quelques semaines.</p>
+        <p class="desc" data-reveal style="--i:1">Ce sont de vraies fiches du site ; les textes officiels servent à tous les concours, CAPEPS interne compris. Dans l’application, tu dis ensuite si tu savais : la fiche revient dans dix minutes, dans quelques jours ou dans quelques semaines.</p>
       </div>
       <div class="cells">
         <button type="button" class="c1" id="demo-flip">Retourner la fiche</button>
@@ -344,20 +347,20 @@ details[open] .chev{transform:rotate(180deg)}
     </div>
     <div class="mo-bar" aria-hidden="true"><span id="mo-bar"></span></div>
     <div class="mo-row" id="mo-row" role="region" aria-label="Les moments d’une préparation" tabindex="0">
-      <article class="mo" data-reveal><h3>Le premier jour</h3><p>Tu choisis ton concours. Un test de douze questions situe ton niveau, thème par thème.</p><figure style="margin-top:40px"><img src="/img/m-test.webp" width="780" height="976" alt="Écran du test de positionnement : « Où en es-tu ? », douze questions tirées des fiches de ton concours." loading="lazy"></figure></article>
-      <article class="mo" data-reveal style="--i:1"><h3>Chaque matin</h3><p>Le compte à rebours et la séance du jour, calculée d’après la date de tes écrits.</p><figure style="margin-top:112px"><img src="/img/m-accueil.webp" width="780" height="976" alt="Écran d’accueil : J-138 avant les écrits du 2 mars 2027 et 17 jours d’affilée." loading="lazy"></figure></article>
+      <article class="mo" data-reveal><h3>Le premier jour</h3><p>Tu choisis ton concours. Un test de douze questions situe ton niveau, thème par thème.</p><figure style="margin-top:40px"><img src="/img/m-test.webp" width="780" height="976" alt="Le test de positionnement réglé sur le CAPEPS interne : une question sur l’école inclusive, tirée des fiches de ce concours." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:1"><h3>Chaque matin</h3><p>Le compte à rebours et la séance du jour, calculée d’après la date de tes écrits.</p><figure style="margin-top:112px"><img src="/img/m-accueil.webp" width="780" height="976" alt="L’accueil réglé sur l’agrégation interne : le compte à rebours jusqu’aux écrits de janvier 2027." loading="lazy"></figure></article>
       <article class="mo" data-reveal style="--i:2"><h3>Face à la fiche</h3><p>Tu cherches la réponse avant de retourner. C’est cet effort de rappel qui fait retenir.</p><figure style="margin-top:72px"><img src="/img/m-question.webp" width="780" height="976" alt="Une fiche : « Que prévoit la loi Falloux (1850) pour la gymnastique ? »" loading="lazy"></figure></article>
       <article class="mo" data-reveal style="--i:3"><h3>Une fois retournée</h3><p>Raté, hésité ou su : la fiche revient dans dix minutes, quelques jours ou quelques semaines.</p><figure style="margin-top:136px"><img src="/img/m-reponse.webp" width="780" height="976" alt="La réponse retournée, avec les trois boutons Raté, Hésité et Su." loading="lazy"></figure></article>
-      <article class="mo" data-reveal style="--i:4"><h3>Devant un sujet</h3><p>À côté de chaque sujet, ce que le jury attend, avec les rapports qui le disent.</p><figure style="margin-top:56px"><img src="/img/m-jury.webp" width="780" height="976" alt="L’encadré « Ce que le jury attend », avec les années des rapports cités." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:4"><h3>Devant un sujet</h3><p>À côté de chaque sujet, ce que le jury attend, avec les rapports qui le disent.</p><figure style="margin-top:56px"><img src="/img/m-jury.webp" width="780" height="976" alt="L’encadré « Ce que le jury attend » à l’agrégation externe, avec les années des rapports cités." loading="lazy"></figure></article>
       <article class="mo" data-reveal style="--i:5"><h3>Pour fixer les dates</h3><p>La frise et le quiz « Qui ? » remettent les réformes et les auteurs dans l’ordre.</p><figure style="margin-top:96px"><img src="/img/m-frise.webp" width="780" height="976" alt="La frise : remettre cinq événements dans l’ordre chronologique." loading="lazy"></figure></article>
-      <article class="mo" data-reveal style="--i:6"><h3>En fin de semaine</h3><p>Ton niveau par thème du programme, et ce qu’il reste à voir avant les écrits.</p><figure style="margin-top:80px"><img src="/img/m-progres.webp" width="780" height="976" alt="Le niveau de préparation : 22 %, puis le niveau par thème de l’écrit 1." loading="lazy"></figure></article>
+      <article class="mo" data-reveal style="--i:6"><h3>En fin de semaine</h3><p>Ton niveau par thème du programme, et ce qu’il reste à voir avant les écrits.</p><figure style="margin-top:80px"><img src="/img/m-progres.webp" width="780" height="976" alt="Le niveau de préparation après quelques séances : connaissances et écriture." loading="lazy"></figure></article>
     </div>
   </section>
 
   <section class="proof" aria-labelledby="h-proof">
     <article class="proof-card fiche" data-reveal>
       <h2 id="h-proof">Vérifié dans les textes</h2>
-      <figure><img class="drift" src="/img/proof-src.webp" width="810" height="456" alt="Une fiche retournée dans l’application : la réponse, son complément et la ligne « Vérifié avec », qui donne la source." loading="lazy"></figure>
+      <figure><img class="drift" src="/img/proof-src.webp" width="810" height="456" alt="Une fiche retournée dans l’application : la réponse, son complément, l’historiographie et la ligne « Vérifié avec », qui donne la source : la loi du 15 mars 1850, article 23." loading="lazy"></figure>
       <p class="names">Pierre&nbsp;Arnaud · Jacques&nbsp;Thibault · Jacques&nbsp;Ulmann · Jacques&nbsp;Defrance · Jacques&nbsp;Gleyse · Michaël&nbsp;Attali et Jean&nbsp;Saint-Martin · Alain&nbsp;Hébrard · Annick&nbsp;Davisse et Catherine&nbsp;Louveau · Didier&nbsp;Delignières · les rapports de jury de 2015 à 2026 · le Bulletin officiel · Roediger et Karpicke · Cepeda · Dunlosky</p>
       <p class="after">Au dos de chaque fiche d’histoire, la source qui a servi à la vérifier, ou la mention qu’elle reste à recouper. Claude relit ce que tu écris ; il n’écrit ni les fiches ni les sujets.</p>
     </article>
@@ -365,7 +368,7 @@ details[open] .chev{transform:rotate(180deg)}
 
   <section class="price" id="tarifs" aria-labelledby="h-price">
     <div class="price-g">
-      <div class="price-h"><h2 id="h-price" data-reveal>Les prix</h2><img src="/img/m-accueil.webp" width="780" height="976" alt="L’accueil de l’application : le compte à rebours jusqu’aux écrits et la série de jours." loading="lazy" data-reveal style="--i:1"></div>
+      <div class="price-h"><h2 id="h-price" data-reveal>Les prix</h2><img src="/img/m-accueil.webp" width="780" height="976" alt="L’accueil de l’application, réglé sur l’agrégation interne : le compte à rebours jusqu’aux écrits." loading="lazy" data-reveal style="--i:1"></div>
       <div class="price-l">
         <div class="grp" data-reveal>
           <h3>Bristol EPS</h3>
@@ -475,7 +478,7 @@ draw(false);
 const today = new Date(); today.setHours(0, 0, 0, 0);
 $("dates-body").innerHTML = CONC.map((c, i) => {
   const n = Math.round((new Date(c.d + "T00:00:00") - today) / 864e5);
-  return `<li data-reveal style="--i:${i}"><a href="/app/?concours=${encodeURIComponent(c.id)}"><b>${n > 0 ? "J-" + n : "Passés"}</b><span><strong>${esc(c.t)}</strong>, ${esc(c.ecrits)}</span></a></li>`;
+  return `<li data-reveal style="--i:${i}"><a href="/app/?concours=${encodeURIComponent(c.id)}"><b>${n > 0 ? "J-" + n : "Passés"}</b><span><strong>${esc(c.t)}</strong>, ${esc(c.ecrits.replace(/^Entre /, "entre "))}</span></a></li>`;
 }).join("");
 if (Date.now() < INSC_END) $("dates-note").textContent = "Choisis ton concours : tout le site se règle dessus. Inscriptions sur Cyclades jusqu’au 25 novembre 2026 à 12 h. Dates relevées dans les textes officiels ; seule ta convocation fait foi.";
 
