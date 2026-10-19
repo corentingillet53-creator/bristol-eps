@@ -99,7 +99,7 @@ vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["
 # première fiche d'essai écrites dans la page ; le script les remplace ensuite.
 import html as _html
 _h = _html.escape
-vals["DATES_HTML"] = "".join(f'<li><a href="/app/?concours={c["id"]}"><span><strong>{_h(c["t"])}</strong>, {_h(c["ecrits"])}</span></a></li>' for c in conc)
+vals["DATES_HTML"] = "".join(f'<li><a href="/app/?concours={c["id"]}"><span><strong>{_h(c["t"])}</strong>, {_h(re.sub(r"^Entre ", "entre ", c["ecrits"]))}</span></a></li>' for c in conc)
 _d0 = next(c for c in demo if c["g"] == "e1")
 vals.update({"DEMO_Q": _h(_d0["q"]), "DEMO_A": _h(_d0["a"]), "DEMO_TH": _h(_d0["th"]), "DEMO_P": _h(_d0["p"] or _d0["e"]), "SITE_URL": SITE_URL})
 land_src = (here / "source" / "landing.html").read_text(encoding="utf-8")
