@@ -1,0 +1,3 @@
+# Fichier écrit par build.py.
+User-agent: *
+Disallow: /api/

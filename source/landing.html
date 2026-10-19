@@ -3,15 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Bristol EPS : réviser les écrits du CAPEPS et de l’agrégation d’EPS</title>
-<meta name="description" content="Fiches à répétition espacée, annales avec les rapports de jury, retours de Claude selon la grille du jury et concours blancs, pour les écrits du CAPEPS et des agrégations d’EPS.">
+<title>CAPEPS et agrégation d’EPS 2027 : réviser les écrits | Bristol EPS</title>
+<meta name="description" content="Réviser les écrits du CAPEPS (externe, interne, 3e concours) et des agrégations d’EPS, session 2027 : fiches à répétition espacée, annales et rapports de jury, retours de Claude selon la grille du jury, concours blancs. Gratuit pour commencer.">
+<!-- Retiré par build.py quand INDEXER = True (lancement du site). -->
 <meta name="robots" content="noindex">
+<link rel="canonical" href="{{SITE_URL}}/">
 <meta name="theme-color" content="#456f3a" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#2b3f25" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Bristol EPS : réviser les écrits d’EPS">
+<meta property="og:site_name" content="Bristol EPS">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="{{SITE_URL}}/">
+<meta property="og:title" content="Bristol EPS : réviser les écrits du CAPEPS et de l’agrégation d’EPS">
 <meta property="og:description" content="Une fiche à la fois : fiches, annales, sujets corrigés selon les rapports de jury, concours blancs.">
-<meta property="og:image" content="/img/revise.webp">
+<meta property="og:image" content="{{SITE_URL}}/img/partage.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Bristol EPS : réviser les écrits d’EPS, CAPEPS et agrégations, session 2027.">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{{LD_JSON}}</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -287,7 +297,7 @@ details[open] .chev{transform:rotate(180deg)}
       <h2 id="h-dates" data-reveal>Session 2027</h2>
       <p class="dates-note" id="dates-note" data-reveal style="--i:1">Choisis ton concours : tout le site se règle dessus, des épreuves au format des sujets. Dates relevées dans les textes officiels ; seule ta convocation fait foi.</p>
     </div>
-    <ol class="dt" id="dates-body" aria-label="Premiers écrits de chaque concours"></ol>
+    <ol class="dt" id="dates-body" aria-label="Premiers écrits de chaque concours">{{DATES_HTML}}</ol>
   </section>
 
   <section class="stats" aria-labelledby="h-stats">
@@ -307,10 +317,10 @@ details[open] .chev{transform:rotate(180deg)}
   <section class="try" id="essai" aria-labelledby="h-try">
     <div class="try-plate">
       <article class="demo fiche" id="demo" aria-live="polite">
-        <p class="demo-q" id="demo-q"></p>
-        <p class="demo-a" id="demo-a" hidden></p>
+        <p class="demo-q" id="demo-q">{{DEMO_Q}}</p>
+        <p class="demo-a" id="demo-a" hidden>{{DEMO_A}}</p>
         <p class="demo-h" id="demo-h">Cherche la réponse dans ta tête avant de retourner la fiche.</p>
-        <p class="demo-th"><span id="demo-th"></span><span id="demo-p"></span></p>
+        <p class="demo-th"><span id="demo-th">{{DEMO_TH}}</span><span id="demo-p">{{DEMO_P}}</span></p>
       </article>
     </div>
     <div class="try-side">

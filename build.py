@@ -10,6 +10,14 @@ here = pathlib.Path(__file__).resolve().parent
 src = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else here / "source" / "bristol-eps.html"
 page = src.read_text(encoding="utf-8")
 
+# Référencement. SITE_URL : adresse publique, reprise dans l'adresse canonique, le partage,
+# le sitemap et llms.txt (à changer le jour où le site a son nom de domaine).
+# INDEXER : False tant que le site n'est pas lancé ; True retire le « noindex » de la page
+# d'accueil et annonce le sitemap dans robots.txt. L'application (/app/) et les pages
+# légales restent hors index dans tous les cas.
+SITE_URL = "https://bristol-eps.corentin-gillet53.workers.dev"
+INDEXER = False
+
 head = """<!doctype html>
 <html lang="fr">
 <head>
@@ -87,12 +95,38 @@ vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["
         "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
         "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
         "DEMO_JSON": json.dumps(demo, ensure_ascii=False), "CONC_JSON": json.dumps(conc, ensure_ascii=False)}
-land = self_host_fonts((here / "source" / "landing.html").read_text(encoding="utf-8"))
+# Lu sans JavaScript (robots des assistants IA, aperçus de liens) : dates des écrits et
+# première fiche d'essai écrites dans la page ; le script les remplace ensuite.
+import html as _html
+_h = _html.escape
+vals["DATES_HTML"] = "".join(f'<li><a href="/app/?concours={c["id"]}"><span><strong>{_h(c["t"])}</strong>, {_h(re.sub(r"^Entre ", "entre ", c["ecrits"]))}</span></a></li>' for c in conc)
+_d0 = next(c for c in demo if c["g"] == "e1")
+vals.update({"DEMO_Q": _h(_d0["q"]), "DEMO_A": _h(_d0["a"]), "DEMO_TH": _h(_d0["th"]), "DEMO_P": _h(_d0["p"] or _d0["e"]), "SITE_URL": SITE_URL})
+land_src = (here / "source" / "landing.html").read_text(encoding="utf-8")
+# Données structurées (schema.org) : le site, l'application et la FAQ, reprise des <details> de la page.
+_txt = lambda h: _html.unescape(re.sub(r"<[^>]+>", "", h)).strip()
+faq = [{"@type": "Question", "name": _txt(q), "acceptedAnswer": {"@type": "Answer", "text": _txt(a)}}
+       for q, a in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", land_src, re.S)]
+assert faq, "FAQ introuvable dans landing.html"
+_desc = _html.unescape(re.search(r'<meta name="description" content="([^"]+)"', land_src).group(1))
+ld = {"@context": "https://schema.org", "@graph": [
+    {"@type": "WebSite", "@id": SITE_URL + "/#site", "name": "Bristol EPS", "url": SITE_URL + "/", "inLanguage": "fr-FR", "description": _desc},
+    {"@type": "WebApplication", "name": "Bristol EPS", "url": SITE_URL + "/app/", "applicationCategory": "EducationalApplication",
+     "operatingSystem": "Web", "inLanguage": "fr-FR", "isAccessibleForFree": True, "description": _desc,
+     "audience": {"@type": "EducationalAudience", "educationalRole": "student",
+                  "audienceType": "Candidats aux concours du CAPEPS et de l’agrégation d’EPS"},
+     "about": [c["t"] for c in conc]},
+    {"@type": "FAQPage", "mainEntity": faq}]}
+vals["LD_JSON"] = json.dumps(ld, ensure_ascii=False).replace("</", "<\\/")
+land = self_host_fonts(land_src)
+if INDEXER:
+    land, _n = re.subn(r'<!-- Retiré par build.py[^>]*-->\n<meta name="robots" content="noindex">\n', "", land)
+    assert _n == 1, "noindex de la page d'accueil introuvable"
 for k, v in vals.items(): land = land.replace("{{" + k + "}}", str(v))
 assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
 lout = here / "public" / "index.html"
 lout.write_text(land, encoding="utf-8")
-print("Écrit :", lout, {k: v for k, v in vals.items() if not k.endswith("JSON")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
+print("Écrit :", lout, {k: v for k, v in vals.items() if k in ("CARDS", "E1", "E2", "TX", "REFS", "ANN", "ANN_MIN", "ANN_MAX", "SUBJ", "FILS")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
 
 # Pages légales : source/legal/*.html (titre, description, corps), champs de l'éditeur dans
 # source/legal/editeur.json. Une page statique par fichier, sans script, servie à /<nom>/.
@@ -144,6 +178,56 @@ for _f in sorted((here / "source" / "legal").glob("*.html")):
     _o.write_text(LEGAL_HEAD.replace("{meta}", _meta) + _body + "</main>\n</body>\n</html>\n", encoding="utf-8")
 print("Pages légales :", ", ".join("/" + f.stem + "/" for f in sorted((here / "source" / "legal").glob("*.html"))),
       ("; champs à compléter dans source/legal/editeur.json : " + ", ".join(_todo)) if _todo else "")
+
+# robots.txt, sitemap.xml et llms.txt. Avant le lancement, l'exploration reste permise : un
+# robot doit pouvoir lire le « noindex » pour garder la page hors index (un Disallow l'en empêcherait).
+robots = "# Fichier écrit par build.py.\nUser-agent: *\nDisallow: /api/\n"
+if INDEXER: robots += f"\nSitemap: {SITE_URL}/sitemap.xml\n"
+(here / "public" / "robots.txt").write_text(robots, encoding="utf-8")
+(here / "public" / "sitemap.xml").write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{SITE_URL}/</loc><lastmod>{_d.isoformat()}</lastmod></url>
+</urlset>
+""", encoding="utf-8")
+# llms.txt (https://llmstxt.org) : la présentation du site en Markdown, pour les assistants IA.
+# Tarifs repris de la page d'accueil, chiffres et dates des données de l'application.
+_grp = land_src[land_src.index("<h3>Bristol EPS</h3>"):land_src.index("<h3>Ailleurs</h3>")]
+_prix = [(_txt(n), _txt(p), _txt(d)) for n, p, d in re.findall(r'<p class="item-r">(.*?) <b>(.*?)</b></p><p>(.*?)</p>', _grp)]
+assert len(_prix) == 3, _prix
+llms = f"""# Bristol EPS
+
+> Site de révision des épreuves écrites du CAPEPS et de l’agrégation d’EPS (éducation physique et sportive), session 2027, conçu par un enseignant d’EPS. Fiches à répétition espacée, annales avec les rapports de jury, sujets d’entraînement relus par Claude selon la grille du jury, concours blancs. Gratuit pour commencer, sans inscription. En français.
+
+Bristol EPS ne remplace pas une préparation : c’est l’entraînement de tous les jours, entre les cours et les copies corrigées. Les oraux ne sont pas encore traités.
+
+## Concours couverts (écrits de la session 2027)
+
+""" + "\n".join(f"- {c['t']} ({c['tag']}) : {c['ecrits']}" for c in conc) + f"""
+
+Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.
+
+## Contenu
+
+- {vals['CARDS']} fiches : {vals['E1']} pour l’écrit 1, {vals['E2']} pour l’écrit 2, {vals['TX']} sur les textes officiels ; au dos de chaque fiche d’histoire, la source qui a servi à la vérifier, ou la mention qu’elle reste à recouper.
+- {vals['ANN']} sujets d’annales, de {vals['ANN_MIN']} à {vals['ANN_MAX']}, avec ce que les rapports de jury en ont dit.
+- {vals['SUBJ']} sujets d’entraînement au format de chaque concours ; Claude relit l’introduction, le plan ou un paragraphe selon les critères du jury.
+- {vals['REFS']} références d’auteurs à citer, {vals['FILS']} fils rouges historiques, un test de positionnement, un planning jusqu’aux écrits, des concours blancs.
+- Fonctionne sur téléphone et ordinateur, même hors connexion.
+
+## Tarifs
+
+""" + "\n".join(f"- {n} : {p}. {d}" for n, p, d in _prix) + f"""
+
+Le paiement en ligne n’est pas encore ouvert : la version découverte est gratuite.
+
+## Liens
+
+- [Page de présentation]({SITE_URL}/)
+- [Application]({SITE_URL}/app/)
+- [Mentions légales]({SITE_URL}/mentions-legales/)
+"""
+(here / "public" / "llms.txt").write_text(llms, encoding="utf-8")
+print("Écrit : robots.txt, sitemap.xml, llms.txt", "(site indexable)" if INDEXER else "(noindex conservé jusqu'au lancement)")
 
 # En-têtes de sécurité (public/_headers). La politique de contenu (CSP) n'autorise que les
 # scripts du site : les deux pages ont des scripts en ligne, autorisés par leur empreinte

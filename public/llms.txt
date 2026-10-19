@@ -1,0 +1,38 @@
+# Bristol EPS
+
+> Site de révision des épreuves écrites du CAPEPS et de l’agrégation d’EPS (éducation physique et sportive), session 2027, conçu par un enseignant d’EPS. Fiches à répétition espacée, annales avec les rapports de jury, sujets d’entraînement relus par Claude selon la grille du jury, concours blancs. Gratuit pour commencer, sans inscription. En français.
+
+Bristol EPS ne remplace pas une préparation : c’est l’entraînement de tous les jours, entre les cours et les copies corrigées. Les oraux ne sont pas encore traités.
+
+## Concours couverts (écrits de la session 2027)
+
+- CAPEPS externe (Bac+3, nouveau concours) : 2 et 3 mars 2027
+- CAPEPS externe transitoire (Bac+5, dernière session en 2027) : 2 et 3 mars 2027
+- CAPEPS interne (Pour les agents publics en poste) : 29 janvier 2027
+- Troisième concours du CAPEPS (Pour une reconversion depuis le privé) : 2 et 3 mars 2027
+- Agrégation externe d’EPS (Bac+5) : Entre le 17 février et le 5 mars 2027 (dates de l’EPS pas encore publiées)
+- Agrégation interne d’EPS (Pour les enseignants titulaires) : Entre le 25 et le 29 janvier 2027 (dates de l’EPS pas encore publiées)
+
+Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.
+
+## Contenu
+
+- 359 fiches : 165 pour l’écrit 1, 154 pour l’écrit 2, 40 sur les textes officiels ; au dos de chaque fiche d’histoire, la source qui a servi à la vérifier, ou la mention qu’elle reste à recouper.
+- 83 sujets d’annales, de 2015 à 2026, avec ce que les rapports de jury en ont dit.
+- 42 sujets d’entraînement au format de chaque concours ; Claude relit l’introduction, le plan ou un paragraphe selon les critères du jury.
+- 69 références d’auteurs à citer, 8 fils rouges historiques, un test de positionnement, un planning jusqu’aux écrits, des concours blancs.
+- Fonctionne sur téléphone et ordinateur, même hors connexion.
+
+## Tarifs
+
+- Découverte : gratuit. Cinq nouvelles fiches par jour sur l’écrit de ton choix, les annales et les rapports de jury, et un retour de Claude offert. Sans inscription.
+- Pass session 2027 : 80 €. En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, les retours de Claude sans compteur, le concours blanc corrigé, même écrit sur papier.
+- Mensuel : 15 €. Par mois, sans engagement : le même accès complet.
+
+Le paiement en ligne n’est pas encore ouvert : la version découverte est gratuite.
+
+## Liens
+
+- [Page de présentation](https://bristol-eps.corentin-gillet53.workers.dev/)
+- [Application](https://bristol-eps.corentin-gillet53.workers.dev/app/)
+- [Mentions légales](https://bristol-eps.corentin-gillet53.workers.dev/mentions-legales/)
