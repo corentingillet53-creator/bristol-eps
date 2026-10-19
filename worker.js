@@ -5,6 +5,8 @@
 // - /api/report : signalement d'une erreur sur une fiche ;
 // - /api/waitlist : adresse laissée pour être prévenu de l'ouverture du paiement ;
 // - /api/push/* : abonnement aux rappels quotidiens (envoyés par le cron, scheduled) ;
+// - /api/event, /api/stats, /api/result : mesure d'audience anonyme (compteurs du parcours, sans cookie)
+//   et résultats du concours déclarés par les candidats ;
 // - tout le reste est servi depuis le dossier public (fichiers statiques).
 import { onRequestGet, onRequestPost } from "./functions/api/feedback.js";
 import { isAccountRoute, handleAccount, purgeExpiredSessions } from "./functions/api/account.js";
@@ -12,6 +14,7 @@ import { isPushRoute, handlePush, runDaily } from "./functions/api/push.js";
 import { handleReport } from "./functions/api/report.js";
 import { handleWaitlist } from "./functions/api/waitlist.js";
 import { purgeUsage } from "./functions/api/usage.js";
+import { handleEvent } from "./functions/api/event.js";
 import { isBillingRoute, handleBilling } from "./functions/api/billing.js";
 
 /* Réponses de l'API : mêmes en-têtes de base que les fichiers statiques (public/_headers). */
@@ -36,6 +39,7 @@ async function route(request, env, ctx, url) {
   if (isPushRoute(url.pathname)) return handlePush(request, env);
   if (url.pathname === "/api/report") return handleReport(request, env);
   if (url.pathname === "/api/waitlist") return handleWaitlist(request, env);
+  if (url.pathname === "/api/event" || url.pathname === "/api/stats" || url.pathname === "/api/result") return handleEvent(request, env, url.pathname);
   if (isBillingRoute(url.pathname)) return handleBilling(request, env);
   return env.ASSETS.fetch(request);
 }

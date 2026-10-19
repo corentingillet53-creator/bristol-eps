@@ -43,7 +43,7 @@ Dans Cloudflare : **Workers & Pages → bristol-eps → Settings → Variables a
 | `PRICE_IN` / `PRICE_OUT` | prix du modèle en dollars par million de jetons, pour le calcul du coût | Texte (facultatif, 2 et 10) |
 | `TRIAL_PER_IP` | essais gratuits de retour par connexion internet et par jour | Texte (facultatif, 3) |
 | `CODE_MAX_USES` | nombre maximal de comptes par code d'accès | Texte (facultatif, 30) |
-| `ADMIN_TOKEN` | jeton (16 caractères au moins) pour lire le diagnostic de `/api/feedback` | **Secret** (facultatif) |
+| `ADMIN_TOKEN` | jeton (16 caractères au moins) pour lire le diagnostic de `/api/feedback` et le parcours des candidats (`/api/stats`) | **Secret** (facultatif) |
 | `ANTHROPIC_WORKSPACE_ID` | ID de l'espace de travail de la console, **seulement** si ta clé n'est rattachée à aucun espace de travail | Texte (facultatif) |
 
 Mets bien les deux premières en **Secret** : elles restent ainsi cachées et ne sont jamais effacées par un nouveau déploiement.
@@ -64,6 +64,7 @@ Déjà en place : la table D1 `usage` tient l'usage raisonnable (coût réel par
    - `quotaStore: false` : la liaison KV manque (étape 3).
    - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse (avec le même en-tête) : `"keyAndModel":"ok"` signifie que tout est bon.
 3. Sur le site, va dans **Écrire → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
+4. Parcours des candidats (mesure anonyme, sans cookie) et résultats déclarés après les écrits : ouvre `https://bristol-eps.corentin-gillet53.workers.dev/api/stats?t=<ton jeton ADMIN_TOKEN>` dans le navigateur. Les tables `stats` et `results` se créent seules ; `migrations/0005_stats_resultats.sql` les décrit.
 
 ---
 

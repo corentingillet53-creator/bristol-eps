@@ -121,6 +121,8 @@ svg.ic{width:22px;height:22px;flex:none}
   .main{width:100%;max-width:1200px;padding:44px 48px 72px}
   .seg{max-width:880px}
   #area-train > section,#area-train > .intro{max-width:880px}
+  /* Écrire garde des lignes lisibles (880 px) : la colonne est centrée plutôt que collée à gauche. */
+  .main:has(#area-train:not([hidden])){max-width:976px}
   .sj-epr{max-width:none}
   .welcome{padding:32px 36px}
 }
@@ -420,6 +422,12 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .scoreline{color:var(--muted);font-size:14px;margin:0 0 12px}
 .era-chips{margin-bottom:16px}
 .frise-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+.fr-axis{position:relative;height:84px;margin:4px 0 18px}
+.fr-rail{position:absolute;left:0;right:0;top:41px;height:3px;border-radius:2px;background:var(--line)}
+.fr-dot{position:absolute;top:36px;width:13px;height:13px;margin-left:-6px;border-radius:50%;background:var(--accent);border:2px solid var(--paper)}
+.fr-dot.ko{background:var(--muted)}
+.fr-dot b{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-size:14px;white-space:nowrap;color:var(--ink)}
+.fr-dot.up b{bottom:18px}.fr-dot.dn b{top:18px}
 .fr-item{appearance:none;width:100%;text-align:left;display:flex;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);color:var(--ink);cursor:pointer;min-height:56px}
 .fr-item[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
 .badge{flex:none;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:14px}
@@ -920,6 +928,8 @@ html.gs-on{overflow:hidden}
 .pw-sub{font-size:14px;color:var(--muted)}
 .pw-note{font-size:14px;color:var(--muted);margin:12px 0 0}
 .pw-msg{color:var(--bad);font-weight:700;margin:10px 0 0}
+.cp-svg{width:100%;max-width:560px;height:auto;display:block;margin:6px 0 4px}.cp-grid{stroke:var(--line);stroke-width:1}.cp-ax{fill:var(--muted);font-size:11px;text-anchor:end}.cp-band{fill:var(--soft)}.cp-line{fill:none;stroke:var(--accent);stroke-width:2.5}.cp-rng{stroke:var(--accent);stroke-width:2;opacity:.5}.cp-pt{fill:var(--accent)}.cp-sum{font-size:16px;margin:8px 0 4px}.cp-list{list-style:none;margin:6px 0 10px;padding:0;max-width:560px;display:grid;gap:4px;font-size:14px}.cp-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:4px 0}.cp-list b{font-variant-numeric:tabular-nums}
+.res-card{display:grid;gap:10px}.res-card h2,.res-card p,.res-card label{margin:0}.res-card textarea{min-height:90px}
 .pw-renonce{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;margin:14px 0 0;cursor:pointer}
 .pw-renonce input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
 .pw-code{display:grid;gap:6px;margin-top:12px}
@@ -2182,9 +2192,59 @@ function readinessHTML(){
       <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes et ton écriture jusqu'au concours."} La moyenne de tes connaissances et de ton écriture : les jurys notent une copie, pas des fiches.</p></div></div>
     <div class="rd-two"><div class="rd-row rd-vol"><span>Connaissances</span><span class="rd-bar" aria-hidden="true"><span style="width:${kn}%"></span></span><b>${kn} %</b></div>
       <div class="rd-row rd-vol"><span>Écriture</span><span class="rd-bar" aria-hidden="true"><span style="width:${wr}%"></span></span><b>${wr} %</b></div></div>
+    ${copiesHTML()}
     <details class="rd-det"${st.some(x => x.n) ? " open" : ""}><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
     <details class="rd-det"><summary>Connaissances, thème par thème</summary><p class="goal-sub">Une carte compte pleinement en boîte 5, partiellement avant.</p><div class="rd-rows">${rows}</div></details>
   </div>`;
+}
+/* ---------- Progression des copies ----------
+   Note indicative de chaque concours blanc corrigé (fourchette donnée par Claude) et compétences
+   qui progressent : comparer ses copies dans le temps, c'est ce qui montre que le travail paie. */
+function noteRange(t){
+  const sec = (t.split(/^##\s*Note indicative\s*$/mi)[1] || "").split(/^##\s/m)[0];
+  const m = sec.match(/(\d{1,2}(?:[,.]\d+)?)\s*(?:à|-|–|et)\s*(\d{1,2}(?:[,.]\d+)?)\s*\/\s*20/) || sec.match(/(\d{1,2}(?:[,.]\d+)?)\s*\/\s*20/);
+  if (!m) return null;
+  const lo = parseFloat(m[1].replace(",", ".")), hi = m[2] ? parseFloat(m[2].replace(",", ".")) : lo;
+  return lo >= 0 && hi <= 20 && lo <= hi ? { lo, hi, mid: (lo + hi) / 2 } : null;
+}
+function copyNotes(){
+  return blancList().filter(m => m.state === "done").map(m => { const f = txGet("f:b:" + m.id), n = f && noteRange(f); return n ? Object.assign({ m, t: m.end || m.start }, n) : null; })
+    .filter(Boolean).sort((a, b) => a.t - b.t);
+}
+function skTrend(){
+  const M = skMeasures(), out = [];
+  const by = {}; M.forEach(x => { (by[x.e + "|" + x.k] = by[x.e + "|" + x.k] || []).push(x); });
+  Object.entries(by).forEach(([key, L]) => {
+    if (L.length < 4) return;
+    L.sort((a, b) => a.t - b.t);
+    const avg = A => A.reduce((t, x) => t + x.v, 0) / A.length, last = L.slice(-3), first = L.slice(0, Math.min(3, L.length - 3));
+    const d = avg(last) - avg(first), [e, k] = key.split("|");
+    if (Math.abs(d) >= 0.5) out.push({ l: skLabel(k, skFmt(e)), up: d > 0 });
+  });
+  return out;
+}
+function copyChart(N){
+  const W = 560, H = 180, px = 34, py = 14, x = i => px + (N.length === 1 ? (W - 2 * px) / 2 : i * (W - 2 * px) / (N.length - 1)), y = v => py + (20 - v) * (H - 2 * py) / 20;
+  const band = N.length > 1 ? `<path d="M${N.map((n, i) => `${x(i)},${y(n.hi)}`).join("L")}L${N.slice().reverse().map((n, i) => `${x(N.length - 1 - i)},${y(n.lo)}`).join("L")}Z" class="cp-band"/>` : "";
+  const line = N.length > 1 ? `<polyline points="${N.map((n, i) => `${x(i)},${y(n.mid)}`).join(" ")}" class="cp-line"/>` : "";
+  const grid = [0, 5, 10, 15, 20].map(v => `<line x1="${px}" x2="${W - px}" y1="${y(v)}" y2="${y(v)}" class="cp-grid"/><text x="${px - 8}" y="${y(v) + 4}" class="cp-ax">${v}</text>`).join("");
+  const pts = N.map((n, i) => `<line x1="${x(i)}" x2="${x(i)}" y1="${y(n.lo)}" y2="${y(n.hi)}" class="cp-rng"/><circle cx="${x(i)}" cy="${y(n.mid)}" r="5" class="cp-pt"/>`).join("");
+  return `<svg class="cp-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Note indicative de tes ${N.length} copies corrigées, de la première à la dernière : ${N.map(n => fmtNote(n)).join(", ")}">${grid}${band}${line}${pts}</svg>`;
+}
+const fmtNote = n => (n.lo === n.hi ? String(n.lo) : n.lo + " à " + n.hi).replace(/\./g, ",") + " / 20";
+function copiesHTML(){
+  const N = copyNotes(), T = skTrend();
+  if (!N.length && !T.length) return "";
+  const up = T.filter(x => x.up).map(x => x.l), down = T.filter(x => !x.up).map(x => x.l);
+  const d = N.length > 1 ? Math.round((N[N.length - 1].mid - N[0].mid) * 2) / 2 : 0;
+  const fmt = t => new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  const ep = m => { const P = sjPools(m.k === "e1" ? "e1" : "e2"); return P.l; };
+  return `<details class="rd-det" open><summary>Tes copies, l'une après l'autre</summary>
+    ${N.length > 1 ? `<p class="cp-sum">${d > 0 ? `<b>+${String(d).replace(".", ",")} point${d >= 2 ? "s" : ""}</b> entre ta première et ta dernière copie corrigée.` : d < 0 ? `Ta dernière copie est un peu en dessous de la première (${String(d).replace(".", ",")}) : regarde ce que Claude a relevé, c'est souvent la gestion du temps.` : "Ta note indicative est stable d'une copie à l'autre."}</p>` : ""}
+    ${N.length ? copyChart(N) + `<ol class="cp-list">${N.map(n => `<li><span>${fmt(n.t)} · ${esc(ep(n.m))}</span><b>${fmtNote(n)}</b></li>`).join("")}</ol>` : ""}
+    ${up.length ? `<p class="goal-sub"><b>En progrès :</b> ${up.map(esc).join(", ")}.</p>` : ""}${down.length ? `<p class="goal-sub"><b>En baisse sur tes derniers textes :</b> ${down.map(esc).join(", ")}.</p>` : ""}
+    <p class="goal-sub">Notes indicatives données par Claude sur tes concours blancs : un repère pour voir ta progression, pas la note d'un jury.</p>
+  </details>`;
 }
 const achList = () => ACHS.filter(a => !a.on || a.on());
 function achHTML(){
@@ -2346,7 +2406,48 @@ function renderHome(){
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : `${heroHTML()}
     ${upgradeBanner()}
-    <div class="home-one">${homeSession()}${homeTrain()}</div>`}`;
+    <div class="home-one">${resultCard()}${homeSession()}${homeTrain()}</div>`}`;
+}
+
+/* ---------- Après les écrits : « es-tu admissible ? » ----------
+   Proposé sur le site seulement, du lendemain des écrits à six mois après, une fois par session.
+   La réponse est anonyme ; le témoignage, la publication et le prénom sont facultatifs. */
+const RES_KEY = "bristol-eps-res";
+const rs = { r: "", busy: false, msg: "" };
+function resState(){ try { return JSON.parse(localStorage.getItem(RES_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function resSet(o){ try { localStorage.setItem(RES_KEY, JSON.stringify(Object.assign(resState(), o))); } catch (e) {} }
+function resYear(){
+  if (!STANDALONE || !prefs.concours || !/^\d{4}-\d{2}-\d{2}$/.test(prefs.examDate || "")) return 0;
+  const gap = (Date.parse(dayKey()) - Date.parse(prefs.examDate)) / DAY;
+  if (gap < 1 || gap > 183) return 0;
+  const y = +prefs.examDate.slice(0, 4), st = resState();
+  if (st.done === y || (st.later && Date.parse(dayKey()) < Date.parse(st.later))) return 0;
+  return y;
+}
+function resultCard(){
+  const y = resYear(); if (!y) return "";
+  if (!rs.r) return `<section class="ts res-card" aria-labelledby="res-h"><h2 id="res-h">Tes écrits sont passés : tu es admissible ?</h2>
+    <p class="lead">Ta réponse, anonyme, nous aide à savoir si le site aide vraiment les candidats.</p>
+    <div class="row-btns"><button class="btn primary" data-act="res-pick" data-r="admissible">Oui, admissible</button><button class="btn" data-act="res-pick" data-r="non">Pas cette fois</button><button class="btn" data-act="res-later">Pas encore les résultats</button></div></section>`;
+  return `<section class="ts res-card" aria-labelledby="res-h"><h2 id="res-h" tabindex="-1">${rs.r === "non" ? "Merci de ta réponse. Courage pour la suite." : "Bravo, et bonne préparation des oraux !"}</h2>
+    <label for="res-txt">Un mot pour les futurs candidats ? <span class="opt">(facultatif)</span></label>
+    <textarea id="res-txt" maxlength="1200" placeholder="Ce qui t'a le plus aidé, ce que tu referais autrement…"></textarea>
+    <label class="chk"><input type="checkbox" id="res-pub"> J'accepte que ce texte soit publié sur le site</label>
+    <label for="res-prenom">Prénom affiché <span class="opt">(facultatif, seulement si tu acceptes la publication)</span></label>
+    <input id="res-prenom" maxlength="40" autocomplete="given-name">
+    <div class="row-btns actions"><button class="btn primary" data-act="res-send"${rs.busy ? " disabled" : ""}>Envoyer</button><button class="btn" data-act="res-send" data-skip="1"${rs.busy ? " disabled" : ""}>Envoyer sans témoignage</button></div>
+    ${rs.msg ? `<p class="err" role="alert">${esc(rs.msg)}</p>` : ""}</section>`;
+}
+async function resSend(skip){
+  const y = resYear(); if (!y || rs.busy) return;
+  const v = id => ((document.getElementById(id) || {}).value || "").trim();
+  const txt = skip ? "" : v("res-txt"), pub = !skip && !!(document.getElementById("res-pub") || {}).checked;
+  rs.busy = true; rs.msg = "";
+  const r = await api("POST", "/api/result", { c: prefs.concours, y, r: rs.r, txt, pub, prenom: pub ? v("res-prenom") : "" });
+  rs.busy = false;
+  if (r.status === 200) { resSet({ done: y }); rs.r = ""; renderHome(); toast("Merci, c'est noté."); return; }
+  rs.msg = r.status === 429 ? "Trop d'envois depuis cette connexion. Réessaie demain." : "L'envoi n'a pas abouti. Réessaie dans un instant.";
+  renderHome();
 }
 
 /* ---------- Séance ---------- */
@@ -2380,6 +2481,7 @@ function grade(r){
   const lg = log[dk] || { a: 0, n: 0 };
   const gk = "n_" + grpOf(byId(id) || {});
   log[dk] = Object.assign({}, lg, { a: lg.a + 1, n: lg.n + (p ? 0 : 1) }, p ? {} : { [gk]: (lg[gk] || 0) + 1 });
+  track("review1"); track("active"); trackReturn();
   if (!cram || r === "rate") {
     const g = G_OF[r] || 3, f = fsrsNext(p, g, now), b = boxOfS(f.s, g);
     /* Ratée : elle revient dans 10 minutes, dans la séance. */
@@ -2759,6 +2861,7 @@ async function pwWait(email){
   const f = $(pw.wait === "ok" ? "#pw-wait-ok" : "#pw-wait-in"); if (f) f.focus();
 }
 async function paywall(why){
+  track("paywall");
   if (!STANDALONE) return;
   Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", wait: "", opener: document.activeElement });
   await billCfg();
@@ -2817,6 +2920,7 @@ async function pwCheckout(plan){
     return;
   }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
+  track("checkout");
   const r = await api("POST", "/api/billing/checkout", { plan, renonce: true });
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
@@ -3221,7 +3325,9 @@ function renderFrise(){
   } else {
     const sorted = fr.items.map((e, i) => i).sort((a, b) => fr.items[a].y - fr.items[b].y);
     const good = sorted.filter((i, rank) => fr.picks[rank] === i).length;
-    body = `<p class="lead"><strong>${good} sur ${fr.items.length}</strong> à la bonne place. Voici l'ordre exact :</p>
+    const y1 = fr.items[sorted[0]].y, y2 = fr.items[sorted[sorted.length - 1]].y, span = Math.max(1, y2 - y1);
+    const axis = `<div class="fr-axis" aria-hidden="true"><div class="fr-rail"></div>${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<span class="fr-dot ${rank % 2 ? "dn" : "up"} ${ok ? "ok" : "ko"}" style="left:${(4 + 92 * (e.y - y1) / span).toFixed(1)}%"><b>${e.y}</b></span>`; }).join("")}</div>`;
+    body = `<p class="lead"><strong>${good} sur ${fr.items.length}</strong> à la bonne place. Voici l'ordre exact, à l'échelle du temps :</p>${axis}
       <ol class="frise-list">${sorted.map((i, rank) => { const e = fr.items[i], ok = fr.picks[rank] === i; return `<li class="fr-res"><span class="yr">${e.y}</span><span>${esc(e.t)}</span><span class="verdict ${ok ? "ok" : "ko"}">${ok ? "Bien placé" : "Tu l'avais mis en n° " + (fr.picks.indexOf(i) + 1)}</span></li>`; }).join("")}</ol>
       <div class="row-btns actions"><button class="btn primary" data-act="fr-new">Nouvelle frise</button></div>`;
   }
@@ -3742,6 +3848,8 @@ function txSet(k, v){
   if (txGet(k) === v) return;
   texts[k] = { v, t: Math.max(Date.now(), texts[k] ? texts[k].t + 1 : 0) };
   tx.dirty.add(k);
+  /* Un vrai texte (plan, introduction, paragraphe, copie), pas un retour ni une grille. */
+  if (v && v.length >= 300 && !/^(f|c|bm|d):/.test(k)) track("write1");
   /* La frappe ne réécrit pas tout le stockage à chaque touche. */
   if (!tx.ltimer) tx.ltimer = setTimeout(txSaveLocal, 400);
   txSchedule();
@@ -3966,7 +4074,7 @@ async function askFeedback(kind){
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
       : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
     fbSave(key, res.text);
-    ach.f++; persist();
+    ach.f++; persist(); track("feedback1");
   } catch (e) {
     if (fb.ctl !== ctl) return;
     fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
@@ -4425,7 +4533,7 @@ function ptNext(){
   ptFinish();
 }
 function ptFinish(){
-  pt.done = true;
+  pt.done = true; track("pt");
   const now = Date.now(); let n = 0;
   for (const q of pt.qs) if (q.r === "ok" && !progress[q.id]) {
     const f = fsrsNext(null, G_OF.hesite, now);
@@ -7443,7 +7551,7 @@ function blancSubmit(m, auto){
   if (focusMode) { focusMode = false; document.documentElement.classList.remove("focus"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} }
   m = Object.assign({}, m, { state: "done", end: auto ? m.start + m.dur * 1000 : Date.now() });
   blancPut(m); bl.view = m.id; bl.confirm = null;
-  persist();
+  persist(); track("write1");
   if (view === "blanc") render(); else if (view === "home") renderHome();
   toast(auto ? "Temps écoulé : ta copie est rendue." : "Copie rendue.");
 }
@@ -7645,7 +7753,7 @@ async function askCopie(m){
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
-    fbSave(key, res.text); ach.f++; persist();
+    fbSave(key, res.text); ach.f++; persist(); track("blanc1"); track("feedback1");
   } catch (e) {
     if (fb.ctl !== ctl) return;
     fb.status = "error"; fb.text = (e && e.text) || ""; fb.note = fbErr(e && e.code, e && e.detail);
@@ -7910,6 +8018,9 @@ document.addEventListener("click", e => {
   if (d.act === "save-progress") { openAccount("register"); return; }
   if (d.act === "paywall") { paywall(d.why || "menu"); return; }
   if (d.act === "pw-close") { closePaywall(); return; }
+  if (d.act === "res-pick") { rs.r = d.r === "admissible" ? "admissible" : "non"; renderHome(); const h = $("#res-h"); if (h) h.focus(); return; }
+  if (d.act === "res-later") { resSet({ later: new Date(Date.now() + 14 * DAY).toISOString().slice(0, 10) }); renderHome(); toast("D'accord, on te redemandera dans deux semaines."); return; }
+  if (d.act === "res-send") { resSend(!!d.skip); return; }
   if (d.act === "pw-code") { pw.code = true; renderPaywall(); const i = $("#pw-code-in"); if (i) i.focus(); return; }
   if (d.pwplan) { if (t.getAttribute("aria-disabled") === "true") { toast("Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le."); return; } pwCheckout(d.pwplan); return; }
   if (d.act === "billing-portal") { (async () => { const r = await api("POST", "/api/billing/portal", {}); if (r.status === 200 && r.data.url) location.href = r.data.url; else toast("Le portail d'abonnement n'est pas disponible pour l'instant."); })(); return; }
@@ -8147,6 +8258,23 @@ async function api(method, path, body){
   } catch (e) { return { status: 0, data: { error: "network" } }; }
   let data = {}; try { data = await res.json(); } catch (e) {}
   return { status: res.status, data };
+}
+/* Mesure d'audience anonyme (site seulement) : chaque étape du parcours est envoyée une seule fois
+   par appareil ; « active » une fois par jour. Ni cookie ni identifiant : le serveur ajoute +1 à un compteur. */
+const EV_KEY = "bristol-eps-ev";
+function track(e){
+  if (!STANDALONE) return;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem(EV_KEY) || "{}") || {}; } catch (x) {}
+  const mark = e === "active" ? dayKey() : 1;
+  if (seen[e] === mark) return;
+  seen[e] = mark; try { localStorage.setItem(EV_KEY, JSON.stringify(seen)); } catch (x) { return; }
+  try { fetch("/api/event", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ e, c: prefs.concours || "" }) }).catch(() => {}); } catch (x) {}
+}
+/* Retour après 7 et 30 jours : comptés au premier jour actif qui suit, depuis le premier jour de révision. */
+function trackReturn(){
+  const days = Object.keys(log).filter(k => (log[k].a || 0) > 0).sort(); if (!days.length) return;
+  const gap = (Date.parse(dayKey()) - Date.parse(days[0])) / DAY;
+  if (gap >= 7) track("d7"); if (gap >= 30) track("d30");
 }
 const ACCT_ERR = {
   email_taken: "Un compte existe déjà avec cet e-mail. Connecte-toi plutôt.",
@@ -8401,6 +8529,7 @@ function ccClose(noFocus){
 }
 function chooseConcours(id){
   const c = concById(id);
+  if (c) track("concours");
   prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d ? { examDate: c.d } : {});
   const rel = relGroups(); setGrp(rel.includes(grp) ? grp : rel[0]);
   an.f = null; an.e = "tous"; an.all = false; me.f = null;
@@ -8601,6 +8730,7 @@ buildQueue(); render(); blancCheck();
 if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
+track("open");
 </script>
 
 </body>

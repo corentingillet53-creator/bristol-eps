@@ -24,6 +24,7 @@
 // Variables Google : GOOGLE_CLIENT_ID (texte), GOOGLE_CLIENT_SECRET (secret).
 
 import { getPlan } from "./plan.js";
+import { recordEvent } from "./event.js";
 
 const SESSION_COOKIE = "bsess";
 const SESSION_DAYS = 60;
@@ -162,6 +163,7 @@ async function register(request, env) {
   const recovery = newRecoveryKey();
   await env.DB.prepare("INSERT INTO users (id, email, key_salt, key_hash, recovery_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)")
     .bind(id, email, salt, await sha256Hex(salt, key), await sha256Hex(normRecovery(recovery)), Date.now()).run();
+  await recordEvent(env, "signup");
   const cookie = await createSession(env, id);
   return json(201, { email, recoveryKey: recovery }, { "set-cookie": cookie });
 }
@@ -400,6 +402,7 @@ async function googleCallback(request, env) {
       user = { id: crypto.randomUUID() };
       await env.DB.prepare("INSERT INTO users (id, email, key_salt, key_hash, recovery_hash, created_at, google_sub) VALUES (?, ?, '', '', '', ?, ?)")
         .bind(user.id, email, Date.now(), p.sub).run();
+      await recordEvent(env, "signup");
     }
   }
   const session = await createSession(env, user.id);

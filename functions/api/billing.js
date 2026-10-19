@@ -19,6 +19,7 @@
 import { json, err, readJson, currentUser } from "./account.js";
 import { getPlan, setPlan, passUntil, ensureSubs } from "./plan.js";
 import { take, bump, peek, ipTag } from "./usage.js";
+import { recordEvent } from "./event.js";
 
 const enc = new TextEncoder();
 const enabled = (env) => !!(env.STRIPE_SECRET_KEY && env.STRIPE_PRICE_PASS && env.STRIPE_PRICE_MONTHLY);
@@ -112,9 +113,11 @@ async function webhook(request, env) {
       if (!userId) return json(200, { ok: true, ignored: "no_user" });
       if (o.mode === "payment" && o.payment_status === "paid") {
         await setPlan(env, userId, { plan: "pass", status: "active", until: passUntil(env), customer: o.customer });
+        await recordEvent(env, "paid_pass");
       } else if (o.mode === "subscription" && o.subscription) {
         const sub = typeof o.subscription === "string" ? await stripe(env, "GET", "/subscriptions/" + o.subscription) : o.subscription;
         await syncSub(env, sub, userId);
+        await recordEvent(env, "paid_mensuel");
       }
     } else if (ev.type === "customer.subscription.updated" || ev.type === "customer.subscription.deleted" || ev.type === "customer.subscription.created") {
       await syncSub(env, o);
@@ -169,6 +172,7 @@ async function redeem(request, env) {
   const max = parseInt(env.CODE_MAX_USES, 10) > 0 ? parseInt(env.CODE_MAX_USES, 10) : 30;
   if (await take(env, "codeuse:" + tag, 1, max, 800 * 864e5) === null) return err(410, "code_exhausted");
   await setPlan(env, user.id, { plan: "code", status: "active", until: passUntil(env) });
+  await recordEvent(env, "code");
   return json(200, { ok: true, premium: await getPlan(env, user.id) });
 }
 
