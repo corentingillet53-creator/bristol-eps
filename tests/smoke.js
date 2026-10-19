@@ -11,9 +11,9 @@ const mk=async(conc,prem)=>{const ctx=await b.newContext({viewport:{width:1280,h
 // agrég interne
 {const {ctx,p,errs}=await mk('agreg-int',false);
  await p.evaluate(()=>{chooseConcours('agreg-int');setView('home')});await p.waitForTimeout(200);const hd=await p.textContent('.hero-date');ok(/vers le/.test(hd)&&/provisoire/.test(hd),'agreg-int date provisoire : '+hd.trim().slice(0,60));
- await p.evaluate(()=>{conc.cur=CONCOURS.find(c=>c.id==='agreg-int');setView('concours')});const mc=await p.textContent('#panel-concours');ok(/Ton programme 2026/.test(mc)&&/reste à relire/.test(mc),'agreg-int programme 2026 signalé');
+ await p.evaluate(()=>{conc.cur=CONCOURS.find(c=>c.id==='agreg-int');setView('concours')});const mc=await p.textContent('#panel-concours');ok(/Ton programme 2027/.test(mc)&&!/reste à relire/.test(mc)&&/Ultimate/.test(mc),'agreg-int programme 2027');
  const qs=await p.evaluate(()=>ptBuild());const dup=qs.filter(q=>q.opts.filter(o=>/Haby/.test(o)).length>1);ok(!dup.length,'test : pas de double bonne réponse Haby');
- await p.evaluate(()=>{me.tab='e1';setView('methode')});ok(/commentaire/.test(await p.textContent('#panel-methode .sect-h')),'agreg-int méthode e1 commentaire');
+ await p.evaluate(()=>{me.tab='e1';setView('methode')});{const mt=await p.textContent('#panel-methode');ok(/dissertation/.test(await p.textContent('#panel-methode .sect-h'))&&!/commentaire/i.test(mt),'agreg-int méthode e1 dissertation seule');}
  ok(!errs.length,'agreg-int sans erreur '+errs.join('|'));await ctx.close();}
 // troisième concours
 {const {ctx,p,errs}=await mk('capeps-3',true);

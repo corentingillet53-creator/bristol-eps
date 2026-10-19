@@ -128,8 +128,8 @@ const FB_WHO = {
     e1: "de l'épreuve écrite 1 du CAPEPS externe : une dissertation sur l'histoire de l'EPS.",
     e2: "de l'épreuve écrite 2 du CAPEPS externe : une composition sur l'enseignement de l'EPS, à partir d'un contexte d'établissement et d'épisodes de classe." },
   aint: {
-    e1: "de la première épreuve écrite de l'agrégation interne d'EPS (6 heures) : une dissertation ou le commentaire d'un document écrit sur l'histoire de l'EPS, dans les bornes du programme de la session. Les sujets récents partent d'une citation, qu'il faut analyser puis discuter.",
-    e2: "de la seconde épreuve écrite de l'agrégation interne d'EPS (composition, 6 heures) : les données scientifiques des activités physiques (aspects biologiques, psychologiques, sociologiques) au service de propositions didactiques. Les sujets récents partent d'une citation et s'appuient sur un dossier d'établissement et une classe en annexe ; ils demandent souvent des illustrations dans plusieurs APSA de champs d'apprentissage différents." },
+    e1: "de la première épreuve écrite de l'agrégation interne d'EPS (dissertation, 6 heures) : l'histoire de l'EPS, de ses enseignements et dispositifs complémentaires de 1975 à nos jours, dans les bornes du programme de la session. Les sujets récents partent d'une citation, qu'il faut analyser puis discuter.",
+    e2: "de la seconde épreuve écrite de l'agrégation interne d'EPS (composition, 6 heures) : les données scientifiques des activités physiques (aspects biologiques, psychologiques, sociologiques) au service de propositions didactiques. Les sujets récents partent d'une citation ; le dossier joint comporte au minimum des données sur un établissement du second degré et sur une classe ; ils demandent souvent des illustrations dans plusieurs APSA de champs d'apprentissage différents." },
   aext: {
     e1: "de la première épreuve écrite de l'agrégation externe d'EPS (« APSA et civilisations ») : une dissertation ou le commentaire d'un écrit sur l'histoire de l'EPS, de l'école et des pratiques physiques, dans les bornes du programme de la session.",
     e2: "de la seconde épreuve écrite de l'agrégation externe d'EPS (« EPS et développement de la personne ») : une dissertation à partir d'une citation, qui en discute la thèse avec des connaissances scientifiques (biologiques, psychologiques, sociologiques) et revient aux élèves et à l'enseignement de l'EPS. Il n'y a ni contexte d'établissement ni épisodes de classe." },
@@ -199,7 +199,7 @@ ${sp.el ? `Sous « ${sp.el[0]} », écris une puce par élément, dans cet ordre
 /* Concours blanc : l'épreuve corrigée et le titre de la partie centrale, selon le format. */
 const COPIE_EPR = {
   "": { e1: "l'épreuve écrite de dissertation sur l'histoire de l'EPS", e2: "l'épreuve écrite de composition (sciences et intervention en EPS)" },
-  aint: { e1: "la première épreuve écrite de l'agrégation interne (dissertation ou commentaire d'un document sur l'histoire de l'EPS)", e2: "la seconde épreuve écrite de l'agrégation interne (composition : données scientifiques au service de propositions didactiques situées)" },
+  aint: { e1: "la première épreuve écrite de l'agrégation interne (dissertation sur l'histoire de l'EPS depuis 1975)", e2: "la seconde épreuve écrite de l'agrégation interne (composition : données scientifiques au service de propositions didactiques situées)" },
   aext: { e1: "la première épreuve écrite de l'agrégation externe (dissertation ou commentaire d'un écrit sur l'histoire de l'EPS)", e2: "la seconde épreuve écrite de l'agrégation externe (dissertation sur une citation : EPS et développement de la personne)" },
   cint: { e2: "l'épreuve écrite du CAPEPS interne (étude de cas : citation, contexte d'établissement, propositions pour une classe et pour l'établissement, bilan prospectif)" }
 };

@@ -3586,8 +3586,8 @@ const FB_WHO = {
     e1: "de l'épreuve écrite 1 du CAPEPS externe : une dissertation sur l'histoire de l'EPS.",
     e2: "de l'épreuve écrite 2 du CAPEPS externe : une composition sur l'enseignement de l'EPS, à partir d'un contexte d'établissement et d'épisodes de classe." },
   aint: {
-    e1: "de la première épreuve écrite de l'agrégation interne d'EPS (6 heures) : une dissertation ou le commentaire d'un document écrit sur l'histoire de l'EPS, dans les bornes du programme de la session. Les sujets récents partent d'une citation, qu'il faut analyser puis discuter.",
-    e2: "de la seconde épreuve écrite de l'agrégation interne d'EPS (composition, 6 heures) : les données scientifiques des activités physiques (aspects biologiques, psychologiques, sociologiques) au service de propositions didactiques. Les sujets récents partent d'une citation et s'appuient sur un dossier d'établissement et une classe en annexe ; ils demandent souvent des illustrations dans plusieurs APSA de champs d'apprentissage différents." },
+    e1: "de la première épreuve écrite de l'agrégation interne d'EPS (dissertation, 6 heures) : l'histoire de l'EPS, de ses enseignements et dispositifs complémentaires de 1975 à nos jours, dans les bornes du programme de la session. Les sujets récents partent d'une citation, qu'il faut analyser puis discuter.",
+    e2: "de la seconde épreuve écrite de l'agrégation interne d'EPS (composition, 6 heures) : les données scientifiques des activités physiques (aspects biologiques, psychologiques, sociologiques) au service de propositions didactiques. Les sujets récents partent d'une citation ; le dossier joint comporte au minimum des données sur un établissement du second degré et sur une classe ; ils demandent souvent des illustrations dans plusieurs APSA de champs d'apprentissage différents." },
   aext: {
     e1: "de la première épreuve écrite de l'agrégation externe d'EPS (« APSA et civilisations ») : une dissertation ou le commentaire d'un écrit sur l'histoire de l'EPS, de l'école et des pratiques physiques, dans les bornes du programme de la session.",
     e2: "de la seconde épreuve écrite de l'agrégation externe d'EPS (« EPS et développement de la personne ») : une dissertation à partir d'une citation, qui en discute la thèse avec des connaissances scientifiques (biologiques, psychologiques, sociologiques) et revient aux élèves et à l'enseignement de l'EPS. Il n'y a ni contexte d'établissement ni épisodes de classe." },
@@ -3657,7 +3657,7 @@ ${sp.el ? `Sous « ${sp.el[0]} », écris une puce par élément, dans cet ordre
 /* Concours blanc : l'épreuve corrigée et le titre de la partie centrale, selon le format. */
 const COPIE_EPR = {
   "": { e1: "l'épreuve écrite de dissertation sur l'histoire de l'EPS", e2: "l'épreuve écrite de composition (sciences et intervention en EPS)" },
-  aint: { e1: "la première épreuve écrite de l'agrégation interne (dissertation ou commentaire d'un document sur l'histoire de l'EPS)", e2: "la seconde épreuve écrite de l'agrégation interne (composition : données scientifiques au service de propositions didactiques situées)" },
+  aint: { e1: "la première épreuve écrite de l'agrégation interne (dissertation sur l'histoire de l'EPS depuis 1975)", e2: "la seconde épreuve écrite de l'agrégation interne (composition : données scientifiques au service de propositions didactiques situées)" },
   aext: { e1: "la première épreuve écrite de l'agrégation externe (dissertation ou commentaire d'un écrit sur l'histoire de l'EPS)", e2: "la seconde épreuve écrite de l'agrégation externe (dissertation sur une citation : EPS et développement de la personne)" },
   cint: { e2: "l'épreuve écrite du CAPEPS interne (étude de cas : citation, contexte d'établissement, propositions pour une classe et pour l'établissement, bilan prospectif)" }
 };
@@ -4253,38 +4253,39 @@ const CONCOURS = [
         d: "Pratique dans une APSA tirée au sort parmi deux choisies à l'inscription, observation d'un pratiquant filmé, puis analyse et échange avec le jury (10 points + 10 points)." }],
     prog: [
       { t: "Écrit 1 : « Éducation physique et sportive, école et société de 1918 à nos jours »", i: ["Enjeux, débats et controverses", "Apprentissages moteurs et techniques corporelles", "Valeurs, transmission, incorporation", "Les jeunes et les pratiques physiques de loisirs"] },
-      { t: "Écrit 2 : « Éducation physique et sportive et développement de la personne »", lead: "Idée directrice : « Éduquer et instruire en contexte scolaire pour préparer les élèves aux défis contemporains. »", i: ["Émotions et interactions sociales", "Apprentissages moteurs et techniques corporelles", "Engagement dans un mode de vie actif, solidaire et durable", "EPS et continuité"] }],
-    apsa: ["Leçon : relais-vitesse, natation de vitesse, savoir-nager, course d'orientation, arts du cirque, tennis de table, savate boxe française, rugby, musculation, step.",
-      "Pratique, deux activités au choix dans deux champs différents : athlétisme (CA1), escalade (CA2), danse ou gymnastique-parkour (CA3), basket-ball ou badminton (CA4)."],
+      { t: "Écrit 2 : « Éducation physique et sportive et développement de la personne »", lead: "Idée directrice : « Éduquer et instruire en contexte scolaire pour préparer les élèves aux défis contemporains. »", i: ["Émotions et interactions sociales", "Apprentissages moteurs et techniques corporelles", "Engagement dans un mode de vie actif, solidaire et durable", "EPS et continuité éducative"] }],
+    apsa: ["Leçon : athlétisme (relais-vitesse), natation (savoir-nager et natation de vitesse), escalade, arts du cirque, tennis de table, savate boxe française, rugby, musculation.",
+      "Pratique et analyse, APSA au choix : escalade, danse, badminton, volley-ball, step.",
+      "Le programme 2027 liste aussi une quatrième épreuve orale (pratique et entretien) : athlétisme (100 m puis 1 000 m) ou natation (50 m deux nages et 100 m nage libre), l'une pratiquée et l'autre objet de l'entretien, par tirage au sort. La note de service du BO annonce trois oraux : vérifie sur les deux textes."],
     chiffres: "Session 2026 : 1 086 inscrits, 89 admissibles, 40 admis.",
     rev: { label: "Réviser 1918 à nos jours", periods: ["1918-1945", "1945-1967", "1967-1981", "1981-2000", "Depuis 2000"] },
     src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20528/download"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"], BO_2027] },
 
   { id: "agreg-int", t: "Agrégation interne d'EPS", tag: "Pour les enseignants titulaires",
-    progAn: 2026,
-    note: "Le programme 2027 est publié sur le site du ministère mais n'a pas pu être relu ici : le programme affiché est celui de 2026. Vérifie-le sur le document officiel avant de t'y fier.",
+    note: "Programme 2027 : mêmes thèmes qu'en 2026 pour les deux écrits ; l'écrit 1 est désormais une dissertation seulement, et le Ultimate remplace le basket-ball à la leçon.",
     qui: "Fonctionnaires justifiant de cinq années de services publics, appréciées à la date des résultats d'admissibilité. Les candidats en disponibilité ne peuvent pas concourir.",
     prive: "CAER-PA pour les maîtres contractuels du privé : mêmes épreuves, même jury.",
     ecrits: "Entre le 25 et le 29 janvier 2027 (dates de l'EPS pas encore publiées)", d: "2027-01-25",
     postes: "2026 : 136 postes, dont 125 dans le public et 11 au CAER-PA. 2027 : pas encore publié.",
     adm: [
-      { t: "Première épreuve : dissertation ou commentaire d'un document écrit", m: "Écrit, 6 h, coefficient 2", hist: true,
-        d: "L'EPS comme discipline d'enseignement, ses références culturelles, les déterminants historiques, économiques et sociaux des activités physiques et sportives, de 1975 à nos jours." },
+      { t: "Première épreuve : dissertation", m: "Écrit, 6 h, coefficient 2", hist: true,
+        d: "L'EPS comme discipline scolaire, ses enseignements et dispositifs complémentaires, de 1975 à nos jours : connaissances historiques, sociologiques, épistémologiques, culturelles et institutionnelles pour analyser et discuter l'évolution des pratiques professionnelles." },
       { t: "Seconde épreuve : composition", m: "Écrit, 6 h, coefficient 3",
-        d: "Les données scientifiques des activités physiques et sportives (aspects biologiques, psychologiques, sociologiques) liées à leur mise en œuvre didactique. Les sujets récents s'appuient sur un dossier d'établissement et une classe en annexe." }],
+        d: "L'activité des enseignants et des élèves au service des apprentissages moteurs, méthodologiques et sociaux de tous les élèves, à partir d'un dossier : au minimum des données sur un établissement du second degré et sur une classe, parfois d'autres documents (statistiques, extraits d'articles ou de textes officiels, témoignages)." }],
     admi: [
       { t: "Exposé suivi d'un entretien (leçon)", m: "5 h de préparation, 30 min d'exposé, 60 min d'entretien. Coefficient 4",
-        d: "Une leçon ou une séquence pour une classe du second degré sur une APSA de la liste, à partir d'un dossier d'établissement et d'extraits vidéo d'élèves." },
+        d: "Une leçon d'EPS pour une classe du second degré sur une APSA de la liste, à partir d'un dossier numérique : données de l'établissement, de l'EPS et de la séquence, et vidéo des élèves dans la leçon précédente." },
       { t: "Prestation physique et entretien", m: "Prestation de 30 min, entretien de 45 min. Coefficient 2",
-        d: "Une prestation dans l'APSA choisie à l'inscription, puis un entretien technique et didactique." }],
+        d: "Une prestation dans une des sept APSA du programme, puis un entretien sur une des six APSA retenues pour l'entretien (la préparation physique et sportive n'en fait pas partie) ; les deux APSA peuvent être différentes." }],
     prog: [
-      { t: "Écrit 1, programme 2026 : de 1975 à nos jours", i: ["Les élèves dans la leçon d'EPS", "Les jeunes, les pratiques physiques et les incidences en EPS", "Les savoirs enseignés et les modalités d'évaluation en EPS", "Les cultures professionnelles des enseignants d'EPS"] },
-      { t: "Écrit 2, programme 2026", i: ["Les objectifs de santé et l'acquisition de techniques corporelles en EPS", "Le parcours de formation de l'élève en EPS et son évaluation", "Le développement des qualités physiques et des compétences en EPS", "Les stratégies d'intervention de l'enseignant d'EPS au service des transformations de tous les élèves"] }],
-    apsa: ["Leçon, liste 2026 : relais-vitesse, haies, multi-bonds, natation de vitesse (CA1) ; escalade, savoir-nager ou sauvetage aquatique (CA2) ; arts du cirque, acrosport (CA3) ; badminton, basket-ball (CA4) ; musculation, step (CA5)."],
+      { t: "Écrit 1 : de 1975 à nos jours", i: ["Les élèves dans la leçon d'EPS", "Les jeunes, les pratiques physiques et les incidences en EPS", "Les savoirs enseignés et les modalités d'évaluation en EPS", "Les cultures professionnelles des enseignants d'EPS"] },
+      { t: "Écrit 2 : composition sur dossier", i: ["Les objectifs de santé et l'acquisition de techniques corporelles en EPS", "Le parcours de formation de l'élève en EPS et son évaluation", "Le développement des qualités physiques et des compétences en EPS", "Les stratégies d'intervention de l'enseignant d'EPS au service des transformations de tous les élèves"] }],
+    apsa: ["Leçon : relais-vitesse, courses de haies, natation de vitesse (CA1) ; escalade, savoir-nager et/ou sauvetage aquatique (CA2) ; arts du cirque, acrosport (CA3) ; badminton, Ultimate (CA4) ; musculation, step (CA5).",
+      "Prestation physique : athlétisme, natation (CA1) ; escalade (CA2) ; danse (CA3) ; badminton simple (CA4) ; step, préparation physique et sportive (CA5)."],
     chiffres: "Session 2026 : 1 597 inscrits, 286 admissibles. L'écrit 1 portait sur l'évolution de la formation des enseignants d'EPS de 1975 à 2025.",
     rev: { label: "Réviser 1975 à nos jours (et le contexte depuis 1967)", periods: ["1967-1981", "1981-2000", "Depuis 2000"] },
-    src: [["Programme officiel de la session 2027 (à vérifier)", "https://www.devenirenseignant.gouv.fr/media/20237/download"],
+    src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20237/download"],
       ["Les épreuves de l'agrégation interne d'EPS", "https://www.devenirenseignant.gouv.fr/les-epreuves-de-l-agregation-interne-et-du-caerpa-section-education-physique-et-sportive-967"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"]] }
 ];
@@ -4583,7 +4584,7 @@ const CPROF = {
   "capeps-m2": { e1: { l: "Écrit 1 : dissertation", own: () => SUBJECTS, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "cext" && a.co !== "CAPEPS externe bac+3" } },
   "capeps-int": { e2: { l: "Écrit : étude de cas", own: () => [], ann: a => a.f === "cint" } },
   "agreg-ext": { e1: { l: "Écrit 1 : APSA et civilisations", own: () => [], ann: a => a.f === "aext" }, e2: { l: "Écrit 2 : développement de la personne", own: () => [], ann: a => a.f === "aext" } },
-  "agreg-int": { e1: { l: "Écrit 1 : dissertation ou commentaire", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "aint" } }
+  "agreg-int": { e1: { l: "Écrit 1 : dissertation", own: () => [], ann: a => a.f === "aint" }, e2: { l: "Écrit 2 : composition", own: () => SUBJECTS2, ann: a => a.f === "aint" } }
 };
 CPROF["capeps-3"] = CPROF["capeps-l3"];
 function sjPools(e){
@@ -6675,7 +6676,7 @@ function renderAnnales(){
 
 
 /* Méthode propre au concours choisi. */
-function methFor(){ return isB3Conc() ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AE.e1, e2: METHODE_AI2 } : prefs.concours === "capeps-int" ? { e2: METHODE_CI.e2 } : METHODE; }
+function methFor(){ return isB3Conc() ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AI1, e2: METHODE_AI2 } : prefs.concours === "capeps-int" ? { e2: METHODE_CI.e2 } : METHODE; }
 /* ---------- Méthode des écrits ----------
    Démarche construite à partir des attentes répétées dans les rapports de jury (2015-2026).
    La synthèse « Ce que répètent les jurys » renvoie aux sessions où chaque point est relevé (voir Annales). */
@@ -6732,6 +6733,10 @@ const METHODE_AE = {
     { t: "Gérer une épreuve longue", d: "Réserve un vrai temps à l'analyse du sujet et au plan détaillé avant de rédiger, et garde de quoi conclure. Relis les transitions : ce sont elles qui montrent la discussion.", p: "Le piège : se lancer dans la rédaction au bout d'une demi-heure et finir sans conclusion." }
   ]}
 };
+/* Agrégation interne 2027 : l'écrit 1 est une dissertation seulement. */
+const METHODE_AI1 = { t: "Écrit 1 : dissertation", steps: METHODE_AE.e1.steps.filter(x => !/commentaire/.test(x.t)).map(x => Object.assign({}, x, {
+  d: x.d.replace("question, citation à discuter, document à commenter", "question ou citation à discuter").replace("le sujet ou le document", "le sujet").replace(" Pour un commentaire, confronte le document à d'autres sources : ce qu'il éclaire, ce qu'il tait, ce que l'on en sait aujourd'hui.", "").replace("bornes ou présentation du document", "bornes justifiées"),
+  p: x.p.replace(", ou un commentaire qui oublie le texte au profit d'une dissertation générale.", ".") })) };
 /* Agrégation interne, seconde épreuve : la composition à partir d'une citation et, dans les sujets récents, d'un dossier
    d'établissement et d'une classe. Étapes tirées des attentes répétées dans les rapports (voir JURYS, « aint »). */
 const METHODE_AI2 = { t: "Écrit 2 : la composition (6 h)", steps: [
