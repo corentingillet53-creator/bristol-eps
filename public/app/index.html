@@ -365,6 +365,7 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.reveal{animation:none}.sess-bar span{transition:none}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .a{font-family:var(--f-display);font-size:22px;font-weight:700;line-height:1.3;color:var(--accent-text);margin:0}
+.reveal .a:focus{outline:none}
 .x{color:var(--muted);margin:10px 0 0;max-width:62ch}
 .boxes{display:inline-flex;gap:4px;align-items:center;flex:none}
 .boxes i{width:16px;height:6px;border-radius:3px;background:var(--line);display:block}
@@ -375,7 +376,7 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .grade.mid{background:var(--mid-soft);color:var(--mid)}
 .grade.good{background:var(--ok-soft);color:var(--ok)}
 .grade:hover{filter:brightness(.97)}
-.first-hint{background:var(--soft);border-radius:var(--r-m);padding:12px 16px;margin:0 0 16px;font-size:15px;max-width:none}
+.first-hint{background:var(--soft);border-radius:var(--r-m);padding:12px 16px;margin:16px 0;font-size:15px;max-width:none}
 .empty{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:28px 24px}
 .empty h2{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1.15;margin:0 0 8px}
 .empty p{color:var(--muted);margin:0 0 18px;max-width:60ch}
@@ -420,8 +421,9 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .qopt:disabled,.qopt[aria-disabled="true"]{opacity:1;cursor:default}
 .qopt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
 .qopt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
-.sj-notes{min-height:140px;margin-top:16px}
+.sj-notes{min-height:220px;margin-top:16px}
 .sj-notes.intro{min-height:240px}
+.outl-hint{display:block;font-weight:400;color:var(--muted);font-size:.9em;margin-top:2px}
 .sj-help{color:var(--muted);font-size:14px;margin:12px 0 0;max-width:62ch}
 .timer{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:18px 0 6px}
 .tmr{font-family:var(--f-display);font-weight:800;font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;min-width:4.5ch}
@@ -970,7 +972,7 @@ a.g-btn{text-decoration:none}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:var(--r-m);font-size:15px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 12px 30px -10px var(--shadow)}
 @media (min-width:960px){ .toast{bottom:24px;left:calc(50% + 124px)} }
-@media (max-width:959px){ .toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))} }
+@media (max-width:959px){ .toast{bottom:auto;top:calc(64px + env(safe-area-inset-top,0px));left:16px;right:16px;transform:none;width:fit-content;margin:0 auto;max-width:none;text-align:center;font-size:14px;padding:8px 14px} }
 
 /* ---------- Texte plus grand ---------- */
 /* Tout le texte et les boutons grandissent d'un huitième, comme un zoom du navigateur. */
@@ -983,14 +985,14 @@ html.big body{zoom:1.125}
   .grades .k{display:none}
   .seg button{font-size:14px;padding:6px 4px;white-space:nowrap}
   .seg.sj-epr button{white-space:normal;line-height:1.2}
-  .band{align-items:flex-start}
-  .period{white-space:normal;border-radius:12px}
+  .band{align-items:flex-start;flex-wrap:wrap;row-gap:8px}
+  .period{white-space:normal;border-radius:12px;overflow:visible}
   .hero{padding:20px 18px 18px}
 }
 
 /* ---------- Identité : les grands titres et les grands chiffres en Imbue ---------- */
 .brand,.page-h,.hero-j,.hero-title,.empty h2,.pt-h,.fil-head h2,.rd-pct b,#welcome-title,.sect > h2,.pw-panel h2,.side-card h2{font-family:var(--f-serif);font-weight:400;font-variation-settings:normal;letter-spacing:-.01em}
-.brand{font-size:26px}
+.brand{font-size:26px;white-space:nowrap}
 .brand-mark{font-family:var(--f-serif);font-weight:400;font-size:21px;border-radius:4px}
 .page-h{font-size:44px;line-height:.98}
 .hero-title{font-size:36px;line-height:1}
@@ -1594,7 +1596,7 @@ function timeCap(g){
   const perDay = weekMin() / 7 * cardShare(false) / MIN_PER_NEW;
   return Math.max(1, Math.round(perDay * un[g] / tot));
 }
-function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", np: NP_OPTS.includes(x.np) ? x.np : 0, tw: TW_OPTS.includes(x.tw) ? x.tw : 0, twe: TW_OPTS.includes(x.twe) ? x.twe : 0, t: x.t || 0 }; }
+function normPrefs(x){ x = x || {}; return { examDate: /^\d{4}-\d{2}-\d{2}$/.test(x.examDate || "") ? x.examDate : "", concours: /^[a-z0-9-]{1,24}$/.test(x.concours || "") ? x.concours : "", np: NP_OPTS.includes(x.np) ? x.np : 0, tw: TW_OPTS.includes(x.tw) ? x.tw : 0, twe: TW_OPTS.includes(x.twe) ? x.twe : 0, fg: ["e1", "e2", "tx"].includes(x.fg) ? x.fg : "", t: x.t || 0 }; }
 function mergeLog(a, b){
   const out = {};
   for (const src of [a || {}, b || {}]) for (const [k, v] of Object.entries(src)) {
@@ -1670,6 +1672,7 @@ const SOURCES = {
   ROS: { l: "Rosenshine, 2012, American Educator (Learning Difficulties Australia)", u: "https://ldaustralia.org/research-papers/principles-of-instruction-research-based-strategies-that-all-teachers-should-know/" },
   FBK: { l: "Wisniewski, Zierer et Hattie, 2020, Frontiers in Psychology", u: "https://doi.org/10.3389/fpsyg.2019.03087" },
   CLT: { l: "Sweller, van Merriënboer et Paas, 2019, Educational Psychology Review", u: "https://doi.org/10.1007/s10648-019-09465-5" },
+  FAL: { l: "Loi du 15 mars 1850, dite loi Falloux, article 23 (texte, Fondation Napoléon)", u: "https://www.napoleon.org/histoire-des-2-empires/articles/loi-relative-a-lenseignement-du-15-mars-1850-dite-loi-falloux/" },
   TS: { l: "Chronologie des textes officiels de l'EPS (techno-science.net)", u: "https://www.techno-science.net/fr/definitions/textes-officiels-concernant-l-education-physique-et-sportive-en-france" },
   GUY: { l: "Évolution des conditions d'enseignement de l'EPS (académie de Guyane)", u: "https://eps.dis.ac-guyane.fr/IMG/pdf/evolution_des_conditions_d_enseignement_1940_a_nos_jours.pdf" },
   TIS: { l: "Philippe Tissié (Wikipédia, en anglais)", u: "https://en.wikipedia.org/wiki/Philippe_Tissi%C3%A9" },
@@ -1725,7 +1728,7 @@ const SOURCES = {
   PO27: { l: "Eduscol, ressource cycle 4 « Projet pédagogique »", u: "https://eduscol.education.gouv.fr/sites/default/files/document/ra16c4epsprojpedagond575976pdf-78273.pdf" },
 };
 const CARD_SRC = {};
-[["SFM","n231 n232"],["SQE","n233"],["ESR","n234"],["BO27","n235"],["A2011","n236"],["GUY23","n237"],["LP05","n238"],["BO10","n239"],["DEPP","n240"],["PUG","n241"],["LOR","n242"],["OTT","n243"],["CLD","n244"],["DEL","n245"],["AT96","n246"],["PRO","n247"],["OPT","am26"],["MCK","am27"],["NLP","am28"],["RLD","am29"],["SCH","am30"],["ERR","am31"],["HIIT","ef26"],["GUT","ef27"],["DON","ef28"],["STO","ef29"],["PEK","ex26"],["FRE","ex27"],["E32","ex28"],["VAS","ex29"],["TES","ex30"],["CHA","ex31"],["SIT","ex32"],["YEA","ex33"],["BLA","da26"],["DIA","da27"],["BIO","da28"],["MIR","da29"],["SLP","da30"],["TGF","in26"],["SPE","in27"],["MBP","in28"],["ROS","in29"],["FBK","in30"],["CLT","in31"],["CHM","n32 b21"],["LAS","b24 n54"],["TER","b13 b14 n101 n29"],["L75","b23"],["L89","b27"],["L84","b26"],["SEN","n53 n23"],["B00","n63"],["PO20","n58"],["UMA","b08 b07"],["UGY","n01"],["TS","n02 n03 n04 b01 n08 n06 n20 n96 n95 n21 n22 n26 n27 n31 n30 n33 n35 n39 n40 n42 n43 b17 b22 n98 n52 b25 n55 n57 n56 n61"],
+[["SFM","n231 n232"],["SQE","n233"],["ESR","n234"],["BO27","n235"],["A2011","n236"],["GUY23","n237"],["LP05","n238"],["BO10","n239"],["DEPP","n240"],["PUG","n241"],["LOR","n242"],["OTT","n243"],["CLD","n244"],["DEL","n245"],["AT96","n246"],["PRO","n247"],["OPT","am26"],["MCK","am27"],["NLP","am28"],["RLD","am29"],["SCH","am30"],["ERR","am31"],["HIIT","ef26"],["GUT","ef27"],["DON","ef28"],["STO","ef29"],["PEK","ex26"],["FRE","ex27"],["E32","ex28"],["VAS","ex29"],["TES","ex30"],["CHA","ex31"],["SIT","ex32"],["YEA","ex33"],["BLA","da26"],["DIA","da27"],["BIO","da28"],["MIR","da29"],["SLP","da30"],["TGF","in26"],["SPE","in27"],["MBP","in28"],["ROS","in29"],["FBK","in30"],["CLT","in31"],["CHM","n32 b21"],["LAS","b24 n54"],["TER","b13 b14 n101 n29"],["L75","b23"],["L89","b27"],["L84","b26"],["SEN","n53 n23"],["B00","n63"],["PO20","n58"],["UMA","b08 b07"],["UGY","n01"],["FAL","n02"],["TS","n03 n04 b01 n08 n06 n20 n96 n95 n21 n22 n26 n27 n31 n30 n33 n35 n39 n40 n42 n43 b17 b22 n98 n52 b25 n55 n57 n56 n61"],
  ["GUY","n36 n44 n50 n41 n60 n18 b10"],["TIS","b06 n82"],["COU","n10"],["UNI","b09 n11"],["HEB","n16 n17 b12 n24"],["FOU","n37"],
  ["MER","n45 n59 n79 n38 n34"],["BO19","b29 n68 n69"],["BES","n66 b28"],
  ["MIL","n220"],["PAR","n221 n222"],["BDT","n213"],["ARC","n201"],["NOB","n203"],["OAL","n210"],["PO01","po01 po04"],["PO02","po02"],["PO03","po03"],["PO04","po05"],["PO05","po06"],["PO06","po10"],["PO07","po11"],["PO08","po12 po43"],["PO09","po13 po14 po15 po16 po17"],["PO10","po18"],["PO11","po19"],["PO12","po20"],["PO13","po21 po22 po23"],["PO14","po24"],["PO15","po25 po26 po33"],["PO16","po27"],["PO17","po28"],["PO18","po29"],["PO19","po30"],["PO20","po31 po32"],["PO21","po34"],["PO22","po35"],["PO23","po36"],["PO24","po37"],["PO25","po38 po39 po40"],["PO26","po41"],["PO27","po42"]].forEach(([k, ids]) => ids.split(" ").forEach(id => { CARD_SRC[id] = k; }));
@@ -1890,7 +1893,9 @@ function grpGoal(g){
   let target = prefs.np && !(ex && ex.daysLeft <= 0) ? prefs.np : tc !== null && !(ex && ex.daysLeft <= 0) ? (ex ? Math.min(auto, tc) : tc) : auto;
   /* Version découverte : un seul écrit, quelques nouvelles fiches par jour. */
   const locked = typeof grpLocked === "function" && grpLocked(g);
-  if (typeof isPremium === "function" && !isPremium()) target = locked || (ex && ex.daysLeft <= 0) ? 0 : FREE_NEW;
+  /* Les nouvelles fiches du jour se partagent entre les écrits : changer d'écrit ne les double pas. */
+  const otherNew = () => relGroups().filter(x => x !== g).reduce((t, x) => t + ((log[dayKey()] || {})["n_" + x] || 0), 0);
+  if (typeof isPremium === "function" && !isPremium()) target = locked || (ex && ex.daysLeft <= 0) ? 0 : Math.max(0, FREE_NEW - otherNew());
   const now = Date.now(), due = locked ? 0 : cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
   const left = locked ? 0 : Math.max(0, Math.min(unseen, target + (isPremium() ? extraNew[g] || 0 : 0) - n));
   return { g, unseen, n, target, auto, left, due, todo: due + left };
@@ -2302,7 +2307,7 @@ function renderHome(){
   const el = $("#panel-home"); if (!el) return;
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
-    ${welcomeOpen ? (prefs.concours || prefs.examDate ? heroHTML() : "") : `${heroHTML()}
+    ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : `${heroHTML()}
     ${upgradeBanner()}
     <div class="home-one">${homeSession()}${homeTrain()}</div>`}`;
 }
@@ -2392,7 +2397,7 @@ function sessRecap(more){
       ${s.up5 ? `<li>${s.up5} carte${s.up5 > 1 ? "s" : ""} maîtrisée${s.up5 > 1 ? "s" : ""} (boîte 5)</li>` : ""}
       ${st.cur ? `<li>${icon("flame")} ${plural(st.cur, "jour")} d'affilée</li>` : ""}
       <li>Demain : ${tomorrow ? plural(tomorrow, "carte") + " à revoir" : "rien à revoir pour cette épreuve"}</li>
-    </ul></div>${more ? "" : saveCardHTML(s.n)}`;
+    </ul></div>${more ? "" : saveCardHTML(s.fresh)}`;
 }
 function startExpress(g){
   if (g) setGrp(g);
@@ -2430,7 +2435,7 @@ function swipeEnd(e){
   if (!swipe.on || e.pointerId !== swipe.id) return;
   swipe.on = false;
   const card = $("#panel-revise .bristol");
-  if (!flipped) { if (!swipe.moved && e.type === "pointerup") { flipped = true; render(true); } return; }
+  if (!flipped) { if (!swipe.moved && e.type === "pointerup") { flipped = true; render(); flipFocus(); } return; }
   if (swipe.dx > SWIPE_MIN) { buzz(); grade("su"); return; }
   if (swipe.dx < -SWIPE_MIN) { buzz([12, 40, 12]); grade("rate"); return; }
   if (card) { card.style.transform = ""; card.dataset.swipe = ""; }
@@ -2681,7 +2686,8 @@ function isPremium(){
   const p = acct.premium || planCache();
   return !!(p && p.active && (!p.until || p.until > Date.now()));
 }
-const freeGrp = () => relGroups()[0];
+/* L'écrit de la version découverte : le premier du concours, ou celui que la personne a choisi. */
+const freeGrp = () => { const r = relGroups(); return r.includes(prefs.fg) ? prefs.fg : r[0]; };
 const grpLocked = g => !isPremium() && g !== freeGrp();
 function intentGet(){ try { return sessionStorage.getItem(INTENT_KEY) || ""; } catch (e) { return ""; } }
 function intentSet(v){ try { if (v) sessionStorage.setItem(INTENT_KEY, v); else sessionStorage.removeItem(INTENT_KEY); } catch (e) {} }
@@ -2701,10 +2707,22 @@ const PW_WHY = {
   ecoute: "Le mode écoute fait partie de l'accès complet.",
   menu: ""
 };
-const pw = { open: false, why: "", code: false, busy: false, msg: "", opener: null };
+const pw = { open: false, why: "", code: false, busy: false, msg: "", opener: null, wait: "" };
+const WAIT_KEY = "bristol-eps-wait";
+function waitDone(){ try { return localStorage.getItem(WAIT_KEY) === "1"; } catch (e) { return false; } }
+/* Paiement pas encore ouvert : une adresse pour être prévenu, et rien d'autre. */
+async function pwWait(email){
+  pw.busy = true; pw.msg = ""; renderPaywall();
+  const r = await api("POST", "/api/waitlist", { email, concours: prefs.concours || "" });
+  pw.busy = false;
+  if (r.status === 200) { try { localStorage.setItem(WAIT_KEY, "1"); } catch (e) {} pw.wait = "ok"; }
+  else pw.msg = r.status === 400 ? "Cette adresse e-mail ne semble pas valide." : r.status === 429 ? "Trop d'essais. Réessaie dans une heure." : "L'adresse n'a pas pu être enregistrée. Réessaie dans un instant.";
+  renderPaywall();
+  const f = $(pw.wait === "ok" ? "#pw-wait-ok" : "#pw-wait-in"); if (f) f.focus();
+}
 async function paywall(why){
   if (!STANDALONE) return;
-  Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", opener: document.activeElement });
+  Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", wait: "", opener: document.activeElement });
   await billCfg();
   renderPaywall();
   document.documentElement.classList.add("gs-on");
@@ -2735,8 +2753,10 @@ function renderPaywall(){
       <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
-    ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le ci-dessous.</p>`
-      : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée.</p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail.</p>`}
+    ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne n'est pas encore ouvert : en attendant, la version découverte reste gratuite, avec un retour de Claude offert.</p>
+      ${pw.wait === "ok" || waitDone() ? `<p class="pw-note" id="pw-wait-ok" tabindex="-1"><b>C'est noté.</b> Tu recevras un seul e-mail, à l'ouverture du paiement.</p>`
+        : `<form class="pw-code" data-pwwait="1" novalidate><label for="pw-wait-in">Recevoir un e-mail à l'ouverture</label><div class="row-btns"><input id="pw-wait-in" type="email" autocomplete="email" spellcheck="false" placeholder="ton@adresse.fr" aria-describedby="pw-wait-note"><button class="btn primary" type="submit"${pw.busy ? " disabled" : ""}>Me prévenir</button></div><p class="pw-note" id="pw-wait-note">Un seul e-mail, puis ton adresse est effacée. <a class="link" href="/confidentialite/" target="_blank" rel="noopener">Confidentialité</a></p></form>`}`
+      : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>`}
     ${pw.code ? `<form class="pw-code" data-pwcode="1" novalidate><label for="pw-code-in">Code d'accès</label><div class="row-btns"><input id="pw-code-in" autocomplete="off" spellcheck="false" placeholder="Ton code"><button class="btn" type="submit"${pw.busy ? " disabled" : ""}>Activer</button></div></form>`
       : `<p><button class="linkbtn" data-act="pw-code">J'ai un code d'accès</button></p>`}
     ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
@@ -2769,6 +2789,7 @@ async function intentResume(){
   const it = intentGet(); if (!it || acct.status !== "in") return;
   intentSet("");
   if (isPremium()) { toast("Tu as déjà l'accès complet."); return; }
+  if (it.startsWith("trial:")) { if (trialOn() && sj.cur) { setView("sujets"); trialAsk = true; askFeedback(it.slice(6)).finally(() => { trialAsk = false; render(); }); } return; }
   if (it.startsWith("plan:")) await pwCheckout(it.slice(5));
   else if (it.startsWith("code:")) await pwRedeem(it.slice(5));
 }
@@ -2790,7 +2811,8 @@ function lockHTML(g){
   return `<div class="empty lock"><h2>${icon("lock")} ${esc(e.t)}</h2>
     <p>${list.length} fiches t'attendent sur cet écrit. En version découverte, tu révises ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p>
     <ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>
-    <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">Débloquer tous les écrits</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
+    <p>Tu peux aussi faire porter ta découverte sur cet écrit : les ${FREE_NEW} nouvelles fiches du jour viendront de lui.</p>
+    <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">Débloquer tous les écrits</button><button class="btn" data-act="free-grp" data-g="${g}">Découvrir ${g === "tx" ? "les textes officiels" : "l'" + esc(e.s.toLowerCase())} à la place</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
 }
 function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button class="btn" data-act="paywall" data-why="claude">${icon("lock")} Avoir le retour de Claude</button></div><p class="fb-note">Réservé à l'accès complet.</p></div>`; }
 function upgradeBanner(){
@@ -2870,7 +2892,7 @@ function renderGrpSeg(){
     /* Nom accessible = texte visible (« Textes » sur mobile), complété hors écran : pas d'écart entre ce qu'on lit et ce qu'on entend. */
     const lab = e.id === "tx" ? `Textes<span class="tl-long"> officiels</span>` : esc(e.s);
     const lk = grpLocked(e.id);
-    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span><span class="sr-only">, accès complet</span>` : x.todo ? ` <span class="seg-n">${x.todo}<span class="sr-only"> à faire</span></span>` : ""}</button>`; }).join("");
+    return `<button role="tab" data-grp="${e.id}" aria-selected="${on}"${on ? "" : ' tabindex="-1"'}>${lab}${lk ? ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span><span class="sr-only">, réservé à l'accès complet</span>` : x.todo ? ` <span class="seg-n">${x.todo}<span class="sr-only"> à faire</span></span>` : ""}</button>`; }).join("");
 }
 function renderRevise(){
   renderGrpSeg();
@@ -2899,8 +2921,7 @@ function renderRevise(){
   const p = progress[c.id], b = p ? p.b : 0;
   const left = queue.length;
   el.innerHTML = `
-    ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
-    <div class="sess"><b>${progLabel ? "Programme : " + esc(progLabel) : cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${canListen() ? `<button class="linkbtn undo-btn" data-act="listen">Mode écoute</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
+    <div class="sess"><b>${progLabel ? "Programme : " + esc(progLabel) : cram ? "Révision libre" : express ? "Séance express : " + esc(eprOf(grp).s.toLowerCase()) : "Séance du jour : " + esc(eprOf(grp).s.toLowerCase())}</b><span>${lastGrade ? `<button class="linkbtn undo-btn" data-act="undo" title="Touche U">Annuler « ${GRADE_TXT[lastGrade.r]} »</button>` : ""}${canListen() ? `<button class="linkbtn undo-btn" data-act="listen">Mode écoute${isPremium() ? "" : ` <span class="seg-lock" aria-hidden="true">${icon("lock")}</span><span class="sr-only">, réservé à l'accès complet</span>`}</button>` : ""}${left} carte${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""}</span></div>
     <div class="sess-bar" aria-hidden="true"><span style="width:${Math.round(100 * done / (done + left))}%"></span></div>
     <article class="bristol">
       <div class="band"><span class="period">${c.custom ? "Ma carte · " : ""}${esc(thName(c))}</span><span class="band-r"><span>${esc(pLabel(c))}</span><span class="boxes" role="img" title="Boîte ${b} sur 5" aria-label="Boîte ${b} sur 5">${boxes(b)}</span>${starBtn(c)}</span></div>
@@ -2916,6 +2937,7 @@ function renderRevise(){
           </div>`
         : `<button class="btn primary wide" data-act="flip">Voir la réponse <span class="k">Espace</span></button>`}
     </div>
+    ${!flipped && !Object.keys(progress).length ? `<p class="first-hint">Première carte : cherche la réponse dans ta tête avant de la retourner, puis note-toi honnêtement. C'est l'effort de rappel qui fait retenir.</p>` : ""}
     ${flipped ? srcHTML(c) : ""}
     ${flipped ? `<p class="hint">${cram ? "Révision libre : seule une carte ratée change de boîte." : "Raté : retour en boîte 1, revient dans la séance. Su : " + nextLabel(c.id) + "."}<span class="touch-only"> Tu peux aussi glisser la carte : à droite pour « Su », à gauche pour « Raté ».</span></p>` : `<p class="hint touch-only">Touche la carte pour la retourner.</p>`}`;
 }
@@ -3623,19 +3645,26 @@ else { sampleFn = (_prompt, opts) => serverSample(opts.payload, opts); }
 const CODE_KEY = "bristol-eps-code";
 function codeGet(){ try { return localStorage.getItem(CODE_KEY) || ""; } catch (e) { return ""; } }
 function codeSet(v){ try { if (v) localStorage.setItem(CODE_KEY, v); else localStorage.removeItem(CODE_KEY); } catch (e) {} }
+/* Retour offert : un seul par compte gratuit (le serveur fait foi), pour essayer avant de payer. */
+const TRIAL_KEY = "bristol-eps-trial";
+let trialAsk = false;
+function trialUsed(){ try { return localStorage.getItem(TRIAL_KEY) === "1"; } catch (e) { return false; } }
+function trialMark(){ try { localStorage.setItem(TRIAL_KEY, "1"); } catch (e) {} }
+const trialOn = () => STANDALONE && !isPremium() && !codeGet() && !trialUsed();
 async function serverSample(payload, { signal, onText }){
   let res;
   try {
     res = await fetch(payload && payload.images ? "/api/feedback?photos=1" : "/api/feedback", { method: "POST", signal,
-      headers: { "content-type": "application/json", "x-access-code": codeGet() },
+      headers: Object.assign({ "content-type": "application/json", "x-access-code": codeGet() }, trialAsk ? { "x-trial": "1" } : {}),
       body: JSON.stringify(payload) });
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
-    const map = { premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    const map = { trial_used: "trial_used", trial_closed: "trial_closed", login_required: "login_required", premium_required: "premium", invalid_code: "bad_code", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
     throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.error === "slow_down" ? String(j.retryAfter || "") : j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
   const high = res.headers.get("x-usage-high") === "1";
+  if (res.headers.get("x-trial") === "1") trialMark();
   const reader = res.body.getReader(), dec = new TextDecoder();
   let text = "", ctl = "", seenCtl = false;
   try {
@@ -3685,7 +3714,10 @@ function fbBlock(s, kind){
   const key = fbKey(s, kind), what = kindTxt(s, kind)[1];
   const busy = fb.sid === key && (fb.status === "thinking" || fb.status === "streaming");
   const has = (fb.sid === key && fb.text) || fbSaved(key);
-  if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (has ? `<div id="sj-fb" class="fb-out">${fbInner(s, kind)}</div>` : "");
+  if (STANDALONE && !isPremium() && !codeGet() && !(trialOn() || busy)) return claudeLockHTML() + (has ? `<div id="sj-fb" class="fb-out">${fbInner(s, kind)}</div>` : "");
+  if (STANDALONE && !isPremium() && !codeGet()) return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-trial" data-kind="${kind}"${busy ? " disabled" : ""}>Avoir mon retour offert sur ${what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
+    <p class="fb-note">Un retour de Claude t'est offert pour essayer, avec un compte gratuit. Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>
+    <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
   return `<div class="fb"><div class="row-btns"><button class="btn" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
     ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
@@ -3693,6 +3725,9 @@ function fbBlock(s, kind){
 function fbErr(code, detail){
   if (code === "cancelled") return "Retour interrompu.";
   if (code === "premium") { setTimeout(() => paywall("claude"), 0); return "Les retours de Claude font partie de l'accès complet."; }
+  if (code === "trial_used") { trialMark(); setTimeout(() => paywall("claude"), 0); return "Ton retour offert a déjà servi. Les suivants font partie de l'accès complet."; }
+  if (code === "trial_closed") return "Les retours offerts du jour sont tous partis. Réessaie demain.";
+  if (code === "login_required") { setTimeout(() => openAccount("register", "Crée ton compte gratuit, ou connecte-toi, pour recevoir ton retour offert. Ton texte reste ici."), 0); return "Connecte-toi pour recevoir ton retour offert."; }
   if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(code)) { sampleFn = null; return "Le retour de Claude n'est pas autorisé ici. Tu peux l'activer dans les autorisations de la page."; }
   if (code === "rate_limited") return "Trop de demandes pour l'instant. Réessaie dans quelques minutes.";
   if (code === "session_expired") return "Ta session a expiré. Reconnecte-toi à Claude, puis réessaie.";
@@ -4188,16 +4223,41 @@ function ptBuild(){
     const isYear = t => /^\s*(en |le |dès |à partir de )?\d{4}\b/i.test(t), isNum = t => /^\s*\d/.test(t);
     const kind = t => isYear(t) ? "y" : isNum(t) ? "n" : "t";
     /* Une question sur une personne appelle des noms ; une question sur un ouvrage, jamais un nom de personne. */
-    const isName = t => /^(Jean|Pierre|Georges|Philippe|Jacques|Paul|Marcel|Robert|Alice|Maurice|Louis|Michel|[A-ZÀ-Ý][a-zà-ÿ'-]+)( (de |d'|Le |La |van |von )?[A-ZÀ-Ý][a-zà-ÿ'-]+){1,3}([ ,.(]|$)/.test(t) && t.split(/\s+/).length <= 9 && !/^(La|Le|Les|L'|Un|Une|Des|Il|Elle|Au|Aux|En|Par|Pour)\b/.test(t);
-    const askPerson = /^(qui\b|quel (auteur|ministre|médecin|sociologue|historien|psychologue|philosophe|pédagogue|officier)|quelle (femme|personnalité|athlète))/i.test(c.q.trim());
+    const isName = t => /^(Jean|Pierre|Georges|Philippe|Jacques|Paul|Marcel|Robert|Alice|Maurice|Louis|Michel|[A-ZÀ-Ý][a-zà-ÿ']+(-[A-ZÀ-Ý][a-zà-ÿ']+)?)( (de |d'|Le |La |van |von )?[A-ZÀ-Ý][a-zà-ÿ'-]+){1,3}([ ,.(]|$)/.test(t) && t.split(/\s+/).length <= 9 && !/^(La|Le|Les|L'|Un|Une|Des|Il|Elle|Au|Aux|En|Par|Pour)\b/.test(t);
+    const askPerson = /^(qui\b|quel(le)?s? (auteur|autrice|ministre|médecin|physiologiste|ingénieur|sociologue|historien|historienne|psychologue|philosophe|pédagogue|officier|chercheur|chercheurs|chercheuse|pionnière|pionnier|femme|personnalité|athlète))/i.test(c.q.trim());
     const askWork = /^quel(le)? (ouvrage|livre|titre|œuvre|oeuvre|manuel)/i.test(c.q.trim());
     const fits = x => askPerson && isName(c.a) ? isName(x.a) : askWork ? !isName(x.a) : true;
-    const same = concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && x.th === c.th && kind(x.a) === kind(c.a) && !close(x) && fits(x));
+    /* Même forme de réponse (un nom, une date, « Il… », « La loi… ») et, si possible, même catégorie
+       que la question (un texte officiel, un organisme, un diplôme, un ouvrage) : sinon le bon choix se devine. */
+    const shape = t => isYear(t) ? "y" : isNum(t) ? "n" : /^(Il|Elle|Ils|Elles|On)\b/.test(t) ? "p" : isName(t) || /^[A-ZÀ-Ý][a-zà-ÿ'-]+ [A-ZÀ-Ý][a-zà-ÿ'-]+(-[A-ZÀ-Ý][a-zà-ÿ]+)?,/.test(t) ? "h" : /^(L['’]|(Le|La|Les|Un|Une|Des|Du|Celui|Celle|Ceux)\s)/.test(t) ? "d" : /^(Sur|Par|Pour|En|Dans|Avec|De|D['’]|À|Au|Aux|Depuis|Selon|Comme|Parce)(\s|['’])/.test(t) ? "r" : "t";
+    const NUMW = /^(Deux|Trois|Quatre|Cinq|Six|Sept|Huit|Neuf|Dix|Onze|Douze)\b/;
+    const CATS = [["tx", /\b(loi|lois|decret|arrete|circulaire|instructions?|ordonnance|note de service|programmes?|texte|bo|bulletin officiel|charte|reforme)\b/],
+      ["org", /\b(organisme|association|comite|federation|union|ligue|office|ossu|assu|unss|usep|fnsu|ufolep|ministere|institut|insep|ecole normale|conseil|societe|cio|syndicat|snep)\b/],
+      ["dip", /\b(certificat|diplome|caeg|capeps|licence|deug|agregation|brevet|concours|cap|staps)\b/],
+      ["work", /\b(ouvrage|livre|titre|oeuvre|manuel|revue|article|these|synthese)\b/],
+      ["test", /\b(test|epreuve|batterie|indice|echelle|questionnaire)\b/]];
+    const qCatOf = q => { const m = normTxt(q).match(/^(quel|quelle|quels|quelles)\s+([a-z-]+(?:\s+de\s+service)?)/); if (!m) return ""; const f = CATS.find(([, re]) => re.test(m[2])); return f ? f[0] : ""; }, qCat = qCatOf(c.q);
+    const aCat = t => { const h = normTxt(t).split(/\s+/).slice(0, 4).join(" "); const f = CATS.find(([, re]) => re.test(h)); return f ? f[0] : ""; };
+    const head = t => { const m = normTxt(t).match(/^(?:le|la|les|l'|l’|un|une|des|du)\s*([a-z-]+)/); return m ? m[1] : ""; };
+    const qHead = q => { const m = normTxt(q).match(/^(?:a |de |pour |dans |sur )?(?:quel|quelle|quels|quelles)\s+(?:est |sont )?(?:la |le |les |l')?([a-z-]+)/); return m ? m[1] : ""; }, qh = qHead(c.q);
+    const shape2 = t => NUMW.test(t) ? "n" : shape(t), cs = shape2(c.a), cc = qCat || (qh ? aCat(c.a) : ""), ch = head(c.a);
+    const valid = x => x.id !== c.id && ok(x) && x.a !== c.a && !close(x) && fits(x) && shape2(x.a) === cs;
     const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
-    const score = x => (qw(x.q) === cq ? 4 : 0) + (w0(x.a) === cw ? 2 : 0) + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
-    const pool = same.map(x => [x, score(x)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+    const score = x => (cc && (aCat(x.a) === cc || qCatOf(x.q) === qCat && qCat) ? 8 : cc ? -6 : 0) + (qh && qHead(x.q) === qh ? 6 : 0) + (ch && head(x.a) === ch ? 4 : 0) + (x.th === c.th ? 5 : 0) + (qw(x.q) === cq ? 3 : 0) + (w0(x.a) === cw ? 3 : 0)
+      + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
+    const pool = concCards().filter(valid).map(x => [x, score(x)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
     const opts = [];
     const add = x => { if (opts.length < 3 && !opts.includes(x.a) && !opts.some(o => near(o, x.a))) opts.push(x.a); };
+    const put = a => { if (opts.length < 3 && !opts.includes(a) && a !== c.a) opts.push(a); };
+    /* Réponse courte autour d'une année (« En 1959 », « Depuis la rentrée 2016 ») ou d'un nombre en lettres :
+       des leurres de même forme, avec une autre année ou un autre nombre. */
+    const yr = c.a.match(/\b(1[89]\d\d|20\d\d)\b/g);
+    if ((cs === "y" || cs === "r") && c.a.length <= 50 && yr && yr.length === 1) {
+      const y = +yr[0], now = new Date().getFullYear();
+      for (const d of shuffle([-12, -8, -5, -3, 3, 5, 8, 12])) { const v = y + d; if (v <= now + 1 && v > 1800) put(c.a.replace(yr[0], String(v))); }
+    }
+    const NW = ["Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit"], nw = (c.a.match(NUMW) || [])[1];
+    if (nw && c.a.length <= 50) for (const w of shuffle(NW.filter(x => x !== nw))) put(c.a.replace(nw, w));
     for (const x of pool) add(x);
     if (opts.length < 3) for (const x of shuffle(concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && kind(x.a) === kind(c.a) && !close(x) && fits(x)))) add(x);
     if (opts.length < 3) for (const x of pool) if (opts.length < 3 && !opts.includes(x.a)) opts.push(x.a);
@@ -7093,7 +7153,7 @@ function outlineHTML(text, target){
   const list = n ? `<ol class="outl">${o.items.map(it => `<li class="ol-${it.lvl}"><button class="outl-go" data-outpos="${it.pos}" data-outta="${target}" title="${esc(it.t)}"><span>${esc(it.t)}</span><span class="outl-w">${it.w} mots</span></button></li>`).join("")}</ol>`
     : `<p class="outl-empty">Commence tes titres en début de ligne (« Introduction », « I. », « A. », « Conclusion ») : ton plan apparaît ici, avec le nombre de mots de chaque partie.</p>`;
   const bal = outlineBalance(o.items);
-  return `<details class="outl-box" id="outl-${target}"${n ? " open" : ""}><summary>Plan de ta copie${n ? ` (${n} titre${n > 1 ? "s" : ""})` : ""}</summary>${list}${bal ? `<p class="outl-warn">${esc(bal)}</p>` : ""}</details>`;
+  return `<details class="outl-box" id="outl-${target}"${n ? " open" : ""}><summary>Plan de ta copie${n ? ` (${n} titre${n > 1 ? "s" : ""})` : ` <span class="outl-hint">Se remplit avec tes titres.</span>`}</summary>${list}${bal ? `<p class="outl-warn">${esc(bal)}</p>` : ""}</details>`;
 }
 let outlTimer = null;
 function outlineRefresh(ta){
@@ -7571,8 +7631,11 @@ function render(focusActions){
   if (view === "deck") renderDeck();
   if (focusActions) { const b = $("#panel-" + view + " .actions button:not([disabled]), #panel-" + view + " .row-btns button:not([disabled])"); if (b) b.focus({preventScroll: true}); }
 }
+/* Carte retournée : le focus va sur la réponse (lue par les lecteurs d'écran), pas sur « Raté » :
+   une touche Entrée par réflexe ne note rien. Les touches 1, 2, 3 et Tab restent disponibles. */
+function flipFocus(){ const a = $("#panel-revise .bristol .a"); if (a) { a.setAttribute("tabindex", "-1"); a.focus({ preventScroll: true }); } }
 let toastTimer;
-function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms || 2600); }
+function toast(msg, ms){ const t = $("#toast"); t.textContent = msg; t.hidden = false; t.onclick = () => { t.hidden = true; }; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms || 2600); }
 
 /* ---------- Événements ---------- */
 document.addEventListener("click", e => {
@@ -7600,6 +7663,7 @@ document.addEventListener("click", e => {
   if (d.pt !== undefined) { ptAnswer(d.pt); return; }
   if (d.act === "pt-next") { ptNext(); return; }
   if (d.act === "pt-quit") { pt.on = false; setView("home"); return; }
+  if (d.act === "free-grp" && relGroups().includes(d.g)) { prefs.fg = d.g; persist(); setGrp(d.g); done = 0; buildQueue(); render(); toast("Ta découverte porte maintenant sur " + (d.g === "tx" ? "les textes officiels" : "l'" + eprOf(d.g).s.toLowerCase()) + "."); return; }
   if (d.act === "pt-go") { pt.on = false; const g = relGroups().find(x => !grpLocked(x) && grpGoal(x).todo) || freeGrp(); setGrp(g); done = 0; buildQueue(); setView("revise"); const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-prog") { pt.on = false; setView("stats"); const c = $("#panel-stats .cov"); if (c) try { c.scrollIntoView({ block: "start" }); } catch (e) {} return; }
   if (d.act === "conc-change") { ccOpen(); return; }
@@ -7611,7 +7675,7 @@ document.addEventListener("click", e => {
   if (d.onb) {
     const fresh = !Object.keys(progress).length;
     const c = chooseConcours(d.onb === "none" ? "" : d.onb); if (fresh) renderWelcome(); else hideWelcome();
-    toast(c ? `C'est noté : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
+    if (!fresh) toast(c ? `C'est noté : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
     const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
   }
   if (d.onbChange) { conc.cur = null; conc.list = true; setView("concours"); return; }
@@ -7696,7 +7760,7 @@ document.addEventListener("click", e => {
   if (d.sjepr) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = d.sjepr; sj.axe = "Tous"; sj.cur = null; tmReset(); render(); const b = document.querySelector(`[data-sjepr="${d.sjepr}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.sjopen) { const s = SUBJECTS.find(x => x.id === d.sjopen); if (s) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.epr = "e1"; sj.axe = "Tous"; sj.cur = s; sj.shown = false; setView("sujets"); try { window.scrollTo({ top: 0 }); } catch (e) {} } return; }
   if (d.tab) { setView(d.tab); return; }
-  if (d.act === "flip") { flipped = true; render(true); return; }
+  if (d.act === "flip") { flipped = true; render(); flipFocus(); return; }
   if (d.act === "gs-open") { gsOpen(); return; }
   if (d.act === "gs-close") { gsClose(); return; }
   if (d.gscram && grpLocked(grpOf(byId(d.gscram) || {}))) { gsClose(false); paywall("ecrit"); return; }
@@ -7753,6 +7817,11 @@ document.addEventListener("click", e => {
   if (d.refedit) { refEdit = d.refedit; render(); const i = $("#ref-input"); if (i) i.focus(); return; }
   if (d.refsave) { const i = $("#ref-input"); saveRef(d.refsave, i ? i.value : ""); return; }
   if (d.refcancel) { const id = refEdit; refEdit = null; render(); const b = id && document.querySelector(`[data-refedit="${id}"]`); if (b) b.focus({ preventScroll: true }); return; }
+  if (d.act === "fb-trial") {
+    const k = ["intro", "para"].includes(d.kind) ? d.kind : "plan";
+    if (acct.status !== "in") { intentSet("trial:" + k); openAccount("register", "Crée ton compte gratuit, ou connecte-toi, pour recevoir ton retour offert. Ton texte reste ici."); return; }
+    trialAsk = true; askFeedback(k).finally(() => { trialAsk = false; render(); }); return;
+  }
   if (d.act === "fb-ask") { askFeedback(["intro", "para"].includes(d.kind) ? d.kind : "plan"); return; }
   if (d.sjsrc) { if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; } sj.src = d.sjsrc; sj.cur = null; sj.axe = "Tous"; render(); const b = document.querySelector(`[data-sjsrc="${d.sjsrc}"]`); if (b) b.focus({ preventScroll: true }); return; }
   if (d.sjmode) { sj.mode = d.sjmode; render(); const b = document.querySelector(`[data-sjmode="${d.sjmode}"]`); if (b) b.focus({ preventScroll: true }); return; }
@@ -7835,7 +7904,7 @@ document.addEventListener("keydown", e => {
   }
   if (pw.open) {
     if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closePaywall(); return; }
-    if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#paywall button:not([disabled]), #paywall input")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
+    if (e.key === "Tab") { const f = Array.from(document.querySelectorAll("#paywall button:not([disabled]), #paywall input, #paywall a[href]")); if (f.length) { const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } } }
     return;
   }
   if (gs.open) {
@@ -8163,7 +8232,7 @@ function onbHTML(){
       <li><b>Tu as ou prépares une licence</b> : CAPEPS externe (concours à bac+3).</li>
       <li><b>Tu as ou prépares un master</b> : CAPEPS externe transitoire (dernière session en 2027) ou agrégation externe.</li>
       <li><b>Agent public, trois ans de services et une licence</b> : CAPEPS interne.</li>
-      <li><b>Fonctionnaire, cinq ans de services publics</b> : agrégation interne.</li>
+      <li><b>Fonctionnaire, cinq ans de services publics et un master (ou équivalent)</b> : agrégation interne.</li>
       <li><b>Cinq ans d'activité dans le privé</b> : troisième concours.</li></ul>
       <p class="w-note">Ce sont les règles générales : vérifie ta situation dans la note de service, citée sur la fiche de chaque concours.</p></details>
     ${STANDALONE && acct.status !== "in" ? `<p class="w-note">Déjà un compte ? <button class="linkbtn" data-act="account-open">Connecte-toi</button> pour retrouver ton concours et ta progression.</p>` : ""}</div>`;
@@ -8276,7 +8345,7 @@ document.addEventListener("keydown", e => {
   }
   if ((e.key === "u" || e.key === "U") && lastGrade) { e.preventDefault(); undoGrade(); return; }
   if (!queue.length) return;
-  if (!flipped && (e.key === " " || e.key === "Enter")) { if (e.target.closest("button")) return; e.preventDefault(); flipped = true; render(true); return; }
+  if (!flipped && (e.key === " " || e.key === "Enter")) { if (e.target.closest("button")) return; e.preventDefault(); flipped = true; render(); flipFocus(); return; }
   if (flipped && ["1","2","3"].includes(e.key)) { e.preventDefault(); grade({ "1": "rate", "2": "hesite", "3": "su" }[e.key]); }
 });
 $("#f-p").innerHTML = PERIODS.concat([NONE_P]).map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
@@ -8292,6 +8361,7 @@ document.addEventListener("submit", e => {
     const g = goalInfo(); toast(g && g.newPerDay ? `Objectif : ${g.newPerDay} nouvelles cartes par jour.` : "Date enregistrée.");
     return;
   }
+  if (e.target.dataset && e.target.dataset.pwwait) { e.preventDefault(); const v = (($("#pw-wait-in") || {}).value || "").trim(); if (v) pwWait(v); return; }
   if (e.target.dataset && e.target.dataset.pwcode) { e.preventDefault(); const v = (($("#pw-code-in") || {}).value || "").trim(); if (v) pwRedeem(v); return; }
   if (e.target.dataset && e.target.dataset.reportform) { e.preventDefault(); reportSend(e.target); return; }
   if (e.target.dataset && e.target.dataset.relform) {

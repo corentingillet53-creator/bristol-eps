@@ -53,6 +53,8 @@ async function checkout(request, env) {
     success_url: origin + "/app/?abonnement=ok",
     cancel_url: origin + "/app/?abonnement=annule",
     locale: "fr", allow_promotion_codes: "true",
+    // Contenu numérique fourni tout de suite : l'accord exprès qui lève le délai de rétractation (CGV, article 5).
+    "custom_text[submit][message]": "En payant, tu acceptes les conditions de vente (" + origin + "/cgv/) et tu demandes l'accès immédiat : tu renonces ainsi à ton droit de rétractation de 14 jours.",
   };
   if (plan === "pass") p.customer_creation = "always";
   else { p["subscription_data[metadata][user]"] = user.id; p["subscription_data[metadata][plan]"] = plan; }

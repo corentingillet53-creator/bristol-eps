@@ -81,7 +81,8 @@ conc = []
 for cid, t, tag in re.findall(r'\{ id: "((?:capeps|agreg)-[a-z0-9]+)", t: "([^"]+)", tag: "([^"]+)"', page):
     seg = page[page.index(f'{{ id: "{cid}"'):][:2000]
     ec = re.search(r'ecrits: "([^"]+)", d: "(\d{4}-\d{2}-\d{2})"', seg)
-    if ec: conc.append({"id": cid, "t": t, "tag": tag, "ecrits": ec.group(1), "d": ec.group(2)})
+    # Apostrophes typographiques, comme le reste de la page de présentation.
+    if ec: conc.append({"id": cid, "t": t.replace("'", "’"), "tag": tag, "ecrits": ec.group(1).replace("'", "’"), "d": ec.group(2)})
 vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["tx"],
         "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
         "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
@@ -92,6 +93,57 @@ assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
 lout = here / "public" / "index.html"
 lout.write_text(land, encoding="utf-8")
 print("Écrit :", lout, {k: v for k, v in vals.items() if not k.endswith("JSON")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
+
+# Pages légales : source/legal/*.html (titre, description, corps), champs de l'éditeur dans
+# source/legal/editeur.json. Une page statique par fichier, sans script, servie à /<nom>/.
+LEGAL_HEAD = """<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+{meta}
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{--bg:#e5e1d8;--paper:#f3f3f0;--ink:#2a1d17;--muted:#66574d;--accent:#456f3a;--accent-text:#3b6131;--line:#d3cdc1;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#16110e;--paper:#2a211c;--ink:#efe8de;--muted:#b9ab9f;--accent:#93bf81;--accent-text:#a8d095;--line:#3a302a;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.6 "Albert Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--accent-text)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.skip{position:absolute;left:12px;top:-60px;background:#2a1d17;color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+header{max-width:760px;margin:0 auto;padding:24px 16px 0}
+header a{font-family:"Imbue",Georgia,serif;font-size:1.6rem;color:var(--ink);text-decoration:none}
+main{max-width:760px;margin:16px auto 48px;padding:32px clamp(16px,4vw,40px);background:var(--paper);border-top:6px solid var(--accent);border-radius:4px}
+h1,h2{font-family:"Imbue",Georgia,serif;font-weight:400;letter-spacing:-.01em;line-height:1.05}
+h1{font-size:clamp(2.25rem,1.6rem + 2.5vw,3.25rem);margin:0 0 8px}
+h2{font-size:1.6rem;margin:32px 0 8px}
+.lead{color:var(--muted)}
+ul{padding-left:1.2em}
+li+li{margin-top:6px}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header><a href="/">Bristol EPS</a></header>
+<main id="contenu" tabindex="-1">
+"""
+_ed = json.loads((here / "source" / "legal" / "editeur.json").read_text(encoding="utf-8"))
+_todo = sorted(k for k, v in _ed.items() if not k.startswith("_") and "[à compléter" in str(v))
+for _f in sorted((here / "source" / "legal").glob("*.html")):
+    _src = _f.read_text(encoding="utf-8")
+    for k, v in _ed.items():
+        if not k.startswith("_"): _src = _src.replace("{{" + k + "}}", v)
+    assert "{{" not in _src, (_f.name, re.findall(r"\{\{\w+\}\}", _src))
+    _meta = "\n".join(re.findall(r"^<(?:title|meta)\b.*$", _src, re.M))
+    _body = re.sub(r"^<(?:title|meta)\b.*\n", "", _src, flags=re.M)
+    _o = here / "public" / _f.stem / "index.html"
+    _o.parent.mkdir(parents=True, exist_ok=True)
+    _o.write_text(LEGAL_HEAD.replace("{meta}", _meta) + _body + "</main>\n</body>\n</html>\n", encoding="utf-8")
+print("Pages légales :", ", ".join("/" + f.stem + "/" for f in sorted((here / "source" / "legal").glob("*.html"))),
+      ("; champs à compléter dans source/legal/editeur.json : " + ", ".join(_todo)) if _todo else "")
 
 # En-têtes de sécurité (public/_headers). La politique de contenu (CSP) n'autorise que les
 # scripts du site : les deux pages ont des scripts en ligne, autorisés par leur empreinte

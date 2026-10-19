@@ -22,5 +22,9 @@
   "d1_databases": [{ "binding": "DB", "database_name": "bristol-db", "database_id": "00f08cde-346f-42f4-9d4e-ad6f6930032a", "migrations_dir": "migrations" }],
   // Rappels quotidiens par notification : vérification toutes les 15 minutes.
   "triggers": { "crons": ["*/15 * * * *"] },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Builds des branches hors main (`wrangler preview`) : bloc exigé par Wrangler, laissé vide.
+  // Les variables des prévisualisations viennent de la configuration de base du tableau de bord ;
+  // aucun secret ici.
+  "previews": {}
 }
