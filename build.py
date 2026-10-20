@@ -15,7 +15,7 @@ page = src.read_text(encoding="utf-8")
 # INDEXER : False tant que le site n'est pas lancé ; True retire le « noindex » de la page
 # d'accueil et annonce le sitemap dans robots.txt. L'application (/app/) et les pages
 # légales restent hors index dans tous les cas.
-SITE_URL = "https://bristol-eps.corentin-gillet53.workers.dev"
+SITE_URL = "https://eps-bristol.fr"
 INDEXER = False
 
 head = """<!doctype html>
