@@ -29,6 +29,13 @@ export async function take(env, k, d, max, ttlMs, now = Date.now()) {
   return r ? r.n : null;
 }
 
+// Retire d de k seulement s'il en reste au moins d (clé non échue) ; renvoie le reste, ou null.
+export async function spend(env, k, d, now = Date.now()) {
+  await ensureUsage(env);
+  const r = await env.DB.prepare("UPDATE usage SET n = n - ?2 WHERE k = ?1 AND exp >= ?3 AND n >= ?2 RETURNING n").bind(k, d, now).first();
+  return r ? r.n : null;
+}
+
 // Pose l'heure courante sur k si la précédente date d'au moins gapMs ; renvoie 0 si c'est fait,
 // sinon le nombre de millisecondes à attendre.
 export async function gate(env, k, gapMs, now = Date.now()) {

@@ -1,7 +1,9 @@
 // Bristol EPS — abonnement avec Stripe.
 //
-// - POST /api/billing/checkout {plan: "pass" | "mensuel"} : ouvre une page de paiement Stripe ;
-//   « pass » = paiement unique, accès jusqu'à PASS_UNTIL ; « mensuel » = abonnement résiliable.
+// - POST /api/billing/checkout {plan: "pass" | "mensuel" | "recharge"} : ouvre une page de paiement Stripe ;
+//   « pass » = paiement unique, accès jusqu'à PASS_UNTIL ; « mensuel » = abonnement résiliable ;
+//   « recharge » = TOPUP_CREDITS crédits de retours de plus, pour un compte qui a déjà l'accès complet.
+// - GET /api/billing/credits : crédits restants du compte (functions/api/credits.js).
 // - POST /api/billing/webhook : Stripe confirme les paiements (signature vérifiée).
 // - POST /api/billing/portal : gérer ou résilier l'abonnement (portail client Stripe).
 // - POST /api/billing/code {code} : code d'accès bêta (ACCESS_CODES) = accès complet jusqu'à PASS_UNTIL,
@@ -12,7 +14,8 @@
 //   STRIPE_SECRET_KEY (secret), STRIPE_WEBHOOK_SECRET (secret),
 //   STRIPE_PRICE_PASS et STRIPE_PRICE_MONTHLY (identifiants « price_… » des tarifs créés dans Stripe),
 //   facultatifs : PRICE_PASS_LABEL (« 80 € »), PRICE_MONTHLY_LABEL (« 15 € »), PASS_UNTIL (« 2027-07-31 »),
-//   CODE_MAX_USES (30).
+//   CODE_MAX_USES (30), STRIPE_PRICE_TOPUP (tarif de la recharge ; sans lui, pas de recharge),
+//   PRICE_TOPUP_LABEL (« 5 € »), TOPUP_CREDITS (50), MONTHLY_CREDITS (60).
 // Événements à cocher dans le webhook Stripe : checkout.session.completed,
 // checkout.session.async_payment_succeeded, customer.subscription.created/updated/deleted,
 // invoice.paid, charge.refunded, charge.dispute.created.
@@ -20,6 +23,7 @@ import { json, err, readJson, currentUser } from "./account.js";
 import { getPlan, setPlan, passUntil, ensureSubs } from "./plan.js";
 import { take, bump, peek, ipTag } from "./usage.js";
 import { recordEvent } from "./event.js";
+import { creditState, addTopup, monthlyCredits, topupCredits } from "./credits.js";
 
 const enc = new TextEncoder();
 const enabled = (env) => !!(env.STRIPE_SECRET_KEY && env.STRIPE_PRICE_PASS && env.STRIPE_PRICE_MONTHLY);
@@ -37,7 +41,16 @@ async function stripe(env, method, path, params) {
 
 async function config(request, env) {
   const until = new Date(passUntil(env)).toISOString().slice(0, 10);
-  return json(200, { enabled: enabled(env), codes: !!env.ACCESS_CODES, pass: { label: env.PRICE_PASS_LABEL || "80 €", until }, mensuel: { label: env.PRICE_MONTHLY_LABEL || "15 €" } });
+  return json(200, { enabled: enabled(env), codes: !!env.ACCESS_CODES, pass: { label: env.PRICE_PASS_LABEL || "80 €", until }, mensuel: { label: env.PRICE_MONTHLY_LABEL || "15 €" },
+    credits: monthlyCredits(env), recharge: { enabled: enabled(env) && !!env.STRIPE_PRICE_TOPUP, label: env.PRICE_TOPUP_LABEL || "5 €", credits: topupCredits(env) } });
+}
+
+async function credits(request, env) {
+  const user = await currentUser(request, env);
+  if (!user) return err(401, "not_signed_in");
+  const plan = await getPlan(env, user.id);
+  if (!plan.active) return json(200, { active: false });
+  return json(200, { active: true, ...(await creditState(env, "u:" + user.id)) });
 }
 
 async function checkout(request, env) {
@@ -45,21 +58,22 @@ async function checkout(request, env) {
   const user = await currentUser(request, env);
   if (!user) return err(401, "not_signed_in");
   if (!enabled(env)) return err(503, "billing_disabled");
-  const plan = body && body.plan === "mensuel" ? "mensuel" : body && body.plan === "pass" ? "pass" : "";
+  const plan = body && ["mensuel", "pass", "recharge"].includes(body.plan) ? body.plan : "";
   if (!plan) return err(400, "bad_request");
+  if (plan === "recharge" && !env.STRIPE_PRICE_TOPUP) return err(503, "billing_disabled");
   // Accord exprès pour l'accès immédiat et renonciation au droit de rétractation (CGV, art. 5,
   // Code de la consommation L221-28 13°) : case cochée dans l'application, gardée dans les métadonnées.
   if (body.renonce !== true) return err(400, "consent_required");
   const cur = await getPlan(env, user.id);
-  if (cur.active && cur.plan !== "code") return err(409, "already_premium");
+  if (plan === "recharge" ? !cur.active : cur.active && cur.plan !== "code") return err(plan === "recharge" ? 403 : 409, plan === "recharge" ? "premium_required" : "already_premium");
   const origin = new URL(request.url).origin;
   const p = {
-    mode: plan === "pass" ? "payment" : "subscription",
-    "line_items[0][price]": plan === "pass" ? env.STRIPE_PRICE_PASS : env.STRIPE_PRICE_MONTHLY,
+    mode: plan === "mensuel" ? "subscription" : "payment",
+    "line_items[0][price]": plan === "pass" ? env.STRIPE_PRICE_PASS : plan === "recharge" ? env.STRIPE_PRICE_TOPUP : env.STRIPE_PRICE_MONTHLY,
     "line_items[0][quantity]": "1",
     client_reference_id: user.id,
     "metadata[user]": user.id, "metadata[plan]": plan, "metadata[renonciation]": new Date().toISOString(),
-    success_url: origin + "/app/?abonnement=ok",
+    success_url: origin + (plan === "recharge" ? "/app/?recharge=ok" : "/app/?abonnement=ok"),
     cancel_url: origin + "/app/?abonnement=annule",
     locale: "fr", allow_promotion_codes: "true",
     // Contenu numérique fourni tout de suite : l'accord exprès qui lève le délai de rétractation (CGV, article 5).
@@ -69,7 +83,15 @@ async function checkout(request, env) {
   if (user.google_sub) p.customer_email = user.email;
   // Le reçu Stripe (support durable, L221-13) reprend l'accord donné.
   const recu = "Accès immédiat demandé ; renonciation au droit de rétractation acceptée (CGV, article 5).";
-  if (plan === "pass") { p.customer_creation = "always"; p["payment_intent_data[description]"] = "Bristol EPS, pass session. " + recu; }
+  if (plan === "recharge") {
+    // Nombre de crédits fixé au moment du paiement, relu par le webhook ; aussi sur le paiement (remboursement).
+    const n = String(topupCredits(env));
+    p["metadata[credits]"] = n;
+    const r = await env.DB.prepare("SELECT stripe_customer FROM subscriptions WHERE user_id = ?").bind(user.id).first();
+    if (r && r.stripe_customer) { p.customer = r.stripe_customer; delete p.customer_email; } else p.customer_creation = "always";
+    p["payment_intent_data[description]"] = `Bristol EPS, recharge de ${n} retours de Claude. ` + recu;
+    p["payment_intent_data[metadata][plan]"] = "recharge"; p["payment_intent_data[metadata][user]"] = user.id; p["payment_intent_data[metadata][credits]"] = n;
+  } else if (plan === "pass") { p.customer_creation = "always"; p["payment_intent_data[description]"] = "Bristol EPS, pass session. " + recu; }
   else { p["subscription_data[metadata][user]"] = user.id; p["subscription_data[metadata][plan]"] = plan; p["subscription_data[description]"] = "Bristol EPS, abonnement mensuel. " + recu; }
   try { const s = await stripe(env, "POST", "/checkout/sessions", p); return json(200, { url: s.url }); }
   catch (e) { console.error("Checkout :", String(e)); return err(502, "stripe_error"); }
@@ -111,7 +133,13 @@ async function webhook(request, env) {
     if (ev.type === "checkout.session.completed" || ev.type === "checkout.session.async_payment_succeeded") {
       const userId = (o.metadata && o.metadata.user) || o.client_reference_id;
       if (!userId) return json(200, { ok: true, ignored: "no_user" });
-      if (o.mode === "payment" && o.payment_status === "paid") {
+      if (o.metadata && o.metadata.plan === "recharge") {
+        // Stripe peut renvoyer le même événement : une seule recharge par session de paiement.
+        if (o.payment_status === "paid" && await take(env, "stripe:" + o.id, 1, 1, 800 * 864e5) !== null) {
+          await addTopup(env, "u:" + userId, parseInt(o.metadata.credits, 10) || 0);
+          await recordEvent(env, "paid_recharge");
+        }
+      } else if (o.mode === "payment" && o.payment_status === "paid") {
         await setPlan(env, userId, { plan: "pass", status: "active", until: passUntil(env), customer: o.customer });
         await recordEvent(env, "paid_pass");
       } else if (o.mode === "subscription" && o.subscription) {
@@ -124,15 +152,26 @@ async function webhook(request, env) {
     } else if (ev.type === "invoice.paid" && o.subscription) {
       await syncSub(env, await stripe(env, "GET", "/subscriptions/" + o.subscription));
     } else if (ev.type === "charge.refunded" && o.refunded) {
-      // Paiement remboursé en totalité : l'accès s'arrête tout de suite.
-      await revokeCustomer(env, o.customer, ev.type);
+      // Paiement remboursé en totalité : l'accès s'arrête tout de suite (une recharge : ses crédits seulement).
+      if (!await revokeRecharge(env, o)) await revokeCustomer(env, o.customer, ev.type);
     } else if (ev.type === "charge.dispute.created") {
       // Paiement contesté : l'objet reçu est le litige, le client se lit sur son paiement.
       const ch = typeof o.charge === "string" ? await stripe(env, "GET", "/charges/" + o.charge) : o.charge;
-      await revokeCustomer(env, ch && ch.customer, ev.type);
+      if (!await revokeRecharge(env, ch)) await revokeCustomer(env, ch && ch.customer, ev.type);
     }
   } catch (e) { console.error("Webhook Stripe :", ev.type, String(e)); return err(500, "server_error"); }
   return json(200, { ok: true });
+}
+
+// Paiement d'une recharge (métadonnées du paiement) : ses crédits sont retirés, une seule fois.
+async function revokeRecharge(env, ch) {
+  const pi = ch && ch.payment_intent;
+  if (!pi) return false;
+  const intent = typeof pi === "string" ? await stripe(env, "GET", "/payment_intents/" + pi) : pi;
+  const m = (intent && intent.metadata) || {};
+  if (m.plan !== "recharge" || !m.user) return false;
+  if (await take(env, "stripe-back:" + (intent.id || pi), 1, 1, 800 * 864e5) !== null) await addTopup(env, "u:" + m.user, -(parseInt(m.credits, 10) || 0));
+  return true;
 }
 
 async function revokeCustomer(env, customer, why) {
@@ -186,6 +225,7 @@ export async function cancelBilling(env, userId) {
 
 const ROUTES = {
   "GET /api/billing/config": config,
+  "GET /api/billing/credits": credits,
   "POST /api/billing/checkout": checkout,
   "POST /api/billing/webhook": webhook,
   "POST /api/billing/portal": portal,
