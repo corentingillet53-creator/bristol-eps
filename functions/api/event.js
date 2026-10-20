@@ -13,13 +13,14 @@ import { take, ipTag } from "./usage.js";
 // Étapes envoyées par la page, dans l'ordre du parcours.
 const CLIENT = ["open", "concours", "pt", "review1", "write1", "feedback1", "blanc1", "paywall", "checkout", "active", "d7", "d30", "result"];
 // Étapes comptées par le serveur lui-même (plus fiables : elles ne dépendent pas du navigateur).
-const SERVER = ["signup", "trial", "code", "paid_pass", "paid_mensuel"];
+const SERVER = ["signup", "trial", "code", "paid_pass", "paid_mensuel", "paid_recharge", "no_credits"];
 const LABEL = {
   open: "Première ouverture de l'appli", concours: "Concours choisi", pt: "Test de positionnement fini",
   review1: "Première fiche révisée", write1: "Premier texte écrit", feedback1: "Premier retour de Claude reçu",
   blanc1: "Premier concours blanc corrigé", paywall: "Offre affichée", checkout: "Clic vers le paiement",
   active: "Jours actifs (appareils par jour)", d7: "Revenu après 7 jours", d30: "Revenu après 30 jours", result: "Résultat du concours déclaré",
   signup: "Compte créé", trial: "Retour offert utilisé", code: "Code d'accès activé", paid_pass: "Pass session payé", paid_mensuel: "Abonnement mensuel payé",
+  paid_recharge: "Recharge de crédits payée", no_credits: "Demande refusée faute de crédits",
 };
 const CONC = /^(capeps-l3|capeps-m2|capeps-int|capeps-3|agreg-ext|agreg-int)$/;
 

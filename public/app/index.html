@@ -952,6 +952,7 @@ html.gs-on{overflow:hidden}
 .plan-lock svg.ic{color:var(--gold)}
 .plan-box{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border-radius:var(--r-m);padding:12px 14px;margin:12px 0}
 .plan-box p{margin:0}
+.plan-box #plan-cred{flex-basis:100%;color:var(--muted);font-size:14px}
 .plan-box.ok svg.ic{width:18px;height:18px;color:var(--accent-text);vertical-align:-3px}
 .w-go{margin-top:6px}
 .w-more{margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
@@ -2967,7 +2968,35 @@ function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } ca
    Dans Claude (artefact), tout est ouvert : c'est l'aperçu du propriétaire. */
 const PLAN_KEY = "bristol-eps-plan", INTENT_KEY = "bristol-eps-intent";
 const FREE_NEW = 5;
-const bill = { cfg: null };
+const bill = { cfg: null, credits: null };
+/* Crédits de retours de Claude (abonnés ; functions/api/credits.js) : un retour = 1, une copie tapée = 3, en photos = 4.
+   Ceux du mois se renouvellent le 1er ; ceux d'une recharge servent ensuite, jusqu'à la fin de la session. */
+const CR_COST = { court: 1, copie: 3, photos: 4 };
+const crTxt = n => n + "\u00a0crédit" + (n > 1 ? "s" : "");
+const crDate = iso => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" }).replace(/^1 /, "1er ");
+function crNext(){ const d = new Date(); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).toISOString().slice(0, 10); }
+async function credLoad(){
+  if (!STANDALONE || acct.status !== "in" || !isPremium()) return;
+  const [r] = await Promise.all([api("GET", "/api/billing/credits"), billCfg()]);
+  if (r.status === 200 && r.data.active) { bill.credits = r.data; credPaint(); }
+}
+/* Après une demande : mois et recharge renvoyés par le serveur (en-tête x-credits ou corps du refus). */
+function credSet(month, topup){
+  const allowance = (bill.credits && bill.credits.allowance) || (bill.cfg && bill.cfg.credits) || 60;
+  bill.credits = { allowance, month, topup, left: month + topup, renews: (bill.credits && bill.credits.renews) || crNext() };
+  credPaint();
+}
+const rechargeOn = () => !!(bill.cfg && bill.cfg.recharge && bill.cfg.recharge.enabled);
+function credLine(cost){
+  const c = bill.credits; if (!STANDALONE || !c) return "";
+  return `<p class="fb-note fb-cred" data-cost="${cost}">${credInner(cost)}</p>`;
+}
+function credInner(cost){
+  const c = bill.credits; if (!c) return "";
+  return `${cost ? crTxt(cost) + " · " : ""}il t'en reste ${c.left}${c.topup ? ` (dont ${c.topup} rechargés)` : ""} ; ${c.allowance} nouveaux le ${esc(crDate(c.renews))}.${rechargeOn() ? ` <button class="linkbtn" data-act="recharge">Recharger</button>` : ""}`;
+}
+function credLow(){ const c = bill.credits; return c && c.left < 5 ? `Il te reste ${crTxt(c.left)} ; ${c.allowance} nouveaux le ${crDate(c.renews)}.` : ""; }
+function credPaint(){ document.querySelectorAll(".fb-cred").forEach(el => { el.innerHTML = credInner(+el.dataset.cost || 0); }); const a = $("#plan-cred"); if (a) a.innerHTML = credInner(0); }
 function planCache(){ try { return JSON.parse(localStorage.getItem(PLAN_KEY) || "null"); } catch (e) { return null; } }
 function planSet(p){ acct.premium = p || { active: false }; try { if (p) localStorage.setItem(PLAN_KEY, JSON.stringify(p)); else localStorage.removeItem(PLAN_KEY); } catch (e) {} }
 function isPremium(){
@@ -3015,6 +3044,7 @@ async function paywall(why){
   if (!STANDALONE) return;
   Object.assign(pw, { open: true, why: why || "menu", code: false, busy: false, msg: "", wait: "", opener: document.activeElement });
   await billCfg();
+  if (pw.why === "recharge" && !bill.credits) await credLoad();
   renderPaywall();
   document.documentElement.classList.add("gs-on");
   const b = $("#paywall [data-pwplan]:not([aria-disabled='true']):not([disabled])") || $("#pw-title"); if (b) b.focus();
@@ -3025,8 +3055,30 @@ function closePaywall(){
   if (pw.opener && pw.opener.focus) try { pw.opener.focus(); } catch (e) {}
 }
 function untilTxt(iso){ return new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); }
+function renderRecharge(el){
+  const c = bill.cfg || {}, r = c.recharge || {}, on = !!r.enabled, cr = bill.credits;
+  const dis = pw.busy ? " disabled" : !on ? ' aria-disabled="true" aria-describedby="pw-soon"' : "";
+  el.hidden = false;
+  el.innerHTML = `<div class="pw-panel" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <button class="pw-x" data-act="pw-close" aria-label="Fermer">×</button>
+    <h2 id="pw-title" tabindex="-1">Recharger tes retours de Claude</h2>
+    <p class="pw-why">${cr ? `Il te reste ${crTxt(cr.left)} ; ${cr.allowance} nouveaux arrivent le ${esc(crDate(cr.renews))}. ` : ""}Une recharge ajoute ${crTxt(r.credits || 50)}, valables jusqu'à la fin de la session ; ils servent une fois ceux du mois utilisés.</p>
+    <ul class="pw-list">
+      <li>${icon("check")} 1 crédit : un retour sur un plan, une introduction ou un paragraphe</li>
+      <li>${icon("check")} 3 crédits : la correction d'une copie tapée au clavier</li>
+      <li>${icon("check")} 4 crédits : la correction d'une copie photographiée</li>
+    </ul>
+    ${on ? `<label class="pw-renonce"><input type="checkbox" id="pw-renonce"${pw.renonce ? " checked" : ""}> <span>Je demande l'accès immédiat et je renonce à mon droit de rétractation de quatorze jours (<a class="link" href="/cgv/" target="_blank" rel="noopener">CGV, article 5</a>).</span></label>` : ""}
+    <div class="pw-plans">
+      <button class="pw-plan best" data-pwplan="recharge"${dis}><span class="pw-name">Recharge de ${r.credits || 50} crédits</span><span class="pw-price">${esc(r.label || "5 €")}</span><span class="pw-sub">Paiement unique, sans abonnement.</span></button>
+    </div>
+    ${on ? `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note" id="pw-soon">La recharge n'est pas encore ouverte.</p>`}
+    ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
+  </div>`;
+}
 function renderPaywall(){
   const el = $("#paywall"); if (!el || !pw.open) return;
+  if (pw.why === "recharge") return renderRecharge(el);
   const c = bill.cfg || {}, on = !!c.enabled, n = allCards().length, dis = pw.busy ? " disabled" : !on ? ' aria-disabled="true" aria-describedby="pw-soon"' : "";
   const one = !!prefs.concours && ["e1", "e2"].filter(relHas).length === 1, cint = prefs.concours === "capeps-int", agr = /^agreg/.test(prefs.concours || "");
   const ids = typeof myAnnIds === "function" ? myAnnIds() : null, nAnn = ids ? ids.size : 0;
@@ -3037,7 +3089,7 @@ function renderPaywall(){
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
       <li>${icon("check")} ${one ? "Toutes les fiches de ton écrit" : "Tous les écrits de ton concours"} : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
-      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"}, sans compteur (seule une limite d'usage raisonnable protège le service)</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"} : ${c.credits || 60} crédits par mois (un retour = 1 crédit, une copie corrigée = 3 ou 4), et des recharges si tu en veux plus</li>
       <li>${icon("check")} Le concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative</li>
       <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps, et les rappels</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
@@ -3065,7 +3117,7 @@ async function pwCheckout(plan){
   }
   if (!pw.renonce) {
     pw.msg = "Coche d'abord la case d'accès immédiat pour continuer vers le paiement.";
-    if (!pw.open) await paywall("menu"); else renderPaywall();
+    if (!pw.open) await paywall(plan === "recharge" ? "recharge" : "menu"); else renderPaywall();
     const cb = $("#pw-renonce"); if (cb) cb.focus();
     return;
   }
@@ -3074,8 +3126,8 @@ async function pwCheckout(plan){
   const r = await api("POST", "/api/billing/checkout", { plan, renonce: true });
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
-  pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 400 && r.data && r.data.error === "consent_required" ? "Coche d'abord la case d'accès immédiat pour continuer vers le paiement." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
-  if (!pw.open) await paywall("menu"); else renderPaywall();
+  pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 403 ? "La recharge s'ajoute à l'accès complet." : r.status === 400 && r.data && r.data.error === "consent_required" ? "Coche d'abord la case d'accès immédiat pour continuer vers le paiement." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
+  if (!pw.open) await paywall(plan === "recharge" ? "recharge" : "menu"); else renderPaywall();
 }
 async function pwRedeem(code){
   if (acct.status !== "in") { intentSet("code:" + code); closePaywall(); openAccount("register", "Crée ton compte, ou connecte-toi, pour activer ton code."); return; }
@@ -3097,6 +3149,13 @@ async function intentResume(){
 }
 /* Retour de la page de paiement : l'accès s'ouvre dès que Stripe a confirmé (quelques secondes). */
 async function billingReturn(){
+  let rc = ""; try { const u = new URL(location.href); rc = u.searchParams.get("recharge") || ""; if (rc) { u.searchParams.delete("recharge"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); } } catch (e) {}
+  if (rc === "ok") {
+    const before = bill.credits ? bill.credits.topup : -1;
+    for (let i = 0; i < 6; i++) { await credLoad(); if (bill.credits && bill.credits.topup > Math.max(before, 0)) break; await new Promise(res => setTimeout(res, 2000)); }
+    toast(bill.credits && bill.credits.topup > 0 ? `Recharge reçue : il te reste ${crTxt(bill.credits.left)}.` : "Paiement reçu : tes crédits arrivent dans un instant. Recharge la page si besoin.", 6000);
+    return;
+  }
   let st = ""; try { const u = new URL(location.href); st = u.searchParams.get("abonnement") || ""; if (st) { u.searchParams.delete("abonnement"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); } } catch (e) {}
   if (st === "annule") { toast("Paiement annulé : rien n'a été débité."); return; }
   if (st !== "ok") return;
@@ -4101,10 +4160,12 @@ async function serverSample(payload, { signal, onText }){
   } catch (e) { throw { code: signal && signal.aborted ? "cancelled" : "upstream_error", detail: "serveur du site injoignable" }; }
   if (!res.ok) {
     let j = {}; try { j = await res.json(); } catch (e) {}
-    const map = { trial_used: "trial_used", trial_closed: "trial_closed", login_required: "login_required", premium_required: "premium", invalid_code: "bad_code", too_many_attempts: "too_many_attempts", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    const map = { trial_used: "trial_used", trial_closed: "trial_closed", login_required: "login_required", premium_required: "premium", invalid_code: "bad_code", too_many_attempts: "too_many_attempts", quota_exceeded: "quota", daily_limit: "daily", slow_down: "slow", paused: "paused", no_credits: "no_credits", too_long: "prompt_too_large", too_short: "too_short", busy: "rate_limited", server_not_configured: "server_config", no_credit: "no_credit", bad_api_key: "bad_api_key", model_unavailable: "model_unavailable" };
+    if (j.credits) credSet(j.credits.month, j.credits.topup);
     throw { code: map[j.error] || "upstream_error", limit: j.limit, detail: j.error === "slow_down" ? String(j.retryAfter || "") : j.detail || ("erreur " + res.status + (j.error ? " " + j.error : "")) };
   }
-  const high = res.headers.get("x-usage-high") === "1";
+  const xc = (res.headers.get("x-credits") || "").split("/").map(Number);
+  if (xc.length === 3 && xc.every(Number.isFinite)) credSet(xc[0], xc[1]);
   if (res.headers.get("x-trial") === "1") trialMark();
   const reader = res.body.getReader(), dec = new TextDecoder();
   let text = "", ctl = "", seenCtl = false;
@@ -4122,7 +4183,7 @@ async function serverSample(payload, { signal, onText }){
   let meta = {}; if (ctl) { try { meta = JSON.parse(ctl); } catch (e) {} }
   if (meta.error) throw { code: "upstream_error", text, detail: meta.detail || "flux interrompu" };
   if (!text.trim()) throw { code: "empty_completion" };
-  return { text, truncated: !!meta.truncated, usageHigh: high };
+  return { text, truncated: !!meta.truncated };
 }
 const fb = { sid: null, status: "idle", text: "", note: "", ctl: null };
 function mdLite(t){
@@ -4160,7 +4221,7 @@ function fbBlock(s, kind){
     <p class="fb-note">Un retour de Claude t'est offert pour essayer, avec un compte gratuit. Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
   return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    ${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
+    ${credLine(CR_COST.court)}${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
 }
 function fbErr(code, detail){
@@ -4177,8 +4238,12 @@ function fbErr(code, detail){
   if (code === "prompt_too_large") return "Ton texte est trop long. Raccourcis-le, puis réessaie.";
   if (code === "too_many_attempts") return "Trop d'essais de code d'accès. Réessaie dans une heure.";
   if (code === "bad_code") { codeSet(""); return "Ce code d'accès n'est pas valide. Vérifie-le, puis saisis-le à nouveau."; }
-  if (code === "quota") return "Tu as atteint la limite d'usage raisonnable de ce mois. Elle se renouvelle le 1er du mois.";
-  if (code === "daily") return "Tu as atteint la limite d'usage raisonnable de la journée. Elle se renouvelle demain.";
+  if (code === "no_credits" || code === "quota") {
+    const c = bill.credits;
+    if (rechargeOn()) setTimeout(() => paywall("recharge"), 0);
+    return `Tu as utilisé tes crédits de retours${c ? ` ; ${c.allowance} nouveaux arrivent le ${crDate(c.renews)}` : " ; les nouveaux arrivent le 1er du mois"}.${rechargeOn() ? " Tu peux aussi recharger." : ""}`;
+  }
+  if (code === "daily") return "Tu as atteint le nombre de retours possibles pour aujourd'hui. Il se renouvelle demain.";
   if (code === "slow") return "Une minute entre deux demandes : prends ce temps pour relire le retour précédent." + (detail && /^\d+$/.test(String(detail)) ? ` Prochain retour possible dans ${detail} s.` : "");
   if (code === "paused") return "Les retours de Claude sont momentanément suspendus. Réessaie un peu plus tard.";
   if (code === "too_short") return "Écris un peu plus avant de demander un retour.";
@@ -4221,8 +4286,7 @@ async function askFeedback(kind){
     const res = await sampleFn(promptB, opts);
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
-    fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande."
-      : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
+    fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande." : credLow();
     fbSave(key, res.text);
     ach.f++; persist(); track("feedback1");
   } catch (e) {
@@ -4747,7 +4811,7 @@ function renderTest(){
 }
 
 /* ---------- D'où vient le contenu ---------- */
-const SITE_MAJ = "19 octobre 2026";
+const SITE_MAJ = "20 octobre 2026";
 let relSent = false;
 /* Niveau de chaque source : texte officiel ou institution, travail universitaire ou encyclopédie, site de recoupement. */
 const SRC_OFF = new Set(["SFM", "SQE", "ESR", "BO27", "A2011", "GUY23", "LP05", "BO10", "DEPP", "GUT", "SLP", "L75", "L89", "L84", "SEN", "B00", "CHM", "GUY", "BES", "BO19", "PAR"]), SRC_SCH = new Set(["PUG", "LOR", "OTT", "CLD", "DEL", "AT96", "PRO", "OPT", "MCK", "NLP", "RLD", "SCH", "ERR", "HIIT", "DON", "STO", "PEK", "FRE", "E32", "VAS", "TES", "CHA", "SIT", "YEA", "BLA", "DIA", "BIO", "MIR", "TGF", "SPE", "MBP", "ROS", "FBK", "CLT", "LAS", "TER", "UMA", "UGY", "UNI", "ARC", "NOB", "OAL", "HEB", "MER", "FOU"]);
@@ -7828,7 +7892,7 @@ function blancFbHTML(m){
   if (!sampleFn) return out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "";
   if (STANDALONE && !isPremium() && !codeGet()) return claudeLockHTML() + (out ? `<div class="fb"><div id="blanc-fb" class="fb-out">${out}</div></div>` : "");
   return `<div class="fb"><div class="row-btns"><button class="btn${text ? "" : " primary"}" data-act="blanc-fb" data-bid="${m.id}"${busy ? " disabled" : ""}>${text ? "Nouvelle correction" : "Faire corriger ma copie par Claude"}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    ${STANDALONE ? `<p class="fb-note">${m.paper ? "Les photos de ta copie sont envoyées" : "Ta copie est envoyée"} à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
+    ${credLine(m.paper ? CR_COST.photos : CR_COST.copie)}${STANDALONE ? `<p class="fb-note">${m.paper ? "Les photos de ta copie sont envoyées" : "Ta copie est envoyée"} à Claude (Anthropic) pour la corriger ; le serveur ne la conserve pas.</p>` : ""}
     <div id="blanc-fb" class="fb-out" aria-live="polite">${out}</div></div>`;
 }
 function blancDoneHTML(m){
@@ -7955,7 +8019,7 @@ async function askCopie(m){
     const res = await sampleFn(promptCopie(o) + bilanTail(o.sk), opts);
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
-    fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : (res.usageHigh ? "Tu approches de la limite d'usage raisonnable du mois ; elle se renouvelle le 1er." : "");
+    fb.note = res.truncated ? "Correction coupée avant la fin. Redemande-la." : credLow();
     fbSave(key, res.text); ach.f++; persist(); track("blanc1"); track("feedback1");
   } catch (e) {
     if (fb.ctl !== ctl) return;
@@ -8226,6 +8290,7 @@ document.addEventListener("click", e => {
   if (d.act === "res-send") { resSend(!!d.skip); return; }
   if (d.act === "pw-code") { pw.code = true; renderPaywall(); const i = $("#pw-code-in"); if (i) i.focus(); return; }
   if (d.pwplan) { if (t.getAttribute("aria-disabled") === "true") { toast("Le paiement en ligne ouvre très bientôt. Si tu as un code d'accès, utilise-le."); return; } pwCheckout(d.pwplan); return; }
+  if (d.act === "recharge") { paywall("recharge"); return; }
   if (d.act === "billing-portal") { (async () => { const r = await api("POST", "/api/billing/portal", {}); if (r.status === 200 && r.data.url) location.href = r.data.url; else toast("Le portail d'abonnement n'est pas disponible pour l'instant."); })(); return; }
   if (d.act === "acct-close") { closeAccount(); return; }
   if (d.act === "acct-view") { acct.view = d.v; acct.msg = ""; renderAccount(); const f = $("#acct-email") || $("#acct-pw"); if (f) f.focus(); return; }
@@ -8550,6 +8615,7 @@ async function signedIn(email, info){
   if (!info || !("premium" in info)) { const m = await api("GET", "/api/auth/me"); if (m.status === 200) info = Object.assign({}, info, { premium: m.data.premium }); }
   planSet(info && info.premium);
   renderAccountBtn();
+  credLoad().then(() => { if (acct.open) renderAccount(); });
   await pullAndMerge();
   await txPull();
   done = 0; buildQueue(); render();
@@ -8561,7 +8627,7 @@ function planBlock(){
   if (isPremium()) {
     const u = p.until ? new Date(p.until).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
     const what = p.plan === "pass" ? "Pass session" : p.plan === "mensuel" ? "Abonnement mensuel" : "Accès bêta";
-    return `<div class="plan-box ok"><p><b>${icon("check")} Accès complet</b> : ${what}${u ? (p.plan === "mensuel" ? `, prochaine échéance le ${u}` : `, jusqu'au ${u}`) : ""}.</p>${p.portal ? `<button class="btn small" data-act="billing-portal">Gérer mon abonnement</button>` : ""}</div>`;
+    return `<div class="plan-box ok"><p><b>${icon("check")} Accès complet</b> : ${what}${u ? (p.plan === "mensuel" ? `, prochaine échéance le ${u}` : `, jusqu'au ${u}`) : ""}.</p>${p.portal ? `<button class="btn small" data-act="billing-portal">Gérer mon abonnement</button>` : ""}${bill.credits ? `<p id="plan-cred">${credInner(0)}</p>` : ""}</div>`;
   }
   return `<div class="plan-box"><p><b>Version découverte</b> : ${FREE_NEW} nouvelles fiches par jour sur un écrit.</p><button class="btn small primary" data-act="paywall" data-why="menu">Passer à l'accès complet</button></div>`;
 }

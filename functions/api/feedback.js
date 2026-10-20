@@ -2,6 +2,7 @@ import { currentUser } from "./account.js";
 import { getPlan } from "./plan.js";
 import { take, gate, bump, peek, forget, ipTag } from "./usage.js";
 import { recordEvent } from "./event.js";
+import { chargeCredits, creditCost, creditState } from "./credits.js";
 // Bristol EPS — fonction serveur du retour de Claude (Cloudflare Pages Functions).
 // Elle reçoit le sujet, le texte du candidat et les faits utiles, vérifie le code
 // d'accès et le quota, construit le prompt ici (jamais dans le navigateur), puis
@@ -11,7 +12,8 @@ import { recordEvent } from "./event.js";
 //   ANTHROPIC_API_KEY  (secret, obligatoire)  ta clé d'API Claude
 //   ACCESS_CODES       (obligatoire)          codes bêta séparés par des virgules
 //   Usage raisonnable (facultatif, valeurs par défaut entre parenthèses) :
-//   BUDGET_CENTS (200)        coût réel maximal par abonné et par mois, en centimes
+//   MONTHLY_CREDITS (60)      crédits de retours par abonné et par mois (functions/api/credits.js) ;
+//                             TOPUP_CREDITS (50) crédits ajoutés par une recharge (billing.js)
 //   DAILY_SHORT (25), DAILY_COPIES (3)  retours courts et corrections de copie par jour
 //   MIN_INTERVAL_S (60)       délai minimal entre deux demandes d'un même abonné
 //   GLOBAL_DAILY_CENTS (1000) coupe-circuit : dépense totale maximale par jour
@@ -339,10 +341,10 @@ function toTextStream(upstreamBody, onDone, ctx) {
 }
 
 
-/* ---------- Usage raisonnable ----------
-   Personne ne voit de compteur : un vrai candidat n'atteint jamais ces limites, un usage détourné est arrêté.
-   Clés KV : c:<qui>:<mois> (coût en micro-dollars), d:<qui>:<jour>:<type> (nombre), r:<qui> (dernière demande),
-   g:<jour> (dépense totale du jour, coupe-circuit). */
+/* ---------- Crédits et usage raisonnable ----------
+   Les crédits (credits.js) bornent ce que coûte chaque abonné ; le reste arrête un usage détourné.
+   Clés D1 : c:<qui>:<mois> (coût réel en micro-dollars, pour le suivi), d:<qui>:<jour>:<type> (nombre),
+   r:<qui> (dernière demande), g:<jour> (dépense totale du jour, coupe-circuit). */
 const num = (v, d) => { const n = parseInt(v, 10); return Number.isFinite(n) && n >= 0 ? n : d; };
 async function sha256(t) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
@@ -361,9 +363,10 @@ function costEstimate(env, prompt, images, maxTokens) {
 }
 const DAY = 864e5;
 // Réserve, dans cet ordre et de façon atomique : le coupe-circuit du jour, le délai entre deux
-// demandes, le nombre de demandes du jour, le budget du mois. Renvoie { error } ou
-// { high, settle(micro), undo() } : settle remplace la réservation par le coût réel.
-async function fairUseReserve(env, who, isCopie, est) {
+// demandes, le nombre de demandes du jour, puis les crédits (cost, 0 pour le retour offert).
+// Renvoie { error } ou { settle(micro), undo(), refund() } : settle remplace la réservation par le
+// coût réel ; refund rend seulement les crédits.
+async function fairUseReserve(env, who, isCopie, est, cost) {
   const iso = new Date().toISOString(), day = iso.slice(0, 10), month = iso.slice(0, 7);
   const gk = "g:" + day, ck = `c:${who}:${month}`, dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`;
   const undo = [];
@@ -375,14 +378,16 @@ async function fairUseReserve(env, who, isCopie, est) {
   undo.push(() => forget(env, "r:" + who));
   if (await take(env, dk, 1, isCopie ? num(env.DAILY_COPIES, 3) : num(env.DAILY_SHORT, 25), 2 * DAY) === null) { await back(); return { error: json(429, "daily_limit") }; }
   undo.push(() => bump(env, dk, -1, 2 * DAY));
-  const budget = num(env.BUDGET_CENTS, 200) * 10000;
-  const spent = await take(env, ck, est, budget, 40 * DAY);
-  if (spent === null) { await back(); return { error: json(429, "quota_exceeded") }; }
-  undo.push(() => bump(env, ck, -est, 40 * DAY));
+  let paid = null;
+  if (cost) {
+    paid = await chargeCredits(env, who, cost);
+    if (!paid) { await back(); await recordEvent(env, "no_credits"); return { error: json(402, "no_credits", { credits: await creditState(env, who) }) }; }
+    undo.push(paid.undo);
+  }
   return {
-    high: spent >= budget * 0.8,
     undo: back,
-    settle: async (micro) => { const d = micro - est; if (d) { await bump(env, ck, d, 40 * DAY); await bump(env, gk, d, 3 * DAY); } },
+    refund: async () => { if (paid) { try { await paid.undo(); } catch (e) {} } },
+    settle: async (micro) => { await bump(env, ck, micro, 40 * DAY); const d = micro - est; if (d) await bump(env, gk, d, 3 * DAY); },
   };
 }
 
@@ -420,7 +425,7 @@ export async function onRequestGet({ request, env }) {
     apiKey: !!env.ANTHROPIC_API_KEY,
     accessCodes: String(env.ACCESS_CODES || "").split(",").map((s) => s.trim()).filter(Boolean).length,
     quotaStore: !!env.QUOTA,
-    budgetCents: num(env.BUDGET_CENTS, 200),
+    monthlyCredits: num(env.MONTHLY_CREDITS, 60),
     dailyShort: num(env.DAILY_SHORT, 25),
     dailyCopies: num(env.DAILY_COPIES, 3),
     model: env.MODEL || DEFAULT_MODEL,
@@ -548,7 +553,8 @@ export async function onRequestPost({ request, env, ctx }) {
     if (hit) return new Response(hit, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-cached": "1", ...trialHdr } });
   }
   const est = costEstimate(env, prompt, images.length, maxTokens);
-  const fair = await fairUseReserve(env, who, isCopie, est);
+  const cost = trialUser ? 0 : creditCost(isCopie, images.length);
+  const fair = await fairUseReserve(env, who, isCopie, est, cost);
   if (fair.error) { await trialUndo(); return fair.error; }
   const failed = async () => { await fair.undo(); await trialUndo(); };
   let upstream;
@@ -582,10 +588,12 @@ export async function onRequestPost({ request, env, ctx }) {
   }
 
   const headers = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
-  if (fair.high) headers["x-usage-high"] = "1";
+  if (cost) { const c = await creditState(env, who); headers["x-credits"] = c.month + "/" + c.topup + "/" + cost; }
   Object.assign(headers, trialHdr);
   const onDone = async ({ usage, text, meta }) => {
     await fair.settle(costMicro(env, usage));
+    // Rien reçu (erreur de l'API en cours de flux) : les crédits sont rendus.
+    if (!text.trim()) { await fair.refund(); await trialUndo(); return; }
     if (text.trim()) await countTrial();
     if (env.QUOTA && text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
   };

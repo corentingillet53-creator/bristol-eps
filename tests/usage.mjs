@@ -1,4 +1,4 @@
-// Serveur : plafonds de coût (demandes simultanées, flux coupé par le client), codes d'accès,
+// Serveur : crédits (demandes simultanées, flux coupé par le client, recharge), codes d'accès,
 // paiement (accord de renonciation, remboursements, litiges) et suppression de compte.
 // D1 = SQLite en mémoire (d1mock.mjs), KV et API Claude / Stripe simulés.
 import { onRequestPost, onRequestGet } from "../functions/api/feedback.js";
@@ -10,7 +10,7 @@ const kv = new Map();
 const KV = { get: async k => kv.get(k) ?? null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } };
 const DB = makeD1();
 const q = (sql, ...a) => DB.sqlite.prepare(sql).get(...a);
-const env = { ANTHROPIC_API_KEY: "k", QUOTA: KV, DB, MIN_INTERVAL_S: "0", DAILY_SHORT: "1000", BUDGET_CENTS: "2", GLOBAL_DAILY_CENTS: "1000", ACCESS_CODES: "EPS-BON-CODE", CODE_MAX_USES: "2", ADMIN_TOKEN: "jeton-admin-assez-long", STRIPE_SECRET_KEY: "sk", STRIPE_PRICE_PASS: "p1", STRIPE_PRICE_MONTHLY: "p2", STRIPE_WEBHOOK_SECRET: "whsec" };
+const env = { ANTHROPIC_API_KEY: "k", QUOTA: KV, DB, MIN_INTERVAL_S: "0", DAILY_SHORT: "1000", MONTHLY_CREDITS: "2", GLOBAL_DAILY_CENTS: "1000", ACCESS_CODES: "EPS-BON-CODE", CODE_MAX_USES: "2", ADMIN_TOKEN: "jeton-admin-assez-long", STRIPE_SECRET_KEY: "sk", STRIPE_PRICE_PASS: "p1", STRIPE_PRICE_MONTHLY: "p2", STRIPE_WEBHOOK_SECRET: "whsec" };
 const enc = new TextEncoder();
 
 // API Claude simulée : 600 jetons de sortie, envoyés en plusieurs morceaux, lentement.
@@ -37,8 +37,8 @@ globalThis.fetch = async (url, init) => {
   });
   return new Response(body, { status: 200 });
 };
-// Coût réel d'un retour : 1000 × 2 + 600 × 10 = 8 000 micro-dollars ; budget = 2 centimes = 20 000.
-const REAL = 8000, BUDGET = 20000;
+// Coût réel d'un retour : 1000 × 2 + 600 × 10 = 8 000 micro-dollars ; 2 crédits par mois.
+const REAL = 8000, CREDITS = 2;
 const waits = [];
 const ctx = { waitUntil: p => waits.push(p) };
 const settle = async () => { while (waits.length) await waits.shift(); };
@@ -49,13 +49,16 @@ const fb = (n, h = {}) => new Request("https://x.dev/api/feedback", { method: "P
 const month = new Date().toISOString().slice(0, 7);
 const spent = () => (q("SELECT n FROM usage WHERE k = ?", "c:u:abo:" + month) || { n: 0 }).n;
 
-// B1 a. Vingt demandes simultanées : le budget n'est jamais dépassé de plus d'une réservation.
+// B1 a. Vingt demandes simultanées : jamais plus de retours que de crédits.
 const res = await Promise.all(Array.from({ length: 20 }, (_, i) => onRequestPost({ request: fb("sim" + i), env, ctx })));
 const passed = res.filter(r => r.status === 200);
 await Promise.all(passed.map(r => r.text())); await settle();
-ok(passed.length >= 1 && passed.length <= 3 && calls === passed.length, `20 demandes simultanées : ${passed.length} appels à Claude (budget pour ${Math.floor(BUDGET / REAL)})`);
-ok(spent() === passed.length * REAL && spent() <= BUDGET, `coût compté = coût réel (${spent()} ≤ ${BUDGET})`);
-ok(res.filter(r => r.status === 429).length === 20 - passed.length, "les autres : 429 quota_exceeded");
+ok(passed.length === CREDITS && calls === CREDITS, `20 demandes simultanées : ${passed.length} appels à Claude (${CREDITS} crédits)`);
+ok(spent() === passed.length * REAL, `coût réel suivi (${spent()})`);
+const refused = res.filter(r => r.status === 402);
+const body402 = refused.length ? await refused[0].json() : {};
+ok(refused.length === 20 - CREDITS && body402.error === "no_credits" && body402.credits && body402.credits.left === 0, "les autres : 402 no_credits, avec le solde");
+ok(passed.every(r => /^[01]\/0\/1$/.test(r.headers.get("x-credits") || "")), "en-tête x-credits : mois/recharge/coût " + passed.map(r => r.headers.get("x-credits")));
 
 // B1 b. Flux coupé par le client : le coût réel est quand même compté.
 DB.sqlite.prepare("DELETE FROM usage").run(); calls = 0;
@@ -116,6 +119,42 @@ for (const [u, c] of [["r1", "cus_R"], ["d1", "cus_D"]]) DB.sqlite.prepare("INSE
 ok(await hook({ type: "charge.refunded", data: { object: { customer: "cus_R", refunded: false } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'r1'").status === "active", "remboursement partiel : accès gardé");
 ok(await hook({ type: "charge.refunded", data: { object: { customer: "cus_R", refunded: true } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'r1'").status === "canceled_now", "remboursement total : accès retiré");
 ok(await hook({ type: "charge.dispute.created", data: { object: { charge: "ch_1" } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'd1'").status === "canceled_now", "litige : accès retiré (client lu sur le paiement)");
+
+// Recharge : réservée aux abonnés, créditée une seule fois, utilisée après les crédits du mois.
+const credOf = async () => (await (await handleBilling(new Request("https://x.dev/api/billing/credits", { headers: { cookie } }), env)).json());
+ok((await bill("checkout", { plan: "recharge", renonce: true }, "p1")).status === 503, "recharge sans tarif Stripe : 503");
+env.STRIPE_PRICE_TOPUP = "p3"; env.TOPUP_CREDITS = "5";
+ok((await bill("checkout", { plan: "recharge", renonce: true }, "p1")).status === 403, "recharge sans accès complet : 403");
+users.abo = cookie;
+const coR = await bill("checkout", { plan: "recharge", renonce: true }, "abo");
+const sentR = new URLSearchParams(stripeCalls.at(-1)[2]);
+ok(coR.status === 200 && sentR.get("mode") === "payment" && sentR.get("line_items[0][price]") === "p3" && sentR.get("customer") === "cus_A" && sentR.get("payment_intent_data[metadata][credits]") === "5", "recharge : paiement unique, client Stripe réutilisé, crédits dans les métadonnées");
+const cfg = await (await handleBilling(new Request("https://x.dev/api/billing/config"), env)).json();
+ok(cfg.credits === 2 && cfg.recharge.enabled && cfg.recharge.credits === 5, "config : crédits du mois et recharge");
+const paidEv = { type: "checkout.session.completed", data: { object: { id: "cs_R", mode: "payment", payment_status: "paid", client_reference_id: "abo", metadata: { user: "abo", plan: "recharge", credits: "5" } } } };
+ok(await hook(paidEv) === 200 && await hook(paidEv) === 200, "webhook de recharge reçu deux fois");
+DB.sqlite.prepare("INSERT OR REPLACE INTO usage (k, n, exp) VALUES (?, 2, ?)").run("cr:u:abo:" + month, Date.now() + 864e5);
+let cr = await credOf();
+ok(cr.active && cr.month === 0 && cr.topup === 5 && cr.left === 5 && q("SELECT plan FROM subscriptions WHERE user_id = 'abo'").plan === "mensuel", "recharge créditée une fois (5), abonnement inchangé " + JSON.stringify(cr));
+const one = await onRequestPost({ request: fb("rech1"), env, ctx }); await one.text(); await settle();
+const copie = new Request("https://x.dev/api/feedback", { method: "POST", headers: { "content-type": "application/json", cookie }, body: JSON.stringify({ kind: "copie", fmt: "aint", epreuve: "e2", subject: "Copie", duree: "6 h", minutes: 300, notes: "c".repeat(300) }) });
+const cp = await onRequestPost({ request: copie, env, ctx }); await cp.text(); await settle();
+cr = await credOf();
+ok(one.status === 200 && cp.status === 200 && cr.topup === 1 && cp.headers.get("x-credits") === "0/1/3", "retour court (1) puis copie (3) pris sur la recharge : reste " + cr.topup);
+const four = await onRequestPost({ request: fb("rech2"), env, ctx }); await four.text(); await settle();
+const five = await onRequestPost({ request: fb("rech3"), env, ctx });
+ok(four.status === 200 && five.status === 402 && (await credOf()).left === 0, "dernier crédit utilisé, puis 402");
+// Flux en erreur sans texte : le crédit est rendu.
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) => String(url).startsWith("https://api.stripe.com") ? realFetch(url, init) : new Response(new ReadableStream({ start(c) { c.enqueue(enc.encode('event: error\ndata: {"type":"error","error":{"type":"overloaded_error"}}\n\n')); c.close(); } }), { status: 200 });
+await addTopupTest(1);
+const er = await onRequestPost({ request: fb("err"), env, ctx }); await er.text(); await settle();
+globalThis.fetch = realFetch;
+ok(er.status === 200 && (await credOf()).topup === 1, "flux en erreur sans texte : crédit rendu");
+// Remboursement d'une recharge : ses crédits sont retirés, l'accès reste.
+const refundEv = { type: "charge.refunded", data: { object: { customer: "cus_A", refunded: true, payment_intent: { id: "pi_R", metadata: { plan: "recharge", user: "abo", credits: "5" } } } } };
+ok(await hook(refundEv) === 200 && await hook(refundEv) === 200 && (await credOf()).topup === 0 && q("SELECT status FROM subscriptions WHERE user_id = 'abo'").status === "active", "recharge remboursée : crédits retirés une fois, abonnement gardé");
+async function addTopupTest(n) { const { addTopup } = await import("../functions/api/credits.js"); await addTopup(env, "u:abo", n); }
 
 // Suppression de compte : plus rien ne renvoie à la personne.
 DB.sqlite.prepare("INSERT INTO reports (card, kind, msg, q, user_id, created_at, email) VALUES ('x', 'k', 'm', 'q', 'abo', 0, 'abo@ex.fr')").run();

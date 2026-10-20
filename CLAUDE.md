@@ -27,6 +27,7 @@ Site de révision payant pour les écrits du CAPEPS et de l'agrégation d'EPS, p
 | `functions/api/feedback.js` | Appel à Claude (retours d'écriture, correction de copie), quota KV, cache. Les prompts y sont dupliqués depuis la page : garder les deux identiques (`promptB3`, le bloc `FB_FMTS`/`FB_WHO`/`FB_SPEC`/`promptFb`, `COPIE_EPR`/`COPIE_MID` et la copie, `bilanTail`). `tests/prompts.mjs` vérifie l'égalité. |
 | `functions/api/event.js` | Mesure d'audience anonyme (table `stats`, étapes envoyées par `track()` dans la page ou comptées par le serveur via `recordEvent`), résultats et témoignages après les écrits (table `results`), tableau `/api/stats?t=<ADMIN_TOKEN>`. |
 | `functions/api/usage.js` | Compteurs atomiques D1 (table `usage`) : usage raisonnable, essais gratuits, codes. |
+| `functions/api/credits.js` | Crédits de retours : `MONTHLY_CREDITS` par mois (60), puis recharge Stripe (`TOPUP_CREDITS`, 50) ; 1 crédit par retour, 3 par copie tapée, 4 en photos. Solde : `GET /api/billing/credits` et en-tête `x-credits` (mois/recharge/coût). |
 | `functions/api/account.js`, `billing.js`, `plan.js`, `push.js`, `report.js` | Comptes (Google), Stripe, offre, notifications, signalements. |
 | `migrations/` | Schéma D1 (`bristol-db`). |
 | `wrangler.jsonc` | Config Worker (KV `QUOTA`, D1 `DB`, cron). |
@@ -39,6 +40,7 @@ Chercher par nom avec Grep plutôt que lire le fichier.
 - Écriture : `askFeedback(kind)` (plan/intro/para), `askCopie(m)`, `promptCopie`, `promptB3`, `promptFb` (format selon `fbFmt()` : `cint`, `aint`, `aext` ou CAPEPS externe), `fbCtx` (dossier du sujet saisi par le candidat, clé `d:` + id), `annJury`/`concJury` (notes du jury envoyées à Claude), `mdLite` (affichage, masque la ligne `BILAN:`). Grilles : `gridKey(sujet, kind)` choisit la grille (affichage et suivi), `gridCrit`, `SK_GRID`.
 - Niveau de préparation : `readiness(list)` (connaissances), compétences d'écriture `SK_*`, `skMeasures`, `skStats`, `writeReadiness`, `readyAll`, `skWeak`, `skTrain`, `writingHTML`, `readinessHTML`.
 - Écrans : `render()`, `setView(v)`, `renderHome`/`homeTrain`/`homeTrain0`, `renderStats` (Progrès), `planWeeks`/`wTask`, concours blanc `blanc*`, sélecteur de concours `ccOpen`, routes `routePush`/`routeFromHash`, actions dans le gestionnaire `data-act`.
+- Crédits : `bill.credits`, `credLoad`, `credLine`/`credPaint`, panneau `renderRecharge` (`paywall("recharge")`).
 - Accès : `isPremium()`, `STANDALONE` (vrai sur le site, faux dans l'artifact où `window.claude` fait les appels).
 
 ## Modifier sans tout relire
@@ -56,7 +58,8 @@ node skills.js capeps-l3   # volet Écriture (jsdom), un concours en argument �
 node axe.js             # accessibilité : aucune sortie = aucune violation (lent)
 node csp.js             # seule violation attendue : le script injecté exprès
 node --no-warnings trial.mjs   # serveur : retour offert (D1 simulée par node:sqlite, tests/d1mock.mjs)
-node --no-warnings usage.mjs   # serveur : plafonds de coût, codes, paiement, suppression de compte
+node --no-warnings usage.mjs   # serveur : crédits, recharge, codes, paiement, suppression de compte
+node credits.js         # page : solde, refus faute de crédits, panneau de recharge (API simulée)
 node --no-warnings event.mjs   # serveur : mesure anonyme, tableau /api/stats, résultats déclarés
 node prompts.mjs        # prompts identiques page/serveur pour chaque concours → « ALL OK »
 ```
