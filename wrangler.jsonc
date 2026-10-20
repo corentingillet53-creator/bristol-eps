@@ -9,7 +9,12 @@
     "directory": "./public",
     "binding": "ASSETS"
   },
-  // Adresse publique en .workers.dev ; pas d'adresses de prévisualisation par version.
+  // Domaine du site (zone eps-bristol.fr dans Cloudflare) ; l'adresse .workers.dev reste ouverte
+  // et redirige vers le domaine (worker.js). Pas d'adresses de prévisualisation par version.
+  "routes": [
+    { "pattern": "eps-bristol.fr", "custom_domain": true },
+    { "pattern": "www.eps-bristol.fr", "custom_domain": true }
+  ],
   "workers_dev": true,
   "preview_urls": false,
   // Garde les variables ajoutées dans le tableau de bord lors des déploiements.

@@ -33,6 +33,6 @@ Le paiement en ligne n’est pas encore ouvert : la version découverte est grat
 
 ## Liens
 
-- [Page de présentation](https://bristol-eps.corentin-gillet53.workers.dev/)
-- [Application](https://bristol-eps.corentin-gillet53.workers.dev/app/)
-- [Mentions légales](https://bristol-eps.corentin-gillet53.workers.dev/mentions-legales/)
+- [Page de présentation](https://eps-bristol.fr/)
+- [Application](https://eps-bristol.fr/app/)
+- [Mentions légales](https://eps-bristol.fr/mentions-legales/)

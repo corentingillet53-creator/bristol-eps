@@ -44,9 +44,17 @@ async function route(request, env, ctx, url) {
   return env.ASSETS.fetch(request);
 }
 
+// Adresse unique du site : l'ancienne adresse .workers.dev et www redirigent (301) vers le domaine,
+// pour les pages seulement. L'API reste servie partout, le temps que le webhook Stripe et Google
+// pointent vers le domaine (une redirection ferait échouer leurs appels).
+const SITE_HOST = "eps-bristol.fr";
+const OLD_HOSTS = new Set(["bristol-eps.corentin-gillet53.workers.dev", "www.eps-bristol.fr"]);
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (OLD_HOSTS.has(url.hostname) && !url.pathname.startsWith("/api/") && (request.method === "GET" || request.method === "HEAD"))
+      return Response.redirect("https://" + SITE_HOST + url.pathname + url.search, 301);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     return harden(await route(request, env, ctx, url));
   },

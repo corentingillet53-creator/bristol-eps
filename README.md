@@ -17,7 +17,7 @@ Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offr
 
 Sur ce site, le retour de Claude ne touche plus à tes limites personnelles : il est facturé à l'usage sur ton compte API, environ 1 centime par retour avec Claude Sonnet 5.5.
 
-Adresse actuelle : https://bristol-eps.corentin-gillet53.workers.dev
+Adresse : https://eps-bristol.fr (l'ancienne adresse https://bristol-eps.corentin-gillet53.workers.dev redirige vers le domaine)
 
 ---
 
@@ -57,14 +57,14 @@ Déjà en place : la table D1 `usage` tient l'usage raisonnable (coût réel par
 ## 4. Vérifier
 
 1. Chaque envoi sur GitHub redéploie le Worker automatiquement (une minute environ). Après avoir ajouté des secrets, tu peux aussi relancer le dernier déploiement depuis l'onglet **Deployments**.
-2. Sans jeton, https://bristol-eps.corentin-gillet53.workers.dev/api/feedback répond seulement `{"ok":true}`. Pour le diagnostic, enregistre le secret `ADMIN_TOKEN` puis, dans un terminal : `curl -H "x-admin-token: <ton jeton>" https://bristol-eps.corentin-gillet53.workers.dev/api/feedback`. Tu dois voir une ligne comme :
+2. Sans jeton, https://eps-bristol.fr/api/feedback répond seulement `{"ok":true}`. Pour le diagnostic, enregistre le secret `ADMIN_TOKEN` puis, dans un terminal : `curl -H "x-admin-token: <ton jeton>" https://eps-bristol.fr/api/feedback`. Tu dois voir une ligne comme :
    `{"ok":true,"apiKey":true,"accessCodes":2,"quotaStore":true,"monthlyLimit":30,"model":"claude-sonnet-5-5"}`
    - `apiKey: false` : la clé n'est pas enregistrée (étape 2) ;
    - `accessCodes: 0` : aucun code (étape 2) ;
    - `quotaStore: false` : la liaison KV manque (étape 3).
    - Pour tester aussi la clé et le modèle sans consommer de crédit, ajoute `?probe=1` à l'adresse (avec le même en-tête) : `"keyAndModel":"ok"` signifie que tout est bon.
 3. Sur le site, va dans **Écrire → Sujets**, tire un sujet, écris quelques lignes, saisis ton code, puis demande un retour.
-4. Parcours des candidats (mesure anonyme, sans cookie) et résultats déclarés après les écrits : ouvre `https://bristol-eps.corentin-gillet53.workers.dev/api/stats?t=<ton jeton ADMIN_TOKEN>` dans le navigateur. Les tables `stats` et `results` se créent seules ; `migrations/0005_stats_resultats.sql` les décrit.
+4. Parcours des candidats (mesure anonyme, sans cookie) et résultats déclarés après les écrits : ouvre `https://eps-bristol.fr/api/stats?t=<ton jeton ADMIN_TOKEN>` dans le navigateur. Les tables `stats` et `results` se créent seules ; `migrations/0005_stats_resultats.sql` les décrit.
 
 ---
 
@@ -76,7 +76,7 @@ Les visiteurs peuvent créer un compte (bouton « Se connecter ») pour retrouve
 - **Mots de passe** : jamais envoyés ni stockés. Le navigateur en dérive une clé (PBKDF2-SHA256, 310 000 itérations) ; le serveur n'en garde qu'une empreinte salée.
 - **Mot de passe oublié** : une clé de secours est affichée une seule fois à l'inscription. Il n'y a pas encore de récupération par e-mail.
 - **Synchronisé** : progression des fiches, cartes perso, références, scores Frise et « Qui ? », date du concours, calendrier de régularité et succès. Les textes rédigés (plans, introductions, paragraphes) restent sur chaque appareil.
-- **Connexion avec Google** : identifiant client dans `wrangler.jsonc` (`GOOGLE_CLIENT_ID`), secret dans Cloudflare (`GOOGLE_CLIENT_SECRET`, type Secret). URI de redirection à déclarer chez Google : `https://bristol-eps.corentin-gillet53.workers.dev/api/auth/google/callback`. Quand Google se relie à un compte à mot de passe existant de même adresse, ce mot de passe est désactivé (protection contre la création d'un compte par un tiers avec ton adresse). Tant que l'application Google est en mode test, seuls les utilisateurs test déclarés peuvent se connecter : publie-la dans Google Auth Platform → Audience avant d'ouvrir le site.
+- **Connexion avec Google** : identifiant client dans `wrangler.jsonc` (`GOOGLE_CLIENT_ID`), secret dans Cloudflare (`GOOGLE_CLIENT_SECRET`, type Secret). URI de redirection à déclarer chez Google : `https://eps-bristol.fr/api/auth/google/callback`. Quand Google se relie à un compte à mot de passe existant de même adresse, ce mot de passe est désactivé (protection contre la création d'un compte par un tiers avec ton adresse). Tant que l'application Google est en mode test, seuls les utilisateurs test déclarés peuvent se connecter : publie-la dans Google Auth Platform → Audience avant d'ouvrir le site.
 - **Suppression** : chaque utilisateur peut supprimer son compte et ses données depuis « Mon compte ».
 - **Voir les comptes** : Cloudflare → Storage & Databases → D1 → `bristol-db` → Console, par exemple `SELECT email, created_at FROM users;`
 
