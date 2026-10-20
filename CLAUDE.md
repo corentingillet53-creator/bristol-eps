@@ -1,7 +1,7 @@
 # Bristol EPS — consignes pour Claude
 
 Site de révision payant pour les écrits du CAPEPS et de l'agrégation d'EPS, porté par Corentin (prof d'EPS).
-- En ligne : https://eps-bristol.fr (Worker Cloudflare, déployé à chaque push sur `main` ; l'ancienne adresse `bristol-eps.corentin-gillet53.workers.dev` redirige les pages vers le domaine, l'API y reste servie).
+- En ligne : https://eps-bristol.fr (Worker Cloudflare, déployé à chaque push sur `main` ; l'ancienne adresse `bristol-eps.corentin-gillet53.workers.dev` reste servie telle quelle ; sa redirection vers le domaine, dans `worker.js` (`OLD_HOSTS`), est à remettre une fois le domaine résolu partout).
 - Artifact claude.ai : https://claude.ai/artifact/MaC25hdMYQJomfsMBEv9be, publié depuis `source/bristol-eps.html`.
 - Dépôt : `corentingillet53-creator/bristol-eps`.
 
