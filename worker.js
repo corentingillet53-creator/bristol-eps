@@ -6,7 +6,7 @@
 // - /api/waitlist : adresse laissée pour être prévenu de l'ouverture du paiement ;
 // - /api/push/* : abonnement aux rappels quotidiens (envoyés par le cron, scheduled) ;
 // - /api/event, /api/stats, /api/result : mesure d'audience anonyme (compteurs du parcours, sans cookie)
-//   et résultats du concours déclarés par les candidats ;
+//   et résultats du concours déclarés par les candidats ; les visites des pages sont comptées ici (recordView) ;
 // - tout le reste est servi depuis le dossier public (fichiers statiques).
 import { onRequestGet, onRequestPost } from "./functions/api/feedback.js";
 import { isAccountRoute, handleAccount, purgeExpiredSessions } from "./functions/api/account.js";
@@ -14,7 +14,7 @@ import { isPushRoute, handlePush, runDaily } from "./functions/api/push.js";
 import { handleReport } from "./functions/api/report.js";
 import { handleWaitlist } from "./functions/api/waitlist.js";
 import { purgeUsage } from "./functions/api/usage.js";
-import { handleEvent } from "./functions/api/event.js";
+import { handleEvent, recordView, viewPage } from "./functions/api/event.js";
 import { isBillingRoute, handleBilling } from "./functions/api/billing.js";
 
 /* Réponses de l'API : mêmes en-têtes de base que les fichiers statiques (public/_headers). */
@@ -56,7 +56,11 @@ export default {
     const url = new URL(request.url);
     if (OLD_HOSTS.has(url.hostname) && !url.pathname.startsWith("/api/") && (request.method === "GET" || request.method === "HEAD"))
       return Response.redirect("https://" + SITE_HOST + url.pathname + url.search, 301);
-    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (!url.pathname.startsWith("/api/")) {
+      const res = await env.ASSETS.fetch(request);
+      if (request.method === "GET" && (res.status === 200 || res.status === 304) && viewPage(url.pathname)) ctx.waitUntil(recordView(request, env, url));
+      return res;
+    }
     return harden(await route(request, env, ctx, url));
   },
   // Toutes les 15 minutes (wrangler.jsonc, triggers) : rappels quotidiens ;

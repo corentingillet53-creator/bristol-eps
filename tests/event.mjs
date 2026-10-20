@@ -32,3 +32,31 @@ const h2 = await (await get("?t=jeton-admin-assez-long")).text();
 ok(/Résultats déclarés/.test(h2) && /signé Léa/.test(h2) && /<i>privé<\/i>/.test(h2), "résultats et témoignages dans le tableau");
 let st = 0; for (let i = 0; i < 6; i++) st = (await post("/api/result", { c: "capeps-l3", y: 2027, r: "admis" }, "9.9.9.9")).status;
 ok(st === 429, "5 résultats par jour et par connexion au plus");
+
+// Visites des pages (recordView, appelée par le Worker pour chaque page servie).
+import { recordView, viewPage } from "../functions/api/event.js";
+const UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148 Safari/604.1", PC = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130 Safari/537.36";
+const view = (path, { ip = "5.5.5.5", ua = UA, ref = "", cc = "FR", h = {} } = {}) => {
+  const r = new Request("https://eps-bristol.fr" + path, { headers: { "cf-connecting-ip": ip, "user-agent": ua, ...(ref ? { referer: ref } : {}), ...h } });
+  Object.defineProperty(r, "cf", { value: { country: cc } });
+  return recordView(r, env, new URL(r.url));
+};
+const vn = (k, v) => (q("SELECT SUM(n) AS n FROM views WHERE k = ? AND v = ?", k, v) || {}).n || 0;
+ok(viewPage("/") === "/" && viewPage("/app") === "/app/" && viewPage("/app/index.html") === "/app/" && viewPage("/robots.txt") === "" && viewPage("/wp-admin/") === "", "pages reconnues");
+await view("/", { ref: "https://www.google.fr/" });
+await view("/app/", { ref: "https://eps-bristol.fr/" });
+await view("/", { ip: "6.6.6.6", ua: PC, ref: "https://www.facebook.com/" , cc: "BE" });
+await view("/?utm_source=Newsletter-Oct", { ip: "7.7.7.7", ua: PC });
+await view("/", { ip: "8.8.8.8", ua: PC, ref: "android-app://com.google.android.gm/" });
+await view("/", { ip: "9.9.9.1", ua: "Googlebot/2.1 (+http://www.google.com/bot.html)" });
+await view("/", { ip: "9.9.9.2", h: { "sec-purpose": "prefetch" } });
+await view("/robots.txt", { ip: "9.9.9.3" });
+ok(vn("page", "/") === 4 && vn("page", "/app/") === 1, "pages vues : chaque affichage, robots et préchargements exclus");
+ok(vn("uv", "") === 4, "visiteurs : une fois par jour, même en changeant de page");
+ok(vn("src", "Google") === 1 && vn("src", "Facebook") === 1 && vn("src", "newsletter-oct") === 1 && vn("src", "Gmail") === 1 && vn("src", "eps-bristol.fr") === 0, "provenance regroupée, navigation interne ignorée, utm_source pris en compte");
+ok(vn("dev", "Téléphone") === 1 && vn("dev", "Ordinateur") === 3 && vn("cc", "BE") === 1, "appareil et pays");
+ok(q("SELECT COUNT(*) AS n FROM usage WHERE k LIKE 'uv:%' AND k LIKE '%5.5.5.5%'").n === 0, "aucune adresse en clair");
+const dash = await (await get("?t=jeton-admin-assez-long&j=7")).text();
+ok(/Visiteurs · 7 jours/.test(dash) && /<svg/.test(dash) && /Provenance/.test(dash) && /Google/.test(dash) && /Belgique/.test(dash) && /Page d'accueil/.test(dash), "tableau de bord des visites");
+const vj = await (await get("?format=json&j=30", { "x-admin-token": "jeton-admin-assez-long" })).json();
+ok(vj.visits.visitors === 4 && vj.visits.pageviews === 5 && vj.visits.sources.Google === 1, "visites en JSON");
