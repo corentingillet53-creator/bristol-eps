@@ -16,7 +16,7 @@ page = src.read_text(encoding="utf-8")
 # d'accueil et annonce le sitemap dans robots.txt. L'application (/app/) et les pages
 # légales restent hors index dans tous les cas.
 SITE_URL = "https://eps-bristol.fr"
-INDEXER = False
+INDEXER = True
 
 head = """<!doctype html>
 <html lang="fr">

@@ -1,3 +1,5 @@
 # Fichier écrit par build.py.
 User-agent: *
 Disallow: /api/
+
+Sitemap: https://eps-bristol.fr/sitemap.xml
