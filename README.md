@@ -17,7 +17,7 @@ Ce dépôt contient le site complet, déployé comme **Worker Cloudflare** (offr
 
 Sur ce site, le retour de Claude ne touche plus à tes limites personnelles : il est facturé à l'usage sur ton compte API, environ 1 centime par retour avec Claude Sonnet 5.5.
 
-Adresse : https://eps-bristol.fr (l'ancienne adresse https://bristol-eps.corentin-gillet53.workers.dev reste ouverte)
+Adresse : https://eps-bristol.fr (l'ancienne adresse https://bristol-eps.corentin-gillet53.workers.dev redirige vers le domaine, sauf l'API)
 
 ---
 
