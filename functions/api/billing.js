@@ -61,9 +61,6 @@ async function checkout(request, env) {
   const plan = body && ["mensuel", "pass", "recharge"].includes(body.plan) ? body.plan : "";
   if (!plan) return err(400, "bad_request");
   if (plan === "recharge" && !env.STRIPE_PRICE_TOPUP) return err(503, "billing_disabled");
-  // Accord exprès pour l'accès immédiat et renonciation au droit de rétractation (CGV, art. 5,
-  // Code de la consommation L221-28 13°) : case cochée dans l'application, gardée dans les métadonnées.
-  if (body.renonce !== true) return err(400, "consent_required");
   const cur = await getPlan(env, user.id);
   if (plan === "recharge" ? !cur.active : cur.active && cur.plan !== "code") return err(plan === "recharge" ? 403 : 409, plan === "recharge" ? "premium_required" : "already_premium");
   const origin = new URL(request.url).origin;
@@ -72,17 +69,17 @@ async function checkout(request, env) {
     "line_items[0][price]": plan === "pass" ? env.STRIPE_PRICE_PASS : plan === "recharge" ? env.STRIPE_PRICE_TOPUP : env.STRIPE_PRICE_MONTHLY,
     "line_items[0][quantity]": "1",
     client_reference_id: user.id,
-    "metadata[user]": user.id, "metadata[plan]": plan, "metadata[renonciation]": new Date().toISOString(),
+    "metadata[user]": user.id, "metadata[plan]": plan,
     success_url: origin + (plan === "recharge" ? "/app/?recharge=ok" : "/app/?abonnement=ok"),
     cancel_url: origin + "/app/?abonnement=annule",
     locale: "fr", allow_promotion_codes: "true",
-    // Contenu numérique fourni tout de suite : l'accord exprès qui lève le délai de rétractation (CGV, article 5).
-    "custom_text[submit][message]": "En payant, tu acceptes les conditions de vente (" + origin + "/cgv/) et tu demandes l'accès immédiat : tu renonces ainsi à ton droit de rétractation de 14 jours.",
+    // Pas de renonciation au droit de rétractation : remboursement intégral sur demande pendant 14 jours (CGV, article 5).
+    "custom_text[submit][message]": "En payant, tu acceptes les conditions de vente (" + origin + "/cgv/). Satisfait ou remboursé pendant 14 jours.",
   };
   // Adresse vérifiée (Google) seulement : sinon Stripe la demande, et le reçu part à la bonne personne.
   if (user.google_sub) p.customer_email = user.email;
-  // Le reçu Stripe (support durable, L221-13) reprend l'accord donné.
-  const recu = "Accès immédiat demandé ; renonciation au droit de rétractation acceptée (CGV, article 5).";
+  // Le reçu Stripe (support durable, L221-13) rappelle le droit de rétractation.
+  const recu = "Satisfait ou remboursé pendant 14 jours (CGV, article 5).";
   if (plan === "recharge") {
     // Nombre de crédits fixé au moment du paiement, relu par le webhook ; aussi sur le paiement (remboursement).
     const n = String(topupCredits(env));

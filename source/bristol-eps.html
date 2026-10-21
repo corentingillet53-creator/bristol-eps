@@ -906,8 +906,6 @@ html.gs-on{overflow:hidden}
 .pw-msg{color:var(--bad);font-weight:700;margin:10px 0 0}
 .cp-svg{width:100%;max-width:560px;height:auto;display:block;margin:6px 0 4px}.cp-grid{stroke:var(--line);stroke-width:1}.cp-ax{fill:var(--muted);font-size:11px;text-anchor:end}.cp-band{fill:var(--soft)}.cp-line{fill:none;stroke:var(--accent);stroke-width:2.5}.cp-rng{stroke:var(--accent);stroke-width:2;opacity:.5}.cp-pt{fill:var(--accent)}.cp-sum{font-size:16px;margin:8px 0 4px}.cp-list{list-style:none;margin:6px 0 10px;padding:0;max-width:560px;display:grid;gap:4px;font-size:14px}.cp-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:4px 0}.cp-list b{font-variant-numeric:tabular-nums}
 .res-card{display:grid;gap:10px}.res-card h2,.res-card p,.res-card label{margin:0}.res-card textarea{min-height:90px}
-.pw-renonce{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;margin:14px 0 0;cursor:pointer}
-.pw-renonce input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
 .pw-code{display:grid;gap:6px;margin-top:12px}
 .pw-code label{margin:0}
 .up-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--r-l);padding:12px 16px;margin:0 0 24px}
@@ -3004,7 +3002,7 @@ const PW_WHY = {
   ecoute: "Le mode écoute fait partie de l'accès complet.",
   menu: ""
 };
-const pw = { open: false, why: "", code: false, busy: false, msg: "", opener: null, wait: "", renonce: false };
+const pw = { open: false, why: "", code: false, busy: false, msg: "", opener: null, wait: "" };
 const WAIT_KEY = "bristol-eps-wait";
 function waitDone(){ try { return localStorage.getItem(WAIT_KEY) === "1"; } catch (e) { return false; } }
 /* Paiement pas encore ouvert : une adresse pour être prévenu, et rien d'autre. */
@@ -3046,11 +3044,10 @@ function renderRecharge(el){
       <li>${icon("check")} 3 crédits : la correction d'une copie tapée au clavier</li>
       <li>${icon("check")} 4 crédits : la correction d'une copie photographiée</li>
     </ul>
-    ${on ? `<label class="pw-renonce"><input type="checkbox" id="pw-renonce"${pw.renonce ? " checked" : ""}> <span>Je demande l'accès immédiat et je renonce à mon droit de rétractation de quatorze jours (<a class="link" href="/cgv/" target="_blank" rel="noopener">CGV, article 5</a>).</span></label>` : ""}
     <div class="pw-plans">
       <button class="pw-plan best" data-pwplan="recharge"${dis}><span class="pw-name">Recharge de ${r.credits || 50} crédits</span><span class="pw-price">${esc(r.label || "5 €")}</span><span class="pw-sub">Paiement unique, sans abonnement.</span></button>
     </div>
-    ${on ? `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note" id="pw-soon">La recharge n'est pas encore ouverte.</p>`}
+    ${on ? `<p class="pw-note">Satisfait ou remboursé pendant 14 jours, sur simple e-mail. Paiement sécurisé par Stripe ; le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note" id="pw-soon">La recharge n'est pas encore ouverte.</p>`}
     ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
   </div>`;
 }
@@ -3073,7 +3070,6 @@ function renderPaywall(){
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
     ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
-    ${on ? `<label class="pw-renonce"><input type="checkbox" id="pw-renonce"${pw.renonce ? " checked" : ""}> <span>Je demande l'accès immédiat et je renonce à mon droit de rétractation de quatorze jours (<a class="link" href="/cgv/" target="_blank" rel="noopener">CGV, article 5</a>).</span></label>` : ""}
     <div class="pw-plans">
       <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
@@ -3081,7 +3077,7 @@ function renderPaywall(){
     ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne n'est pas encore ouvert : en attendant, la version découverte reste gratuite, avec un retour de Claude offert.</p>
       ${pw.wait === "ok" || waitDone() ? `<p class="pw-note" id="pw-wait-ok" tabindex="-1"><b>C'est noté.</b> Tu recevras un seul e-mail, à l'ouverture du paiement.</p>`
         : `<form class="pw-code" data-pwwait="1" novalidate><label for="pw-wait-in">Recevoir un e-mail à l'ouverture</label><div class="row-btns"><input id="pw-wait-in" type="email" autocomplete="email" spellcheck="false" placeholder="ton@adresse.fr" aria-describedby="pw-wait-note"><button class="btn primary" type="submit"${pw.busy ? " disabled" : ""}>Me prévenir</button></div><p class="pw-note" id="pw-wait-note">Un seul e-mail, puis ton adresse est effacée. <a class="link" href="/confidentialite/" target="_blank" rel="noopener">Confidentialité</a></p></form>`}`
-      : acct.status !== "in" ? `<p class="pw-note">Tu crées ton compte juste avant de payer ; ta progression y est gardée. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note">Paiement sécurisé par Stripe. Le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>`}
+      : acct.status !== "in" ? `<p class="pw-note">Satisfait ou remboursé pendant 14 jours. Tu crées ton compte juste avant de payer ; ta progression y est gardée. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>` : `<p class="pw-note">Satisfait ou remboursé pendant 14 jours, sur simple e-mail. Paiement sécurisé par Stripe ; le reçu arrive par e-mail. <a class="link" href="/cgv/" target="_blank" rel="noopener">Conditions de vente</a></p>`}
     ${pw.code ? `<form class="pw-code" data-pwcode="1" novalidate><label for="pw-code-in">Code d'accès</label><div class="row-btns"><input id="pw-code-in" autocomplete="off" spellcheck="false" placeholder="Ton code"><button class="btn" type="submit"${pw.busy ? " disabled" : ""}>Activer</button></div></form>`
       : `<p><button class="linkbtn" data-act="pw-code">J'ai un code d'accès</button></p>`}
     ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
@@ -3093,18 +3089,12 @@ async function pwCheckout(plan){
     openAccount("register", "Crée ton compte, ou connecte-toi, pour continuer vers le paiement. Ta progression y sera gardée.");
     return;
   }
-  if (!pw.renonce) {
-    pw.msg = "Coche d'abord la case d'accès immédiat pour continuer vers le paiement.";
-    if (!pw.open) await paywall(plan === "recharge" ? "recharge" : "menu"); else renderPaywall();
-    const cb = $("#pw-renonce"); if (cb) cb.focus();
-    return;
-  }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
   track("checkout");
-  const r = await api("POST", "/api/billing/checkout", { plan, renonce: true });
+  const r = await api("POST", "/api/billing/checkout", { plan });
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
-  pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 403 ? "La recharge s'ajoute à l'accès complet." : r.status === 400 && r.data && r.data.error === "consent_required" ? "Coche d'abord la case d'accès immédiat pour continuer vers le paiement." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
+  pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 403 ? "La recharge s'ajoute à l'accès complet." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
   if (!pw.open) await paywall(plan === "recharge" ? "recharge" : "menu"); else renderPaywall();
 }
 async function pwRedeem(code){
@@ -8407,7 +8397,6 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("toggle", e => { if (e.target.classList && e.target.classList.contains("sj-filter")) sj.fOpen = e.target.open; }, true);
 document.addEventListener("change", e => {
-  if (e.target.id === "pw-renonce") { pw.renonce = e.target.checked; if (pw.renonce && /case d'accès/.test(pw.msg)) { pw.msg = ""; const m = $("#paywall .pw-msg"); if (m) m.remove(); } return; }
   if (e.target.id === "ph-in") { const id = e.target.dataset.bid, f = e.target.files; photosAdd(id, f); e.target.value = ""; return; }
   if (e.target.id === "tw-wk" || e.target.id === "tw-we") {
     const v = +e.target.value, k = e.target.id === "tw-wk" ? "tw" : "twe";

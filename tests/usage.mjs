@@ -1,5 +1,5 @@
 // Serveur : crédits (demandes simultanées, flux coupé par le client, recharge), codes d'accès,
-// paiement (accord de renonciation, remboursements, litiges) et suppression de compte.
+// paiement (remboursements, litiges) et suppression de compte.
 // D1 = SQLite en mémoire (d1mock.mjs), KV et API Claude / Stripe simulés.
 import { onRequestPost, onRequestGet } from "../functions/api/feedback.js";
 import { handleBilling } from "../functions/api/billing.js";
@@ -103,12 +103,11 @@ users.c4 = await seedUser(DB, "c4");
 ok((await bill("code", { code: "EPS-BON-CODE" }, "c4", { "cf-connecting-ip": "8.8.8.3" })).status === 410, "code : 3e compte refusé (CODE_MAX_USES = 2)");
 ok((await bill("code", { code: "EPS-BON-CODE" }, "c2", { "cf-connecting-ip": "8.8.8.1" })).status === 200, "code : un compte déjà activé n'use pas une place de plus");
 
-// Paiement : la case de renonciation est obligatoire et tracée.
+// Paiement : pas de renonciation, le droit de rétractation de 14 jours est rappelé au paiement et sur le reçu.
 users.p1 = await seedUser(DB, "p1");
-ok((await bill("checkout", { plan: "pass" }, "p1")).status === 400, "paiement sans case : 400 consent_required");
-const co = await bill("checkout", { plan: "pass", renonce: true }, "p1");
+const co = await bill("checkout", { plan: "pass" }, "p1");
 const sent = new URLSearchParams(stripeCalls.at(-1)[2]);
-ok(co.status === 200 && sent.get("metadata[renonciation]") && /renonciation/.test(sent.get("payment_intent_data[description]")) && !sent.has("customer_email"), "paiement avec case : accord dans les métadonnées et le reçu, adresse non vérifiée non préremplie");
+ok(co.status === 200 && !sent.has("metadata[renonciation]") && /remboursé pendant 14 jours/.test(sent.get("payment_intent_data[description]")) && /remboursé pendant 14 jours/.test(sent.get("custom_text[submit][message]")) && !sent.has("customer_email"), "paiement sans case : rétractation rappelée au paiement et sur le reçu, adresse non vérifiée non préremplie");
 
 // Remboursement et litige : l'accès s'arrête.
 const hook = async ev => { const raw = JSON.stringify(ev), t = Math.floor(Date.now() / 1000);
@@ -122,11 +121,11 @@ ok(await hook({ type: "charge.dispute.created", data: { object: { charge: "ch_1"
 
 // Recharge : réservée aux abonnés, créditée une seule fois, utilisée après les crédits du mois.
 const credOf = async () => (await (await handleBilling(new Request("https://x.dev/api/billing/credits", { headers: { cookie } }), env)).json());
-ok((await bill("checkout", { plan: "recharge", renonce: true }, "p1")).status === 503, "recharge sans tarif Stripe : 503");
+ok((await bill("checkout", { plan: "recharge" }, "p1")).status === 503, "recharge sans tarif Stripe : 503");
 env.STRIPE_PRICE_TOPUP = "p3"; env.TOPUP_CREDITS = "5";
-ok((await bill("checkout", { plan: "recharge", renonce: true }, "p1")).status === 403, "recharge sans accès complet : 403");
+ok((await bill("checkout", { plan: "recharge" }, "p1")).status === 403, "recharge sans accès complet : 403");
 users.abo = cookie;
-const coR = await bill("checkout", { plan: "recharge", renonce: true }, "abo");
+const coR = await bill("checkout", { plan: "recharge" }, "abo");
 const sentR = new URLSearchParams(stripeCalls.at(-1)[2]);
 ok(coR.status === 200 && sentR.get("mode") === "payment" && sentR.get("line_items[0][price]") === "p3" && sentR.get("customer") === "cus_A" && sentR.get("payment_intent_data[metadata][credits]") === "5", "recharge : paiement unique, client Stripe réutilisé, crédits dans les métadonnées");
 const cfg = await (await handleBilling(new Request("https://x.dev/api/billing/config"), env)).json();
