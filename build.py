@@ -18,10 +18,11 @@ page = src.read_text(encoding="utf-8")
 SITE_URL = "https://eps-bristol.fr"
 INDEXER = True
 # Offre de lancement, affichée sur l'accueil et les pages des concours jusqu'à « fin » (heure de
-# Paris) puis retirée par la page elle-même. Le code se crée dans Stripe (Produits > Coupons) avec
-# la même réduction, le même produit et la même date d'expiration. « depuis » : mise en vente du
-# pass au prix de référence (prix le plus bas des 30 jours précédents, article L112-1-1 du code
-# de la consommation). OFFRE = None retire tout.
+# Paris) puis retirée par la page elle-même (et par l'application, qui la lit dans sa propre
+# constante OFFRE). Le code se crée dans Stripe (Produits > Coupons) avec la même réduction, le même
+# produit, une durée « une fois » et la même date d'expiration. Le pass étant vendu depuis le jour
+# de l'offre, les textes annoncent un prix de lancement puis le prix « ref », sans « prix de
+# référence » (article L112-1-1 du code de la consommation). OFFRE = None retire tout.
 OFFRE = {"code": "LANCEMENT20", "prix": 64, "ref": 80, "fin": "2026-11-01T23:59:59+01:00",
          "fin_txt": "1er novembre 2026", "depuis_txt": "21 octobre 2026"}
 
@@ -58,6 +59,14 @@ _MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","sep
 _d = datetime.date.today()
 _maj = f"{_d.day}{'er' if _d.day == 1 else ''} {_MOIS[_d.month - 1]} {_d.year}"
 page_app = _re.sub(r'const SITE_MAJ = "[^"]*";', f'const SITE_MAJ = "{_maj}";', page, count=1)
+# Offre de lancement reprise par le panneau de paiement de l'application (null une fois la date passée).
+import json as _json
+_fin = datetime.datetime.fromisoformat(OFFRE["fin"]) if OFFRE else None
+_offre_app = (_json.dumps({"code": OFFRE["code"], "prix": OFFRE["prix"], "ref": OFFRE["ref"], "fin": int(_fin.timestamp() * 1000),
+              "fin_txt": OFFRE["fin_txt"]}, ensure_ascii=False) if OFFRE and datetime.datetime.now(datetime.timezone.utc) <= _fin else "null")
+page_app, _n = _re.subn(r'const OFFRE = null;', f'const OFFRE = {_offre_app};', page_app, count=1)
+assert _n == 1, "const OFFRE introuvable dans la page"
+
 # Polices : la page source charge Google Fonts (pour l'artifact Claude) ; le site publié les sert lui-même.
 FONTS = ('<link rel="preload" href="/fonts/albert-sans.woff2" as="font" type="font/woff2" crossorigin>\n'
          '<link rel="preload" href="/fonts/imbue-400.woff2" as="font" type="font/woff2" crossorigin>\n'
@@ -130,11 +139,13 @@ _offre = bool(OFFRE) and datetime.datetime.now(datetime.timezone.utc) <= datetim
 if _offre:
     _ms = int(datetime.datetime.fromisoformat(OFFRE["fin"]).timestamp() * 1000)
     _pc = round(100 * (1 - OFFRE["prix"] / OFFRE["ref"]))
-    _ref_txt = f"Prix de référence : {OFFRE['ref']} €, le plus bas pratiqué depuis la mise en vente du pass le {OFFRE['depuis_txt']}."
-    OFFRE_TXT = (f"Offre de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
-                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']} au paiement.")
+    # Prix de lancement : le pass est en vente depuis le même jour que l'offre ; on annonce donc le prix
+    # qui suivra plutôt qu'un « prix de référence » jamais pratiqué seul (article L112-1-1).
+    _ref_txt = f"Le code se saisit sur la page de paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
+    OFFRE_TXT = (f"Prix de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
+                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']}.")
     vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
-    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">−{_pc} % jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
+    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">Prix de lancement jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € (−{_pc} %) avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
 else:
     vals["OFFRE_TOP"] = vals["OFFRE_PRIX"] = ""
 land = self_host_fonts(land_src)
@@ -227,6 +238,17 @@ dt{font-weight:600}
 dd{margin:0}
 @media (max-width:560px){dl{grid-template-columns:minmax(0,1fr)}dd{margin-bottom:8px}}
 .ann{border-top:1px solid var(--line);padding-top:4px}
+.ann summary{cursor:pointer;list-style-position:outside;margin-left:1.1em}
+.ann summary h3{display:inline;font-size:1.05rem}
+.ann[open] summary{margin-bottom:4px}
+.vb{margin:32px 0;padding:20px;border:1px solid var(--line);background:var(--paper)}
+.vb h2{margin-top:0}
+.vb-g{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:24px;align-items:start}
+.vb-g img{width:100%;height:auto;border:1px solid var(--line)}
+.vb ul{margin:0;padding-left:1.1em}
+.vb li{margin:0 0 10px}
+.vb-p{font-weight:600;margin:16px 0 4px}
+@media (max-width:560px){.vb-g{grid-template-columns:minmax(0,1fr)}.vb-g img{max-width:260px;justify-self:center}}
 .ann h3{margin-top:12px}
 .ann p{margin:4px 0}
 .small{font-size:.95rem}
@@ -261,6 +283,17 @@ for c in _concs:
     b += [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
     if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
     b.append(f'<div class="go"><a class="btn" href="{app}">S’entraîner pour ce concours</a><span class="small">Gratuit pour commencer, sans inscription.</span></div>')
+    # Ce que fait le site pour ce concours, juste sous le bouton : la page sert aussi d'arrivée aux annonces.
+    _ecr = {"capeps-int": "ton étude de cas", "agreg-int": "tes dissertations et compositions", "agreg-ext": "tes dissertations"}.get(c["id"], "tes copies")
+    _pass = (f"Pass session 2027 : {OFFRE['prix']} € avec le code {OFFRE['code']} jusqu’au {OFFRE['fin_txt']} inclus, puis {OFFRE['ref']} €, en une fois"
+             if _offre else "Pass session 2027 : 80 € en une fois")
+    b.append(f'<section class="vb" aria-labelledby="vb-h"><h2 id="vb-h">Ce que Bristol fait pour ton {_h(t)}</h2><div class="vb-g"><ul>'
+             "<li><strong>Retenir.</strong> Les fiches du programme 2027, revues au bon moment par répétition espacée : quelques minutes par jour, sur téléphone ou ordinateur.</li>"
+             f"<li><strong>Écrire.</strong> Tu rédiges un plan, une introduction ou {_ecr} : Claude les relit avec la grille et les rapports du jury, et te dit ce qui manque.</li>"
+             "<li><strong>T’évaluer.</strong> Un concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative.</li>"
+             '</ul><img src="/img/m-jury.webp" width="780" height="976" alt="Écran « Ce que le jury attend » : les attentes des rapports de jury, avec leurs années." loading="lazy"></div>'
+             f'<p class="vb-p">Gratuit pour commencer · {_h(_pass)} · Mensuel 15 € sans engagement · Satisfait ou remboursé 14 jours.</p>'
+             '<p class="m">Conçu par un professeur d’EPS. Les retours de Claude aident à progresser ; ils ne remplacent pas une correction d’enseignant.</p></section>')
     facts = [("Écrits", c["ecrits"]), ("Pour qui", c.get("qui")), ("Privé", c.get("prive")), ("Postes", c.get("postes")), ("Dernière session", c.get("chiffres"))]
     b.append("<dl>" + "".join(f"<dt>{k}</dt><dd>{_h(_typo(v))}</dd>" for k, v in facts if v) + "</dl>")
     b.append('<p class="m">Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.</p>')
@@ -284,10 +317,11 @@ for c in _concs:
             co = "CAPEPS externe bac+5" if a["f"] == "cext" and a["co"] == "CAPEPS externe" else a["co"]
             lk = [f'<a href="{_h(a["src"][1])}" rel="noopener">Sujet officiel</a>'] if a.get("src") else []
             if a.get("ju"): lk.append(f'<a href="{_h(a["ju"])}" rel="noopener">Rapport du jury</a>')
-            b.append(f'<article class="ann"><h3>{a["y"]} · {_EPR.get(a["e"], a["e"])}' + (f" · {_h(co)}" if c["id"] == "capeps-m2" else "") + "</h3>"
+            # Repliées : la page reste courte sur téléphone, le texte reste dans la page (référencement).
+            b.append(f'<details class="ann"><summary><h3>{a["y"]} · {_EPR.get(a["e"], a["e"])}' + (f" · {_h(co)}" if c["id"] == "capeps-m2" else "") + "</h3></summary>"
                      + f"<p>{_h(_typo(a['t']))}</p>"
                      + ("<p><strong>Ce qu’attendait le jury</strong></p><ul>" + "".join(f"<li>{_h(_typo(j))}</li>" for j in a["j"]) + "</ul>" if a.get("j") else "")
-                     + (f'<p class="small">{" · ".join(lk)}</p>' if lk else "") + "</article>")
+                     + (f'<p class="small">{" · ".join(lk)}</p>' if lk else "") + "</details>")
     if c.get("src"):
         b.append("<h2>Sources officielles</h2><ul>" + "".join(f'<li><a href="{_h(u)}" rel="noopener">{_h(_typo(n))}</a></li>' for n, u in c["src"]) + "</ul>")
     b.append(f'<div class="go"><a class="btn" href="{app}">Commencer à réviser</a><a href="/">Découvrir Bristol EPS</a></div>')
@@ -339,7 +373,7 @@ Dates relevées dans les textes officiels ; seule la convocation du candidat fai
 
 """ + "\n".join(f"- {n} : {p}. {d}" for n, p, d in _prix) + f"""
 
-Le paiement en ligne n’est pas encore ouvert : la version découverte est gratuite.
+Paiement sécurisé par Stripe ; satisfait ou remboursé pendant 14 jours. La version découverte est gratuite.
 
 ## Liens
 

@@ -902,6 +902,7 @@ html.gs-on{overflow:hidden}
 .pw-price{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.02em}
 .pw-price small{font-family:var(--f-body);font-size:15px;font-weight:400;color:var(--muted)}
 .pw-sub{font-size:14px;color:var(--muted)}
+.pw-offre{font-size:14px;font-weight:700;color:var(--accent-text)}
 .pw-note{font-size:14px;color:var(--muted);margin:12px 0 0}
 .pw-msg{color:var(--bad);font-weight:700;margin:10px 0 0}
 .cp-svg{width:100%;max-width:560px;height:auto;display:block;margin:6px 0 4px}.cp-grid{stroke:var(--line);stroke-width:1}.cp-ax{fill:var(--muted);font-size:11px;text-anchor:end}.cp-band{fill:var(--soft)}.cp-line{fill:none;stroke:var(--accent);stroke-width:2.5}.cp-rng{stroke:var(--accent);stroke-width:2;opacity:.5}.cp-pt{fill:var(--accent)}.cp-sum{font-size:16px;margin:8px 0 4px}.cp-list{list-style:none;margin:6px 0 10px;padding:0;max-width:560px;display:grid;gap:4px;font-size:14px}.cp-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:4px 0}.cp-list b{font-variant-numeric:tabular-nums}
@@ -2944,6 +2945,9 @@ function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } ca
    Dans Claude (artefact), tout est ouvert : c'est l'aperçu du propriétaire. */
 const PLAN_KEY = "bristol-eps-plan", INTENT_KEY = "bristol-eps-intent";
 const FREE_NEW = 5;
+/* Prix de lancement du pass, écrit par build.py depuis son réglage OFFRE (null dans l'artifact et après la date de fin). */
+const OFFRE = null;
+const offreOn = () => !!(OFFRE && Date.now() <= OFFRE.fin);
 const bill = { cfg: null, credits: null };
 /* Crédits de retours de Claude (abonnés ; functions/api/credits.js) : un retour = 1, une copie tapée = 3, en photos = 4.
    Ceux du mois se renouvellent le 1er ; ceux d'une recharge servent ensuite, jusqu'à la fin de la session. */
@@ -3071,7 +3075,7 @@ function renderPaywall(){
     </ul>
     ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
     <div class="pw-plans">
-      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span><span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span><span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
+      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span>${offreOn() && on ? `<span class="pw-price">${OFFRE.prix} €<small> jusqu'au ${esc(OFFRE.fin_txt)}</small></span><span class="pw-offre">Prix de lancement −${Math.round(100 * (1 - OFFRE.prix / OFFRE.ref))} % avec le code ${esc(OFFRE.code)}, appliqué sur la page de paiement ; ensuite ${OFFRE.ref} €.</span>` : `<span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span>`}<span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
     ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne n'est pas encore ouvert : en attendant, la version découverte reste gratuite, avec un retour de Claude offert.</p>
@@ -3091,13 +3095,18 @@ async function pwCheckout(plan){
   }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
   track("checkout");
-  const r = await api("POST", "/api/billing/checkout", { plan });
+  const r = await api("POST", "/api/billing/checkout", plan === "pass" && offreOn() ? { plan, promo: OFFRE.code } : { plan });
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
   pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 403 ? "La recharge s'ajoute à l'accès complet." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
   if (!pw.open) await paywall(plan === "recharge" ? "recharge" : "menu"); else renderPaywall();
 }
 async function pwRedeem(code){
+  if (OFFRE && code.trim().toUpperCase() === OFFRE.code) {
+    pw.msg = offreOn() ? `${OFFRE.code} est un code promo : il s'applique au pass sur la page de paiement. Choisis « Pass session 2027 » ci-dessus.` : `Le code ${OFFRE.code} était valable jusqu'au ${OFFRE.fin_txt}.`;
+    if (pw.open) renderPaywall(); else paywall("menu");
+    return;
+  }
   if (acct.status !== "in") { intentSet("code:" + code); closePaywall(); openAccount("register", "Crée ton compte, ou connecte-toi, pour activer ton code."); return; }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
   const r = await api("POST", "/api/billing/code", { code });
