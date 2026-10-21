@@ -179,6 +179,104 @@ for _f in sorted((here / "source" / "legal").glob("*.html")):
 print("Pages légales :", ", ".join("/" + f.stem + "/" for f in sorted((here / "source" / "legal").glob("*.html"))),
       ("; champs à compléter dans source/legal/editeur.json : " + ", ".join(_todo)) if _todo else "")
 
+# Une page publique par concours, servie à /<slug>/ et indexable : épreuves, programme,
+# annales et rapports de jury, repris des données de l'application (CONCOURS, ANNALES),
+# lues par Node pour ne pas réécrire leur format. Sans script : la CSP ne change pas.
+import subprocess
+_JS = r"""
+const s = require("fs").readFileSync(process.argv[1], "utf8");
+const cut = (a, b) => { const i = s.indexOf(a); if (i < 0) throw new Error(a); const j = s.indexOf(b, i); if (j < 0) throw new Error(b); return s.slice(i, j + b.length); };
+const code = cut("const BO_2027 = [", "Object.assign(c3, { adm: l3.adm, admi: l3.admi, prog: l3.prog, repris: true }); })();") + "\n" + cut("const ANNALES = [", "\n];");
+process.stdout.write(JSON.stringify(new Function(code + "\nreturn { CONCOURS, ANNALES };")()));
+"""
+_data = json.loads(subprocess.run(["node", "-e", _JS, str(src)], check=True, capture_output=True, text=True).stdout)
+CONC_SLUG = {"capeps-l3": "capeps-externe", "capeps-m2": "capeps-externe-master", "capeps-int": "capeps-interne",
+             "capeps-3": "troisieme-concours-capeps", "agreg-ext": "agregation-externe-eps", "agreg-int": "agregation-interne-eps"}
+# Annales de chaque concours : mêmes familles que l'application (CPROF, annCo).
+_ANN_OF = {"capeps-l3": lambda a: a["co"] == "CAPEPS externe bac+3", "capeps-3": lambda a: a["co"] == "CAPEPS externe bac+3",
+           "capeps-m2": lambda a: a["f"] == "cext" and a["co"] != "CAPEPS externe bac+3",
+           "capeps-int": lambda a: a["f"] == "cint", "agreg-ext": lambda a: a["f"] == "aext", "agreg-int": lambda a: a["f"] == "aint"}
+_EPR = {"e1": "Écrit 1", "e2": "Écrit 2", "ei": "Écrit"}
+_typo = lambda t: t.replace("'", "’")
+CONC_HEAD = LEGAL_HEAD.replace('<meta name="robots" content="noindex">\n', "", 1).replace("</style>", """.kicker{margin:0 0 8px;color:var(--muted);font-weight:600}
+h3{font-size:1.1rem;margin:20px 0 4px}
+.m{margin:0;color:var(--muted);font-size:.95rem}
+.go{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin:24px 0}
+.btn{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;background:var(--accent);color:var(--paper);font-weight:600;text-decoration:none}
+dl{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr);gap:8px 16px;margin:24px 0}
+dt{font-weight:600}
+dd{margin:0}
+@media (max-width:560px){dl{grid-template-columns:minmax(0,1fr)}dd{margin-bottom:8px}}
+.ann{border-top:1px solid var(--line);padding-top:4px}
+.ann h3{margin-top:12px}
+.ann p{margin:4px 0}
+.small{font-size:.95rem}
+nav ul{columns:2 14em}
+</style>""", 1)
+assert CONC_HEAD.count("<style>") == 1 and ".kicker" in CONC_HEAD and "noindex" not in CONC_HEAD
+_concs = [c for c in _data["CONCOURS"] if c["id"] in CONC_SLUG]
+assert len(_concs) == len(CONC_SLUG), [c["id"] for c in _data["CONCOURS"]]
+_shared = {}
+for c in _concs:
+    slug, t = CONC_SLUG[c["id"]], _typo(c["t"])
+    url = f"{SITE_URL}/{slug}/"
+    ann = sorted((a for a in _data["ANNALES"] if _ANN_OF[c["id"]](a)), key=lambda a: (-a["y"], a["e"]))
+    title = f"{t} 2027 : épreuves, programme et annales | Bristol EPS"
+    desc = (f"{t}, session 2027 : écrits {re.sub(r'^Entre ', 'entre ', _typo(c['ecrits']))}. Épreuves, programme officiel"
+            + (f", {len(ann)} sujets d’annales de {ann[-1]['y']} à {ann[0]['y']} avec les attentes du jury" if ann else "")
+            + ". Réviser gratuitement avec Bristol EPS.")
+    meta = "\n".join([f"<title>{_h(title)}</title>", f'<meta name="description" content="{_h(desc)}">',
+        f'<link rel="canonical" href="{url}">', '<meta property="og:type" content="website">', '<meta property="og:locale" content="fr_FR">',
+        '<meta property="og:site_name" content="Bristol EPS">', f'<meta property="og:title" content="{_h(title)}">',
+        f'<meta property="og:description" content="{_h(desc)}">', f'<meta property="og:url" content="{url}">',
+        f'<meta property="og:image" content="{SITE_URL}/img/partage.png">', '<meta name="twitter:card" content="summary_large_image">'])
+    crumbs = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Bristol EPS", "item": SITE_URL + "/"},
+        {"@type": "ListItem", "position": 2, "name": t, "item": url}]}
+    meta += '\n<script type="application/ld+json">' + json.dumps(crumbs, ensure_ascii=False).replace("</", "<\\/") + "</script>"
+    app = f"/app/?concours={c['id']}"
+    b = [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
+    if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
+    b.append(f'<div class="go"><a class="btn" href="{app}">S’entraîner pour ce concours</a><span class="small">Gratuit pour commencer, sans inscription.</span></div>')
+    facts = [("Écrits", c["ecrits"]), ("Pour qui", c.get("qui")), ("Privé", c.get("prive")), ("Postes", c.get("postes")), ("Dernière session", c.get("chiffres"))]
+    b.append("<dl>" + "".join(f"<dt>{k}</dt><dd>{_h(_typo(v))}</dd>" for k, v in facts if v) + "</dl>")
+    b.append('<p class="m">Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.</p>')
+    def eprs(lst, h2):
+        if not lst: return
+        b.append(f"<h2>{h2}</h2>")
+        if c.get("repris"): b.append('<p class="m">Épreuves reprises du CAPEPS externe à bac+3, régi par le même arrêté ; le détail fait foi sur la page officielle (sources en bas de page).</p>')
+        for e in lst: b.append(f'<h3>{_h(_typo(e["t"]))}</h3><p class="m">{_h(_typo(e["m"]))}</p><p>{_h(_typo(e["d"]))}</p>')
+    eprs(c.get("adm"), "Les épreuves écrites (admissibilité)")
+    eprs(c.get("admi"), "Les épreuves d’admission")
+    if c.get("prog") or c.get("apsa"):
+        b.append("<h2>Programme de la session 2027</h2>")
+        for p in c.get("prog") or []:
+            b.append(f"<h3>{_h(_typo(p['t']))}</h3>" + (f"<p>{_h(_typo(p['lead']))}</p>" if p.get("lead") else "")
+                     + "<ul>" + "".join(f"<li>{_h(_typo(i))}</li>" for i in p["i"]) + "</ul>")
+        if c.get("apsa"): b.append("<h3>APSA</h3><ul>" + "".join(f"<li>{_h(_typo(a))}</li>" for a in c["apsa"]) + "</ul>")
+    if ann:
+        b.append(f"<h2>Annales et rapports de jury</h2><p>{len(ann)} sujets, de {ann[-1]['y']} à {ann[0]['y']}, avec ce que le rapport du jury attendait. "
+                 f'Dans l’application, chacun se traite en temps limité, avec un retour de Claude selon la grille du jury.</p>')
+        for a in ann:
+            co = "CAPEPS externe bac+5" if a["f"] == "cext" and a["co"] == "CAPEPS externe" else a["co"]
+            lk = [f'<a href="{_h(a["src"][1])}" rel="noopener">Sujet officiel</a>'] if a.get("src") else []
+            if a.get("ju"): lk.append(f'<a href="{_h(a["ju"])}" rel="noopener">Rapport du jury</a>')
+            b.append(f'<article class="ann"><h3>{a["y"]} · {_EPR.get(a["e"], a["e"])}' + (f" · {_h(co)}" if c["id"] == "capeps-m2" else "") + "</h3>"
+                     + f"<p>{_h(_typo(a['t']))}</p>"
+                     + ("<p><strong>Ce qu’attendait le jury</strong></p><ul>" + "".join(f"<li>{_h(_typo(j))}</li>" for j in a["j"]) + "</ul>" if a.get("j") else "")
+                     + (f'<p class="small">{" · ".join(lk)}</p>' if lk else "") + "</article>")
+    if c.get("src"):
+        b.append("<h2>Sources officielles</h2><ul>" + "".join(f'<li><a href="{_h(u)}" rel="noopener">{_h(_typo(n))}</a></li>' for n, u in c["src"]) + "</ul>")
+    b.append(f'<div class="go"><a class="btn" href="{app}">Commencer à réviser</a><a href="/">Découvrir Bristol EPS</a></div>')
+    b.append("<nav aria-label=\"Les autres concours\"><h2>Les autres concours</h2><ul>"
+             + "".join(f'<li><a href="/{CONC_SLUG[o["id"]]}/">{_h(_typo(o["t"]))}</a></li>' for o in _concs if o is not c) + "</ul></nav>")
+    b.append('<p class="m small"><a href="/mentions-legales/">Mentions légales</a> · <a href="/confidentialite/">Confidentialité</a> · <a href="/cgv/">Conditions de vente</a></p>')
+    _o = here / "public" / slug / "index.html"
+    _o.parent.mkdir(parents=True, exist_ok=True)
+    _o.write_text(CONC_HEAD.replace("{meta}", meta) + "\n".join(b) + "\n</main>\n</body>\n</html>\n", encoding="utf-8")
+    _shared[slug] = (t, len(ann))
+print("Pages des concours :", ", ".join(f"/{s}/ ({n} annales)" for s, (t, n) in _shared.items()))
+
 # robots.txt, sitemap.xml et llms.txt. Avant le lancement, l'exploration reste permise : un
 # robot doit pouvoir lire le « noindex » pour garder la page hors index (un Disallow l'en empêcherait).
 robots = "# Fichier écrit par build.py.\nUser-agent: *\nDisallow: /api/\n"
@@ -187,7 +285,7 @@ if INDEXER: robots += f"\nSitemap: {SITE_URL}/sitemap.xml\n"
 (here / "public" / "sitemap.xml").write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>{SITE_URL}/</loc><lastmod>{_d.isoformat()}</lastmod></url>
-</urlset>
+""" + "".join(f"  <url><loc>{SITE_URL}/{slug}/</loc><lastmod>{_d.isoformat()}</lastmod></url>\n" for slug in CONC_SLUG.values()) + """</urlset>
 """, encoding="utf-8")
 # llms.txt (https://llmstxt.org) : la présentation du site en Markdown, pour les assistants IA.
 # Tarifs repris de la page d'accueil, chiffres et dates des données de l'application.
@@ -224,7 +322,7 @@ Le paiement en ligne n’est pas encore ouvert : la version découverte est grat
 
 - [Page de présentation]({SITE_URL}/)
 - [Application]({SITE_URL}/app/)
-- [Mentions légales]({SITE_URL}/mentions-legales/)
+""" + "".join(f"- [{t} 2027 : épreuves, programme et annales]({SITE_URL}/{slug}/)\n" for slug, (t, n) in _shared.items()) + f"""- [Mentions légales]({SITE_URL}/mentions-legales/)
 """
 (here / "public" / "llms.txt").write_text(llms, encoding="utf-8")
 print("Écrit : robots.txt, sitemap.xml, llms.txt", "(site indexable)" if INDEXER else "(noindex conservé jusqu'au lancement)")

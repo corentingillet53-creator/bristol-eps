@@ -43,6 +43,7 @@ const view = (path, { ip = "5.5.5.5", ua = UA, ref = "", cc = "FR", h = {} } = {
 };
 const vn = (k, v) => (q("SELECT SUM(n) AS n FROM views WHERE k = ? AND v = ?", k, v) || {}).n || 0;
 ok(viewPage("/") === "/" && viewPage("/app") === "/app/" && viewPage("/app/index.html") === "/app/" && viewPage("/robots.txt") === "" && viewPage("/wp-admin/") === "", "pages reconnues");
+ok(["capeps-externe", "capeps-externe-master", "capeps-interne", "troisieme-concours-capeps", "agregation-externe-eps", "agregation-interne-eps"].every(p => viewPage("/" + p + "/") === "/" + p + "/"), "pages des concours reconnues");
 await view("/", { ref: "https://www.google.fr/" });
 await view("/app/", { ref: "https://eps-bristol.fr/" });
 await view("/", { ip: "6.6.6.6", ua: PC, ref: "https://www.facebook.com/" , cc: "BE" });
