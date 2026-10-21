@@ -473,6 +473,11 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fb-ex summary{cursor:pointer;font-weight:600;color:var(--accent-text)}
 .fb-ex .fb-w{white-space:pre-line;background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-l);padding:12px 16px;margin:8px 0;font-size:15px}
 .trial-card{margin:0 0 16px;border-left:4px solid var(--accent)}
+.sess-next{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r-l);padding:14px 16px;margin:16px 0;text-align:left}
+.sess-next p{margin:0 0 8px}
+.sess-next .save-h{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--ink)}
+.ts-back{margin:-4px 0 8px;color:var(--muted)}
+.tc-up{margin-top:8px;font-size:.92em;color:var(--muted)}
 
 /* ---------- Apprendre : fils rouges ---------- */
 .fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
@@ -2064,6 +2069,11 @@ async function connect(){
 
 /* ---------- Objectif concours ---------- */
 function startOfDay(d){ d = new Date(d || Date.now()); d.setHours(0, 0, 0, 0); return d; }
+/* Une carte est due dès le début du jour de son échéance : révisée un soir, elle revient le lendemain matin. */
+const dueCut = () => startOfDay().getTime() + DAY;
+const isDue = p => !!p && p.d < dueCut();
+/* « demain », « dans 3 jours » : l'échéance comptée en jours, puisqu'une carte est due toute la journée. */
+function fmtDue(d){ const n = Math.round((startOfDay(d).getTime() - startOfDay().getTime()) / DAY); return n <= 1 ? "demain" : "dans " + n + " jours"; }
 function examDays(){
   if (!prefs.examDate) return null;
   const daysLeft = Math.round((new Date(prefs.examDate + "T00:00:00") - startOfDay()) / DAY);
@@ -2087,7 +2097,7 @@ function grpGoal(g){
   /* Les nouvelles fiches du jour se partagent entre les écrits : changer d'écrit ne les double pas. */
   const otherNew = () => relGroups().filter(x => x !== g).reduce((t, x) => t + ((log[dayKey()] || {})["n_" + x] || 0), 0);
   if (typeof isPremium === "function" && !isPremium()) target = locked || (ex && ex.daysLeft <= 0) ? 0 : Math.max(0, FREE_NEW - otherNew());
-  const now = Date.now(), due = locked ? 0 : cards.filter(c => progress[c.id] && progress[c.id].d <= now).length;
+  const due = locked ? 0 : cards.filter(c => isDue(progress[c.id])).length;
   const left = locked ? 0 : Math.max(0, Math.min(unseen, target + (isPremium() ? extraNew[g] || 0 : 0) - n));
   return { g, unseen, n, target, auto, left, due, todo: due + left };
 }
@@ -2496,15 +2506,18 @@ function homeSession(){
   const due = todo.reduce((t, [, x]) => t + x.due, 0), fresh = todo.reduce((t, [, x]) => t + x.left, 0), total = due + fresh;
   const lockLine = locked.length ? `<p class="ts-lock">${icon("lock")} ${locked.map(([e]) => esc(e.s)).join(" et ")} : accès complet. <button class="linkbtn" data-act="paywall" data-why="ecrit">Débloquer</button></p>` : "";
   if (!total) {
-    const next = relCards().filter(c => !grpLocked(grpOf(c))).map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
+    const next = relCards().filter(c => !grpLocked(grpOf(c))).map(x => progress[x.id] && progress[x.id].d).filter(d => d && d >= dueCut()).sort((a, b) => a - b)[0];
     return `<section class="ts done" aria-labelledby="ts-h"><span class="ts-ic">${icon("check")}</span><div><h2 id="ts-h">Séance du jour terminée</h2>
-      <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes tes cartes sont programmées."} Bravo, c'est la régularité qui fait retenir.</p>
+      <p>${next ? "Prochaine carte à revoir " + fmtDue(next) + "." : "Toutes tes cartes sont programmées."} Bravo, c'est la régularité qui fait retenir.</p>
       ${lockLine}<div class="row-btns"><button class="btn" data-sec="revise">Réviser librement</button></div></div></section>`;
   }
   const min = Math.max(1, Math.round((due * 12 + fresh * 30) / 60));
+  const last = Object.keys(log).filter(k => log[k] && log[k].a > 0 && k < dayKey()).sort().pop();
+  const away = last ? Math.round((startOfDay().getTime() - startOfDay(new Date(last + "T12:00:00")).getTime()) / DAY) : 0;
   const part = ([e, x]) => `<li><b>${esc(e.s)}</b> ${[x.due ? x.due + " à revoir" : "", x.left ? x.left + (x.left > 1 ? " nouvelles" : " nouvelle") : ""].filter(Boolean).join(", ")}</li>`;
   return `<section class="ts" aria-labelledby="ts-h">
-    <h2 id="ts-h">Ta séance du jour</h2>
+    <h2 id="ts-h">${away >= 3 ? "Content de te revoir" : "Ta séance du jour"}</h2>
+    ${away >= 3 ? `<p class="ts-back">Une séance suffit pour reprendre le fil : les cartes en retard passent en premier.</p>` : ""}
     <p class="ts-n"><b>${plural(total, "carte")}</b><span>environ ${min} min</span></p>
     ${todo.length > 1 || gs.length > 1 ? `<ul class="ts-parts">${todo.map(part).join("")}</ul>` : ""}
     <button class="btn primary ts-go" data-act="home-start" data-g="${todo[0][0].id}">Commencer ma séance</button>
@@ -2563,10 +2576,13 @@ function renderHome(){
   const el = $("#panel-home"); if (!el) return;
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
-    ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : `${heroHTML()}
+    ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : returning() ? `${heroHTML()}
+    <div class="home-one">${resultCard()}${homeSession()}${trialOn() && prefs.concours ? trialCard(true) : upgradeBanner()}${homeTrain()}</div>` : `${heroHTML()}
     ${trialCard()}${upgradeBanner()}
     <div class="home-one">${resultCard()}${homeSession()}${homeTrain()}</div>`}`;
 }
+/* Celui qui revient vient faire sa séance : elle passe avant l'offre, qui tient alors en une seule carte. */
+const returning = () => Object.entries(log).some(([k, x]) => x && x.a > 0 && k < dayKey());
 
 /* ---------- Après les écrits : « es-tu admissible ? » ----------
    Proposé sur le site seulement, du lendemain des écrits à six mois après, une fois par session.
@@ -2613,7 +2629,7 @@ async function resSend(skip){
 function buildQueue(){
   const now = Date.now();
   const cards = allCards().filter(inFilter);
-  const due = cards.filter(c => progress[c.id] && progress[c.id].d <= now).sort((a, b) => progress[a.id].d - progress[b.id].d);
+  const due = cards.filter(c => isDue(progress[c.id])).sort((a, b) => progress[a.id].d - progress[b.id].d);
   const y0 = { "agreg-int": 1975 }[prefs.concours], early = c => { if (!y0 || grpOf(c) !== "e1") return 0; const m = /\b(1[89]\d\d|20\d\d)\b/.exec(c.q); return m && +m[1] < y0 ? 1 : 0; };
   let pool = cards.filter(c => !progress[c.id]).sort((a, b) => pIdx(a.p) - pIdx(b.p) || early(a) - early(b));
   if (grp !== "e1") { /* écrit 2 et textes : on alterne les thèmes */
@@ -2684,8 +2700,8 @@ function sessRecord(id, r, p){
 function sessRecap(more){
   const s = sess; if (!s || !s.n || s.grp !== grp) return "";
   const min = Math.max(1, Math.round((s.end - s.start) / 6e4)), pct = Math.round(100 * s.su / s.n);
-  const st = streaks(), now = Date.now(), t1 = startOfDay().getTime() + 2 * DAY;
-  const tomorrow = allCards().filter(c => grpOf(c) === grp && progress[c.id] && progress[c.id].d > now && progress[c.id].d < t1).length;
+  const st = streaks(), t1 = dueCut();
+  const tomorrow = allCards().filter(c => grpOf(c) === grp && progress[c.id] && progress[c.id].d >= t1 && progress[c.id].d < t1 + DAY).length;
   const seg = (k, v) => v ? `<span class="rc-${k}" style="flex:${v} 1 0"></span>` : "";
   return `<div class="recap">
     <p class="recap-h">${plural(s.n, "carte")} en ${min} min</p>
@@ -2972,7 +2988,8 @@ function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } ca
 /* ---------- Abonnement : version découverte et accès complet (site) ----------
    Découverte : un écrit (le premier de ton concours), 5 nouvelles fiches par jour et leurs révisions,
    annales, méthode, sujets sans correction, frise, « Qui ? », fils rouges, références, recherche.
-   Accès complet : tous les écrits sans limite, Claude, concours blanc, plan complet, rappels, écoute.
+   Accès complet : tous les écrits sans limite, Claude, concours blanc, plan complet, écoute.
+   Les rappels (notification, agenda) sont ouverts à tous les comptes : ils font revenir.
    Dans Claude (artefact), tout est ouvert : c'est l'aperçu du propriétaire. */
 const PLAN_KEY = "bristol-eps-plan", INTENT_KEY = "bristol-eps-intent";
 const FREE_NEW = 5;
@@ -3033,7 +3050,6 @@ const PW_WHY = {
   claude: "Les retours et corrections de Claude font partie de l'accès complet.",
   blanc: "Le concours blanc et sa correction font partie de l'accès complet.",
   plan: "Le plan complet jusqu'aux écrits fait partie de l'accès complet.",
-  rappel: "Les rappels sur ton téléphone font partie de l'accès complet.",
   ecoute: "Le mode écoute fait partie de l'accès complet.",
   menu: ""
 };
@@ -3101,7 +3117,7 @@ function renderPaywall(){
       <li>${icon("check")} ${one ? "Toutes les fiches de ton écrit" : "Tous les écrits de ton concours"} : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
       <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"} : ${c.credits || 60} crédits par mois (un retour = 1 crédit, une copie corrigée = 3 ou 4), et des recharges si tu en veux plus</li>
       <li>${icon("check")} Le concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative</li>
-      <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps, et les rappels</li>
+      <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
     </ul>
     ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
@@ -3196,9 +3212,10 @@ function trialNext(){
 }
 function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button class="btn" data-act="paywall" data-why="claude">${icon("lock")} Avoir le retour de Claude</button></div><p class="fb-note">Réservé à l'accès complet.</p></div>`; }
 /* Le retour offert est la preuve de ce que fait le site : proposé en tête de l'accueil tant qu'il n'a pas servi. */
-function trialCard(){
+function trialCard(up){
   if (!trialOn() || !prefs.concours) return "";
-  return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p></div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
+  const f = up && STANDALONE && !isPremium() ? eprOf(freeGrp()) : null;
+  return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p>${f ? `<p class="tc-up"><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour. <button class="linkbtn" data-act="paywall" data-why="menu">Débloquer tout</button></p>` : ""}</div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
 }
 function essaiGo(){
   if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
@@ -3211,6 +3228,13 @@ function upgradeBanner(){
   if (!STANDALONE || isPremium()) return "";
   const f = eprOf(freeGrp());
   return `<div class="up-banner"><p><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour.</p><button class="btn small primary" data-act="paywall" data-why="menu">Débloquer tout</button></div>`;
+}
+/* Fin de séance : l'étape suivante est d'écrire (le retour offert, sinon l'écrit du jour), pas de payer. */
+function sessNext(){
+  if (trialOn() && prefs.concours) return `<div class="sess-next"><p class="save-h">Maintenant, ton retour offert</p><p>Un plan en dix minutes sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury.</p><div class="row-btns"><button class="btn primary" data-act="essai-go">Écrire mon plan</button></div></div>`;
+  const s = relHas("e1") ? subjectOfDay() : subjectOfDay2();
+  if (!s || Object.entries(ach.w).some(([k, ts]) => k.startsWith("p:") && isToday(ts))) return "";
+  return `<div class="sess-next"><p class="save-h">Maintenant, l'écrit du jour</p><p>${esc(sjNotes(s.t).body.slice(0, 160).replace(/\s+\S*$/, ""))}…</p><div class="row-btns"><button class="btn primary" data-act="home-write" data-sid="${s.id}">Écrire</button></div></div>`;
 }
 function saveCardHTML(n){
   if (!STANDALONE || acct.status === "in") return "";
@@ -3308,15 +3332,16 @@ function renderRevise(){
       el.innerHTML = `<div class="empty"><h2>Aucune carte ici pour l'instant.</h2><p>${theme === "Mes cartes" ? "Les cartes que tu crées apparaîtront dans ce filtre." : "Aucune carte ne correspond à ce thème et à cette période."}</p><div class="row-btns"><button class="btn primary" data-tab="add">Ajouter une carte</button></div></div>`;
       return;
     }
-    const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d > now).sort((a, b) => a - b)[0];
+    const next = cards.map(x => progress[x.id] && progress[x.id].d).filter(d => d && d >= dueCut()).sort((a, b) => a - b)[0];
     const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
     const others = EPR.filter(e => e.id !== grp && relHas(e.id) && !grpLocked(e.id)).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
+    const nx = done && !others.length ? sessNext() : "";
     el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? "objectif du jour atteint." : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
-      ${done ? sessRecap(others.length) : ""}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
+      ${done ? sessRecap(others.length) : ""}${nx}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
       <div class="row-btns" style="margin-bottom:16px">${others.map(([e, x], i) => `<button class="btn${i ? "" : " primary"}" data-grp="${e.id}">Continuer ${e.id === "tx" ? "avec les textes officiels" : "avec l'" + e.s.toLowerCase()} (${x.todo})</button>`).join("")}</div>` : ""}
-      <p>${next ? "Prochaine carte à revoir dans " + fmtIn(next - now) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
-      <div class="row-btns">${goalMet ? (isPremium() ? `<button class="btn${others.length ? "" : " primary"}" data-act="more-new">10 nouvelles cartes de plus</button>` : `<button class="btn primary" data-act="paywall" data-why="new">Continuer sans limite</button>`) : ""}<button class="btn${goalMet || others.length ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
+      <p>${next ? "Prochaine carte à revoir " + fmtDue(next) + "." : "Toutes les cartes de ce filtre sont programmées."} Tu peux aussi repasser tout le filtre en révision libre : ta progression ne bouge pas, sauf pour les cartes ratées.</p>
+      <div class="row-btns">${goalMet ? (isPremium() ? `<button class="btn${others.length ? "" : " primary"}" data-act="more-new">10 nouvelles cartes de plus</button>` : `<button class="btn${nx ? "" : " primary"}" data-act="paywall" data-why="new">Continuer sans limite</button>`) : ""}<button class="btn${goalMet || others.length ? "" : " primary"}" data-act="cram">Réviser quand même</button>${canListen() ? `<button class="btn" data-act="listen-flow">Tout écouter</button>` : ""}<button class="btn" data-act="refresh">Vérifier les cartes dues</button><button class="btn" data-sec="home">Retour à l'accueil</button></div></div>`;
     return;
   }
   const p = progress[c.id], b = p ? p.b : 0;
@@ -3390,7 +3415,7 @@ function renderDeck(){
     const seen = full.filter(c => progress[c.id]).length, master = full.filter(c => progress[c.id] && progress[c.id].b === 5).length;
     return `<div class="group"><h2>${esc(THEMES[k] || NONE_T)}</h2><p class="gsub">${full.length} cartes · ${seen} vues · ${master} maîtrisées</p><ul class="list">${list.map(c => {
       const pr = progress[c.id];
-      const due = !pr ? `<span class="due">Jamais vue</span>` : pr.d <= now ? `<span class="due now">À revoir</span>` : `<span class="due">Dans ${fmtIn(pr.d - now)}</span>`;
+      const due = !pr ? `<span class="due">Jamais vue</span>` : isDue(pr) ? `<span class="due now">À revoir</span>` : `<span class="due">${cap(fmtDue(pr.d))}</span>`;
       const del = !c.custom ? "" : pendingDel === c.id
         ? `<span class="confirm"><button class="btn small" data-confirm="${esc(c.id)}">Supprimer</button><button class="btn small" data-cancel="1">Annuler</button></span>`
         : `<button class="linkbtn" data-del="${esc(c.id)}">Supprimer</button>`;
@@ -4994,8 +5019,8 @@ const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
 /* Exemples de retours de Claude, montrés avant le compte (application) et sur les pages des concours (build.py).
    Sur des sujets d'entraînement du site ; s : le sujet, wl et w : le texte du candidat, fb : le retour. */
 const EX_FB = {
-  "capeps-int": {"s": "Sujet d'entraînement du site (collège rural, classe de quatrième) : « Il exploite ses facultés intellectuelles et physiques en ayant confiance en sa capacité à réussir et à progresser » (socle commun, domaine 3). Comment l'enseignant d'EPS peut-il, notamment par ses pratiques d'évaluation, aider les élèves à construire cette confiance ?", "wl": "Le plan d'un candidat", "w": "Citation : le socle, domaine 3, la confiance en sa capacité à réussir et à progresser. Enjeux : motivation, réussite.\nContexte : collège rural de 300 élèves, car scolaire, 6 élèves en grande difficulté, une élève dyspraxique, deux élèves qui refusent de courir devant la classe.\nI. Pour la classe de 4e : en demi-fond, chaque élève choisit son allure et suit sa progression sur une fiche ; en danse, travail en groupes.\nII. Pour le collège : expliquer les bilans de fin de cycle aux familles ; AS.\nBilan : les élèves auront plus confiance.", "fb": "### Ce qui fonctionne\n- Tu pars de la citation et tu repères le levier que donne le sujet : l'évaluation.\n- En demi-fond, l'allure choisie et la progression suivie répondent directement aux deux élèves qui refusent de courir devant la classe.\n### Citation et enjeux\n- « Confiance », « réussir » et « progresser » ne sont pas définis. Distingue réussir (atteindre un attendu) et progresser (se comparer à soi-même) : c'est là que l'évaluation encourage ou décourage.\n### Exploitation du contexte\n- Le contexte est recopié, pas transformé en priorités. Dis ce qu'il implique : des bilans peu expliqués, donc des élèves qui ne savent pas ce qu'on attend d'eux ; le car scolaire, donc une AS qui doit rester sur la pause méridienne.\n### Volet classe\n- Précise ce que l'élève apprend en demi-fond et ce qu'il note sur sa fiche (temps de passage, ressenti de l'effort). La danse en groupes n'est pas reliée à la confiance : dis comment.\n- L'élève dyspraxique n'apparaît dans aucune proposition.\n### Volet établissement\n- « Expliquer les bilans aux familles » reste générique : qui, quand, avec quel support ? Les quatre niveaux de maîtrise du collège sont un point d'appui.\n### Bilan prospectif\n- Ton bilan affirme un résultat. Ouvre plutôt : comment saurais-tu, en fin d'année, que la confiance des élèves a progressé ?\n### À retravailler en priorité\n1. Transformer chaque donnée du contexte en un besoin d'élève.\n2. Donner à chaque proposition un indicateur observable."},
-  "agreg-int": {"s": "Sujet d'entraînement du site (écrit 1) : « Le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants » (loi d'orientation du 10 juillet 1989, article 1). Vous analyserez et discuterez cette citation au regard de l'évolution de la place accordée aux élèves dans la leçon d'EPS de 1975 à nos jours.", "wl": "L'introduction d'un candidat", "w": "Depuis 1975, l'EPS a profondément changé, notamment avec son retour au ministère de l'Éducation nationale en 1981. La loi d'orientation de 1989 affirme que « le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants ». On peut donc se demander si la leçon d'EPS a été pensée en fonction des élèves de 1975 à nos jours. Nous verrons d'abord une EPS centrée sur les contenus sportifs (1975-1989), puis une EPS centrée sur l'élève (de 1989 à nos jours).", "fb": "### Ce qui fonctionne\n- La citation est située (loi d'orientation de 1989) et les bornes du programme sont respectées.\n- L'annonce du plan est claire.\n### Les cinq éléments attendus\n- Accroche : générique (« l'EPS a profondément changé »). Pars plutôt d'un fait daté qui pose le problème.\n- Citation analysée : absente. « Conçu et organisé en fonction des élèves » n'est pas défini : prendre en compte les élèves, les placer au centre et les faire décider ne sont pas la même chose.\n- Bornes : 1975 est donné sans être justifié.\n- Problématique : une question fermée, qui appelle oui ou non. Elle ne discute pas la thèse.\n- Plan : un avant et un après autour de 1989 donne une lecture trop linéaire. Les pratiques réelles n'ont pas changé au rythme des textes.\n### À retravailler en priorité\n1. Analyser la citation, puis poser une tension, par exemple entre ce que prescrivent les textes et ce que vit l'élève dans la leçon.\n2. Remplacer la césure de 1989 par un plan qui répond à ta problématique."}
+  "capeps-int": {"s": "Sujet d'entraînement du site (collège rural, classe de quatrième) : « Il exploite ses facultés intellectuelles et physiques en ayant confiance en sa capacité à réussir et à progresser » (socle commun, domaine 3). Comment l'enseignant d'EPS peut-il, notamment par ses pratiques d'évaluation, aider les élèves à construire cette confiance ?", "wl": "Un plan d'exemple (fictif)", "w": "Citation : le socle, domaine 3, la confiance en sa capacité à réussir et à progresser. Enjeux : motivation, réussite.\nContexte : collège rural de 300 élèves, car scolaire, 6 élèves en grande difficulté, une élève dyspraxique, deux élèves qui refusent de courir devant la classe.\nI. Pour la classe de 4e : en demi-fond, chaque élève choisit son allure et suit sa progression sur une fiche ; en danse, travail en groupes.\nII. Pour le collège : expliquer les bilans de fin de cycle aux familles ; AS.\nBilan : les élèves auront plus confiance.", "fb": "### Ce qui fonctionne\n- Tu pars de la citation et tu repères le levier que donne le sujet : l'évaluation.\n- En demi-fond, l'allure choisie et la progression suivie répondent directement aux deux élèves qui refusent de courir devant la classe.\n### Citation et enjeux\n- « Confiance », « réussir » et « progresser » ne sont pas définis. Distingue réussir (atteindre un attendu) et progresser (se comparer à soi-même) : c'est là que l'évaluation encourage ou décourage.\n### Exploitation du contexte\n- Le contexte est recopié, pas transformé en priorités. Dis ce qu'il implique : des bilans peu expliqués, donc des élèves qui ne savent pas ce qu'on attend d'eux ; le car scolaire, donc une AS qui doit rester sur la pause méridienne.\n### Volet classe\n- Précise ce que l'élève apprend en demi-fond et ce qu'il note sur sa fiche (temps de passage, ressenti de l'effort). La danse en groupes n'est pas reliée à la confiance : dis comment.\n- L'élève dyspraxique n'apparaît dans aucune proposition.\n### Volet établissement\n- « Expliquer les bilans aux familles » reste générique : qui, quand, avec quel support ? Les quatre niveaux de maîtrise du collège sont un point d'appui.\n### Bilan prospectif\n- Ton bilan affirme un résultat. Ouvre plutôt : comment saurais-tu, en fin d'année, que la confiance des élèves a progressé ?\n### À retravailler en priorité\n1. Transformer chaque donnée du contexte en un besoin d'élève.\n2. Donner à chaque proposition un indicateur observable."},
+  "agreg-int": {"s": "Sujet d'entraînement du site (écrit 1) : « Le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants » (loi d'orientation du 10 juillet 1989, article 1). Vous analyserez et discuterez cette citation au regard de l'évolution de la place accordée aux élèves dans la leçon d'EPS de 1975 à nos jours.", "wl": "Une introduction d'exemple (fictive)", "w": "Depuis 1975, l'EPS a profondément changé, notamment avec son retour au ministère de l'Éducation nationale en 1981. La loi d'orientation de 1989 affirme que « le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants ». On peut donc se demander si la leçon d'EPS a été pensée en fonction des élèves de 1975 à nos jours. Nous verrons d'abord une EPS centrée sur les contenus sportifs (1975-1989), puis une EPS centrée sur l'élève (de 1989 à nos jours).", "fb": "### Ce qui fonctionne\n- La citation est située (loi d'orientation de 1989) et les bornes du programme sont respectées.\n- L'annonce du plan est claire.\n### Les cinq éléments attendus\n- Accroche : générique (« l'EPS a profondément changé »). Pars plutôt d'un fait daté qui pose le problème.\n- Citation analysée : absente. « Conçu et organisé en fonction des élèves » n'est pas défini : prendre en compte les élèves, les placer au centre et les faire décider ne sont pas la même chose.\n- Bornes : 1975 est donné sans être justifié.\n- Problématique : une question fermée, qui appelle oui ou non. Elle ne discute pas la thèse.\n- Plan : un avant et un après autour de 1989 donne une lecture trop linéaire. Les pratiques réelles n'ont pas changé au rythme des textes.\n### À retravailler en priorité\n1. Analyser la citation, puis poser une tension, par exemple entre ce que prescrivent les textes et ce que vit l'élève dans la leçon.\n2. Remplacer la césure de 1989 par un plan qui répond à ta problématique."}
 };
 /* Sujets d'entraînement de l'interne et des agrégations (citation, consigne, situation fictive pour l'interne).
    Conçus par Bristol EPS ; chaque citation est retrouvée mot pour mot dans deux documents (contenu/sujets-interne-agreg-sources.md).
@@ -5073,7 +5098,7 @@ const PROG_LBL = (cid, bi, ii) => { const c = concById(cid); return c && c.prog[
 function startProg(cid, bi, ii){
   const m = PROG_MAP[cid] && PROG_MAP[cid][bi] && PROG_MAP[cid][bi][ii]; if (!m) return;
   const now = Date.now(), list = progCards(m).filter(c => !grpLocked(grpOf(c)));
-  const due = list.filter(c => progress[c.id] && progress[c.id].d <= now), fresh = list.filter(c => !progress[c.id]), rest = list.filter(c => progress[c.id] && progress[c.id].d > now);
+  const due = list.filter(c => isDue(progress[c.id])), fresh = list.filter(c => !progress[c.id]), rest = list.filter(c => progress[c.id] && !isDue(progress[c.id]));
   const ids = due.concat(fresh, shuffle(rest)).slice(0, 20).map(c => c.id);
   if (!ids.length) return;
   setGrp(grpOf(byId(ids[0])));
@@ -7578,7 +7603,6 @@ function pushHTML(){
   let inner;
   if (!pushSupported()) inner = `<p class="lead">${isIOS() && !isInstalled() ? "Sur iPhone ou iPad, installe d'abord l'application (Safari : Partager, puis « Sur l'écran d'accueil »), puis active le rappel depuis l'application." : "Ton navigateur ne gère pas les notifications."}</p>`;
   else if (acct.status !== "in") inner = `<p class="lead">Connecte-toi pour recevoir un rappel chaque jour, sur tous tes appareils.</p><div class="row-btns"><button class="btn" data-act="account-open">Se connecter</button></div>`;
-  else if (!isPremium()) inner = `<p class="lead">Un rappel à l'heure de ton choix les jours où tu n'as pas révisé, et le bilan de ta semaine.</p><div class="row-btns"><button class="btn" data-act="paywall" data-why="rappel">${icon("lock")} Activer les rappels</button></div>`;
   else if (Notification.permission === "denied") inner = `<p class="lead">Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du navigateur, puis reviens ici.</p>`;
   else {
     if (!push.checked) pushCheck();

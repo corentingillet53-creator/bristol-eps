@@ -60,6 +60,7 @@ node csp.js             # seule violation attendue : le script injecté exprès
 node --no-warnings trial.mjs   # serveur : retour offert (D1 simulée par node:sqlite, tests/d1mock.mjs)
 node --no-warnings usage.mjs   # serveur : crédits, recharge, codes, paiement, suppression de compte
 node credits.js         # page : solde, refus faute de crédits, panneau de recharge (API simulée)
+node habit.js           # page : cartes dues dès le matin, accueil de celui qui revient, fin de séance, rappels
 node --no-warnings event.mjs   # serveur : mesure anonyme, tableau /api/stats, résultats déclarés
 node prompts.mjs        # prompts identiques page/serveur pour chaque concours → « ALL OK »
 ```

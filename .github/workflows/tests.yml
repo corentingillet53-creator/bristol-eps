@@ -38,5 +38,6 @@ jobs:
           node server.js & sleep 1
           node smoke.js | tee smoke.log; grep -q 'ALL OK' smoke.log
           node freemium.js | tee freemium.log; grep -q 'ALL OK' freemium.log
+          node habit.js | tee habit.log; grep -q 'ALL OK' habit.log
           node --no-warnings prompts.mjs | tee prompts.log; grep -q 'ALL OK' prompts.log
           for c in capeps-l3 capeps-m2 capeps-int capeps-3 agreg-ext agreg-int; do node skills.js $c | tail -1 | grep -q 'errors \[\]'; done
