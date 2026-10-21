@@ -498,10 +498,12 @@ export async function onRequestPost({ request, env, ctx }) {
     body = JSON.parse(raw);
   } catch { return json(400, "bad_request"); }
   if (!body || typeof body !== "object") return json(400, "bad_request");
-  let prompt, maxTokens = 1200, isCopie = false, images = [];
+  // max_tokens compte aussi la réflexion du modèle (active par défaut sur les modèles Claude 5) :
+  // marge large pour qu'un retour ne soit pas coupé ; le coût réel reste borné par les crédits.
+  let prompt, maxTokens = 4000, isCopie = false, images = [];
   if (body && body.kind === "copie") {
     const { o, error } = readCopie(body); if (error) return error;
-    prompt = buildPromptCopie(o); maxTokens = 2400; isCopie = true; images = o.images;
+    prompt = buildPromptCopie(o); maxTokens = 8000; isCopie = true; images = o.images;
   } else {
   const kind = body && (body.kind === "intro" || body.kind === "plan" || body.kind === "para") ? body.kind : null;
   const subject = typeof body.subject === "string" ? body.subject.trim() : "";
@@ -565,6 +567,8 @@ export async function onRequestPost({ request, env, ctx }) {
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
+        // Réflexion courte : le retour commence plus vite et garde ses jetons pour le texte.
+        ...(/^claude-(sonnet|opus|haiku)-5/.test(model) ? { output_config: { effort: "low" } } : {}),
         stream: true,
         messages: [{ role: "user", content }],
       }),

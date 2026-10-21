@@ -14,16 +14,17 @@ const env = { ANTHROPIC_API_KEY: "k", QUOTA: KV, DB, MIN_INTERVAL_S: "0", DAILY_
 const enc = new TextEncoder();
 
 // API Claude simulée : 600 jetons de sortie, envoyés en plusieurs morceaux, lentement.
-let calls = 0, stripeCalls = [];
+let calls = 0, stripeCalls = [], refuseDiscount = false, lastClaude = null;
 globalThis.fetch = async (url, init) => {
   url = String(url);
   if (url.startsWith("https://api.stripe.com")) {
     stripeCalls.push([init.method, url, init.body || ""]);
-    if (url.endsWith("/checkout/sessions")) return Response.json({ url: "https://checkout.stripe.test/s" });
+    if (url.endsWith("/checkout/sessions")) return refuseDiscount && /discounts/.test(init.body) ? Response.json({ error: { message: "coupon" } }, { status: 400 }) : Response.json({ url: "https://checkout.stripe.test/s" });
+    if (url.includes("/promotion_codes")) return Response.json({ data: url.includes("code=LANCEMENT20") ? [{ id: "promo_1" }] : [] });
     if (url.includes("/charges/")) return Response.json({ id: "ch_1", customer: "cus_D" });
     return Response.json({});
   }
-  calls++;
+  calls++; lastClaude = JSON.parse(init.body);
   let i = 0;
   const body = new ReadableStream({
     async pull(c) {
@@ -61,6 +62,7 @@ ok(refused.length === 20 - CREDITS && body402.error === "no_credits" && body402.
 ok(passed.every(r => /^[01]\/0\/1$/.test(r.headers.get("x-credits") || "")), "en-tête x-credits : mois/recharge/coût " + passed.map(r => r.headers.get("x-credits")));
 
 // B1 b. Flux coupé par le client : le coût réel est quand même compté.
+ok(lastClaude && lastClaude.max_tokens === 4000 && lastClaude.output_config && lastClaude.output_config.effort === "low", "retour : réflexion courte et marge de 4 000 jetons");
 DB.sqlite.prepare("DELETE FROM usage").run(); calls = 0;
 const r1 = await onRequestPost({ request: fb("cut"), env, ctx });
 const rd = r1.body.getReader(); await rd.read(); await rd.cancel();
@@ -108,6 +110,21 @@ users.p1 = await seedUser(DB, "p1");
 const co = await bill("checkout", { plan: "pass" }, "p1");
 const sent = new URLSearchParams(stripeCalls.at(-1)[2]);
 ok(co.status === 200 && !sent.has("metadata[renonciation]") && /remboursé pendant 14 jours/.test(sent.get("payment_intent_data[description]")) && /remboursé pendant 14 jours/.test(sent.get("custom_text[submit][message]")) && !sent.has("customer_email"), "paiement sans case : rétractation rappelée au paiement et sur le reçu, adresse non vérifiée non préremplie");
+
+// Prix de lancement : le code promo est appliqué d'avance au pass, sinon le champ promo reste ouvert.
+const coP = await bill("checkout", { plan: "pass", promo: "LANCEMENT20" }, "p1");
+const sentP = new URLSearchParams(stripeCalls.at(-1)[2]);
+ok(coP.status === 200 && sentP.get("discounts[0][promotion_code]") === "promo_1" && !sentP.has("allow_promotion_codes"), "pass : code promo appliqué d'avance");
+await bill("checkout", { plan: "pass", promo: "INCONNU" }, "p1");
+const sentU = new URLSearchParams(stripeCalls.at(-1)[2]);
+ok(!sentU.has("discounts[0][promotion_code]") && sentU.get("allow_promotion_codes") === "true", "code promo inconnu : champ promo ouvert");
+await bill("checkout", { plan: "mensuel", promo: "LANCEMENT20" }, "p1");
+ok(!new URLSearchParams(stripeCalls.at(-1)[2]).has("discounts[0][promotion_code]"), "mensuel : code promo du pass jamais appliqué");
+refuseDiscount = true;
+const coR0 = await bill("checkout", { plan: "pass", promo: "LANCEMENT20" }, "p1");
+const sentR0 = new URLSearchParams(stripeCalls.at(-1)[2]);
+ok(coR0.status === 200 && !sentR0.has("discounts[0][promotion_code]") && sentR0.get("allow_promotion_codes") === "true", "code refusé par Stripe : paiement ouvert sans réduction d'avance");
+refuseDiscount = false;
 
 // Remboursement et litige : l'accès s'arrête.
 const hook = async ev => { const raw = JSON.stringify(ev), t = Math.floor(Date.now() / 1000);

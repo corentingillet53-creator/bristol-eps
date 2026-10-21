@@ -90,6 +90,23 @@ async function checkout(request, env) {
     p["payment_intent_data[metadata][plan]"] = "recharge"; p["payment_intent_data[metadata][user]"] = user.id; p["payment_intent_data[metadata][credits]"] = n;
   } else if (plan === "pass") { p.customer_creation = "always"; p["payment_intent_data[description]"] = "Bristol EPS, pass session. " + recu; }
   else { p["subscription_data[metadata][user]"] = user.id; p["subscription_data[metadata][plan]"] = plan; p["subscription_data[description]"] = "Bristol EPS, abonnement mensuel. " + recu; }
+  // Prix de lancement : le code promo annoncé sur le site est appliqué d'avance au pass s'il est actif chez
+  // Stripe (qui vérifie produit, date et nombre d'utilisations) ; sinon, le champ code promo reste proposé.
+  const promo = plan === "pass" && typeof body.promo === "string" && /^[A-Za-z0-9_-]{3,40}$/.test(body.promo) ? body.promo : "";
+  if (promo) {
+    try {
+      const l = await stripe(env, "GET", "/promotion_codes?active=true&limit=1&code=" + encodeURIComponent(promo));
+      const pc = l && l.data && l.data[0];
+      if (pc && pc.id) { delete p.allow_promotion_codes; p["discounts[0][promotion_code]"] = pc.id; }
+    } catch (e) { console.error("Code promo :", String(e)); }
+  }
+  try { const s = await stripe(env, "POST", "/checkout/sessions", p); return json(200, { url: s.url }); }
+  catch (e) {
+    console.error("Checkout :", String(e));
+    if (!p["discounts[0][promotion_code]"]) return err(502, "stripe_error");
+  }
+  // Code refusé par Stripe (produit, date) : page de paiement sans réduction d'avance, champ promo ouvert.
+  delete p["discounts[0][promotion_code]"]; p.allow_promotion_codes = "true";
   try { const s = await stripe(env, "POST", "/checkout/sessions", p); return json(200, { url: s.url }); }
   catch (e) { console.error("Checkout :", String(e)); return err(502, "stripe_error"); }
 }

@@ -59,6 +59,14 @@ _MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","sep
 _d = datetime.date.today()
 _maj = f"{_d.day}{'er' if _d.day == 1 else ''} {_MOIS[_d.month - 1]} {_d.year}"
 page_app = _re.sub(r'const SITE_MAJ = "[^"]*";', f'const SITE_MAJ = "{_maj}";', page, count=1)
+# Offre de lancement reprise par le panneau de paiement de l'application (null une fois la date passée).
+import json as _json
+_fin = datetime.datetime.fromisoformat(OFFRE["fin"]) if OFFRE else None
+_offre_app = (_json.dumps({"code": OFFRE["code"], "prix": OFFRE["prix"], "ref": OFFRE["ref"], "fin": int(_fin.timestamp() * 1000),
+              "fin_txt": OFFRE["fin_txt"]}, ensure_ascii=False) if OFFRE and datetime.datetime.now(datetime.timezone.utc) <= _fin else "null")
+page_app, _n = _re.subn(r'const OFFRE = null;', f'const OFFRE = {_offre_app};', page_app, count=1)
+assert _n == 1, "const OFFRE introuvable dans la page"
+
 # Polices : la page source charge Google Fonts (pour l'artifact Claude) ; le site publié les sert lui-même.
 FONTS = ('<link rel="preload" href="/fonts/albert-sans.woff2" as="font" type="font/woff2" crossorigin>\n'
          '<link rel="preload" href="/fonts/imbue-400.woff2" as="font" type="font/woff2" crossorigin>\n'
