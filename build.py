@@ -18,10 +18,11 @@ page = src.read_text(encoding="utf-8")
 SITE_URL = "https://eps-bristol.fr"
 INDEXER = True
 # Offre de lancement, affichée sur l'accueil et les pages des concours jusqu'à « fin » (heure de
-# Paris) puis retirée par la page elle-même. Le code se crée dans Stripe (Produits > Coupons) avec
-# la même réduction, le même produit et la même date d'expiration. « depuis » : mise en vente du
-# pass au prix de référence (prix le plus bas des 30 jours précédents, article L112-1-1 du code
-# de la consommation). OFFRE = None retire tout.
+# Paris) puis retirée par la page elle-même (et par l'application, qui la lit dans sa propre
+# constante OFFRE). Le code se crée dans Stripe (Produits > Coupons) avec la même réduction, le même
+# produit, une durée « une fois » et la même date d'expiration. Le pass étant vendu depuis le jour
+# de l'offre, les textes annoncent un prix de lancement puis le prix « ref », sans « prix de
+# référence » (article L112-1-1 du code de la consommation). OFFRE = None retire tout.
 OFFRE = {"code": "LANCEMENT20", "prix": 64, "ref": 80, "fin": "2026-11-01T23:59:59+01:00",
          "fin_txt": "1er novembre 2026", "depuis_txt": "21 octobre 2026"}
 
@@ -130,11 +131,13 @@ _offre = bool(OFFRE) and datetime.datetime.now(datetime.timezone.utc) <= datetim
 if _offre:
     _ms = int(datetime.datetime.fromisoformat(OFFRE["fin"]).timestamp() * 1000)
     _pc = round(100 * (1 - OFFRE["prix"] / OFFRE["ref"]))
-    _ref_txt = f"Prix de référence : {OFFRE['ref']} €, le plus bas pratiqué depuis la mise en vente du pass le {OFFRE['depuis_txt']}."
-    OFFRE_TXT = (f"Offre de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
-                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']} au paiement.")
+    # Prix de lancement : le pass est en vente depuis le même jour que l'offre ; on annonce donc le prix
+    # qui suivra plutôt qu'un « prix de référence » jamais pratiqué seul (article L112-1-1).
+    _ref_txt = f"Le code se saisit sur la page de paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
+    OFFRE_TXT = (f"Prix de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
+                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']}.")
     vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
-    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">−{_pc} % jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
+    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">Prix de lancement jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € (−{_pc} %) avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
 else:
     vals["OFFRE_TOP"] = vals["OFFRE_PRIX"] = ""
 land = self_host_fonts(land_src)
@@ -339,7 +342,7 @@ Dates relevées dans les textes officiels ; seule la convocation du candidat fai
 
 """ + "\n".join(f"- {n} : {p}. {d}" for n, p, d in _prix) + f"""
 
-Le paiement en ligne n’est pas encore ouvert : la version découverte est gratuite.
+Paiement sécurisé par Stripe ; satisfait ou remboursé pendant 14 jours. La version découverte est gratuite.
 
 ## Liens
 

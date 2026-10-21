@@ -25,11 +25,11 @@ Dates relevées dans les textes officiels ; seule la convocation du candidat fai
 
 ## Tarifs
 
-- Découverte : gratuit. Cinq nouvelles fiches par jour sur l’écrit de ton choix, les annales et les rapports de jury, et un retour de Claude offert. Sans inscription.
-- Pass session 2027 : 80 €. En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.
+- Découverte : gratuit. Cinq nouvelles fiches par jour sur l’écrit de ton choix, les annales et les rapports de jury, et un retour de Claude offert avec un compte gratuit. Sans inscription pour réviser.
+- Pass session 2027 : 80 €. En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, jusqu’à 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.
 - Mensuel : 15 €. Par mois, sans engagement : le même accès complet.
 
-Le paiement en ligne n’est pas encore ouvert : la version découverte est gratuite.
+Paiement sécurisé par Stripe ; satisfait ou remboursé pendant 14 jours. La version découverte est gratuite.
 
 ## Liens
 
