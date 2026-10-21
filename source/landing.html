@@ -267,12 +267,17 @@ details[open] .chev{transform:rotate(180deg)}
 }
 @keyframes rise{to{opacity:1;transform:none}}
 @media (max-width:760px){ .js .hero-card[data-rise]{transform:translateY(18px)} }
+/* Offre de lancement (build.py, OFFRE) : bandeau en haut et ligne sous le pass, retirés après la date de fin. */
+.offre-band{margin:0;padding:12px 16px;background:var(--accent);color:var(--accent-ink);text-align:center;font-weight:600}
+.offre-band a{color:inherit}
+.offre-band small,.offre-note small{display:block;font-weight:400;opacity:.9}
+.offre-note{margin:8px 0 0;padding:8px 12px;border-left:4px solid var(--accent);font-weight:600}
 </style>
 </head>
 <body>
 <a class="skip" href="#contenu">Aller au contenu</a>
 <main id="contenu" tabindex="-1">
-  <section class="hero" aria-labelledby="h-hero">
+{{OFFRE_TOP}}  <section class="hero" aria-labelledby="h-hero">
     <article class="hero-card fiche" data-rise style="--i:0">
       <h1 id="h-hero">Réviser les écrits d’EPS</h1>
       <div class="hero-body">
@@ -373,7 +378,7 @@ details[open] .chev{transform:rotate(180deg)}
         <div class="grp" data-reveal>
           <h3>Bristol EPS</h3>
           <div class="item"><p class="item-r">Découverte <b>gratuit</b></p><p>Cinq nouvelles fiches par jour sur l’écrit de ton choix, les annales et les rapports de jury, et un retour de Claude offert. Sans inscription.</p></div>
-          <div class="item"><p class="item-r">Pass session 2027 <b>80 €</b></p><p>En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.</p></div>
+          <div class="item"><p class="item-r">Pass session 2027 <b>80 €</b></p><p>En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.</p>{{OFFRE_PRIX}}</div>
           <div class="item"><p class="item-r">Mensuel <b>15 €</b></p><p>Par mois, sans engagement : le même accès complet.</p></div>
         </div>
         <div class="grp" data-reveal style="--i:1">
@@ -518,6 +523,8 @@ $("mo-next").addEventListener("click", () => row.scrollBy({ left: step(), behavi
   t.forEach(el => io.observe(el));
   addEventListener("load", () => setTimeout(() => t.forEach(el => { const r = el.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) el.classList.add("is-in"); }), 2500));
 })();
+/* Offre de lancement : retirée d'elle-même après sa date de fin, même sans nouvelle construction. */
+document.querySelectorAll("[data-offre]").forEach(e => { if (Date.now() > +e.dataset.offre) e.remove(); });
 </script>
 </body>
 </html>
