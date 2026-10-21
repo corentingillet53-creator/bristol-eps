@@ -136,9 +136,20 @@ async function syncSub(env, sub, userId) {
   userId = userId || await userOfSub(env, sub);
   if (!userId) return;
   const st = sub.status;
+  // Abonnement remboursé ou contesté (canceled_now) : un événement tardif du même abonnement ne rouvre pas l'accès.
+  await ensureSubs(env);
+  const cur = await env.DB.prepare("SELECT status, stripe_sub FROM subscriptions WHERE user_id = ?").bind(userId).first();
+  if (cur && cur.status === "canceled_now" && cur.stripe_sub === sub.id) return;
   const live = st === "active" || st === "trialing" || st === "past_due";
   await setPlan(env, userId, { plan: "mensuel", status: live ? st : "canceled", until: live ? periodEnd(sub) : Math.min(periodEnd(sub) || Date.now(), Date.now()), customer: sub.customer, sub: sub.id });
 }
+
+// Abonnement d'une facture : champ « subscription » des anciennes versions de l'API Stripe,
+// « parent.subscription_details.subscription » depuis 2025-03.
+const invoiceSub = (inv) => {
+  const s = inv.subscription || (inv.parent && inv.parent.subscription_details && inv.parent.subscription_details.subscription);
+  return typeof s === "string" ? s : (s && s.id) || "";
+};
 
 async function webhook(request, env) {
   const raw = await request.text();
@@ -167,8 +178,8 @@ async function webhook(request, env) {
       }
     } else if (ev.type === "customer.subscription.updated" || ev.type === "customer.subscription.deleted" || ev.type === "customer.subscription.created") {
       await syncSub(env, o);
-    } else if (ev.type === "invoice.paid" && o.subscription) {
-      await syncSub(env, await stripe(env, "GET", "/subscriptions/" + o.subscription));
+    } else if (ev.type === "invoice.paid" && invoiceSub(o)) {
+      await syncSub(env, await stripe(env, "GET", "/subscriptions/" + invoiceSub(o)));
     } else if (ev.type === "charge.refunded" && o.refunded) {
       // Paiement remboursé en totalité : l'accès s'arrête tout de suite (une recharge : ses crédits seulement).
       if (!await revokeRecharge(env, o)) await revokeCustomer(env, o.customer, ev.type);
@@ -195,8 +206,15 @@ async function revokeRecharge(env, ch) {
 async function revokeCustomer(env, customer, why) {
   if (!customer) return;
   await ensureSubs(env);
+  const subs = await env.DB.prepare("SELECT stripe_sub FROM subscriptions WHERE stripe_customer = ? AND plan = 'mensuel' AND stripe_sub IS NOT NULL AND status NOT IN ('canceled', 'canceled_now')").bind(customer).all();
   const r = await env.DB.prepare("UPDATE subscriptions SET status = 'canceled_now', until = ?, updated_at = ? WHERE stripe_customer = ?").bind(Date.now(), Date.now(), customer).run();
   console.log("Accès retiré :", why, (r && r.meta && r.meta.changes) || 0, "compte(s)");
+  // Mensuel remboursé ou contesté : l'abonnement est résilié tout de suite chez Stripe, sinon il serait prélevé
+  // (et l'accès rouvert) au renouvellement suivant.
+  for (const s of (subs && subs.results) || []) {
+    try { await stripe(env, "DELETE", "/subscriptions/" + s.stripe_sub); console.log("Abonnement résilié :", why); }
+    catch (e) { console.error("Résiliation après", why, ":", String(e)); }
+  }
 }
 
 async function portal(request, env) {

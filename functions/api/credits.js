@@ -3,7 +3,7 @@
 // et peut en racheter (recharge Stripe, functions/api/billing.js). Les crédits du mois servent d'abord,
 // puis les crédits rechargés, valables jusqu'à la fin de la session (PASS_UNTIL + 30 jours).
 // Coût d'une demande : 1 crédit pour un retour court, 3 pour une copie tapée, 4 pour une copie en photos.
-// Le coût réel d'un crédit est borné par max_tokens et la taille des entrées (≈ 0,02 $ au plus en usage normal).
+// Le coût réel d'un crédit est borné par max_tokens et la taille des entrées (≈ 0,05 $ au plus pour un retour court avec max_tokens 4 000, voir feedback.js).
 // Clés D1 (table usage) : cr:<qui>:<mois> (crédits du mois utilisés), topup:<qui> (crédits rechargés restants).
 import { take, bump, peek, spend } from "./usage.js";
 import { passUntil } from "./plan.js";
