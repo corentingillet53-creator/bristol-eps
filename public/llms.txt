@@ -35,4 +35,10 @@ Le paiement en ligne n’est pas encore ouvert : la version découverte est grat
 
 - [Page de présentation](https://eps-bristol.fr/)
 - [Application](https://eps-bristol.fr/app/)
+- [CAPEPS externe 2027 : épreuves, programme et annales](https://eps-bristol.fr/capeps-externe/)
+- [CAPEPS externe transitoire 2027 : épreuves, programme et annales](https://eps-bristol.fr/capeps-externe-master/)
+- [CAPEPS interne 2027 : épreuves, programme et annales](https://eps-bristol.fr/capeps-interne/)
+- [Troisième concours du CAPEPS 2027 : épreuves, programme et annales](https://eps-bristol.fr/troisieme-concours-capeps/)
+- [Agrégation externe d’EPS 2027 : épreuves, programme et annales](https://eps-bristol.fr/agregation-externe-eps/)
+- [Agrégation interne d’EPS 2027 : épreuves, programme et annales](https://eps-bristol.fr/agregation-interne-eps/)
 - [Mentions légales](https://eps-bristol.fr/mentions-legales/)

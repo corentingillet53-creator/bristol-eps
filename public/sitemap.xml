@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://eps-bristol.fr/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/capeps-externe/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/capeps-externe-master/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/capeps-interne/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/troisieme-concours-capeps/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/agregation-externe-eps/</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://eps-bristol.fr/agregation-interne-eps/</loc><lastmod>2026-10-21</lastmod></url>
 </urlset>

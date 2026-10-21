@@ -10,7 +10,8 @@
     "binding": "ASSETS",
     // Le Worker passe avant les fichiers pour l'API et pour les pages (comptage des visites,
     // functions/api/event.js recordView, et redirection de www) ; le reste est servi directement.
-    "run_worker_first": ["/api/*", "/", "/index.html", "/app/", "/app/index.html", "/cgv/", "/mentions-legales/", "/confidentialite/"]
+    "run_worker_first": ["/api/*", "/", "/index.html", "/app/", "/app/index.html", "/cgv/", "/mentions-legales/", "/confidentialite/",
+      "/capeps-externe/", "/capeps-externe-master/", "/capeps-interne/", "/troisieme-concours-capeps/", "/agregation-externe-eps/", "/agregation-interne-eps/"]
   },
   // Domaine du site (zone eps-bristol.fr dans Cloudflare) ; l'adresse .workers.dev reste ouverte
   // et redirige vers le domaine (worker.js). Pas d'adresses de prévisualisation par version.

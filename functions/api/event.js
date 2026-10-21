@@ -46,7 +46,9 @@ export async function recordEvent(env, e, c = "") {
 // comptées à chaque affichage ; la provenance, l'appareil et le pays une fois par visiteur et par jour.
 // « Visiteur du jour » : empreinte de l'IP et du navigateur salée par la date, gardée 2 jours au plus
 // dans la table usage (comme les limites d'envoi), jamais en clair ni d'un jour sur l'autre.
-const PAGES = { "/": "Page d'accueil", "/app/": "Appli", "/cgv/": "CGV", "/mentions-legales/": "Mentions légales", "/confidentialite/": "Confidentialité" };
+const PAGES = { "/": "Page d'accueil", "/app/": "Appli", "/cgv/": "CGV", "/mentions-legales/": "Mentions légales", "/confidentialite/": "Confidentialité",
+  "/capeps-externe/": "CAPEPS externe", "/capeps-externe-master/": "CAPEPS transitoire", "/capeps-interne/": "CAPEPS interne",
+  "/troisieme-concours-capeps/": "3e concours", "/agregation-externe-eps/": "Agrég externe", "/agregation-interne-eps/": "Agrég interne" };
 const BOT = /bot|crawl|spider|slurp|archiver|facebookexternalhit|embedly|preview|headless|lighthouse|pagespeed|monitor|uptime|curl|wget|python|go-http|java\/|node-fetch|axios|okhttp|scrapy/i;
 const SRC = [[/^mail\.google\.com$|^com\.google\.android\.gm$/, "Gmail"], [/(^|\.)google\.|googlequicksearchbox/, "Google"], [/(^|\.)bing\.com$/, "Bing"], [/duckduckgo\.com$/, "DuckDuckGo"], [/(^|\.)qwant\.com$/, "Qwant"], [/ecosia\.org$/, "Ecosia"], [/yahoo\./, "Yahoo"],
   [/(^|\.)(facebook\.com|fb\.com|fb\.me)$/, "Facebook"], [/instagram\.com$/, "Instagram"], [/linkedin\.com$|^lnkd\.in$/, "LinkedIn"], [/^t\.co$|(^|\.)(x|twitter)\.com$/, "X (Twitter)"],
