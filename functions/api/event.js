@@ -41,6 +41,21 @@ export async function recordEvent(env, e, c = "") {
   } catch (x) { console.error("Mesure :", String(x)); }
 }
 
+// Provenance déclarée par la page (utm_source de l'annonce, gardé dans l'onglet) ou par le paiement
+// (metadata Stripe) : un compteur de plus, table views, dimension « via:<source> », valeur = l'étape.
+// On voit ainsi combien d'appareils venus d'une annonce ont ouvert l'appli, demandé un retour, payé.
+const VIA = ["open", "feedback1", "paywall", "checkout", "paid_pass", "paid_mensuel"];
+export function cleanSource(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30); }
+export async function recordSource(env, e, s) {
+  const src = cleanSource(s);
+  if (!env.DB || !src || !VIA.includes(e)) return;
+  try {
+    await ensureViews(env);
+    await env.DB.prepare("INSERT INTO views (day, k, v, n) VALUES (?, ?, ?, 1) ON CONFLICT(day, k, v) DO UPDATE SET n = n + 1")
+      .bind(new Date().toISOString().slice(0, 10), "via:" + src, e).run();
+  } catch (x) { console.error("Provenance :", String(x)); }
+}
+
 // Visites des pages, comptées par le Worker au moment où il sert la page (ni script ni cookie).
 // Table views (créée au premier usage) : day, k (dimension), v (valeur), n. Les pages vues sont
 // comptées à chaque affichage ; la provenance, l'appareil et le pays une fois par visiteur et par jour.
@@ -100,7 +115,17 @@ async function postEvent(request, env) {
   const ip = await ipTag(request, "bristol-event");
   if (ip && await take(env, `ev:${ip}:${new Date().toISOString().slice(0, 10)}`, 1, 300, 2 * 864e5) === null) return json(200, { ok: true });
   await recordEvent(env, e, body.c);
+  if (body.s) await recordSource(env, e, body.s);
   return json(200, { ok: true });
+}
+
+// Parcours des visiteurs arrivés avec une provenance (?utm_source=…), sur la période choisie.
+function viaHTML(via, per) {
+  const src = Object.keys(via).sort((a, b) => (via[b].open || 0) - (via[a].open || 0));
+  const head = `<h2>Parcours par provenance</h2><p>Visiteurs arrivés par un lien marqué (?utm_source=…, par exemple google-ads), sur ${per}. Les achats sont comptés au paiement.</p>`;
+  if (!src.length) return head + "<p class=\"mut\">Aucun pour l'instant.</p>";
+  const rows = src.map((s) => `<tr><td>${esc(s)}</td>${VIA.map((e) => `<td>${via[s][e] || 0}</td>`).join("")}</tr>`).join("");
+  return head + `<div class="card scroll"><table class="funnel"><thead><tr><th>Provenance</th>${VIA.map((e) => `<th>${esc(LABEL[e])}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function isAdmin(request, env) {
@@ -157,14 +182,15 @@ async function getStats(request, env) {
   }
   // Visites : la période choisie et la précédente (pour la comparaison).
   const { results: vr } = await env.DB.prepare("SELECT day, k, v, n FROM views WHERE day >= ?").bind(day(2 * J - 1)).all();
-  const from = day(J - 1), V = { uv: {}, pv: {}, page: {}, src: {}, dev: {}, cc: {} }, P = { uv: 0, pv: 0 };
+  const from = day(J - 1), V = { uv: {}, pv: {}, page: {}, src: {}, dev: {}, cc: {} }, P = { uv: 0, pv: 0 }, via = {};
   for (const r of vr || []) {
     const cur = r.day >= from;
+    if (r.k.startsWith("via:")) { if (cur) { const o = via[r.k.slice(4)] || (via[r.k.slice(4)] = {}); o[r.v] = (o[r.v] || 0) + r.n; } continue; }
     if (r.k === "uv" || r.k === "page") { const key = r.k === "uv" ? "uv" : "pv"; if (cur) V[key][r.day] = (V[key][r.day] || 0) + r.n; else P[key] += r.n; }
     if (cur && V[r.k] && r.k !== "uv") V[r.k][r.v] = (V[r.k][r.v] || 0) + r.n;
   }
   const sum = (m) => Object.values(m).reduce((a, b) => a + b, 0), uv = sum(V.uv), pv = sum(V.pv);
-  if (url.searchParams.get("format") === "json") return json(200, { ok: true, stats: tot, visits: { days: J, visitors: uv, pageviews: pv, previous: P, byDay: V.uv, pages: V.page, sources: V.src, devices: V.dev, countries: V.cc } });
+  if (url.searchParams.get("format") === "json") return json(200, { ok: true, stats: tot, visits: { days: J, visitors: uv, pageviews: pv, previous: P, byDay: V.uv, pages: V.page, sources: V.src, devices: V.dev, countries: V.cc }, via });
   const days = Array.from({ length: J }, (_, i) => day(J - 1 - i));
   const tp = (e) => (tot[e] || {}).p || 0, paid = tp("paid_pass") + tp("paid_mensuel") + tp("paid_recharge");
   const kpi = (lab, val, sub = "") => `<div class="kpi"><div class="k">${lab}</div><div class="v">${val}</div><div class="s">${sub}</div></div>`;
@@ -198,6 +224,7 @@ td:nth-child(n+2){font-variant-numeric:tabular-nums}.sh td:nth-child(n+2){text-a
 <div class="grid2">${share("Provenance", V.src)}${share("Pages vues", V.page, (p) => PAGES[p] || p)}${share("Appareils", V.dev)}${share("Pays", V.cc, country, 8)}</div>
 <h2>Parcours des candidats</h2><p>Chaque appareil compte une seule fois par étape (sauf les jours actifs). « % » : part des appareils qui ont ouvert l'appli.</p>
 <div class="card scroll"><table class="funnel"><thead><tr><th>Étape</th><th>7 jours</th><th>30 jours</th><th>Total</th><th>%</th><th>Par concours (total)</th></tr></thead><tbody>${rows}</tbody></table></div>
+${viaHTML(via, per)}
 ${await resultsHTML(env)}</main></body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex", "referrer-policy": "no-referrer" } });
 }

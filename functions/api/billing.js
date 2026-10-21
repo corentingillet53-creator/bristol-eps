@@ -22,7 +22,7 @@
 import { json, err, readJson, currentUser } from "./account.js";
 import { getPlan, setPlan, passUntil, ensureSubs } from "./plan.js";
 import { take, bump, peek, ipTag } from "./usage.js";
-import { recordEvent } from "./event.js";
+import { recordEvent, recordSource, cleanSource } from "./event.js";
 import { creditState, addTopup, monthlyCredits, topupCredits } from "./credits.js";
 
 const enc = new TextEncoder();
@@ -70,6 +70,8 @@ async function checkout(request, env) {
     "line_items[0][quantity]": "1",
     client_reference_id: user.id,
     "metadata[user]": user.id, "metadata[plan]": plan,
+    // Provenance de la visite (utm_source gardé par la page) : comptée au paiement, voir event.js.
+    ...(cleanSource(body.src) ? { "metadata[source]": cleanSource(body.src) } : {}),
     success_url: origin + (plan === "recharge" ? "/app/?recharge=ok" : "/app/?abonnement=ok"),
     cancel_url: origin + "/app/?abonnement=annule",
     locale: "fr", allow_promotion_codes: "true",
@@ -156,10 +158,12 @@ async function webhook(request, env) {
       } else if (o.mode === "payment" && o.payment_status === "paid") {
         await setPlan(env, userId, { plan: "pass", status: "active", until: passUntil(env), customer: o.customer });
         await recordEvent(env, "paid_pass");
+        await recordSource(env, "paid_pass", o.metadata && o.metadata.source);
       } else if (o.mode === "subscription" && o.subscription) {
         const sub = typeof o.subscription === "string" ? await stripe(env, "GET", "/subscriptions/" + o.subscription) : o.subscription;
         await syncSub(env, sub, userId);
         await recordEvent(env, "paid_mensuel");
+        await recordSource(env, "paid_mensuel", o.metadata && o.metadata.source);
       }
     } else if (ev.type === "customer.subscription.updated" || ev.type === "customer.subscription.deleted" || ev.type === "customer.subscription.created") {
       await syncSub(env, o);

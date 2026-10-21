@@ -442,6 +442,13 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .fb-body li{margin:3px 0}
 .fb-body p{margin:4px 0}
 .fb-note{color:var(--muted);font-size:14px;margin:8px 0 0}
+.fb-next{margin-top:16px;max-width:65ch;background:var(--soft);border-radius:var(--r-l);padding:14px 16px}
+.fb-next p{margin:0}
+.fb-next .row-btns{margin-top:10px}
+.fb-ex{margin-top:10px;max-width:65ch}
+.fb-ex summary{cursor:pointer;font-weight:600;color:var(--accent-text)}
+.fb-ex .fb-w{white-space:pre-line;background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-l);padding:12px 16px;margin:8px 0;font-size:15px}
+.trial-card{margin:0 0 16px;border-left:4px solid var(--accent)}
 
 /* ---------- Apprendre : fils rouges ---------- */
 .fil-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
@@ -2533,7 +2540,7 @@ function renderHome(){
   const d = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   el.innerHTML = `<p class="page-sub">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</p>
     ${welcomeOpen ? (prefs.concours || prefs.examDate ? `${heroHTML()}${prefs.concours ? `<div class="home-one">${homeSession()}</div>` : ""}` : "") : `${heroHTML()}
-    ${upgradeBanner()}
+    ${trialCard()}${upgradeBanner()}
     <div class="home-one">${resultCard()}${homeSession()}${homeTrain()}</div>`}`;
 }
 
@@ -3075,7 +3082,7 @@ function renderPaywall(){
     </ul>
     ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
     <div class="pw-plans">
-      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span>${offreOn() && on ? `<span class="pw-price">${OFFRE.prix} €<small> jusqu'au ${esc(OFFRE.fin_txt)}</small></span><span class="pw-offre">Prix de lancement −${Math.round(100 * (1 - OFFRE.prix / OFFRE.ref))} % avec le code ${esc(OFFRE.code)}, appliqué sur la page de paiement ; ensuite ${OFFRE.ref} €.</span>` : `<span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span>`}<span class="pw-sub">En une fois, accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}, pour toute la préparation des écrits.</span></button>
+      <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span>${offreOn() && on ? `<span class="pw-price">${OFFRE.prix} €<small> jusqu'au ${esc(OFFRE.fin_txt)}</small></span><span class="pw-offre">Prix de lancement −${Math.round(100 * (1 - OFFRE.prix / OFFRE.ref))} % avec le code ${esc(OFFRE.code)}, appliqué sur la page de paiement ; ensuite ${OFFRE.ref} €.</span>` : `<span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span>`}<span class="pw-sub">En une fois, sans renouvellement à surveiller : accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}.${pwWeek(on, c)}</span></button>
       <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
     </div>
     ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne n'est pas encore ouvert : en attendant, la version découverte reste gratuite, avec un retour de Claude offert.</p>
@@ -3087,6 +3094,13 @@ function renderPaywall(){
     ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
   </div>`;
 }
+/* Le pass rapporté aux semaines qui restent avant les écrits (au moins deux). */
+function pwWeek(on, c){
+  const d = Date.parse((prefs.examDate || "") + "T08:00:00"), n = Math.ceil((d - Date.now()) / (7 * DAY));
+  const px = offreOn() && on ? OFFRE.prix : parseFloat(String(c.pass ? c.pass.label : "80").replace(",", "."));
+  if (!(n >= 2) || !(px > 0)) return "";
+  return ` Soit environ ${String(Math.round(px / n * 10) / 10).replace(".", ",")} € par semaine jusqu'à tes écrits.`;
+}
 async function pwCheckout(plan){
   if (acct.status !== "in") {
     intentSet("plan:" + plan); closePaywall();
@@ -3095,7 +3109,7 @@ async function pwCheckout(plan){
   }
   pw.busy = true; pw.msg = ""; if (pw.open) renderPaywall();
   track("checkout");
-  const r = await api("POST", "/api/billing/checkout", plan === "pass" && offreOn() ? { plan, promo: OFFRE.code } : { plan });
+  const r = await api("POST", "/api/billing/checkout", Object.assign({ plan }, plan === "pass" && offreOn() ? { promo: OFFRE.code } : {}, srcGet() ? { src: srcGet() } : {}));
   if (r.status === 200 && r.data.url) { location.href = r.data.url; return; }
   pw.busy = false;
   pw.msg = r.status === 409 ? "Tu as déjà l'accès complet." : r.status === 403 ? "La recharge s'ajoute à l'accès complet." : r.status === 503 ? "Le paiement en ligne n'est pas encore ouvert." : "Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.";
@@ -3152,11 +3166,27 @@ function lockHTML(g){
     <p>Tu peux aussi faire porter ta découverte sur cet écrit : les ${FREE_NEW} nouvelles fiches du jour viendront de lui.</p>
     <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">${["e1", "e2"].filter(relHas).length > 1 ? "Débloquer tous les écrits" : "Débloquer toutes les fiches"}</button><button class="btn" data-act="free-grp" data-g="${g}">Découvrir ${g === "tx" ? "les textes officiels" : /^é/i.test(e.s) ? "l'" + esc(e.s.toLowerCase()) : "les " + esc(e.s.toLowerCase())} à la place</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
 }
+function trialNext(){
+  const px = offreOn() ? `Pass session 2027 à ${OFFRE.prix} € jusqu'au ${esc(OFFRE.fin_txt)}, ensuite ${OFFRE.ref} €` : "Pass session 2027 ou mensuel sans engagement";
+  return `<div class="fb-next"><p><b>Ce retour t'aide ?</b> Avec l'accès complet : jusqu'à 60 retours par mois sur tes plans, introductions et ${prefs.concours === "capeps-int" ? "propositions" : /^agreg/.test(prefs.concours || "") ? "parties" : "paragraphes"}, le concours blanc corrigé et ton plan de travail jusqu'aux écrits.</p><p class="fb-note">${px}. Satisfait ou remboursé pendant 14 jours.</p><div class="row-btns"><button class="btn primary" data-act="paywall" data-why="claude">Voir l'accès complet</button></div></div>`;
+}
 function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button class="btn" data-act="paywall" data-why="claude">${icon("lock")} Avoir le retour de Claude</button></div><p class="fb-note">Réservé à l'accès complet.</p></div>`; }
+/* Le retour offert est la preuve de ce que fait le site : proposé en tête de l'accueil tant qu'il n'a pas servi. */
+function trialCard(){
+  if (!trialOn() || !prefs.concours) return "";
+  return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p></div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
+}
+function essaiGo(){
+  if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
+  /* Sujet d'entraînement d'abord : son dossier (situation fictive) est fourni, alors que l'annexe d'une annale est à relever soi-même. */
+  const P = sjPools(sj.epr); if (P.own.length) { sj.src = "own"; sj.srcPicked = true; }
+  sj.cur = null; sj.axe = "Tous"; sj.shown = false; sj.mode = "plan"; drawSubject(); setView("sujets");
+  const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true });
+}
 function upgradeBanner(){
   if (!STANDALONE || isPremium()) return "";
   const f = eprOf(freeGrp());
-  return `<div class="up-banner"><p><b>Version découverte</b> : ${FREE_NEW} nouvelles fiches par jour sur ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p><button class="btn small primary" data-act="paywall" data-why="menu">Débloquer tout</button></div>`;
+  return `<div class="up-banner"><p><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour.</p><button class="btn small primary" data-act="paywall" data-why="menu">Débloquer tout</button></div>`;
 }
 function saveCardHTML(n){
   if (!STANDALONE || acct.status === "in") return "";
@@ -4188,14 +4218,19 @@ function fbInner(s, kind){
   return (text ? `<p class="fb-label">Retour de Claude · un premier regard, pas une note de jury</p><div class="fb-body">${mdLite(text)}</div>` : "")
     + (note ? `<p class="fb-note">${esc(note)}</p>` : "");
 }
+/* Exemple de retour, montré avant de créer un compte : ce que le candidat recevra. Repris par build.py sur les pages des concours. */
+function exFbHTML(){
+  const x = EX_FB[prefs.concours]; if (!x) return "";
+  return `<details class="fb-ex"><summary>Voir un exemple de retour</summary><p class="fb-note">${esc(x.s)}</p><p class="fb-label">${esc(x.wl)}</p><div class="fb-w">${esc(x.w)}</div><p class="fb-label">Retour de Claude · un premier regard, pas une note de jury</p><div class="fb-body">${mdLite(x.fb)}</div></details>`;
+}
 function fbBlock(s, kind){
   if (!sampleFn) return "";
   const key = fbKey(s, kind), what = kindTxt(s, kind)[1];
   const busy = fb.sid === key && (fb.status === "thinking" || fb.status === "streaming");
   const has = (fb.sid === key && fb.text) || fbSaved(key);
-  if (STANDALONE && !isPremium() && !codeGet() && !(trialOn() || busy)) return claudeLockHTML() + (has ? `<div id="sj-fb" class="fb-out">${fbInner(s, kind)}</div>` : "");
+  if (STANDALONE && !isPremium() && !codeGet() && !(trialOn() || busy)) return has ? `<div id="sj-fb" class="fb-out">${fbInner(s, kind)}</div>${trialNext()}` : claudeLockHTML();
   if (STANDALONE && !isPremium() && !codeGet()) return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-trial" data-kind="${kind}"${busy ? " disabled" : ""}>Avoir mon retour offert sur ${what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
-    <p class="fb-note">Un retour de Claude t'est offert pour essayer, avec un compte gratuit. Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>
+    <p class="fb-note">Un retour de Claude t'est offert pour essayer, avec un compte gratuit, sans carte bancaire. Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>${trialOn() ? exFbHTML() : ""}
     <div id="sj-fb" class="fb-out" aria-live="polite">${fbInner(s, kind)}</div></div>`;
   return `<div class="fb"><div class="row-btns"><button class="btn primary" data-act="fb-ask" data-kind="${kind}"${busy ? " disabled" : ""}>${has ? "Nouveau retour sur " + what : "Avoir un retour sur " + what}</button>${busy ? `<button class="btn" data-act="fb-stop">Arrêter</button>` : ""}</div>
     ${credLine(CR_COST.court)}${STANDALONE ? `<p class="fb-note">Ton texte est envoyé à Claude (Anthropic) pour générer le retour ; le site ne le conserve pas à cette occasion.</p>` : ""}
@@ -4308,7 +4343,7 @@ function renderSujets(){
   if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
   const P = sjPools(sj.epr);
-  if (!sj.srcPicked && ANN_FIRST.has(prefs.concours) && P.ann.length) sj.src = "ann";
+  if (!sj.srcPicked && ANN_FIRST.has(prefs.concours) && P.ann.length && !(trialOn() && P.own.length)) sj.src = "ann";
   if (sj.src === "ann" && !P.ann.length) sj.src = "own";
   if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
   const eprList = [["e1", sjPools("e1").l], ["e2", sjPools("e2").l]].filter(([k]) => relHas(k));
@@ -4339,7 +4374,7 @@ function renderSujets(){
       ? `<p class="lead">Tire un sujet et rédige une partie illustrée : analyse les comportements d'élèves d'un épisode, explique-les avec des connaissances scientifiques, puis propose et justifie une mise en œuvre concrète dans l'APSA.</p>`
       : sj.mode === "intro"
       ? `<p class="lead">Tire un sujet et rédige son introduction en temps limité : enjeu, notions définies et reliées, problématique, prise en compte du contexte, annonce du plan.</p>`
-      : `<p class="lead">${SUBJECTS2.length} sujets d'entraînement à la composition de l'écrit 2, chacun avec un contexte d'établissement et des épisodes de classe. Construis ta problématique et ton plan, puis affiche les connaissances utiles.</p>`)
+      : `<p class="lead">${fbFmt() === "cint" ? P.own.length + " sujets d'entraînement à l'étude de cas, chacun avec une situation d'établissement fictive." : fbFmt() === "aint" ? P.own.length + " sujets d'entraînement à la composition, chacun avec une situation d'établissement fictive." : fbFmt() ? P.own.length + " sujets d'entraînement à l'écrit 2." : SUBJECTS2.length + " sujets d'entraînement à la composition de l'écrit 2, chacun avec un contexte d'établissement et des épisodes de classe."} Construis ta problématique et ton plan, puis affiche les connaissances utiles.</p>`)
 
       : sj.mode === "para"
       ? `<p class="lead">Tire un sujet et rédige un seul paragraphe argumenté, la brique de base de la dissertation : une idée, un argument, un exemple précis et daté, une nuance, un lien au sujet. Compte une quinzaine de minutes.</p>`
@@ -4703,6 +4738,8 @@ function ptBuild(){
     }
     const NW = ["Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit"], nw = (c.a.match(NUMW) || [])[1];
     if (nw && c.a.length <= 50) for (const w of shuffle(NW.filter(x => x !== nw))) put(c.a.replace(nw, w));
+    /* Leurres du même thème d'abord : une réponse d'un autre domaine se repère trop facilement. */
+    for (const x of pool) if (x.th === c.th) add(x);
     for (const x of pool) add(x);
     if (opts.length < 3) for (const x of shuffle(concCards().filter(x => x.id !== c.id && ok(x) && x.a !== c.a && kind(x.a) === kind(c.a) && !close(x) && fits(x)))) add(x);
     /* Paquet trop petit (CAPEPS interne) : leurres de même forme pris dans les fiches de tout le site. */
@@ -4930,6 +4967,12 @@ function inConc(c){
 }
 const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
 const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
+/* Exemples de retours de Claude, montrés avant le compte (application) et sur les pages des concours (build.py).
+   Sur des sujets d'entraînement du site ; s : le sujet, wl et w : le texte du candidat, fb : le retour. */
+const EX_FB = {
+  "capeps-int": {"s": "Sujet d'entraînement du site (collège rural, classe de quatrième) : « Il exploite ses facultés intellectuelles et physiques en ayant confiance en sa capacité à réussir et à progresser » (socle commun, domaine 3). Comment l'enseignant d'EPS peut-il, notamment par ses pratiques d'évaluation, aider les élèves à construire cette confiance ?", "wl": "Le plan d'un candidat", "w": "Citation : le socle, domaine 3, la confiance en sa capacité à réussir et à progresser. Enjeux : motivation, réussite.\nContexte : collège rural de 300 élèves, car scolaire, 6 élèves en grande difficulté, une élève dyspraxique, deux élèves qui refusent de courir devant la classe.\nI. Pour la classe de 4e : en demi-fond, chaque élève choisit son allure et suit sa progression sur une fiche ; en danse, travail en groupes.\nII. Pour le collège : expliquer les bilans de fin de cycle aux familles ; AS.\nBilan : les élèves auront plus confiance.", "fb": "### Ce qui fonctionne\n- Tu pars de la citation et tu repères le levier que donne le sujet : l'évaluation.\n- En demi-fond, l'allure choisie et la progression suivie répondent directement aux deux élèves qui refusent de courir devant la classe.\n### Citation et enjeux\n- « Confiance », « réussir » et « progresser » ne sont pas définis. Distingue réussir (atteindre un attendu) et progresser (se comparer à soi-même) : c'est là que l'évaluation encourage ou décourage.\n### Exploitation du contexte\n- Le contexte est recopié, pas transformé en priorités. Dis ce qu'il implique : des bilans peu expliqués, donc des élèves qui ne savent pas ce qu'on attend d'eux ; le car scolaire, donc une AS qui doit rester sur la pause méridienne.\n### Volet classe\n- Précise ce que l'élève apprend en demi-fond et ce qu'il note sur sa fiche (temps de passage, ressenti de l'effort). La danse en groupes n'est pas reliée à la confiance : dis comment.\n- L'élève dyspraxique n'apparaît dans aucune proposition.\n### Volet établissement\n- « Expliquer les bilans aux familles » reste générique : qui, quand, avec quel support ? Les quatre niveaux de maîtrise du collège sont un point d'appui.\n### Bilan prospectif\n- Ton bilan affirme un résultat. Ouvre plutôt : comment saurais-tu, en fin d'année, que la confiance des élèves a progressé ?\n### À retravailler en priorité\n1. Transformer chaque donnée du contexte en un besoin d'élève.\n2. Donner à chaque proposition un indicateur observable."},
+  "agreg-int": {"s": "Sujet d'entraînement du site (écrit 1) : « Le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants » (loi d'orientation du 10 juillet 1989, article 1). Vous analyserez et discuterez cette citation au regard de l'évolution de la place accordée aux élèves dans la leçon d'EPS de 1975 à nos jours.", "wl": "L'introduction d'un candidat", "w": "Depuis 1975, l'EPS a profondément changé, notamment avec son retour au ministère de l'Éducation nationale en 1981. La loi d'orientation de 1989 affirme que « le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants ». On peut donc se demander si la leçon d'EPS a été pensée en fonction des élèves de 1975 à nos jours. Nous verrons d'abord une EPS centrée sur les contenus sportifs (1975-1989), puis une EPS centrée sur l'élève (de 1989 à nos jours).", "fb": "### Ce qui fonctionne\n- La citation est située (loi d'orientation de 1989) et les bornes du programme sont respectées.\n- L'annonce du plan est claire.\n### Les cinq éléments attendus\n- Accroche : générique (« l'EPS a profondément changé »). Pars plutôt d'un fait daté qui pose le problème.\n- Citation analysée : absente. « Conçu et organisé en fonction des élèves » n'est pas défini : prendre en compte les élèves, les placer au centre et les faire décider ne sont pas la même chose.\n- Bornes : 1975 est donné sans être justifié.\n- Problématique : une question fermée, qui appelle oui ou non. Elle ne discute pas la thèse.\n- Plan : un avant et un après autour de 1989 donne une lecture trop linéaire. Les pratiques réelles n'ont pas changé au rythme des textes.\n### À retravailler en priorité\n1. Analyser la citation, puis poser une tension, par exemple entre ce que prescrivent les textes et ce que vit l'élève dans la leçon.\n2. Remplacer la césure de 1989 par un plan qui répond à ta problématique."}
+};
 /* Sujets d'entraînement de l'interne et des agrégations (citation, consigne, situation fictive pour l'interne).
    Conçus par Bristol EPS ; chaque citation est retrouvée mot pour mot dans deux documents (contenu/sujets-interne-agreg-sources.md).
    Les cartes utiles sont choisies comme pour les annales (annCards), selon le concours. */
@@ -8196,6 +8239,7 @@ document.addEventListener("click", e => {
   if (d.act === "home-frise") { setView("frise"); return; }
   if (d.act === "pt-intro") { pt.on = false; setView("test"); const b = $("[data-act=pt-start]"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-start") { if (welcomeOpen) hideWelcome(); ptStart(); return; }
+  if (d.act === "essai-go") { if (welcomeOpen) hideWelcome(); essaiGo(); return; }
   if (d.pt !== undefined) { ptAnswer(d.pt); return; }
   if (d.act === "pt-next") { ptNext(); return; }
   if (d.act === "pt-quit") { pt.on = false; setView("home"); return; }
@@ -8505,14 +8549,23 @@ async function api(method, path, body){
 }
 /* Mesure d'audience anonyme (site seulement) : chaque étape du parcours est envoyée une seule fois
    par appareil ; « active » une fois par jour. Ni cookie ni identifiant : le serveur ajoute +1 à un compteur. */
-const EV_KEY = "bristol-eps-ev";
+const EV_KEY = "bristol-eps-ev", SRC_KEY = "bristol-eps-src";
+/* Provenance de la visite (utm_source de l'annonce, ou de la page concours d'où vient le clic) :
+   gardée le temps de l'onglet, envoyée avec les étapes du parcours et au paiement. */
+function srcGet(){ try { return sessionStorage.getItem(SRC_KEY) || ""; } catch (e) { return ""; } }
+function srcInit(){
+  const clean = v => String(v || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30);
+  let v = ""; try { v = clean(new URL(location.href).searchParams.get("utm_source")); } catch (e) {}
+  if (!v) try { const r = new URL(document.referrer); if (r.origin === location.origin) v = clean(r.searchParams.get("utm_source")); } catch (e) {}
+  if (v) try { sessionStorage.setItem(SRC_KEY, v); } catch (e) {}
+}
 function track(e){
   if (!STANDALONE) return;
   let seen = {}; try { seen = JSON.parse(localStorage.getItem(EV_KEY) || "{}") || {}; } catch (x) {}
   const mark = e === "active" ? dayKey() : 1;
   if (seen[e] === mark) return;
   seen[e] = mark; try { localStorage.setItem(EV_KEY, JSON.stringify(seen)); } catch (x) { return; }
-  try { fetch("/api/event", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ e, c: prefs.concours || "" }) }).catch(() => {}); } catch (x) {}
+  try { fetch("/api/event", { method: "POST", credentials: "same-origin", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify(Object.assign({ e, c: prefs.concours || "" }, srcGet() ? { s: srcGet() } : {})) }).catch(() => {}); } catch (x) {}
 }
 /* Retour après 7 et 30 jours : comptés au premier jour actif qui suit, depuis le premier jour de révision. */
 function trackReturn(){
@@ -8648,7 +8701,7 @@ function renderAccount(){
   } else {
     const reg = acct.view === "register";
     body = `<h2 id="account-title">${reg ? "Créer un compte" : "Se connecter"}</h2>
-      <p class="w-lead">${intentGet() ? "Une étape avant le paiement : ton compte garde ta progression et ton accès." : "Sauvegarde ta progression et retrouve-la sur tous tes appareils. Ce que tu as déjà fait ici y est ajouté."}</p>
+      <p class="w-lead">${intentGet().startsWith("trial:") ? "Ton retour offert arrive juste après : un compte gratuit, sans carte bancaire. Ton texte reste ici." : intentGet() ? "Une étape avant le paiement : ton compte garde ta progression et ton accès." : "Sauvegarde ta progression et retrouve-la sur tous tes appareils. Ce que tu as déjà fait ici y est ajouté."}</p>
       <div class="seg" role="tablist" aria-label="Connexion ou inscription">
         <button role="tab" data-act="acct-view" data-v="login" aria-selected="${!reg}">Se connecter</button>
         <button role="tab" data-act="acct-view" data-v="register" aria-selected="${reg}">Créer un compte</button>
@@ -8774,8 +8827,8 @@ function ccClose(noFocus){
 }
 function chooseConcours(id){
   const c = concById(id);
-  if (c) track("concours");
   prefs = Object.assign({}, prefs, { concours: c ? c.id : "", t: Date.now() }, c && c.d ? { examDate: c.d } : {});
+  if (c) track("concours");
   const rel = relGroups(); setGrp(rel.includes(grp) ? grp : rel[0]);
   an.f = null; an.e = "tous"; an.all = false; me.f = null;
   if (me.tab !== "jury" && !rel.includes(me.tab)) me.tab = rel.includes("e1") ? "e1" : "e2";
@@ -8803,11 +8856,11 @@ function renderWelcome(){
   const el = $("#welcome");
   const n = allCards().length;
   if (!prefs.concours) { el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
-    <p class="w-pos">Tes cours te donnent le contenu. Ici, tu le retiens, tu t'entraînes au format de ton concours et tes textes sont corrigés selon les rapports de jury.</p>${onbHTML()}`; return; }
+    <p class="w-pos">Avec ou sans préparation cette année : ici, tu retiens le programme, tu t'entraînes sur les sujets de ton concours et Claude relit tes textes selon les rapports du jury.</p>${onbHTML()}`; return; }
   el.innerHTML = `<h2 id="welcome-title">Bienvenue sur Bristol EPS</h2>
-    <p class="w-pos">Tes cours te donnent le contenu. Ici, tu le retiens, tu t'entraînes au format de ton concours et tes textes sont corrigés selon les rapports de jury.</p>
+    <p class="w-pos">Avec ou sans préparation cette année : ici, tu retiens le programme, tu t'entraînes sur les sujets de ton concours et Claude relit tes textes selon les rapports du jury.</p>
     ${onbHTML()}
-    <div class="row-btns w-go">${ptLast() ? `<button class="btn primary" data-act="welcome-start">Commencer ma première séance</button>` : `<button class="btn primary" data-act="pt-start">Faire le test de positionnement (3 min)</button><button class="btn" data-act="welcome-start">Commencer directement</button>`}<button class="btn" data-act="welcome-close">Fermer</button></div>
+    <div class="row-btns w-go">${trialOn() ? `<button class="btn primary" data-act="essai-go">Écrire un plan : ton retour de Claude offert</button>${ptLast() ? `<button class="btn" data-act="welcome-start">Commencer ma première séance</button>` : `<button class="btn" data-act="pt-start">Faire le test de positionnement (3 min)</button>`}` : ptLast() ? `<button class="btn primary" data-act="welcome-start">Commencer ma première séance</button>` : `<button class="btn primary" data-act="pt-start">Faire le test de positionnement (3 min)</button><button class="btn" data-act="welcome-start">Commencer directement</button>`}<button class="btn" data-act="welcome-close">Fermer</button></div>
     <details class="w-more"${welcomeHelp ? " open" : ""}><summary>Comment ça marche</summary>
     <p class="w-lead">${(() => { const c = CONCOURS.find(x => x.id === prefs.concours); const G = { e1: "écrit 1", e2: prefs.concours === "capeps-int" ? "connaissances pour justifier tes propositions" : "écrit 2", tx: "textes officiels" }; const g = ["e1", "e2", "tx"].filter(relHas).map(k => G[k]); const lst = g.length > 1 ? g.slice(0, -1).join(", ") + " et " + g[g.length - 1] : g[0] || ""; const ex = isB3Conc() ? "des entraînements au format de ton concours (questions, étude d'épisodes)" : prefs.concours === "capeps-int" ? "des entraînements à l'étude de cas sur les annales" : "des entraînements à la dissertation"; return `Pour ${esc(c ? c.t : "ton concours")} : ${concCards().length} fiches (${lst})${relHas("e1") ? ", des récits de synthèse" : ""} et ${ex}.`; })()}</p>
     <p class="w-sub">Quatre espaces</p>
@@ -8969,6 +9022,7 @@ try {
     if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; }
   }
 } catch (e) {}
+if (STANDALONE) srcInit();
 try { const u = new URL(location.href), q = u.searchParams.get("concours"); if (q) { u.searchParams.delete("concours"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); if (concById(q) && prefs.concours !== q) chooseConcours(q); } } catch (e) {}
 buildQueue(); render(); blancCheck();
 { const v0 = routeFromHash(); if (v0 && v0 !== "home" && prefs.concours) { routeSilent = true; try { setView(v0); } finally { routeSilent = false; } } }
