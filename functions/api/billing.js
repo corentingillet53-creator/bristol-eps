@@ -15,7 +15,8 @@
 //   STRIPE_PRICE_PASS et STRIPE_PRICE_MONTHLY (identifiants « price_… » des tarifs créés dans Stripe),
 //   facultatifs : PRICE_PASS_LABEL (« 80 € »), PRICE_MONTHLY_LABEL (« 15 € »), PASS_UNTIL (« 2027-07-31 »),
 //   CODE_MAX_USES (30), STRIPE_PRICE_TOPUP (tarif de la recharge ; sans lui, pas de recharge),
-//   PRICE_TOPUP_LABEL (« 5 € »), TOPUP_CREDITS (50), MONTHLY_CREDITS (60).
+//   PRICE_TOPUP_LABEL (« 5 € »), TOPUP_CREDITS (50), MONTHLY_CREDITS (60),
+//   INVOICE_FOOTER (pied des factures du pass et de la recharge, « TVA non applicable, article 293 B du CGI »).
 // Événements à cocher dans le webhook Stripe : checkout.session.completed,
 // checkout.session.async_payment_succeeded, customer.subscription.created/updated/deleted,
 // invoice.paid, charge.refunded, charge.dispute.created.
@@ -91,6 +92,8 @@ async function checkout(request, env) {
     p["payment_intent_data[description]"] = `Bristol EPS, recharge de ${n} retours de Claude. ` + recu;
     p["payment_intent_data[metadata][plan]"] = "recharge"; p["payment_intent_data[metadata][user]"] = user.id; p["payment_intent_data[metadata][credits]"] = n;
   } else if (plan === "pass") { p.customer_creation = "always"; p["payment_intent_data[description]"] = "Bristol EPS, pass session. " + recu; }
+  // Paiement unique (pass, recharge) : facture Stripe numérotée, envoyée avec le reçu (note obligatoire au-delà de 25 €).
+  if (plan !== "mensuel") { p["invoice_creation[enabled]"] = "true"; p["invoice_creation[invoice_data][footer]"] = (env.INVOICE_FOOTER || "TVA non applicable, article 293 B du CGI") + ". " + recu; }
   else { p["subscription_data[metadata][user]"] = user.id; p["subscription_data[metadata][plan]"] = plan; p["subscription_data[description]"] = "Bristol EPS, abonnement mensuel. " + recu; }
   // Prix de lancement : le code promo annoncé sur le site est appliqué d'avance au pass s'il est actif chez
   // Stripe (qui vérifie produit, date et nombre d'utilisations) ; sinon, le champ code promo reste proposé.
