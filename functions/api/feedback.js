@@ -317,6 +317,10 @@ function toTextStream(upstreamBody, onDone, ctx) {
       full += msg.delta.text;
     } else if (msg.type === "message_delta" && msg.delta && msg.delta.stop_reason === "max_tokens") {
       meta = { truncated: true };
+    } else if (msg.type === "message_delta" && msg.delta && msg.delta.stop_reason === "refusal") {
+      // Filtre de sécurité du modèle : retour incomplet, crédits rendus (voir onDone), rien en cache.
+      meta = { error: "upstream_error", refused: true, detail: "Claude a arrêté ce retour en cours de route ; tes crédits sont rendus. Reformule ton texte ou réessaie." };
+      console.error("Retour refusé par le modèle :", JSON.stringify(msg.delta.stop_details || {}));
     } else if (msg.type === "error") {
       meta = { error: "upstream_error", detail: "réponse de Claude interrompue" };
       console.error("Erreur de l'API Claude pendant le flux :", JSON.stringify(msg.error || msg));
@@ -374,7 +378,7 @@ async function fairUseReserve(env, who, isCopie, est, cost) {
   const gk = "g:" + day, ck = `c:${who}:${month}`, dk = `d:${who}:${day}:${isCopie ? "copie" : "court"}`;
   const undo = [];
   const back = async () => { for (const f of undo.reverse()) { try { await f(); } catch (e) {} } };
-  if (await take(env, gk, est, num(env.GLOBAL_DAILY_CENTS, 1000) * 10000, 3 * DAY) === null) return { error: json(503, "paused") };
+  if (await take(env, gk, est, num(env.GLOBAL_DAILY_CENTS, 1000) * 10000, 3 * DAY) === null) { await recordEvent(env, "paused"); return { error: json(503, "paused") }; }
   undo.push(() => bump(env, gk, -est, 3 * DAY));
   const wait = await gate(env, "r:" + who, num(env.MIN_INTERVAL_S, 60) * 1000);
   if (wait) { await back(); return { error: json(429, "slow_down", { retryAfter: Math.ceil(wait / 1000) }) }; }
@@ -543,10 +547,10 @@ export async function onRequestPost({ request, env, ctx }) {
     undoTrial.push(() => forget(env, "trial:" + trialUser));
     const ip = await ipTag(request, "bristol-trial");
     if (ip) {
-      if (await take(env, `trialip:${ip}:${day}`, 1, num(env.TRIAL_PER_IP, 3), 2 * DAY) === null) { await trialUndo(); return json(503, "trial_closed"); }
+      if (await take(env, `trialip:${ip}:${day}`, 1, num(env.TRIAL_PER_IP, 3), 2 * DAY) === null) { await trialUndo(); await recordEvent(env, "trial_closed"); return json(503, "trial_closed"); }
       undoTrial.push(() => bump(env, `trialip:${ip}:${day}`, -1, 2 * DAY));
     }
-    if (await take(env, "trialday:" + day, 1, num(env.TRIAL_DAILY, 30), 2 * DAY) === null) { await trialUndo(); return json(503, "trial_closed"); }
+    if (await take(env, "trialday:" + day, 1, num(env.TRIAL_DAILY, 30), 2 * DAY) === null) { await trialUndo(); await recordEvent(env, "trial_closed"); return json(503, "trial_closed"); }
     undoTrial.push(() => bump(env, "trialday:" + day, -1, 2 * DAY));
   }
   // Compté une fois le retour offert vraiment produit (voir onDone).
@@ -601,6 +605,8 @@ export async function onRequestPost({ request, env, ctx }) {
     await fair.settle(costMicro(env, usage));
     // Rien reçu (erreur de l'API en cours de flux) : les crédits sont rendus.
     if (!text.trim()) { await fair.refund(); await trialUndo(); return; }
+    // Refus du modèle en cours de texte : retour inutilisable, crédits (ou retour offert) rendus.
+    if (meta && meta.refused) { await fair.refund(); await trialUndo(); await recordEvent(env, "refusal"); return; }
     if (text.trim()) await countTrial();
     if (env.QUOTA && text.trim() && !meta) await env.QUOTA.put(cacheKey, text, { expirationTtl: 60 * 60 * 24 * 30 });
   };

@@ -22,6 +22,7 @@ globalThis.fetch = async (url, init) => {
     if (url.endsWith("/checkout/sessions")) return refuseDiscount && /discounts/.test(init.body) ? Response.json({ error: { message: "coupon" } }, { status: 400 }) : Response.json({ url: "https://checkout.stripe.test/s" });
     if (url.includes("/promotion_codes")) return Response.json({ data: url.includes("code=LANCEMENT20") ? [{ id: "promo_1" }] : [] });
     if (url.includes("/charges/")) return Response.json({ id: "ch_1", customer: "cus_D" });
+    if (init.method === "GET" && url.endsWith("/subscriptions/sub_N")) return Response.json({ id: "sub_N", status: "active", customer: "cus_N", metadata: { user: "n1" }, items: { data: [{ current_period_end: 4102444800 }] } });
     return Response.json({});
   }
   calls++; lastClaude = JSON.parse(init.body);
@@ -140,6 +141,21 @@ ok(await hook({ type: "charge.refunded", data: { object: { customer: "cus_R", re
 ok(await hook({ type: "charge.refunded", data: { object: { customer: "cus_R", refunded: true } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'r1'").status === "canceled_now", "remboursement total : accès retiré");
 ok(await hook({ type: "charge.dispute.created", data: { object: { charge: "ch_1" } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'd1'").status === "canceled_now", "litige : accès retiré (client lu sur le paiement)");
 
+// Mensuel remboursé : l'abonnement est résilié chez Stripe, et un événement tardif ne rouvre pas l'accès.
+DB.sqlite.prepare("INSERT INTO subscriptions (user_id, plan, status, until, stripe_customer, stripe_sub, updated_at) VALUES ('m1', 'mensuel', 'active', ?, 'cus_M', 'sub_M', 0)").run(Date.now() + 864e5);
+stripeCalls = [];
+ok(await hook({ type: "charge.refunded", data: { object: { customer: "cus_M", refunded: true } } }) === 200 && q("SELECT status FROM subscriptions WHERE user_id = 'm1'").status === "canceled_now"
+  && stripeCalls.some(([m, u]) => m === "DELETE" && u.endsWith("/subscriptions/sub_M")), "mensuel remboursé : accès retiré et abonnement résilié chez Stripe");
+ok(await hook({ type: "customer.subscription.updated", data: { object: { id: "sub_M", status: "active", customer: "cus_M", metadata: { user: "m1" }, current_period_end: 4102444800 } } }) === 200
+  && q("SELECT status FROM subscriptions WHERE user_id = 'm1'").status === "canceled_now", "mensuel remboursé : un événement tardif ne rouvre pas l'accès");
+stripeCalls = [];
+await hook({ type: "charge.refunded", data: { object: { customer: "cus_R", refunded: true } } });
+ok(!stripeCalls.some(([m]) => m === "DELETE"), "pass remboursé : aucune résiliation demandée à Stripe");
+// Renouvellement : facture au format récent de l'API Stripe (abonnement sous parent.subscription_details).
+DB.sqlite.prepare("INSERT INTO subscriptions (user_id, plan, status, until, stripe_customer, stripe_sub, updated_at) VALUES ('n1', 'mensuel', 'active', ?, 'cus_N', 'sub_N', 0)").run(Date.now() + 864e5);
+ok(await hook({ type: "invoice.paid", data: { object: { customer: "cus_N", parent: { subscription_details: { subscription: "sub_N" } } } } }) === 200
+  && q("SELECT until FROM subscriptions WHERE user_id = 'n1'").until === 4102444800000, "renouvellement lu sur une facture au format récent");
+
 // Recharge : réservée aux abonnés, créditée une seule fois, utilisée après les crédits du mois.
 const credOf = async () => (await (await handleBilling(new Request("https://x.dev/api/billing/credits", { headers: { cookie } }), env)).json());
 ok((await bill("checkout", { plan: "recharge" }, "p1")).status === 503, "recharge sans tarif Stripe : 503");
@@ -171,6 +187,20 @@ await addTopupTest(1);
 const er = await onRequestPost({ request: fb("err"), env, ctx }); await er.text(); await settle();
 globalThis.fetch = realFetch;
 ok(er.status === 200 && (await credOf()).topup === 1, "flux en erreur sans texte : crédit rendu");
+// Refus du modèle en cours de texte : crédits rendus, message transmis, rien en cache.
+globalThis.fetch = async (url, init) => String(url).startsWith("https://api.stripe.com") ? realFetch(url, init) : new Response(new ReadableStream({ start(c) {
+  c.enqueue(enc.encode('event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":1000}}}\n\nevent: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"début du retour "}}\n\n'));
+  c.enqueue(enc.encode('event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"refusal","stop_details":{"category":"general_harms"}},"usage":{"output_tokens":40}}\n\n')); c.close(); } }), { status: 200 });
+const kvBefore = kv.size;
+const rf = await onRequestPost({ request: fb("refus"), env, ctx }); const rfText = await rf.text(); await settle();
+globalThis.fetch = realFetch;
+ok(rf.status === 200 && /"refused":true/.test(rfText) && (await credOf()).topup === 1 && kv.size === kvBefore, "refus du modèle : crédit rendu, rien en cache");
+ok(q("SELECT SUM(n) AS n FROM stats WHERE e = 'refusal'").n === 1, "refus du modèle compté dans le tableau de bord");
+// Plafond du jour atteint : refus compté.
+env.GLOBAL_DAILY_CENTS = "0";
+const pz = await onRequestPost({ request: fb("pause"), env, ctx });
+env.GLOBAL_DAILY_CENTS = "1000";
+ok(pz.status === 503 && q("SELECT SUM(n) AS n FROM stats WHERE e = 'paused'").n === 1, "plafond du jour : 503 et refus compté");
 // Remboursement d'une recharge : ses crédits sont retirés, l'accès reste.
 const refundEv = { type: "charge.refunded", data: { object: { customer: "cus_A", refunded: true, payment_intent: { id: "pi_R", metadata: { plan: "recharge", user: "abo", credits: "5" } } } } };
 ok(await hook(refundEv) === 200 && await hook(refundEv) === 200 && (await credOf()).topup === 0 && q("SELECT status FROM subscriptions WHERE user_id = 'abo'").status === "active", "recharge remboursée : crédits retirés une fois, abonnement gardé");
