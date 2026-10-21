@@ -238,6 +238,17 @@ dt{font-weight:600}
 dd{margin:0}
 @media (max-width:560px){dl{grid-template-columns:minmax(0,1fr)}dd{margin-bottom:8px}}
 .ann{border-top:1px solid var(--line);padding-top:4px}
+.ann summary{cursor:pointer;list-style-position:outside;margin-left:1.1em}
+.ann summary h3{display:inline;font-size:1.05rem}
+.ann[open] summary{margin-bottom:4px}
+.vb{margin:32px 0;padding:20px;border:1px solid var(--line);background:var(--paper)}
+.vb h2{margin-top:0}
+.vb-g{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:24px;align-items:start}
+.vb-g img{width:100%;height:auto;border:1px solid var(--line)}
+.vb ul{margin:0;padding-left:1.1em}
+.vb li{margin:0 0 10px}
+.vb-p{font-weight:600;margin:16px 0 4px}
+@media (max-width:560px){.vb-g{grid-template-columns:minmax(0,1fr)}.vb-g img{max-width:260px;justify-self:center}}
 .ann h3{margin-top:12px}
 .ann p{margin:4px 0}
 .small{font-size:.95rem}
@@ -272,6 +283,17 @@ for c in _concs:
     b += [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
     if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
     b.append(f'<div class="go"><a class="btn" href="{app}">S’entraîner pour ce concours</a><span class="small">Gratuit pour commencer, sans inscription.</span></div>')
+    # Ce que fait le site pour ce concours, juste sous le bouton : la page sert aussi d'arrivée aux annonces.
+    _ecr = {"capeps-int": "ton étude de cas", "agreg-int": "tes dissertations et compositions", "agreg-ext": "tes dissertations"}.get(c["id"], "tes copies")
+    _pass = (f"Pass session 2027 : {OFFRE['prix']} € avec le code {OFFRE['code']} jusqu’au {OFFRE['fin_txt']} inclus, puis {OFFRE['ref']} €, en une fois"
+             if _offre else "Pass session 2027 : 80 € en une fois")
+    b.append(f'<section class="vb" aria-labelledby="vb-h"><h2 id="vb-h">Ce que Bristol fait pour ton {_h(t)}</h2><div class="vb-g"><ul>'
+             "<li><strong>Retenir.</strong> Les fiches du programme 2027, revues au bon moment par répétition espacée : quelques minutes par jour, sur téléphone ou ordinateur.</li>"
+             f"<li><strong>Écrire.</strong> Tu rédiges un plan, une introduction ou {_ecr} : Claude les relit avec la grille et les rapports du jury, et te dit ce qui manque.</li>"
+             "<li><strong>T’évaluer.</strong> Un concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative.</li>"
+             '</ul><img src="/img/m-jury.webp" width="780" height="976" alt="Écran « Ce que le jury attend » : les attentes des rapports de jury, avec leurs années." loading="lazy"></div>'
+             f'<p class="vb-p">Gratuit pour commencer · {_h(_pass)} · Mensuel 15 € sans engagement · Satisfait ou remboursé 14 jours.</p>'
+             '<p class="m">Conçu par un professeur d’EPS. Les retours de Claude aident à progresser ; ils ne remplacent pas une correction d’enseignant.</p></section>')
     facts = [("Écrits", c["ecrits"]), ("Pour qui", c.get("qui")), ("Privé", c.get("prive")), ("Postes", c.get("postes")), ("Dernière session", c.get("chiffres"))]
     b.append("<dl>" + "".join(f"<dt>{k}</dt><dd>{_h(_typo(v))}</dd>" for k, v in facts if v) + "</dl>")
     b.append('<p class="m">Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.</p>')
@@ -295,10 +317,11 @@ for c in _concs:
             co = "CAPEPS externe bac+5" if a["f"] == "cext" and a["co"] == "CAPEPS externe" else a["co"]
             lk = [f'<a href="{_h(a["src"][1])}" rel="noopener">Sujet officiel</a>'] if a.get("src") else []
             if a.get("ju"): lk.append(f'<a href="{_h(a["ju"])}" rel="noopener">Rapport du jury</a>')
-            b.append(f'<article class="ann"><h3>{a["y"]} · {_EPR.get(a["e"], a["e"])}' + (f" · {_h(co)}" if c["id"] == "capeps-m2" else "") + "</h3>"
+            # Repliées : la page reste courte sur téléphone, le texte reste dans la page (référencement).
+            b.append(f'<details class="ann"><summary><h3>{a["y"]} · {_EPR.get(a["e"], a["e"])}' + (f" · {_h(co)}" if c["id"] == "capeps-m2" else "") + "</h3></summary>"
                      + f"<p>{_h(_typo(a['t']))}</p>"
                      + ("<p><strong>Ce qu’attendait le jury</strong></p><ul>" + "".join(f"<li>{_h(_typo(j))}</li>" for j in a["j"]) + "</ul>" if a.get("j") else "")
-                     + (f'<p class="small">{" · ".join(lk)}</p>' if lk else "") + "</article>")
+                     + (f'<p class="small">{" · ".join(lk)}</p>' if lk else "") + "</details>")
     if c.get("src"):
         b.append("<h2>Sources officielles</h2><ul>" + "".join(f'<li><a href="{_h(u)}" rel="noopener">{_h(_typo(n))}</a></li>' for n, u in c["src"]) + "</ul>")
     b.append(f'<div class="go"><a class="btn" href="{app}">Commencer à réviser</a><a href="/">Découvrir Bristol EPS</a></div>')
