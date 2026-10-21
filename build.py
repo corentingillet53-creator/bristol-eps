@@ -142,10 +142,10 @@ if _offre:
     # Prix de lancement : le pass est en vente depuis le même jour que l'offre ; on annonce donc le prix
     # qui suivra plutôt qu'un « prix de référence » jamais pratiqué seul (article L112-1-1).
     _ref_txt = f"Le code s’applique tout seul au paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
-    OFFRE_TXT = (f"Prix de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
-                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']}.")
+    OFFRE_TXT = (f"Prix de lancement : le pass session 2027 à {OFFRE['prix']} € jusqu’au {OFFRE['fin_txt']} inclus, "
+                 f"avec le code {OFFRE['code']}, puis {OFFRE['ref']} €.")
     vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
-    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">Prix de lancement jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € (−{_pc} %) avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
+    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">Prix de lancement jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
 else:
     vals["OFFRE_TOP"] = vals["OFFRE_PRIX"] = ""
 land = self_host_fonts(land_src)
@@ -311,7 +311,7 @@ for c in _concs:
              f'<p class="promesse">Claude relit {_quoi} selon la grille et les rapports du jury. Pas de formation cette année ? C’est d’abord pour toi. Déjà en formation ? Bristol complète tes cours, sans les remplacer.</p>')
     b.append(f'<div class="go"><a class="btn" href="{app}">Essayer : un retour offert sur ton plan</a><span class="small">Gratuit, sans carte bancaire. Conçu par Corentin, professeur d’EPS.</span></div>')
     if _offre:
-        b.append(f'<p class="offre" data-offre="{_ms}"><strong>Prix de lancement :</strong> le pass session 2027 à {OFFRE["prix"]} € au lieu de {OFFRE["ref"]} €, jusqu’au {_h(OFFRE["fin_txt"])} inclus '
+        b.append(f'<p class="offre" data-offre="{_ms}"><strong>Prix de lancement :</strong> le pass session 2027 à {OFFRE["prix"]} € jusqu’au {_h(OFFRE["fin_txt"])} inclus, puis {OFFRE["ref"]} € '
                  f'(code {_h(OFFRE["code"])}, appliqué tout seul au paiement).</p>{CONC_JS}')
     if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
     # Ce que fait le site pour ce concours, juste sous le bouton.

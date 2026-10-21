@@ -130,6 +130,9 @@ await bill("checkout", { plan: "pass", src: "Google-Ads<x>" }, "p1");
 const sentS = new URLSearchParams(stripeCalls.at(-1)[2]);
 await bill("checkout", { plan: "pass" }, "p1");
 ok(sentS.get("metadata[source]") === "google-adsx" && !new URLSearchParams(stripeCalls.at(-1)[2]).has("metadata[source]"), "provenance de la visite transmise à Stripe, nettoyée");
+ok(sentS.get("invoice_creation[enabled]") === "true" && /293 B/.test(sentS.get("invoice_creation[invoice_data][footer]") || ""), "pass : facture Stripe avec la mention 293 B");
+await bill("checkout", { plan: "mensuel" }, "p1");
+ok(!new URLSearchParams(stripeCalls.at(-1)[2]).has("invoice_creation[enabled]"), "mensuel : factures de l'abonnement laissées à Stripe");
 
 // Remboursement et litige : l'accès s'arrête.
 const hook = async ev => { const raw = JSON.stringify(ev), t = Math.floor(Date.now() / 1000);
