@@ -125,6 +125,10 @@ const coR0 = await bill("checkout", { plan: "pass", promo: "LANCEMENT20" }, "p1"
 const sentR0 = new URLSearchParams(stripeCalls.at(-1)[2]);
 ok(coR0.status === 200 && !sentR0.has("discounts[0][promotion_code]") && sentR0.get("allow_promotion_codes") === "true", "code refusé par Stripe : paiement ouvert sans réduction d'avance");
 refuseDiscount = false;
+await bill("checkout", { plan: "pass", src: "Google-Ads<x>" }, "p1");
+const sentS = new URLSearchParams(stripeCalls.at(-1)[2]);
+await bill("checkout", { plan: "pass" }, "p1");
+ok(sentS.get("metadata[source]") === "google-adsx" && !new URLSearchParams(stripeCalls.at(-1)[2]).has("metadata[source]"), "provenance de la visite transmise à Stripe, nettoyée");
 
 // Remboursement et litige : l'accès s'arrête.
 const hook = async ev => { const raw = JSON.stringify(ev), t = Math.floor(Date.now() / 1000);

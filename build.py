@@ -141,7 +141,7 @@ if _offre:
     _pc = round(100 * (1 - OFFRE["prix"] / OFFRE["ref"]))
     # Prix de lancement : le pass est en vente depuis le même jour que l'offre ; on annonce donc le prix
     # qui suivra plutôt qu'un « prix de référence » jamais pratiqué seul (article L112-1-1).
-    _ref_txt = f"Le code se saisit sur la page de paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
+    _ref_txt = f"Le code s’applique tout seul au paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
     OFFRE_TXT = (f"Prix de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
                  f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']}.")
     vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
@@ -216,8 +216,8 @@ import subprocess
 _JS = r"""
 const s = require("fs").readFileSync(process.argv[1], "utf8");
 const cut = (a, b) => { const i = s.indexOf(a); if (i < 0) throw new Error(a); const j = s.indexOf(b, i); if (j < 0) throw new Error(b); return s.slice(i, j + b.length); };
-const code = cut("const BO_2027 = [", "Object.assign(c3, { adm: l3.adm, admi: l3.admi, prog: l3.prog, repris: true }); })();") + "\n" + cut("const ANNALES = [", "\n];");
-process.stdout.write(JSON.stringify(new Function(code + "\nreturn { CONCOURS, ANNALES };")()));
+const code = cut("const BO_2027 = [", "Object.assign(c3, { adm: l3.adm, admi: l3.admi, prog: l3.prog, repris: true }); })();") + "\n" + cut("const ANNALES = [", "\n];") + "\n" + cut("const EX_FB = {", "\n};");
+process.stdout.write(JSON.stringify(new Function(code + "\nreturn { CONCOURS, ANNALES, EX_FB };")()));
 """
 _data = json.loads(subprocess.run(["node", "-e", _JS, str(src)], check=True, capture_output=True, text=True).stdout)
 CONC_SLUG = {"capeps-l3": "capeps-externe", "capeps-m2": "capeps-externe-master", "capeps-int": "capeps-interne",
@@ -228,6 +228,18 @@ _ANN_OF = {"capeps-l3": lambda a: a["co"] == "CAPEPS externe bac+3", "capeps-3":
            "capeps-int": lambda a: a["f"] == "cint", "agreg-ext": lambda a: a["f"] == "aext", "agreg-int": lambda a: a["f"] == "aint"}
 _EPR = {"e1": "Écrit 1", "e2": "Écrit 2", "ei": "Écrit"}
 _typo = lambda t: t.replace("'", "’")
+def _md(t):
+    # Rendu minimal des retours de Claude (titres ###, listes « - »), comme mdLite dans l'application.
+    out, li = [], False
+    for l in t.split("\n"):
+        if l.startswith("- "):
+            if not li: out.append("<ul>"); li = True
+            out.append(f"<li>{_h(l[2:])}</li>"); continue
+        if li: out.append("</ul>"); li = False
+        if l.startswith("#"): out.append(f"<h3>{_h(l.lstrip('# '))}</h3>")
+        elif l.strip(): out.append(f"<p>{_h(l)}</p>")
+    if li: out.append("</ul>")
+    return "".join(out)
 CONC_HEAD = LEGAL_HEAD.replace('<meta name="robots" content="noindex">\n', "", 1).replace("</style>", """.kicker{margin:0 0 8px;color:var(--muted);font-weight:600}
 h3{font-size:1.1rem;margin:20px 0 4px}
 .m{margin:0;color:var(--muted);font-size:.95rem}
@@ -252,8 +264,18 @@ dd{margin:0}
 .ann h3{margin-top:12px}
 .ann p{margin:4px 0}
 .small{font-size:.95rem}
-.offre{margin:0 0 24px;padding:12px 16px;background:var(--accent);color:var(--paper);font-weight:600}
-.offre small{display:block;font-weight:400}
+.offre{margin:0 0 24px;padding:8px 12px;border-left:4px solid var(--accent);background:var(--paper);font-size:.95rem}
+.promesse{font-size:1.15rem;margin:12px 0 0}
+.go .small{color:var(--muted)}
+.ex{margin:32px 0}
+.ex h2{margin-bottom:4px}
+.exl{font-weight:600;margin:16px 0 6px;color:var(--muted);font-size:.95rem}
+.exw{margin:0;padding:12px 16px;border:1px dashed var(--line);white-space:pre-line}
+.exf{padding:12px 16px;border:1px solid var(--line);background:var(--paper)}
+.exf h3{margin:12px 0 2px;font-size:1rem}
+.exf h3:first-child{margin-top:0}
+.exf ul{margin:0;padding-left:1.1em}
+.exf p{margin:4px 0}
 nav ul{columns:2 14em}
 </style>""", 1)
 assert CONC_HEAD.count("<style>") == 1 and ".kicker" in CONC_HEAD and "noindex" not in CONC_HEAD
@@ -279,21 +301,39 @@ for c in _concs:
         {"@type": "ListItem", "position": 2, "name": t, "item": url}]}
     meta += '\n<script type="application/ld+json">' + json.dumps(crumbs, ensure_ascii=False).replace("</", "<\\/") + "</script>"
     app = f"/app/?concours={c['id']}"
-    b = [f'<p class="offre" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>{CONC_JS}'] if _offre else []
-    b += [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
-    if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
-    b.append(f'<div class="go"><a class="btn" href="{app}">S’entraîner pour ce concours</a><span class="small">Gratuit pour commencer, sans inscription.</span></div>')
-    # Ce que fait le site pour ce concours, juste sous le bouton : la page sert aussi d'arrivée aux annonces.
+    # Premier écran (la page sert d'arrivée aux annonces) : la promesse et le bouton d'essai, puis le prix en une ligne.
+    _kick = {"capeps-int": "Contractuels et titulaires en poste"}.get(c["id"], c["tag"])
+    b = [f'<p class="kicker">Session 2027 · {_h(_typo(_kick))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
     _ecr = {"capeps-int": "ton étude de cas", "agreg-int": "tes dissertations et compositions", "agreg-ext": "tes dissertations"}.get(c["id"], "tes copies")
+    _quoi = "ton plan d’étude de cas" if c["id"] == "capeps-int" else "ton plan, ton introduction ou une partie" if c["id"].startswith("agreg") else "ton plan, ton introduction ou un paragraphe"
+    b.append(f'<p class="promesse">Entraîne-toi sur {len(ann)} sujets officiels et des sujets d’entraînement : Claude relit {_quoi} selon la grille et les rapports du jury. '
+             'Pas de formation cette année ? C’est d’abord pour toi. Déjà en formation ? Bristol complète tes cours, sans les remplacer.</p>' if ann else
+             f'<p class="promesse">Claude relit {_quoi} selon la grille et les rapports du jury. Pas de formation cette année ? C’est d’abord pour toi. Déjà en formation ? Bristol complète tes cours, sans les remplacer.</p>')
+    b.append(f'<div class="go"><a class="btn" href="{app}">Essayer : un retour offert sur ton plan</a><span class="small">Gratuit, sans carte bancaire. Conçu par Corentin, professeur d’EPS.</span></div>')
+    if _offre:
+        b.append(f'<p class="offre" data-offre="{_ms}"><strong>Prix de lancement :</strong> le pass session 2027 à {OFFRE["prix"]} € au lieu de {OFFRE["ref"]} €, jusqu’au {_h(OFFRE["fin_txt"])} inclus '
+                 f'(code {_h(OFFRE["code"])}, appliqué tout seul au paiement).</p>{CONC_JS}')
+    if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
+    # Ce que fait le site pour ce concours, juste sous le bouton.
     _pass = (f"Pass session 2027 : {OFFRE['prix']} € avec le code {OFFRE['code']} jusqu’au {OFFRE['fin_txt']} inclus, puis {OFFRE['ref']} €, en une fois"
              if _offre else "Pass session 2027 : 80 € en une fois")
+    _img = here / "public" / "img" / f"jury-{c['id']}.webp"
+    _imgh = (f'<img src="/img/{_img.name}" width="780" height="976" alt="Écran « Ce que le jury attend » du {_h(t)} : les attentes des rapports de jury, avec leurs années." loading="lazy">'
+             if _img.exists() else "")
     b.append(f'<section class="vb" aria-labelledby="vb-h"><h2 id="vb-h">Ce que Bristol fait pour ton {_h(t)}</h2><div class="vb-g"><ul>'
              "<li><strong>Retenir.</strong> Les fiches du programme 2027, revues au bon moment par répétition espacée : quelques minutes par jour, sur téléphone ou ordinateur.</li>"
              f"<li><strong>Écrire.</strong> Tu rédiges un plan, une introduction ou {_ecr} : Claude les relit avec la grille et les rapports du jury, et te dit ce qui manque.</li>"
              "<li><strong>T’évaluer.</strong> Un concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative.</li>"
-             '</ul><img src="/img/m-jury.webp" width="780" height="976" alt="Écran « Ce que le jury attend » : les attentes des rapports de jury, avec leurs années." loading="lazy"></div>'
+             f'</ul>{_imgh}</div>'
              f'<p class="vb-p">Gratuit pour commencer · {_h(_pass)} · Mensuel 15 € sans engagement · Satisfait ou remboursé 14 jours.</p>'
-             '<p class="m">Conçu par un professeur d’EPS. Les retours de Claude aident à progresser ; ils ne remplacent pas une correction d’enseignant.</p></section>')
+             '<p class="m">Conçu par Corentin, professeur d’EPS. Les retours de Claude aident à progresser ; ils ne remplacent pas une correction d’enseignant.</p></section>')
+    # Exemple de retour (EX_FB de l'application) : ce que le candidat recevra, avant de créer un compte.
+    ex = _data["EX_FB"].get(c["id"])
+    if ex:
+        b.append('<section class="ex" aria-labelledby="ex-h"><h2 id="ex-h">Exemple : ce que Claude te renvoie</h2>'
+                 f'<p class="m">{_h(_typo(ex["s"]))}</p><p class="exl">{_h(_typo(ex["wl"]))}</p><blockquote class="exw">{_h(_typo(ex["w"]))}</blockquote>'
+                 f'<p class="exl">Retour de Claude · un premier regard, pas une note de jury</p><div class="exf">{_md(_typo(ex["fb"]))}</div>'
+                 f'<div class="go"><a class="btn" href="{app}">Essayer sur mon plan</a><span class="small">Ton premier retour est offert.</span></div></section>')
     facts = [("Écrits", c["ecrits"]), ("Pour qui", c.get("qui")), ("Privé", c.get("prive")), ("Postes", c.get("postes")), ("Dernière session", c.get("chiffres"))]
     b.append("<dl>" + "".join(f"<dt>{k}</dt><dd>{_h(_typo(v))}</dd>" for k, v in facts if v) + "</dl>")
     b.append('<p class="m">Dates relevées dans les textes officiels ; seule la convocation du candidat fait foi.</p>')
