@@ -74,6 +74,21 @@ for (const [conc, e, kinds, who, word] of CASES) {
   const srv = await serverPrompt(c.payload);
   ok(srv.status === 200 && srv.prompt === c.prompt, `${conc} ${e} copie : prompt identique page et serveur` + (srv.prompt === c.prompt ? "" : diff(c.prompt, srv.prompt || String(srv.status))));
   ok(who.source.includes("CAPEPS externe") || !/sciences et intervention en EPS\)/.test(c.prompt), `${conc} ${e} copie : épreuve du concours`);
+  if (conc === "capeps-int") ok(/Repères de la dernière session[^\n]*14,75[^\n]*10,67/.test(c.prompt), "capeps-int copie : barre et moyenne de la session dans le prompt");
+  // nouvelle version d'un texte déjà relu : priorités précédentes transmises, retour précédent gardé
+  const v = await p.evaluate(([e, notes]) => {
+    const fam = { "capeps-int": "cint", "agreg-int": "aint", "agreg-ext": "aext", "capeps-m2": "cext" }[prefs.concours];
+    const a = ANNALES.filter(x => x.f === fam && x.e === e).sort((x, y) => y.y - x.y)[0], s = annSubject(a);
+    sj.cur = s; sj.epr = s.epr; sj.mode = "intro"; sj.shown = false;
+    const k = fbKey(s, "intro"); noteSet(k, notes + " Version 2.");
+    fbSave(k, "## Ce qui fonctionne\n- clair\n## À retravailler en priorité\n1. Définir les notions.\n2. Justifier les bornes.\nBILAN: intro=1");
+    window.__cap = []; setView("sujets");
+    return askFeedback("intro").then(() => ({ cap: window.__cap[0], prev: txGet("f:v1:" + k), html: document.getElementById("panel-sujets").innerHTML }));
+  }, [e, NOTES]);
+  ok(v.cap && /Définir les notions\.\n2\. Justifier les bornes\./.test(v.cap.prompt) && /## Ce qui a progressé depuis ta version précédente/.test(v.cap.prompt) && !/BILAN: intro=1/.test(v.cap.prompt), `${conc} ${e} nouvelle version : priorités précédentes dans le prompt`);
+  const sv = await serverPrompt(v.cap.payload);
+  ok(sv.status === 200 && sv.prompt === v.cap.prompt, `${conc} ${e} nouvelle version : prompt identique page et serveur` + (sv.prompt === v.cap.prompt ? "" : diff(v.cap.prompt, sv.prompt || String(sv.status))));
+  ok(/Justifier les bornes/.test(v.prev) && /Retour sur ta version précédente/.test(v.html) && /data-act="subj-cards"/.test(v.html), `${conc} ${e} nouvelle version : retour précédent gardé, fiches du sujet proposées`);
   ok(!errs.length, conc + " sans erreur " + errs.join(" | "));
   await ctx.close();
 }
