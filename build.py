@@ -17,6 +17,13 @@ page = src.read_text(encoding="utf-8")
 # légales restent hors index dans tous les cas.
 SITE_URL = "https://eps-bristol.fr"
 INDEXER = True
+# Offre de lancement, affichée sur l'accueil et les pages des concours jusqu'à « fin » (heure de
+# Paris) puis retirée par la page elle-même. Le code se crée dans Stripe (Produits > Coupons) avec
+# la même réduction, le même produit et la même date d'expiration. « depuis » : mise en vente du
+# pass au prix de référence (prix le plus bas des 30 jours précédents, article L112-1-1 du code
+# de la consommation). OFFRE = None retire tout.
+OFFRE = {"code": "LANCEMENT20", "prix": 64, "ref": 80, "fin": "2026-11-01T23:59:59+01:00",
+         "fin_txt": "1er novembre 2026", "depuis_txt": "21 octobre 2026"}
 
 head = """<!doctype html>
 <html lang="fr">
@@ -118,6 +125,18 @@ ld = {"@context": "https://schema.org", "@graph": [
      "about": [c["t"] for c in conc]},
     {"@type": "FAQPage", "mainEntity": faq}]}
 vals["LD_JSON"] = json.dumps(ld, ensure_ascii=False).replace("</", "<\\/")
+# Offre de lancement : rien n'est écrit une fois la date de fin passée au moment de la construction.
+_offre = bool(OFFRE) and datetime.datetime.now(datetime.timezone.utc) <= datetime.datetime.fromisoformat(OFFRE["fin"])
+if _offre:
+    _ms = int(datetime.datetime.fromisoformat(OFFRE["fin"]).timestamp() * 1000)
+    _pc = round(100 * (1 - OFFRE["prix"] / OFFRE["ref"]))
+    _ref_txt = f"Prix de référence : {OFFRE['ref']} €, le plus bas pratiqué depuis la mise en vente du pass le {OFFRE['depuis_txt']}."
+    OFFRE_TXT = (f"Offre de lancement −{_pc} % : le pass session 2027 à {OFFRE['prix']} € au lieu de {OFFRE['ref']} €, "
+                 f"jusqu’au {OFFRE['fin_txt']} inclus, avec le code {OFFRE['code']} au paiement.")
+    vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
+    vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">−{_pc} % jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
+else:
+    vals["OFFRE_TOP"] = vals["OFFRE_PRIX"] = ""
 land = self_host_fonts(land_src)
 if INDEXER:
     land, _n = re.subn(r'<!-- Retiré par build.py[^>]*-->\n<meta name="robots" content="noindex">\n', "", land)
@@ -211,12 +230,15 @@ dd{margin:0}
 .ann h3{margin-top:12px}
 .ann p{margin:4px 0}
 .small{font-size:.95rem}
+.offre{margin:0 0 24px;padding:12px 16px;background:var(--accent);color:var(--paper);font-weight:600}
+.offre small{display:block;font-weight:400}
 nav ul{columns:2 14em}
 </style>""", 1)
 assert CONC_HEAD.count("<style>") == 1 and ".kicker" in CONC_HEAD and "noindex" not in CONC_HEAD
 _concs = [c for c in _data["CONCOURS"] if c["id"] in CONC_SLUG]
 assert len(_concs) == len(CONC_SLUG), [c["id"] for c in _data["CONCOURS"]]
 _shared = {}
+CONC_JS = '<script>document.querySelectorAll("[data-offre]").forEach(e => { if (Date.now() > +e.dataset.offre) e.remove(); });</script>'
 for c in _concs:
     slug, t = CONC_SLUG[c["id"]], _typo(c["t"])
     url = f"{SITE_URL}/{slug}/"
@@ -235,7 +257,8 @@ for c in _concs:
         {"@type": "ListItem", "position": 2, "name": t, "item": url}]}
     meta += '\n<script type="application/ld+json">' + json.dumps(crumbs, ensure_ascii=False).replace("</", "<\\/") + "</script>"
     app = f"/app/?concours={c['id']}"
-    b = [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
+    b = [f'<p class="offre" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>{CONC_JS}'] if _offre else []
+    b += [f'<p class="kicker">Session 2027 · {_h(_typo(c["tag"]))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
     if c.get("note"): b.append(f'<p class="lead">{_h(_typo(c["note"]))}</p>')
     b.append(f'<div class="go"><a class="btn" href="{app}">S’entraîner pour ce concours</a><span class="small">Gratuit pour commencer, sans inscription.</span></div>')
     facts = [("Écrits", c["ecrits"]), ("Pour qui", c.get("qui")), ("Privé", c.get("prive")), ("Postes", c.get("postes")), ("Dernière session", c.get("chiffres"))]
@@ -339,7 +362,7 @@ def _script_hashes(html):
         out.append("'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'")
     return out
 _app_html = out.read_text(encoding="utf-8")
-hashes = sorted(set(_script_hashes(_app_html) + _script_hashes(land)))
+hashes = sorted(set(_script_hashes(_app_html) + _script_hashes(land) + (_script_hashes(CONC_JS) if _offre else [])))
 csp = "; ".join([
     "default-src 'self'",
     "script-src 'self' " + " ".join(hashes),
