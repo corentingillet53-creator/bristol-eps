@@ -477,6 +477,9 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .sess-next p{margin:0 0 8px}
 .sess-next .save-h{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--ink)}
 .ts-back{margin:-4px 0 8px;color:var(--muted)}
+.fb-prev{margin-top:12px}
+.fb-prev summary{cursor:pointer;color:var(--muted)}
+.fb-cards{margin:10px 0 0}
 .tc-up{margin-top:8px;font-size:.92em;color:var(--muted)}
 
 /* ---------- Apprendre : fils rouges ---------- */
@@ -4052,10 +4055,12 @@ function fbJury(jury, jsuj){
   return (jury && jury.length ? "\nCe que les rapports de jury de ce concours répètent d'une session à l'autre :\n" + jury.map((j) => "- " + j).join("\n") + "\n" : "")
     + (jsuj && jsuj.length ? "\nCe que le jury a relevé sur ce sujet précis, dans son rapport :\n" + jsuj.map((j) => "- " + j).join("\n") + "\n" : "");
 }
+/* Nouvelle version d'un texte déjà relu : Claude reçoit ses priorités d'alors et dit ce qui a progressé. */
+const FB_PROG = "Ce qui a progressé depuis ta version précédente";
 function promptFb(kind, epreuve, o) {
   const f = FB_FMTS.includes(o.fmt) ? o.fmt : "", e = f === "cint" || epreuve === "e2" ? "e2" : "e1";
   const sp = FB_SPEC[f][e][kind] || FB_SPEC[f][e].plan;
-  const titles = ["Ce qui fonctionne"].concat(sp.el ? [sp.el[0]] : [], sp.h, ["À retravailler en priorité"]);
+  const titles = ["Ce qui fonctionne"].concat(o.prev ? [FB_PROG] : [], sp.el ? [sp.el[0]] : [], sp.h, ["À retravailler en priorité"]);
   return `Tu es correcteur ${FB_WHO[f][e]} Un candidat s'entraîne sur ce sujet :
 « ${o.subject} »
 ${o.axe === "Sujet d'annale" ? "Il s'agit d'un sujet officiel de concours." : (e === "e2" ? "Thème : " : "Axe du programme : ") + o.axe + "."}
@@ -4064,7 +4069,7 @@ Voici ${sp.w} :
 """
 ${o.notes}
 """
-
+${o.prev ? `\nC'est une nouvelle version. Dans ton retour sur sa version précédente, tu lui avais demandé de retravailler en priorité :\n"""\n${o.prev}\n"""\nSous « ${FB_PROG} », une puce par priorité, dans cet ordre, avec « corrigé », « en partie » ou « pas encore » et ce qui le montre dans le nouveau texte.\n` : ""}
 Voici des connaissances vérifiées de son paquet de révision, utiles pour ce sujet :
 ${o.facts.map((x) => "- " + x).join("\n")}
 
@@ -4255,6 +4260,12 @@ function mdLite(t){
   if (inList) out += "</ul>";
   return out;
 }
+/* Les priorités d'un retour (section « À retravailler en priorité »), envoyées avec la version suivante. */
+function fbPrio(t){
+  const m = /^#{1,4}\s*À retravailler en priorité\s*$/im.exec(bilanStrip(t)); if (!m) return "";
+  const rest = bilanStrip(t).slice(m.index + m[0].length), end = rest.search(/^#{1,4}\s/m);
+  return (end >= 0 ? rest.slice(0, end) : rest).trim().slice(0, 1200);
+}
 const fbKey = (s, kind) => (kind === "intro" ? "i:" : kind === "para" ? "p:" : "") + s.id;
 const KIND_TXT = { plan: ["ton plan", "mon plan"], intro: ["ton introduction", "mon introduction"], para: ["ton paragraphe", "mon paragraphe"] };
 function fbInner(s, kind){
@@ -4264,8 +4275,32 @@ function fbInner(s, kind){
   const text = mine ? fb.text : fbSaved(key);
   const note = mine ? fb.note : "";
   if (!text && !note) return "";
+  const prev = txGet("f:v1:" + key), busy = mine && fb.status === "streaming";
   return (text ? `<p class="fb-label">Retour de Claude · un premier regard, pas une note de jury</p><div class="fb-body">${mdLite(text)}</div>` : "")
-    + (note ? `<p class="fb-note">${esc(note)}</p>` : "");
+    + (note ? `<p class="fb-note">${esc(note)}</p>` : "")
+    + (text && !busy ? subjCardsBtn(s) : "")
+    + (prev && !busy ? `<details class="fb-prev"><summary>Retour sur ta version précédente</summary><div class="fb-body">${mdLite(prev)}</div></details>` : "");
+}
+/* Après un retour : réviser les fiches utiles à ce sujet (celles qui ont été données à Claude). */
+function subjCards(s){
+  const list = (s && s.c || []).map(byId).filter(c => c && inConc(c) && !grpLocked(grpOf(c)));
+  const by = {}; list.forEach(c => { const g = grpOf(c); (by[g] = by[g] || []).push(c); });
+  return Object.values(by).sort((a, b) => b.length - a.length)[0] || [];
+}
+function subjCardsBtn(s){
+  const n = subjCards(s).length;
+  return n ? `<p class="fb-cards"><button class="btn small" data-act="subj-cards">Revoir les fiches de ce sujet (${n})</button></p>` : "";
+}
+function startSubjCards(s){
+  const list = subjCards(s); if (!list.length) return;
+  const g = grpOf(list[0]), fresh = list.filter(c => !progress[c.id]);
+  const due = list.filter(c => isDue(progress[c.id])), rest = list.filter(c => progress[c.id] && !isDue(progress[c.id]));
+  const ids = due.concat(isPremium() ? fresh : fresh.slice(0, grpGoal(g).left), rest).map(c => c.id);
+  setGrp(g);
+  queue = ids; cram = false; flipped = false; express = false; lastGrade = null; done = 0;
+  progLabel = "les fiches du sujet";
+  setView("revise");
+  const b = $('[data-act="flip"]'); if (b) b.focus({ preventScroll: true });
 }
 /* Exemple de retour, montré avant de créer un compte : ce que le candidat recevra. Repris par build.py sur les pages des concours. */
 function exFbHTML(){
@@ -4330,6 +4365,7 @@ async function askFeedback(kind){
   const facts = cards.map(c => `- [${pLabel(c)}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`).join("\n");
   const o = { fmt: fbFmt(), subject: s.t, axe: s.axe || THEMES[s.th], contexte: (isB3(s) ? ctxText(s) : fbCtx(s)).slice(0, 4000), jury: isB3(s) ? [] : concJury(subjEpr(s)), jsuj: annJury(s),
     notes: notes.slice(0, 6000), facts: cards.slice(0, 25).map(c => `[${pLabel(c)}] ${c.q} → ${c.a}${c.x ? " (" + c.x + ")" : ""}`.slice(0, 500).trim()) };
+  const old = fbSaved(key); if (old && !isB3(s)) o.prev = fbPrio(old);
   const prompt = isB3(s) ? promptB3(kind, s.epr, s.t, o.contexte, o.notes, facts) : promptFb(kind, subjEpr(s), o);
   const ctl = new AbortController();
   Object.assign(fb, { sid: key, status: "thinking", text: "", note: "", ctl });
@@ -4348,6 +4384,7 @@ async function askFeedback(kind){
     if (fb.ctl !== ctl) return;
     fb.status = "done"; fb.text = res.text;
     fb.note = res.truncated ? "Retour coupé avant la fin. Raccourcis ton texte, puis redemande." : credLow();
+    if (old) txSet("f:v1:" + key, old);
     fbSave(key, res.text);
     ach.f++; persist(); track("feedback1");
   } catch (e) {
@@ -5020,7 +5057,7 @@ const annE = (a, e) => e === "e1" ? a.e === "e1" : a.e === "e2" || a.e === "ei";
    Sur des sujets d'entraînement du site ; s : le sujet, wl et w : le texte du candidat, fb : le retour. */
 const EX_FB = {
   "capeps-int": {"s": "Sujet d'entraînement du site (collège rural, classe de quatrième) : « Il exploite ses facultés intellectuelles et physiques en ayant confiance en sa capacité à réussir et à progresser » (socle commun, domaine 3). Comment l'enseignant d'EPS peut-il, notamment par ses pratiques d'évaluation, aider les élèves à construire cette confiance ?", "wl": "Un plan d'exemple (fictif)", "w": "Citation : le socle, domaine 3, la confiance en sa capacité à réussir et à progresser. Enjeux : motivation, réussite.\nContexte : collège rural de 300 élèves, car scolaire, 6 élèves en grande difficulté, une élève dyspraxique, deux élèves qui refusent de courir devant la classe.\nI. Pour la classe de 4e : en demi-fond, chaque élève choisit son allure et suit sa progression sur une fiche ; en danse, travail en groupes.\nII. Pour le collège : expliquer les bilans de fin de cycle aux familles ; AS.\nBilan : les élèves auront plus confiance.", "fb": "### Ce qui fonctionne\n- Tu pars de la citation et tu repères le levier que donne le sujet : l'évaluation.\n- En demi-fond, l'allure choisie et la progression suivie répondent directement aux deux élèves qui refusent de courir devant la classe.\n### Citation et enjeux\n- « Confiance », « réussir » et « progresser » ne sont pas définis. Distingue réussir (atteindre un attendu) et progresser (se comparer à soi-même) : c'est là que l'évaluation encourage ou décourage.\n### Exploitation du contexte\n- Le contexte est recopié, pas transformé en priorités. Dis ce qu'il implique : des bilans peu expliqués, donc des élèves qui ne savent pas ce qu'on attend d'eux ; le car scolaire, donc une AS qui doit rester sur la pause méridienne.\n### Volet classe\n- Précise ce que l'élève apprend en demi-fond et ce qu'il note sur sa fiche (temps de passage, ressenti de l'effort). La danse en groupes n'est pas reliée à la confiance : dis comment.\n- L'élève dyspraxique n'apparaît dans aucune proposition.\n### Volet établissement\n- « Expliquer les bilans aux familles » reste générique : qui, quand, avec quel support ? Les quatre niveaux de maîtrise du collège sont un point d'appui.\n### Bilan prospectif\n- Ton bilan affirme un résultat. Ouvre plutôt : comment saurais-tu, en fin d'année, que la confiance des élèves a progressé ?\n### À retravailler en priorité\n1. Transformer chaque donnée du contexte en un besoin d'élève.\n2. Donner à chaque proposition un indicateur observable."},
-  "agreg-int": {"s": "Sujet d'entraînement du site (écrit 1) : « Le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants » (loi d'orientation du 10 juillet 1989, article 1). Vous analyserez et discuterez cette citation au regard de l'évolution de la place accordée aux élèves dans la leçon d'EPS de 1975 à nos jours.", "wl": "Une introduction d'exemple (fictive)", "w": "Depuis 1975, l'EPS a profondément changé, notamment avec son retour au ministère de l'Éducation nationale en 1981. La loi d'orientation de 1989 affirme que « le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants ». On peut donc se demander si la leçon d'EPS a été pensée en fonction des élèves de 1975 à nos jours. Nous verrons d'abord une EPS centrée sur les contenus sportifs (1975-1989), puis une EPS centrée sur l'élève (de 1989 à nos jours).", "fb": "### Ce qui fonctionne\n- La citation est située (loi d'orientation de 1989) et les bornes du programme sont respectées.\n- L'annonce du plan est claire.\n### Les cinq éléments attendus\n- Accroche : générique (« l'EPS a profondément changé »). Pars plutôt d'un fait daté qui pose le problème.\n- Citation analysée : absente. « Conçu et organisé en fonction des élèves » n'est pas défini : prendre en compte les élèves, les placer au centre et les faire décider ne sont pas la même chose.\n- Bornes : 1975 est donné sans être justifié.\n- Problématique : une question fermée, qui appelle oui ou non. Elle ne discute pas la thèse.\n- Plan : un avant et un après autour de 1989 donne une lecture trop linéaire. Les pratiques réelles n'ont pas changé au rythme des textes.\n### À retravailler en priorité\n1. Analyser la citation, puis poser une tension, par exemple entre ce que prescrivent les textes et ce que vit l'élève dans la leçon.\n2. Remplacer la césure de 1989 par un plan qui répond à ta problématique."}
+  "agreg-int": {"s": "Sujet d'entraînement du site (écrit 1) : « Le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants » (loi d'orientation du 10 juillet 1989, article 1). Vous analyserez et discuterez cette citation au regard de l'évolution de la place accordée aux élèves dans la leçon d'EPS de 1975 à nos jours.", "wl": "Une introduction d'exemple (fictive)", "w": "Depuis 1975, l'EPS a profondément changé, notamment avec son retour au ministère de l'Éducation nationale en 1981. La loi d'orientation de 1989 affirme que « le service public de l'éducation est conçu et organisé en fonction des élèves et des étudiants ». On peut donc se demander si la leçon d'EPS a été pensée en fonction des élèves de 1975 à nos jours. Nous verrons d'abord une EPS centrée sur les contenus sportifs (1975-1989), puis une EPS centrée sur l'élève (de 1989 à nos jours).", "fb": "### Ce qui fonctionne\n- La citation est située (loi d'orientation de 1989) et les bornes du programme sont respectées.\n- L'annonce du plan est claire.\n### Les cinq éléments attendus\n- Accroche liée au sujet : à améliorer. Générique (« l'EPS a profondément changé ») : pars plutôt d'un fait daté qui pose le problème.\n- Citation ou sujet analysés : absent. « Conçu et organisé en fonction des élèves » n'est pas défini : prendre en compte les élèves, les placer au centre et les faire décider ne sont pas la même chose.\n- Bornes chronologiques justifiées : à améliorer. 1975 est donné sans être justifié.\n- Problématique qui discute la thèse : absent. Une question fermée, qui appelle oui ou non, ne discute pas la thèse.\n- Annonce du plan : présent, mais un avant et un après autour de 1989 donne une lecture trop linéaire. Les pratiques réelles n'ont pas changé au rythme des textes.\n### À retravailler en priorité\n1. Analyser la citation, puis poser une tension, par exemple entre ce que prescrivent les textes et ce que vit l'élève dans la leçon.\n2. Remplacer la césure de 1989 par un plan qui répond à ta problématique."}
 };
 /* Sujets d'entraînement de l'interne et des agrégations (citation, consigne, situation fictive pour l'interne).
    Conçus par Bristol EPS ; chaque citation est retrouvée mot pour mot dans deux documents (contenu/sujets-interne-agreg-sources.md).
@@ -8040,7 +8077,7 @@ function promptCopie(o){
 Sujet : « ${o.subject} »
 ${o.contexte ? "\nContexte fourni avec le sujet :\n" + o.contexte + "\n" : ""}
 Durée de l'épreuve : ${o.duree} ; temps utilisé par le candidat : ${o.minutes} minutes.
-
+${o.reperes ? "Repères de la dernière session, pour situer ta note indicative sans la gonfler : " + o.reperes + "\n" : ""}
 Copie du candidat :
 """
 ${o.notes}
@@ -8063,6 +8100,14 @@ function blancJury(m){
   const want = m.k === "e1" ? "Écrit 1" : m.k === "e2" ? "Écrit 2" : "Écrit";
   return j.items.filter(i => i[0] === want || (m.k === "ei" && i[0] === "Écrit")).map(i => i[1]).slice(0, 10);
 }
+/* Note indicative : les chiffres de la dernière session (barre, moyenne de l'épreuve) pour ne pas la gonfler. */
+function copieReperes(m){
+  const c = concById(prefs.concours), fam = ANN_FAM_OF_CONC[prefs.concours], ep = m.k === "e1" ? "e1" : m.k === "ei" ? "ei" : "e2";
+  const a = ANNALES.filter(x => x.f === fam && (x.e === ep || (fam === "cint" && x.e === "ei"))).sort((x, y) => y.y - x.y)[0];
+  const moy = a && (a.j || []).find(j => /^moyenne/i.test(j));
+  const ch = c && c.chiffres ? c.chiffres.replace(/\.$/, "").split(/\.\s+/).filter(x => !/sujet|portait/i.test(x)).join(". ") : "";
+  return [ch, moy ? "moyenne de cette épreuve en " + a.y + " : " + moy.replace(/^moyenne\s*/i, "") : ""].filter(Boolean).join(" ; ").slice(0, 600);
+}
 async function askCopie(m){
   if (!m || !sampleFn) return;
   const key = "b:" + m.id, copy = txGet(key).trim(), s = blancSubject(m);
@@ -8073,7 +8118,7 @@ async function askCopie(m){
   const cards = s && s.c ? s.c.map(byId).filter(Boolean) : [];
   const o = { epreuve: m.k === "e1" ? "e1" : "e2", fmt: FB_FMTS.includes(m.f) ? m.f : "", concours: m.co || "", subject: s ? s.t : "", contexte: s ? (isB3(s) ? ctxText(s) : fbCtx(s)).slice(0, 4000) : "", jsuj: s ? annJury(s) : [],
     duree: m.dur / 3600 + " h", minutes: Math.round((m.end - m.start) / 6e4), notes: copy.slice(0, 60000),
-    facts: cards.slice(0, 25).map(c => `[${pLabel(c)}] ${c.q} → ${c.a}`.slice(0, 500).trim()), jury: blancJury(m) };
+    facts: cards.slice(0, 25).map(c => `[${pLabel(c)}] ${c.q} → ${c.a}`.slice(0, 500).trim()), jury: blancJury(m), reperes: copieReperes(m) };
   o.sk = skAsk(o.epreuve, "copie");
   const ctl = new AbortController();
   Object.assign(fb, { sid: key, status: "thinking", text: "", note: "", ctl });
@@ -8287,6 +8332,7 @@ document.addEventListener("click", e => {
   if (d.act === "home-frise") { setView("frise"); return; }
   if (d.act === "pt-intro") { pt.on = false; setView("test"); const b = $("[data-act=pt-start]"); if (b) b.focus({ preventScroll: true }); return; }
   if (d.act === "pt-start") { if (welcomeOpen) hideWelcome(); ptStart(); return; }
+  if (d.act === "subj-cards") { startSubjCards(sj.cur); return; }
   if (d.act === "essai-go") { if (welcomeOpen) hideWelcome(); essaiGo(); return; }
   if (d.pt !== undefined) { ptAnswer(d.pt); return; }
   if (d.act === "pt-next") { ptNext(); return; }
