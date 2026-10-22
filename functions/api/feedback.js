@@ -186,6 +186,8 @@ function fbJury(jury, jsuj){
 }
 /* Nouvelle version d'un texte déjà relu : Claude reçoit ses priorités d'alors et dit ce qui a progressé. */
 const FB_PROG = "Ce qui a progressé depuis ta version précédente";
+/* Mémoire d'un retour à l'autre : les compétences que les derniers retours ont jugées insuffisantes (ligne BILAN). */
+const fbWeak = (w, t) => w && w.length ? `\nSur ses derniers entraînements, tes retours ont jugé insuffisant : ${w.map(k => SK_DESC[k]).join(" ; ")}. Regarde si c'est encore le cas dans ce texte ; si oui, dis-le sous « ${t} » en précisant que ce point revient d'un texte à l'autre, sinon signale le progrès sous « Ce qui fonctionne ».\n` : "";
 function promptFb(kind, epreuve, o) {
   const f = FB_FMTS.includes(o.fmt) ? o.fmt : "", e = f === "cint" || epreuve === "e2" ? "e2" : "e1";
   const sp = FB_SPEC[f][e][kind] || FB_SPEC[f][e].plan;
@@ -198,7 +200,7 @@ Voici ${sp.w} :
 """
 ${o.notes}
 """
-${o.prev ? `\nC'est une nouvelle version. Dans ton retour sur sa version précédente, tu lui avais demandé de retravailler en priorité :\n"""\n${o.prev}\n"""\nSous « ${FB_PROG} », une puce par priorité, dans cet ordre, avec « corrigé », « en partie » ou « pas encore » et ce qui le montre dans le nouveau texte.\n` : ""}
+${o.prev ? `\nC'est une nouvelle version. Dans ton retour sur sa version précédente, tu lui avais demandé de retravailler en priorité :\n"""\n${o.prev}\n"""\nSous « ${FB_PROG} », une puce par priorité, dans cet ordre, avec « corrigé », « en partie » ou « pas encore » et ce qui le montre dans le nouveau texte.\n` : ""}${fbWeak(o.weak, "À retravailler en priorité")}
 Voici des connaissances vérifiées de son paquet de révision, utiles pour ce sujet :
 ${o.facts.map((x) => "- " + x).join("\n")}
 
@@ -271,7 +273,7 @@ ${o.pages ? `La copie du candidat est manuscrite : ses ${o.pages} page${o.pages 
 """
 ${o.notes}
 """
-`}${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${fbJury(o.jury, o.jsuj)}${niv ? "\n" + niv + "\n" + copieEx(f, e) : ""}
+`}${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${fbWeak(o.weak, "Trois priorités pour la prochaine copie")}${fbJury(o.jury, o.jsuj)}${niv ? "\n" + niv + "\n" + copieEx(f, e) : ""}
 Corrige cette copie comme un correcteur exigeant et bienveillant, en français, en 650 mots maximum, avec exactement ces titres, chacun sur une ligne qui commence par "## " :
 ## Appréciation d'ensemble
 ## Traitement du sujet et problématique
@@ -309,6 +311,7 @@ function readCopie(body) {
     jury: list(body.jury, 12, 400),
     jsuj: list(body.jsuj, 8, 600),
     reperes: str(body.reperes, 600),
+    weak: readSkills(body.weak).slice(0, 3),
     images: [],
     pages: 0,
   };
@@ -566,7 +569,7 @@ export async function onRequestPost({ request, env, ctx }) {
   if (notes.length < 40) return json(400, "too_short");
   if (notes.length > MAX_NOTES) return json(413, "too_long");
   prompt = b3 ? promptB3(kind, e2 ? "e2" : "e1", subject, contexte, notes, facts.map((f) => "- " + f).join("\n"))
-    : promptFb(kind, e2 ? "e2" : "e1", { fmt, subject, axe, contexte, jury: list(body.jury, 12, 400), jsuj: list(body.jsuj, 8, 600), notes, facts, prev: typeof body.prev === "string" ? body.prev.trim().slice(0, 1200) : "" });
+    : promptFb(kind, e2 ? "e2" : "e1", { fmt, subject, axe, contexte, jury: list(body.jury, 12, 400), jsuj: list(body.jsuj, 8, 600), notes, facts, prev: typeof body.prev === "string" ? body.prev.trim().slice(0, 1200) : "", weak: readSkills(body.weak).slice(0, 3) });
   }
   if (trialUser && isCopie) return json(402, "premium_required");
   prompt += bilanTail(readSkills(body.sk));
