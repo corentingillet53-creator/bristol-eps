@@ -376,6 +376,7 @@ html.gate #home-title{position:absolute;width:1px;height:1px;margin:0;overflow:h
 .q sup,.ann-t sup{font-size:.7em;line-height:0}
 .sj-dos{margin-top:14px}
 .sj-dosp{margin:8px 0;font-size:15px;line-height:1.5}
+.sj-dosr{margin-top:12px}.sj-dosr>summary{cursor:pointer;font-weight:600}
 .sj-dos label{display:block;margin:12px 0 6px;font-size:14px;color:var(--muted)}
 .sj-dos textarea{width:100%;min-height:120px;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--paper);color:var(--ink);resize:vertical}
 .reveal{margin-top:24px;padding-top:22px;border-top:2px dashed var(--line);animation:rise .25s ease-out}
@@ -2478,7 +2479,7 @@ function readinessHTML(){
       <p class="goal-sub">${next ? `Prochain niveau : <b>${esc(next[1])}</b> à ${next[0]} %.` : "Niveau maximal : entretiens tes cartes et ton écriture jusqu'au concours."} La moyenne de tes connaissances et de ton écriture : les jurys notent une copie, pas des fiches.</p></div></div>
     <div class="rd-two"><div class="rd-row rd-vol"><span>Connaissances</span><span class="rd-bar" aria-hidden="true"><span style="width:${kn}%"></span></span><b>${kn} %</b></div>
       <div class="rd-row rd-vol"><span>Écriture</span><span class="rd-bar" aria-hidden="true"><span style="width:${wr}%"></span></span><b>${wr} %</b></div></div>
-    ${copiesHTML()}
+    ${copiesHTML()}${barreHTML()}
     <details class="rd-det"${st.some(x => x.n) ? " open" : ""}><summary>Écriture, compétence par compétence</summary>${writingHTML(st)}</details>
     <details class="rd-det"><summary>Connaissances, thème par thème</summary><p class="goal-sub">Une carte compte pleinement en boîte 5, partiellement avant.</p><div class="rd-rows">${rows}</div></details>
   </div>`;
@@ -2492,6 +2493,14 @@ function noteRange(t){
   if (!m) return null;
   const lo = parseFloat(m[1].replace(",", ".")), hi = m[2] ? parseFloat(m[2].replace(",", ".")) : lo;
   return lo >= 0 && hi <= 20 && lo <= hi ? { lo, hi, mid: (lo + hi) / 2 } : null;
+}
+/* Repère réel : la barre d'admissibilité de la dernière session (rapports du jury 2026), à côté du niveau affiché,
+   qui mesure le travail fait et les critères réussis, pas une note. */
+const BARRE = { "capeps-int": [14.75, "barre d'admissibilité 2026 du CAPEPS interne dans le public (13 au CAER-CAPEPS)"], "agreg-int": [10, "barre d'admissibilité 2026 de l'agrégation interne (286 admissibles pour 136 postes)"] };
+function barreHTML(){
+  const b = BARRE[prefs.concours]; if (!b) return "";
+  const L = copyNotes(), n = L[L.length - 1], f = x => String(x).replace(".", ",");
+  return `<p class="goal-sub rd-barre">Repère : ${f(b[0])} / 20, ${esc(b[1])}. ${n ? `Ta dernière note indicative de concours blanc : ${f(n.lo)}${n.hi !== n.lo ? " à " + f(n.hi) : ""} / 20, ${n.mid >= b[0] ? "au niveau de cette barre" : "encore sous cette barre"}.` : "Le pourcentage ci-dessus mesure ton travail et tes critères réussis, pas une note : un concours blanc corrigé te situe par rapport à la barre."}</p>`;
 }
 function copyNotes(){
   return blancList().filter(m => m.state === "done").map(m => { const f = txGet("f:b:" + m.id), n = f && noteRange(f); return n ? Object.assign({ m, t: m.end || m.start }, n) : null; })
@@ -3862,6 +3871,17 @@ const fbFmt = () => FB_FMT_OF[prefs.concours] || "";
 const annOf = x => x && x.annale ? ANNALES.find(a => a.id === x.id) || null : null;
 /* Annales dont le sujet officiel renvoie à un dossier d'établissement en annexe, non reproduit ici. */
 const annDossier = a => !!a && (a.e === "ei" || (a.e === "e2" && a.f === "aint" && /annexe|dossier|présentée?s? ci-dessous|décrite?s? ci-dessous/i.test(a.t)));
+/* Source officielle d'abord : les copies du SNEP-FSU portent dans leur nom le numéro du document sur devenirenseignant.gouv.fr
+   (vérifié sur les rapports 2026 du CAPEPS interne et du CAPEPS externe bac+3) ; sinon la page officielle des sujets et rapports. */
+const DE = "https://www.devenirenseignant.gouv.fr/";
+const offMedia = u => { const m = /snepfsu\.fr\/wp-content\/uploads\/2026\/.*-(\d{5})\.pdf$/.exec(u || ""); return m ? DE + "media/" + m[1] + "/download" : ""; };
+const AGR_PG = { 2024: "sujets-et-rapports-des-jurys-agregation-2024-1356", 2025: "sujets-et-rapports-des-jurys-agregation-2025-1435", 2026: "sujets-et-rapports-des-jurys-concours-de-l-agregation-de-2026-1659" };
+const offPage = a => /^c/.test(a.f) ? DE + "sujets-et-rapports-des-jurys-concours-du-capeps-1139" : AGR_PG[a.y] ? DE + AGR_PG[a.y] : "";
+function annLinks(a){
+  const L = (u, t) => `<a href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`, s = a.src && a.src[1], os = offMedia(s), oj = offMedia(a.ju), pg = offPage(a);
+  return (os ? L(os, "Sujet officiel") : pg ? L(pg, "Site officiel") : "") + (s ? L(s, os || pg ? "Sujet (copie SNEP-FSU)" : "Sujet") : "")
+    + (oj ? L(oj, "Rapport du jury") : "") + (a.ju ? L(a.ju, oj ? "Rapport (copie SNEP-FSU)" : "Rapport du jury") : "");
+}
 const annSrc = a => a && a.src ? (Array.isArray(a.src) ? a.src[1] : a.src) : "";
 function fbCtx(x){
   const a = annOf(x);
@@ -3879,10 +3899,12 @@ function dossierHTML(x){
   const a = annOf(x); if (!annDossier(a)) return "";
   const v = txGet("d:" + x.id) || "", src = annSrc(a);
   if (a.dos) return `<details class="sj-dos" open><summary>Le dossier du sujet</summary>
-    <p class="sj-help">Résumé de l'annexe du sujet officiel, relu sur le document${src ? ` (<a href="${esc(src)}" target="_blank" rel="noopener">sujet complet</a>)` : ""}. Claude s'en sert pour juger ta prise en compte du contexte.</p>
-    ${a.dos.split("\n").map(l => `<p class="sj-dosp">${esc(l)}</p>`).join("")}
-    <label for="sj-dos-${esc(x.id)}">Tes notes sur le dossier (facultatif)</label>
-    <textarea id="sj-dos-${esc(x.id)}" data-dos="${esc(x.id)}" maxlength="1500" placeholder="Ce que tu retiens pour ta copie : les besoins des élèves, les leviers du contexte…">${esc(v)}</textarea></details>`;
+    <p class="sj-help">Entraîne-toi comme le jour de l'épreuve : ${src ? `<a href="${esc(src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>, lis` : "lis"} l'annexe et note les cinq priorités que tu en tires pour ces élèves. Compare ensuite avec le résumé : ce que tu as manqué est ce qu'il faut apprendre à repérer.</p>
+    <label for="sj-dos-${esc(x.id)}">Tes priorités tirées du dossier</label>
+    <textarea id="sj-dos-${esc(x.id)}" data-dos="${esc(x.id)}" maxlength="1500" placeholder="1. Un besoin des élèves, et la donnée qui le montre…">${esc(v)}</textarea>
+    <details class="sj-dosr"${v.trim() ? " open" : ""}><summary>Le résumé du dossier</summary>
+    <p class="sj-help">Résumé de l'annexe du sujet officiel, relu sur le document. Claude s'en sert pour juger ta prise en compte du contexte.</p>
+    ${a.dos.split("\n").map(l => `<p class="sj-dosp">${esc(l)}</p>`).join("")}</details></details>`;
   return `<details class="sj-dos"${v.trim() ? "" : " open"}><summary>Le dossier du sujet${v.trim() ? " · " + plural(wordCount(v), "mot") : ""}</summary>
     <p class="sj-help">L'annexe du sujet officiel (établissement, élèves, classe, équipe, AS, installations) n'est pas reproduite ici.${src ? ` <a href="${esc(src)}" target="_blank" rel="noopener">Ouvre le sujet complet</a>, puis` : ""} relève en quelques lignes ce que tu retiens : Claude s'en sert pour juger ta prise en compte du contexte.</p>
     <label class="sr-only" for="sj-dos-${esc(x.id)}">Le dossier du sujet, en quelques lignes</label>
@@ -4632,13 +4654,13 @@ function renderSujets(){
         ${gridHTML(s, "plan", "pl-" + s.id, isB3Conc() ? "La grille du jury 2026" : "Ta grille d'auto-évaluation")}
         ${fbBlock(s, "plan")}`;
     }
-    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + sjThName(s.th))}</span></div>${sjTxtHTML(s.t, "q" + (s.t.length > 400 ? " q-long" : ""))}${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : s.annale && annSrc(annOf(s)) && !annDossier(annOf(s)) ? `<p class="sj-help"><a href="${esc(annSrc(annOf(s)))}" target="_blank" rel="noopener">Ouvrir le sujet officiel complet</a></p>` : ""}</article>
+    body = `<article class="bristol qui"><div class="band"><span class="period">${esc(s.label || "Sujet d'entraînement · " + sjThName(s.th))}</span></div>${sjTxtHTML(s.t, "q" + (s.t.length > 400 ? " q-long" : ""))}${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}${s.mine ? mineHTML() : s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : s.annale && annSrc(annOf(s)) && !annDossier(annOf(s)) ? `<p class="sj-help"><a href="${esc(annSrc(annOf(s)))}" target="_blank" rel="noopener">Ouvrir le sujet officiel complet</a></p>` : ""}</article>
       ${dossierHTML(s)}
       ${juryBoxHTML(s.epr)}
       ${work}
       ${s.annale && PLAN_REF[s.id] ? `<div class="sect plan-ref-box">${planRefHTML(annOf(s), "Comparer avec un plan de référence commenté")}</div>` : ""}
       ${sj.shown
-        ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
+        ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(offMedia(a.ju) || a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
@@ -5247,7 +5269,26 @@ const XSUB = {
 const xsubMemo = {};
 function xSubjects(k){
   const m = prefs.concours + ":" + k; if (xsubMemo[m]) return xsubMemo[m];
-  return (xsubMemo[m] = XSUB[k].map(x => ({ id: x.id, epr: x.e === "e1" ? "e1" : "e2", th: "X", t: x.t, ctx: x.ctx, ep: [], c: annCards({ t: x.t, e: x.e }), label: "Sujet d'entraînement · " + x.th })));
+  const L = XSUB[k].map(x => ({ id: x.id, epr: x.e === "e1" ? "e1" : "e2", th: "X", t: x.t, ctx: x.ctx, ep: [], c: annCards({ t: x.t, e: x.e }), label: "Sujet d'entraînement · " + x.th }));
+  if (MINE_T[k]) L.push({ id: "xmc-" + k, mine: true, epr: "e2", th: "X", t: MINE_T[k], get ctx(){ return mineCtx(); }, ep: [], c: annCards({ t: MINE_T[k], e: "e2" }), label: "Sujet d'entraînement · Ta classe" });
+  return (xsubMemo[m] = L);
+}
+/* Le candidat interne a une classe sous la main : il la décrit comme un dossier de concours, écrit pour elle,
+   teste une proposition et note ce qui s'est passé. Claude reçoit la description et ce bilan comme contexte. */
+const MINE_T = {
+  cint: "Sujet sur ta propre classe. Décris ci-dessous ta classe et ton établissement comme le dossier d'un sujet de concours. Choisis un enjeu prioritaire pour tes élèves (l'évaluation, l'engagement, l'égalité filles-garçons, l'inclusion…) et appuie-toi sur un texte officiel qui le porte. Pourquoi et comment peux-tu y répondre ? Présente et justifie des propositions pour ta classe, puis pour ton établissement. Teste ensuite l'une d'elles en cours et reviens noter ce qui s'est passé : c'est ta meilleure réserve d'exemples pour l'écrit et pour l'oral.",
+  aint_e2: "Sujet sur ta propre classe. Décris ci-dessous ta classe et ton établissement comme le dossier d'un sujet de concours, puis choisis une citation d'un texte officiel ou d'un auteur qui pose un enjeu pour tes élèves. En quoi et comment l'enseignant d'EPS peut-il y répondre pour tous les élèves de cette classe ? Illustre tes propositions dans au moins deux APSA de deux champs d'apprentissage de ta programmation. Teste ensuite l'une d'elles en cours et reviens noter ce qui s'est passé, traces d'élèves à l'appui."
+};
+function mineCtx(){
+  const d = (txGet("m:classe") || "").trim(), b = (txGet("m:bilan") || "").trim();
+  return d ? "Classe et établissement du candidat, décrits par lui :\n" + d.slice(0, 2500) + (b ? "\n\nCe qui s'est passé quand il a testé une proposition en classe :\n" + b.slice(0, 1200) : "") : "";
+}
+function mineHTML(){
+  const d = txGet("m:classe") || "", b = txGet("m:bilan") || "";
+  return `<div class="sj-dos"><label for="sj-mine">Ta classe et ton établissement</label>
+    <textarea id="sj-mine" data-mine="m:classe" maxlength="2500" placeholder="Établissement : type, effectifs, public, projet, installations, AS… Classe : niveau, effectif, ce qui la caractérise, élèves à besoins particuliers, programmation de l'année…">${esc(d)}</textarea>
+    <label for="sj-mine-b">Après le test en classe : ce qui s'est passé (facultatif)</label>
+    <textarea id="sj-mine-b" data-mine="m:bilan" maxlength="1200" placeholder="Ce que les élèves ont fait et appris, les traces recueillies, ce que tu changerais…">${esc(b)}</textarea></div>`;
 }
 const CPROF = {
   "capeps-l3": { e1: { l: "Écrit 1 : questions", own: () => SUBJECTS_B1, ann: a => a.co === "CAPEPS externe bac+3" }, e2: { l: "Écrit 2 : épisodes", own: () => SUBJECTS_B2, ann: a => a.co === "CAPEPS externe bac+3" } },
@@ -7504,7 +7545,7 @@ function annHTML(a, mine){
     ${long ? `<p class="ann-t">${esc(sjNotes(a.t).body.slice(0, 380).replace(/\s+\S*$/, ""))}…</p><details class="ann-more"><summary>Lire le sujet complet</summary>${sjTxtHTML(a.t, "ann-t")}</details>` : sjTxtHTML(a.t, "ann-t")}
     ${a.j.length ? `<details class="ann-jury"><summary>Ce que le jury a relevé (${a.j.length})</summary><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
     ${planRefHTML(a)}
-    <div class="ann-f"><a href="${esc(a.src[1])}" target="_blank" rel="noopener">Sujet</a>${a.ju ? `<a href="${esc(a.ju)}" target="_blank" rel="noopener">Rapport du jury</a>` : ""}<button class="btn small" data-annwork="${a.id}">M'entraîner sur ce sujet</button></div>
+    <div class="ann-f">${annLinks(a)}<button class="btn small" data-annwork="${a.id}">M'entraîner sur ce sujet</button></div>
   </li>`;
 }
 function renderAnnales(){
@@ -8286,7 +8327,7 @@ function blancSubjHTML(m, s){
   const a = s.a;
   return `<article class="bristol qui blanc-subj"><div class="band"><span class="period">${esc(a ? `Annale : ${annCo(a)}, session ${a.y}` : "Sujet d'entraînement")} · ${esc(m.s)}, ${m.dur / 3600} h</span></div>${sjTxtHTML(s.t, "q" + (s.t.length > 400 ? " q-long" : ""))}
     ${isB3(s) ? (isE2(s) ? `<p class="sj-consigne">${esc(B3_CONSIGNE(s))}</p><dl class="sj-ctx">${s.eps.map(e => `<dt>${esc(e.h)}</dt><dd>${esc(e.x)}</dd>`).join("")}</dl>` : `<ul class="sj-qs">${s.qs.map(q => `<li>${esc(q)}</li>`).join("")}</ul>`) : ""}
-    ${s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
+    ${s.mine ? mineHTML() : s.ctx ? `<dl class="sj-ctx"><dt>Contexte</dt><dd>${esc(s.ctx)}</dd>${s.ep.map((e, i) => `<dt>Épisode ${i + 1}</dt><dd>${esc(e)}</dd>`).join("")}</dl>` : ""}
     ${a && a.e !== "e1" ? `<p class="sj-help">${a.f === "aext" ? "Le texte complet du sujet officiel" : a.f === "cext" ? "Le dossier du sujet officiel (contexte, documents, épisodes)" : "Le dossier du sujet officiel (établissement, classe, documents)"} n'est pas reproduit ici${a.src ? ` : <a href="${esc(Array.isArray(a.src) ? a.src[1] : a.src)}" target="_blank" rel="noopener">ouvre le sujet complet</a>` : ""}.</p>` : ""}</article>`;
 }
 function blancRunHTML(m){
@@ -8857,6 +8898,7 @@ document.addEventListener("input", e => {
     return;
   }
   if (e.target.dataset && e.target.dataset.dos) { noteSet("d:" + e.target.dataset.dos, e.target.value); return; }
+  if (e.target.dataset && /^m:(classe|bilan)$/.test(e.target.dataset.mine || "")) { noteSet(e.target.dataset.mine, e.target.value); return; }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
   if (document.getElementById("outl-sj-notes")) outlineRefresh(e.target);
