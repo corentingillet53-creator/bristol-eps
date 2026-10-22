@@ -97,6 +97,9 @@ count = {g: sum(1 for c in cards if GROUP.get(c[1]) == g) for g in ("e1", "e2", 
 ann = re.findall(r'"id": "an\d+",[^}]*?"y": (\d{4})', block("ANNALES"), re.S)
 years = [int(y) for y in ann]
 subj = len(re.findall(r'\{\s*id:\s*"s\d+"', page)) + len(re.findall(r'\{id:"t\d+",epr', page)) + len(re.findall(r'\{id:"[qm]\d+",epr', page))
+# Sujets d'entraînement de l'interne et des agrégations (XSUB, ids « xi… » et « xa… »).
+xint = len(re.findall(r'\{"id": "xi[0-9-]+"', page)); xag = len(re.findall(r'\{"id": "x[ae][0-9a-z-]+"', page))
+subj += xint + xag
 demo_ids = ["n02", "n221", "n53", "am02", "am01", "ex06", "po05", "po32", "po27"]
 EPR_S = {"e1": "Écrit 1", "e2": "Écrit 2", "tx": "Textes officiels"}
 unesc = lambda t: json.loads('"' + t + '"')
@@ -109,7 +112,7 @@ for cid, t, tag in re.findall(r'\{ id: "((?:capeps|agreg)-[a-z0-9]+)", t: "([^"]
     if ec: conc.append({"id": cid, "t": t.replace("'", "’"), "tag": tag, "ecrits": ec.group(1).replace("'", "’"), "d": ec.group(2)})
 vals = {"CARDS": len(cards), "E1": count["e1"], "E2": count["e2"], "TX": count["tx"],
         "REFS": len(re.findall(r'\{id:"r\d+",g:"', page)), "ANN": len(years), "ANN_MIN": min(years), "ANN_MAX": max(years),
-        "SUBJ": subj, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
+        "SUBJ": subj, "XINT": xint, "XAG": xag, "FILS": len(re.findall(r'\{id:"f\d+",t:"', page)),
         "DEMO_JSON": json.dumps(demo, ensure_ascii=False), "CONC_JSON": json.dumps(conc, ensure_ascii=False)}
 # Lu sans JavaScript (robots des assistants IA, aperçus de liens) : dates des écrits et
 # première fiche d'essai écrites dans la page ; le script les remplace ensuite.
@@ -156,7 +159,7 @@ for k, v in vals.items(): land = land.replace("{{" + k + "}}", str(v))
 assert "{{" not in land, re.findall(r"\{\{\w+\}\}", land)
 lout = here / "public" / "index.html"
 lout.write_text(land, encoding="utf-8")
-print("Écrit :", lout, {k: v for k, v in vals.items() if k in ("CARDS", "E1", "E2", "TX", "REFS", "ANN", "ANN_MIN", "ANN_MAX", "SUBJ", "FILS")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
+print("Écrit :", lout, {k: v for k, v in vals.items() if k in ("CARDS", "E1", "E2", "TX", "REFS", "ANN", "ANN_MIN", "ANN_MAX", "SUBJ", "XINT", "XAG", "FILS")}, f"{len(demo)} fiches d'essai, {len(conc)} concours")
 
 # Pages légales : source/legal/*.html (titre, description, corps), champs de l'éditeur dans
 # source/legal/editeur.json. Une page statique par fichier, sans script, servie à /<nom>/.
