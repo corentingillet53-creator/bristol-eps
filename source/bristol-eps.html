@@ -3089,13 +3089,13 @@ function isPremium(){
 const freeGrp = () => { const r = relGroups(); return r.includes(prefs.fg) ? prefs.fg : r[0]; };
 const grpLocked = g => !isPremium() && g !== freeGrp();
 /* Deux fiches lisibles en entier en version découverte (accord de Corentin, 22 octobre 2026) : une mise en œuvre et,
-   au CAPEPS interne, la fiche de méthode du bilan de l'étude de cas ; ailleurs, une seconde mise en œuvre. */
+   au CAPEPS interne, la fiche de méthode du bilan de l'étude de cas (inConc l'écarte ailleurs) ; sinon une seconde mise en œuvre. */
 const FREE_SAMPLE = ["mo01", "me02", "mo15"];
-const sampleOf = g => FREE_SAMPLE.filter(id => id !== (prefs.concours === "capeps-int" ? "mo15" : "me02")).map(byId).filter(c => c && grpOf(c) === g && inConc(c));
+const sampleOf = g => FREE_SAMPLE.map(byId).filter(c => c && grpOf(c) === g && inConc(c)).slice(0, 2);
 /* Ce que contient un écrit verrouillé : « 59 fiches, dont 17 mises en œuvre et 4 fiches de méthode ». */
 function lockCount(g){
   const l = relCards().filter(c => grpOf(c) === g), mo = l.filter(c => /^mo\d/.test(c.id)).length, me = l.filter(c => /^me\d/.test(c.id)).length;
-  return `${l.length} fiches${mo ? `, dont ${mo} mises en œuvre${me ? ` et ${me} fiches de méthode` : ""}` : ""}`;
+  return `${l.length} fiches${mo ? `, dont ${mo} mises en œuvre${me ? ` et ${plural(me, "fiche")} de méthode` : ""}` : ""}`;
 }
 function intentGet(){ try { return sessionStorage.getItem(INTENT_KEY) || ""; } catch (e) { return ""; } }
 function intentSet(v){ try { if (v) sessionStorage.setItem(INTENT_KEY, v); else sessionStorage.removeItem(INTENT_KEY); } catch (e) {} }
@@ -5115,6 +5115,8 @@ function inConc(c){
   if (c.custom) return true;
   /* CAPEPS interne : de l'écrit 2, seules les fiches d'intervention et d'évaluation servent à justifier les propositions. */
   if (prefs.concours === "capeps-int" && grpOf(c) === "e2") return c.th === "IN";
+  /* Fiches de méthode propres à l'étude de cas (bilan prospectif, volets classe et établissement) : CAPEPS interne seulement. */
+  if (c.id === "me02" || c.id === "me04") return false;
   const per = concPer(); return grpOf(c) !== "e1" || !per || !c.p || per.includes(c.p);
 }
 const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
