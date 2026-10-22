@@ -581,6 +581,12 @@ label.chk input{width:20px;height:20px;min-height:0;flex:none;margin:0;padding:0
 .ann-f a,.ann-f .linkbtn{display:inline-flex;align-items:center;min-height:32px}
 .ann-jury ul{margin:8px 0 4px;padding-left:20px;color:var(--muted);max-width:78ch}
 .ann-jury li{margin:4px 0}
+.plan-ref h3{font-size:15px;margin:14px 0 4px}
+.plan-ref p{max-width:78ch}
+.plan-ref .pr-dl{margin:4px 0;max-width:78ch}
+.plan-ref .pr-dl dt{font-weight:700;margin-top:6px}
+.plan-ref .pr-dl dd{margin:2px 0 0;color:var(--muted)}
+.plan-ref .pr-com{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
 .ann-f{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:10px;font-size:14px}
 .ann-f a{color:var(--accent-text)}
 .ann-f .btn{margin-left:auto}
@@ -4534,7 +4540,7 @@ function renderSujets(){
       ${juryBoxHTML(s.epr)}
       ${work}
       ${sj.shown
-        ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
+        ? `${s.annale ? (() => { const a = ANNALES.find(x => x.id === s.id); return a && a.j && a.j.length ? `<div class="sect att-box"><h2>Ce que le jury a relevé sur ce sujet</h2><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul>${a.ju ? `<p class="hint"><a href="${esc(a.ju)}" target="_blank" rel="noopener">Lire le rapport du jury</a></p>` : ""}${planRefHTML(a)}</div>` : ""; })() : ""}${isB3(s) ? `<div class="sect att-box"><h2>${isE2(s) ? "Caractériser la notion : ce qui est attendu" : "Pistes attendues"}</h2>${isE2(s) ? `<p>${esc(s.def)}</p>` : `<ul>${s.att.map(a => `<li>${esc(a)}</li>`).join("")}</ul>`}<p class="hint">Construit à partir des attentes du rapport du jury 2026 ; ce n'est pas un corrigé.</p></div>` : ""}<div class="sect" style="margin-top:20px"><h2>${cards.length} cartes utiles${isE2(s) ? "" : ", dans l'ordre chronologique"}</h2><ul class="list">${cards.map(c => `<li class="item"><div class="ip">${esc(pLabel(c))}</div><div class="iq">${esc(c.q)}</div><div class="ia">${esc(c.a)}</div></li>`).join("")}</ul></div>
            <div class="row-btns actions"><button class="btn primary" data-act="sj-revise">Réviser ces ${cards.length} cartes</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`
         : `<div class="row-btns actions" style="margin-top:16px"><button class="btn" data-act="sj-show">${isB3(s) ? (isE2(s) ? "Voir l'attendu et les cartes utiles" : "Voir les pistes et les cartes utiles") : "Afficher les cartes utiles"}</button><button class="btn" data-act="sj-draw">Autre sujet</button></div>`}`;
   }
@@ -7230,6 +7236,92 @@ function annSubject(a){
     label: `Annale : ${annCo(a)}, session ${a.y}, ${a.e === "e1" ? "écrit 1" : a.e === "e2" ? "écrit 2" : "écrit"}` };
 }
 const annCo = a => a.f === "cext" && a.co === "CAPEPS externe" ? "CAPEPS externe bac+5" : a.co;
+/* Plans de référence commentés de quelques annales : une proposition construite à partir du rapport du jury
+   de la session et des textes officiels (mêmes références que les fiches), pas le corrigé du jury.
+   Sources et vérifications : contenu/plans-reference-sources.md. */
+const PLAN_REF = {
+  an05: {
+    lect: [
+      ["La citation", "Elle vient du programme de l'enseignement commun d'EPS du lycée général et technologique (arrêté du 17 janvier 2019, BO spécial n°1 du 22 janvier 2019). L'évaluation y sert l'élève : elle lui permet de « se situer » et d'« apprécier ses acquis »."],
+      ["« Se situer »", "Savoir où l'on en est, par rapport aux attendus de fin de lycée et par rapport à soi, pour savoir quoi travailler ensuite. Le jury relève que « se situer » « n'a que rarement été mis au service des apprentissages » : se situer n'est pas une fin, c'est le point de départ d'une régulation."],
+      ["« Apprécier ses acquis »", "Juger la valeur de ce que l'on a appris, pas « aimer ». C'est le contresens le plus fréquent selon le jury. L'élève doit pouvoir dire ce qu'il sait faire, à quel niveau, et ce qui lui reste à construire : il se projette."],
+      ["« Pourquoi et comment »", "Le sujet demande de justifier avant de proposer, et deux volets : tes cours d'EPS avec la classe de seconde, puis « plus largement » le lycée."]
+    ],
+    ctx: [
+      ["Une seconde très hétérogène (notes de 7 à 19), à la connaissance de soi faible, au rapport à la note contrasté, dans un lycée où les élèves sont très sensibles aux notes", "Apprendre à se situer autrement que par la note, sur ses propres progrès."],
+      ["Des groupes d'affinités par collège d'origine ; des rôles d'observateur et de coach acceptés mais peu investis de sens", "Faire des rôles un outil pour se situer : l'observateur renseigne, le coach aide à choisir."],
+      ["Quatre élèves en grande difficulté et en retrait, trois élèves en surpoids volontaires, un élève en situation de handicap physique", "Un dispositif où chacun peut réussir à se situer et progresser, sans comparaison humiliante."],
+      ["Lycée : écart de notes filles-garçons de 0,8 point, surtout en CA2 et CA4 ; licences de l'AS en baisse, surtout chez les filles ; projet expérimental sur les neurosciences (implication, motivation) ; axe 3 « bien-être par l'engagement des élèves »", "Des outils communs à l'équipe, une AS qui fidélise les filles, une contribution de l'EPS au projet de seconde."]
+    ],
+    prob: "Comment faire de l'évaluation, dès la seconde, un outil que chaque élève utilise pour savoir où il en est et juger lui-même la valeur de ses acquis, alors que la classe est hétérogène, sensible à la note et peu habituée à se connaître ?",
+    parts: [
+      { h: "I. Dans mes cours de seconde : se situer pour apprendre", pts: [
+        "Volley-ball (CA4). Un match à thème en effectif réduit ; un observateur relève deux indicateurs simples sur un camarade. Les critères de réussite disent si le but est atteint, les critères de réalisation disent comment s'y prendre. En fin de leçon, chaque élève compare son relevé à son objectif et choisit celui de la leçon suivante. Le retour de l'enseignant porte sur la tâche et la manière de faire, pas sur la personne (Hattie et Timperley, 2007).",
+        "Step (CA5). Un carnet de suivi par élève : séances, intensité perçue, ce qui a été réussi. Au fil de la séquence, l'élève compare ses séances et ajuste sa charge. Le CA5 exige « un temps long d'apprentissage » : c'est ici que l'élève apprécie ses acquis sur la durée. Pour les trois élèves en surpoids, le repère devient leur propre progression ; pour Rémi, l'enseignant adapte les déplacements et l'intensité, puisque « le lycée doit accueillir tous les élèves quel que soit leur degré d'aptitude partielle ou de handicap ».",
+        "Évaluer sans menacer. Les moments formatifs sont distincts de l'évaluation certificative. L'élève s'auto-évalue avant l'enseignant, puis l'écart entre les deux est discuté : c'est là qu'il apprend à juger. Une évaluation seulement comparative décourage les moins performants ; une évaluation qui rend visibles les progrès nourrit le besoin de compétence (Deci et Ryan)."],
+        com: "C'est ce qui sépare le niveau B du niveau C de la grille 2026 : l'élève ne fait pas que se situer, il s'en sert pour apprendre. Le jury demande aussi de préciser qui fait quoi et ce qu'on observe : chaque proposition nomme l'APSA, le rôle de l'élève et l'indicateur. Le passage au niveau D exige une visée au-delà de la leçon, d'où le carnet de suivi sur toute la séquence." },
+      { h: "II. Dans le lycée : faire de l'auto-évaluation un outil commun", pts: [
+        "Le projet pédagogique d'EPS prévoit des outils communs d'évaluation des progrès des élèves. L'équipe construit un livret de suivi de la seconde à la terminale : il aide l'élève à choisir lucidement son ensemble certificatif parmi les menus de l'établissement, comme le prévoit la note de service de 2026 sur le bac. Il fournit aussi des données pour « objectiver » l'axe 1 du projet d'établissement.",
+        "L'écart filles-garçons en CA2 et CA4. L'équipe compare ses résultats par champ d'apprentissage et revoit les critères qui creusent l'écart. À l'AS, la formation de jeunes officielles, juges et coachs, et l'équipe de rugby féminin, deuxième de l'académie, servent d'appui pour fidéliser les filles. Le projet de l'AS fait partie du projet d'établissement (circulaire n°2010-125 du 18 août 2010).",
+        "Le projet de seconde sur les neurosciences. L'EPS y contribue par un court bilan commun en fin de leçon : ce que j'ai réussi, comment je m'y suis pris, ce que je travaille ensuite. Réfléchir à sa propre manière d'apprendre, c'est la métacognition (Flavell, 1976), au cœur de l'implication et de la motivation que vise le projet."],
+        com: "Le jury demande de rattacher les propositions élargies à l'établissement et à son contexte, sans placage de situations préparées à l'avance. Chacune part d'une donnée du dossier : l'écart de 0,8 point, la baisse des licences féminines, le projet neurosciences, l'axe 1 à objectiver. Le rapport cite justement le projet neurosciences et le bien-être parmi les éléments peu exploités, et son exemple de niveau D les relie à une auto-évaluation." }
+    ],
+    concl: "Bilan prospectif, avec des indicateurs : la part d'élèves qui se fixent un objectif cohérent avec leur bilan ; l'écart entre auto-évaluation et évaluation de l'enseignant, en début puis en fin d'année ; l'écart de notes filles-garçons en CA2 et CA4 ; le nombre de licenciées et de jeunes officielles à l'AS. Ouverture : poursuivre le livret en première et en terminale, jusqu'au choix des menus du bac.",
+    why: [
+      "Les mots clés sont définis au regard du contexte, et « apprécier » n'est pas réduit à « aimer ».",
+      "Les élèves nommés dans le dossier sont pris en compte par leurs caractéristiques, pas seulement cités : le jury relève ce défaut.",
+      "La seconde proposition est traitée avec le même soin que la première, et les deux volets sont reliés.",
+      "Les visées dépassent la leçon : séquence, année, parcours jusqu'au bac."
+    ]
+  },
+  an08: {
+    lect: [
+      ["La source", "La circulaire de rentrée 2025 (3 juillet 2025) : un texte institutionnel récent, qui présente la formation comme le levier de la transformation de l'École."],
+      ["Deux blocs", "Une fin, « transformer l'École et répondre aux objectifs de réussite pour tous », et un moyen posé comme premier, « penser autrement la manière dont on forme ». Le jury demande d'analyser les deux, et de ne pas s'en tenir à la formation initiale."],
+      ["« D'abord »", "Le mot pose un postulat : la formation serait le levier prioritaire, voire la condition du reste. C'est lui qu'il faut discuter, et le jury note qu'il a été rarement relevé."],
+      ["« Penser autrement »", "Il suppose une rupture avec les manières de former antérieures. Très souvent oublié dans les copies selon le jury. Rupture avec quoi, et pour la combientième fois depuis 1975 ?"],
+      ["« Celles et ceux qui la feront vivre »", "Les futurs enseignants, mais aussi ceux en poste : formation initiale, continue et personnelle. Toi qui prépares l'agrégation interne, tu en es un exemple."]
+    ],
+    prob: "De 1975 à 2025, la formation des enseignants d'EPS a-t-elle été le levier premier de la transformation de l'École et de la réussite des élèves, ou a-t-elle surtout accompagné des transformations décidées et vécues ailleurs : dans l'institution, à l'université, dans les établissements ?",
+    parts: [
+      { h: "I. Former pour transformer : la formation a bien été pensée comme un levier", pts: [
+        "Former un enseignant d'une discipline scolaire. En 1975, l'EPS relève de la Jeunesse et des Sports et ses futurs enseignants sont formés dans les UEREPS. Le rattachement à l'Éducation nationale (décret du 28 mai 1981) puis la transformation des UEREPS en UFR STAPS (loi Savary, 1984) ancrent la formation dans l'université.",
+        "Former tous les enseignants ensemble. La loi d'orientation du 10 juillet 1989 crée les IUFM, ouverts en 1990 : une même institution pour le premier et le second degré, EPS comprise. La circulaire du 23 mai 1997 définit la mission du professeur, dans la classe et dans l'établissement.",
+        "Se former soi-même. L'agrégation d'EPS (arrêté de 1982, première session en 1983), l'agrégation interne (1986) et le CAPEPS interne (1989) font de la formation personnelle une voie de promotion. Dans les années 1980, la didactique de l'EPS développée à l'INRP (Mérand, Marsenach) donne aux formateurs des outils pour penser la leçon autrement."],
+        com: "Le jury refuse le récit chronologique : la partie est organisée par logiques (discipline scolaire, institution commune, formation personnelle), et chaque date sert un argument. Elle prend la citation au sérieux avant de la discuter." },
+      { h: "II. Mais penser autrement la formation ne suffit pas : des réformes qui se succèdent, des effets limités", pts: [
+        "Des ruptures subies. La mastérisation, appliquée à partir de la rentrée 2010, place le recrutement au niveau du master, et les lauréats sont affectés à temps complet devant élèves : la Cour des comptes chiffre à 18 202 les postes de stagiaires d'IUFM supprimés. L'alternance revient en 2014, avec un demi-service en ESPE.",
+        "Penser autrement, encore et encore. ESPE en 2013, INSPÉ en 2019, CAPEPS externe à bac+3 avec la réforme de 2025 : chaque réforme repense la formation. La répétition interroge le « d'abord » : si la formation suffisait à transformer l'École, faudrait-il la réformer si souvent ?",
+        "La réussite dépend d'autres leviers. Le jury invite à relativiser le rôle de la formation face aux conditions d'exercice, aux établissements et aux publics. La formation continue, rendue obligatoire par la loi pour une école de la confiance (2019, article L912-1-2 du code de l'éducation), pose elle-même la question de son organisation hors du temps de classe."],
+        com: "C'est la discussion du postulat que le jury attend au cœur de la copie, pas seulement en introduction ou en conclusion. La partie traite les vingt dernières années, point faible des copies selon le rapport." },
+      { h: "III. Former celles et ceux qui la font vivre : une formation continuée, partagée, au plus près des élèves", pts: [
+        "Un continuum de la licence au métier. Le référentiel des compétences des professeurs (2013), la préprofessionnalisation dès la L2 (2019), puis les deux années de formation rémunérée après le concours à bac+3 dessinent une entrée progressive dans le métier.",
+        "Des formateurs et des collectifs. Le CAFFA (2015) professionnalise les formateurs académiques ; l'équipe EPS, le plan académique de formation, les associations et les syndicats forment aussi, au plus près des établissements.",
+        "Prise de position. La formation est une condition nécessaire mais pas un « d'abord » : elle transforme l'École quand elle s'articule aux équipes, aux établissements et aux élèves. Exemple à développer : une équipe qui se forme pour construire un projet d'AS ou une évaluation commune."],
+        com: "Le niveau 4 du rapport prend position et s'appuie sur des exemples variés (sport scolaire, options, projets interdisciplinaires). Le pluriel de la formation (initiale, continue, personnelle) est traité, comme le jury le demande." }
+    ],
+    concl: "Répondre à la problématique : en cinquante ans, la formation a souvent été pensée autrement, mais elle n'a transformé l'École qu'articulée aux conditions d'exercice et aux collectifs d'enseignants. Ouverture : la réforme de 2025 change le moment du concours ; reste à savoir si elle change la manière d'apprendre le métier.",
+    why: [
+      "Le « d'abord » et le « penser autrement » sont analysés dans l'introduction puis discutés dans le développement.",
+      "Le plan est problématisé, pas chronologique, mais chaque partie couvre la période et traite les vingt dernières années.",
+      "La formation est prise au pluriel (initiale, continue, personnelle), et pas seulement à travers les réformes.",
+      "La copie prend position, et chaque référence est datée et expliquée."
+    ]
+  }
+};
+function planRefHTML(a){
+  const p = PLAN_REF[a.id]; if (!p) return "";
+  const rows = l => `<dl class="pr-dl">${l.map(([t, d]) => `<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("")}</dl>`;
+  return `<details class="ann-jury plan-ref"><summary>Un plan de référence commenté</summary>
+    <p class="hint">Une proposition de Bristol EPS, construite à partir du rapport du jury ${a.y} et des textes officiels. Ce n'est pas le corrigé du jury : d'autres plans sont possibles.</p>
+    <h3>Lire le sujet</h3>${rows(p.lect)}
+    ${p.ctx ? `<h3>Du dossier aux priorités</h3>${rows(p.ctx)}` : ""}
+    <h3>Problématique</h3><p>${esc(p.prob)}</p>
+    ${p.parts.map(x => `<h3>${esc(x.h)}</h3><ul>${x.pts.map(t => `<li>${esc(t)}</li>`).join("")}</ul><p class="pr-com"><b>Ce que le jury y voit :</b> ${esc(x.com)}</p>`).join("")}
+    <h3>Conclusion</h3><p>${esc(p.concl)}</p>
+    <h3>Pourquoi ce plan vise le haut de la grille</h3><ul>${p.why.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+  </details>`;
+}
 function annHTML(a, mine){
   const long = a.t.length > 420;
   const ep = a.e === "e1" ? "Écrit 1" : a.e === "e2" ? "Écrit 2" : "Écrit";
@@ -7237,6 +7329,7 @@ function annHTML(a, mine){
     <div class="ann-h"><span class="ann-y">${a.y}</span>${mine ? "" : `<span class="period">${esc(annCo(a))}</span>`}<span class="ann-e">${ep}</span></div>
     ${long ? `<p class="ann-t">${esc(sjNotes(a.t).body.slice(0, 380).replace(/\s+\S*$/, ""))}…</p><details class="ann-more"><summary>Lire le sujet complet</summary>${sjTxtHTML(a.t, "ann-t")}</details>` : sjTxtHTML(a.t, "ann-t")}
     ${a.j.length ? `<details class="ann-jury"><summary>Ce que le jury a relevé (${a.j.length})</summary><ul>${a.j.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
+    ${planRefHTML(a)}
     <div class="ann-f"><a href="${esc(a.src[1])}" target="_blank" rel="noopener">Sujet</a>${a.ju ? `<a href="${esc(a.ju)}" target="_blank" rel="noopener">Rapport du jury</a>` : ""}<button class="btn small" data-annwork="${a.id}">M'entraîner sur ce sujet</button></div>
   </li>`;
 }
