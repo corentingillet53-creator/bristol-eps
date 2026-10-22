@@ -968,6 +968,10 @@ html.gs-on{overflow:hidden}
 .lock h2{display:flex;align-items:center;gap:10px}
 .lock h2 svg.ic{width:26px;height:26px;color:var(--gold)}
 .lock-peek{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:6px}
+.ls-h{font-size:15px;margin:0 0 8px}
+.ls-card{background:var(--paper);border-radius:var(--r-m);padding:12px 14px;margin:0 0 10px;color:var(--ink)}
+.ls-card p{margin:0 0 6px}.ls-card p:last-child{margin:0}
+.ls-q{font-weight:700}.ls-x{color:var(--muted);font-size:14px}
 .lock-peek li{background:var(--paper);border-radius:var(--r-m);padding:10px 14px;color:var(--ink)}
 .seg-lock svg.ic{width:15px;height:15px;vertical-align:-2px;color:var(--gold)}
 .grp-row.locked .gr-t span{color:var(--muted)}
@@ -2576,7 +2580,7 @@ function homeSession(){
   const open = gs.filter(([e]) => !grpLocked(e.id)), locked = gs.filter(([e]) => grpLocked(e.id));
   const todo = open.filter(([, x]) => x.todo);
   const due = todo.reduce((t, [, x]) => t + x.due, 0), fresh = todo.reduce((t, [, x]) => t + x.left, 0), total = due + fresh;
-  const lockLine = locked.length ? `<p class="ts-lock">${icon("lock")} ${locked.map(([e]) => esc(e.s)).join(" et ")} : accès complet. <button class="linkbtn" data-act="paywall" data-why="ecrit">Débloquer</button></p>` : "";
+  const lockLine = locked.length ? `<p class="ts-lock">${icon("lock")} ${locked.map(([e]) => esc(e.s) + " : " + lockCount(e.id) + ".").join(" ")} Accès complet. ${locked.some(([e]) => sampleOf(e.id).length) ? `<button class="linkbtn" data-act="lock-peek" data-g="${locked.find(([e]) => sampleOf(e.id).length)[0].id}">Voir deux fiches en exemple</button> ` : ""}<button class="linkbtn" data-act="paywall" data-why="ecrit">Débloquer</button></p>` : "";
   if (!total) {
     const next = relCards().filter(c => !grpLocked(grpOf(c))).map(x => progress[x.id] && progress[x.id].d).filter(d => d && d >= dueCut()).sort((a, b) => a - b)[0];
     return `<section class="ts done" aria-labelledby="ts-h"><span class="ts-ic">${icon("check")}</span><div><h2 id="ts-h">Séance du jour terminée</h2>
@@ -2995,7 +2999,7 @@ function gsResults(q){
   R.push({ k: "lex", t: "Sigles", n: lex.length, items: lex.slice(0, 5).map(x => ({ html: `<span class="gs-meta">${esc(x.g)}</span><span class="gs-t">${gsHighlight(x.k, words)}</span><span class="gs-a">${gsHighlight(x.d, words, 220)}</span>`, act: `data-act="lex-open"` })) });
   const cards = relCards().filter(c => gsMatch([c.q, c.a, c.x || "", c.p || "", thName(c), cnGet(c.id), refGet(c.id)], words));
   R.push({ k: "cards", t: "Fiches", n: cards.length, all: cards.length > 5 ? "gs-all-cards" : "", items: cards.slice(0, 5).map(c => ({
-    html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
+    html: `<span class="gs-meta">${esc(pLabel(c))} · ${esc(thName(c))}</span><span class="gs-t">${gsHighlight(c.q, words)}</span>${grpLocked(grpOf(c)) && !sampleOf(grpOf(c)).includes(c) ? `<span class="gs-a">Réponse avec l'accès complet</span>` : `<span class="gs-a">${gsHighlight(c.a, words, 220)}</span>`}${cnGet(c.id) ? `<span class="gs-note">Ma note : ${gsHighlight(cnGet(c.id), words, 120)}</span>` : ""}`,
     act: `data-gscram="${esc(c.id)}"`, lab: "Réviser cette fiche" })) });
   const y0r = concPer() ? parseInt(concPer()[0], 10) || 0 : 0;
   const refs = REFS.filter(r => relHas(r.g) && !(r.g === "e1" && y0r && REF_END[r.id] && REF_END[r.id] < y0r) && gsMatch([r.au, r.ti, String(r.y || ""), r.id2 || "", r.us || ""], words));
@@ -3108,6 +3112,15 @@ function isPremium(){
 /* L'écrit de la version découverte : le premier du concours, ou celui que la personne a choisi. */
 const freeGrp = () => { const r = relGroups(); return r.includes(prefs.fg) ? prefs.fg : r[0]; };
 const grpLocked = g => !isPremium() && g !== freeGrp();
+/* Deux fiches lisibles en entier en version découverte (accord de Corentin, 22 octobre 2026) : une mise en œuvre et,
+   au CAPEPS interne, la fiche de méthode du bilan de l'étude de cas (inConc l'écarte ailleurs) ; sinon une seconde mise en œuvre. */
+const FREE_SAMPLE = ["mo01", "me02", "mo15"];
+const sampleOf = g => FREE_SAMPLE.map(byId).filter(c => c && grpOf(c) === g && inConc(c)).slice(0, 2);
+/* Ce que contient un écrit verrouillé : « 59 fiches, dont 17 mises en œuvre et 4 fiches de méthode ». */
+function lockCount(g){
+  const l = relCards().filter(c => grpOf(c) === g), mo = l.filter(c => /^mo\d/.test(c.id)).length, me = l.filter(c => /^me\d/.test(c.id)).length;
+  return `${l.length} fiches${mo ? `, dont ${mo} mises en œuvre${me ? ` et ${plural(me, "fiche")} de méthode` : ""}` : ""}`;
+}
 function intentGet(){ try { return sessionStorage.getItem(INTENT_KEY) || ""; } catch (e) { return ""; } }
 function intentSet(v){ try { if (v) sessionStorage.setItem(INTENT_KEY, v); else sessionStorage.removeItem(INTENT_KEY); } catch (e) {} }
 async function billCfg(){
@@ -3274,7 +3287,7 @@ function lockHTML(g){
   const e = eprOf(g), list = allCards().filter(c => grpOf(c) === g && inConc(c)), f = eprOf(freeGrp());
   return `<div class="empty lock"><h2>${icon("lock")} ${esc(e.t)}</h2>
     <p>${list.length} fiches t'attendent sur cet écrit. En version découverte, tu révises ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}.</p>
-    <ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>
+    ${sampleOf(g).length ? `<h3 class="ls-h">Deux fiches en exemple</h3>${sampleOf(g).map(c => `<div class="ls-card"><p class="ls-q">${esc(c.q)}</p><p>${esc(c.a)}</p>${c.x ? `<p class="ls-x">${esc(c.x)}</p>` : ""}</div>`).join("")}` : `<ul class="lock-peek">${list.slice(0, 3).map(c => `<li>${esc(c.q)}</li>`).join("")}</ul>`}
     <p>Tu peux aussi faire porter ta découverte sur cet écrit : les ${FREE_NEW} nouvelles fiches du jour viendront de lui.</p>
     <div class="row-btns"><button class="btn primary" data-act="paywall" data-why="ecrit">${["e1", "e2"].filter(relHas).length > 1 ? "Débloquer tous les écrits" : "Débloquer toutes les fiches"}</button><button class="btn" data-act="free-grp" data-g="${g}">Découvrir ${g === "tx" ? "les textes officiels" : /^é/i.test(e.s) ? "l'" + esc(e.s.toLowerCase()) : "les " + esc(e.s.toLowerCase())} à la place</button><button class="btn" data-grp="${f.id}">Revenir ${f.id === "tx" ? "aux textes officiels" : "à l'" + esc(f.s.toLowerCase())}</button></div></div>`;
 }
@@ -5126,6 +5139,8 @@ function inConc(c){
   if (c.custom) return true;
   /* CAPEPS interne : de l'écrit 2, seules les fiches d'intervention et d'évaluation servent à justifier les propositions. */
   if (prefs.concours === "capeps-int" && grpOf(c) === "e2") return c.th === "IN";
+  /* Fiches de méthode propres à l'étude de cas (bilan prospectif, volets classe et établissement) : CAPEPS interne seulement. */
+  if (c.id === "me02" || c.id === "me04") return false;
   const per = concPer(); return grpOf(c) !== "e1" || !per || !c.p || per.includes(c.p);
 }
 const concCards = () => allCards().filter(c => relHas(grpOf(c)) && inConc(c));
@@ -8668,6 +8683,7 @@ document.addEventListener("click", e => {
   if (d.act === "rk-copy") { const t = acct.recoveryKey; try { navigator.clipboard.writeText(t).then(() => toast("Clé copiée."), () => toast("Copie impossible : sélectionne la clé et copie-la.")); } catch (e) { toast("Copie impossible : sélectionne la clé et copie-la."); } return; }
   if (d.act === "rk-done") { acct.recoveryKey = ""; acct.view = "profile"; renderAccount(); return; }
   if (d.act === "install") { if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); ev.userChoice.finally(() => renderWelcome()); } return; }
+  if (d.act === "lock-peek") { setGrp(d.g); setView("revise"); return; }
   if (d.act === "lex-open") { const go = () => { if (view !== "home") setView("home"); showWelcome(true); setTimeout(() => { const l = $("#w-lex"); if (l) { l.open = true; l.scrollIntoView({ block: "start" }); const sm = l.querySelector("summary"); if (sm) sm.focus({ preventScroll: true }); } }, 60); }; if (gs.open) gsGo(go); else go(); return; }
   if (d.act === "start-open") { setView("stats"); setTimeout(() => { const x = $("#start-path"); if (x) { x.scrollIntoView({ block: "start" }); const h = x.querySelector("h2"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } }, 60); return; }
   if (d.act === "start-hide") { try { localStorage.setItem("bristol-eps-start-off", "1"); } catch (e) {} render(); return; }
