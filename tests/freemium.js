@@ -67,4 +67,18 @@ const mk=async(logged)=>{const ctx=await b.newContext({viewport:{width:1280,heig
  await p.click('[data-pwplan=pass]');await p.waitForTimeout(500);
  ok(co&&co.plan==='pass'&&co.src==='google-ads','paiement : provenance transmise');
  ok(!errs.length,'sans erreur '+errs.join('|'));await ctx.close();}
+// Connexion Google (page rechargée) pendant le retour offert : le sujet d'entraînement de l'interne et des agrégations est retrouvé, le retour part.
+for(const c of ['capeps-int','agreg-int']){const ctx=await b.newContext({viewport:{width:390,height:844}});let logged=false,sent=null;
+ await ctx.addInitScript((c)=>{if(!sessionStorage.getItem('x')){sessionStorage.setItem('x','1');localStorage.setItem('bristol-eps-v1',JSON.stringify({prefs:{concours:c}}));localStorage.setItem('bristol-eps-welcome','1');}},c);
+ const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+ await p.route('**/api/**',async r=>{const u=r.request().url();
+  if(/auth\/me/.test(u))return r.fulfill(logged?{status:200,contentType:'application/json',body:JSON.stringify({email:'t@ex.fr',premium:{active:false}})}:{status:401,contentType:'application/json',body:'{"error":"not_signed_in"}'});
+  if(/feedback/.test(u)){sent=JSON.parse(r.request().postData());return r.fulfill({status:200,headers:{'content-type':'text/plain; charset=utf-8','x-trial':'1'},body:'## Ce qui fonctionne\n- Un plan clair.'});}
+  return r.fulfill({status:404,contentType:'application/json',body:'{"error":"none"}'});});
+ await p.goto('http://localhost:8766/app/');await p.waitForTimeout(800);
+ await p.evaluate(()=>{setView('sujets');essaiGo()});await p.waitForTimeout(300);const id=await p.evaluate(()=>sj.cur&&sj.cur.id);
+ await p.fill('#sj-notes','Problématique : comment rendre les élèves acteurs ? I. Pour la classe II. Pour l\'établissement, avec un bilan et des indicateurs.');await p.waitForTimeout(700);
+ await p.locator('[data-act=fb-trial]').click();await p.waitForTimeout(300);logged=true;await p.reload();await p.waitForTimeout(1800);
+ok(/^x/.test(id||'')&&await p.evaluate(()=>sj.cur&&sj.cur.id)===id&&sent&&sent.subject&&/Un plan clair/.test(await p.textContent('#panel-sujets')),c+' : après la connexion Google, même sujet et retour offert reçu');
+ ok(!errs.length,'sans erreur '+errs.join('|'));await ctx.close();}
 console.log(fails.length?'FAILS: '+fails.join(' | '):'ALL OK');await b.close();})();

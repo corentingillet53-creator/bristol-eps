@@ -9135,8 +9135,10 @@ try {
   const k = JSON.parse(localStorage.getItem("bristol-eps-sj") || "null");
   if (k && k.id) {
     const an = ANNALES.find(x => x.id === k.id);
-    const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === k.id) || (an && annSubject(an));
-    if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; }
+    /* Sujets d'entraînement de l'interne et des agrégations (XSUB) compris : la connexion Google recharge la page avant le retour offert. */
+    const xs = Object.keys(XSUB).flatMap(xSubjects).find(x => x.id === k.id);
+    const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === k.id) || xs || (an && annSubject(an));
+    if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; else if (xs) { sj.src = "own"; sj.srcPicked = true; } }
   }
 } catch (e) {}
 if (STANDALONE) srcInit();
