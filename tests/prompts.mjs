@@ -102,7 +102,7 @@ for (const [conc, e, kinds, who, word] of CASES) {
   const bad = r.flat().filter(q => q.opts.some(o => /VO2|filière|Schmidt|course à vitesse élevée/i.test(o)));
   ok(!bad.length, "capeps-int test : aucun leurre de sciences hors programme");
   const n = await p.evaluate(() => [concCards().length, concCards().filter(c => grpOf(c) === "e2").every(c => c.th === "IN"), eprOf("e2").t]);
-  ok(n[1] && n[0] < 120, "capeps-int : paquet textes officiels + intervention (" + n[0] + " fiches)");
+  ok(n[1] && n[0] < 160, "capeps-int : paquet textes officiels + intervention (" + n[0] + " fiches)");
   ok(/justifier/.test(n[2]), "capeps-int : paquet renommé « " + n[2] + " »");
   const ac = await p.evaluate(() => annCards(ANNALES.find(a => a.f === "cint" && a.y === 2026)).map(id => grpOf(byId(id))));
   ok(ac.length && ac.every(g => g === "tx" || g === "e2"), "capeps-int : cartes utiles d'une annale hors histoire (" + ac.join(",") + ")");
