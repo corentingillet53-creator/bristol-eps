@@ -4942,7 +4942,7 @@ function renderTest(){
 }
 
 /* ---------- D'où vient le contenu ---------- */
-const SITE_MAJ = "21 octobre 2026";
+const SITE_MAJ = "22 octobre 2026";
 let relSent = false;
 /* Niveau de chaque source : texte officiel ou institution, travail universitaire ou encyclopédie, site de recoupement. */
 const SRC_OFF = new Set(["SFM", "SQE", "ESR", "BO27", "A2011", "GUY23", "LP05", "BO10", "DEPP", "GUT", "SLP", "L75", "L89", "L84", "SEN", "B00", "CHM", "GUY", "BES", "BO19", "PAR"]), SRC_SCH = new Set(["PUG", "LOR", "OTT", "CLD", "DEL", "AT96", "PRO", "OPT", "MCK", "NLP", "RLD", "SCH", "ERR", "HIIT", "DON", "STO", "PEK", "FRE", "E32", "VAS", "TES", "CHA", "SIT", "YEA", "BLA", "DIA", "BIO", "MIR", "TGF", "SPE", "MBP", "ROS", "FBK", "CLT", "LAS", "TER", "UMA", "UGY", "UNI", "ARC", "NOB", "OAL", "HEB", "MER", "FOU"]);
@@ -9159,8 +9159,10 @@ try {
   const k = JSON.parse(localStorage.getItem("bristol-eps-sj") || "null");
   if (k && k.id) {
     const an = ANNALES.find(x => x.id === k.id);
-    const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === k.id) || (an && annSubject(an));
-    if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; }
+    /* Sujets d'entraînement de l'interne et des agrégations (XSUB) compris : la connexion Google recharge la page avant le retour offert. */
+    const xs = Object.keys(XSUB).flatMap(xSubjects).find(x => x.id === k.id);
+    const s = SUBJECTS.concat(SUBJECTS2, SUBJECTS_B1, SUBJECTS_B2).find(x => x.id === k.id) || xs || (an && annSubject(an));
+    if (s && relHas(s.epr === "e2" ? "e2" : "e1")) { sj.cur = s; sj.epr = s.epr === "e2" ? "e2" : "e1"; if (["plan", "intro", "para"].includes(k.mode)) sj.mode = k.mode; if (an) sj.src = "ann"; else if (xs) { sj.src = "own"; sj.srcPicked = true; } }
   }
 } catch (e) {}
 if (STANDALONE) srcInit();
