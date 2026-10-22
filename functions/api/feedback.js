@@ -220,9 +220,19 @@ const COPIE_MID = {
   cint: { e2: "Contexte, volet classe et volet établissement" }
 };
 
+/* Concours blanc : la grille de niveaux du dernier rapport de jury, pour situer la copie avant de proposer une note.
+   Sources : rapport du jury du CAPEPS interne 2026 (grille A à D, malus) ; rapport de l'agrégation interne 2026 (bandeaux). */
+const COPIE_NIV = {
+  aint: {
+    e1: "Grille du jury (rapport 2026, bandeau de l'écrit 1, à transposer au sujet corrigé), du plus bas au plus haut :\n- Non recevable : récit chronologique de l'histoire de l'EPS ou de la question, sans mise en relation avec les termes de la citation, ou copie réduite presque à l'introduction.\n- Niveau 1, réponse approximative : citation paraphrasée ou simple fil conducteur d'une présentation chronologique ; liens rapides ; discussion seulement en introduction ou en conclusion.\n- Niveau 2, réponse cohérente : la citation sert d'appui à un débat partiel ; analyse présente mais incomplète ou superficielle ; discussion surtout implicite ; enjeux scolaires plaqués.\n- Niveau 3, réponse intéressante : citation comprise, analysée et discutée explicitement, mais pas de façon équilibrée dans toutes les parties.\n- Niveau 4, réponse excellente : la citation devient un objet de réflexion, interrogée de manière critique et mise à distance tout au long du devoir ; analyse historique précise, sans lecture linéaire.\nÀ l'intérieur d'un niveau, la qualité des références, la solidité des connaissances et la nuance placent la copie en haut ou en bas.",
+    e2: "Grille du jury (rapport 2026, bandeau de l'écrit 2, à transposer au sujet corrigé), du plus bas au plus haut :\n- Non recevable : sujet non traité, copie limitée à une introduction ou à un plan.\n- Niveau 1 : traitement générique ; notions du sujet occultées, confondues ou à peine évoquées ; mises en œuvre inopérantes ou décontextualisées ; contexte raconté au lieu du sujet.\n- Niveau 2 : notions traitées séparément ou reliées de façon formelle ; analyses annoncées sans démonstration illustrée ; apprentissages flous ou non reliés à des contenus.\n- Niveau 3 : notions articulées ; démonstration appuyée sur des connaissances et des illustrations contextualisées, aux conditions d'apprentissage explicites, dans plusieurs champs d'apprentissage.\n- Niveau 4 : articulation discutée et priorisée au regard du contexte ; mises en œuvre inclusives, qui permettent à tous les élèves d'apprendre (besoins partagés et spécifiques), opérationnalisées dans des APSA.\nDéclassement d'un niveau si la copie ne traite qu'un champ d'apprentissage ou qu'une APSA ; bas du niveau 1 si aucune APSA de la programmation ou si la classe du dossier est ignorée. Traces d'élèves du dossier : absentes ou seulement évoquées, puis exploitées sans analyse (ou analysées sans exploitation), puis analysées et transformées en outil pour les élèves. Devoir inachevé et nombreuses fautes pénalisés." },
+  cint: {
+    e2: "Grille du jury (rapport 2026 de l'écrit, à transposer au sujet corrigé), du plus bas au plus haut :\n- A : propositions génériques ou indépendantes du contexte.\n- B : propositions qui décrivent (quoi) ce que fait l'élève pour répondre à la citation, en faisant référence au contexte.\n- C : propositions justifiées au regard du contexte (pourquoi) et opérationnalisées (comment).\n- D : propositions qui exploitent plusieurs dimensions du contexte, avec une connaissance du résultat par l'élève et une projection à moyen terme (séquence, année) voire à long terme (parcours de formation).\nMalus limité à 2 points : jusqu'à 1 point pour l'orthographe et la syntaxe, jusqu'à 1 point pour un devoir non terminé." }
+};
 /* Concours blanc : correction d'une copie complète (même texte que la page, promptCopie). */
 function buildPromptCopie(o) {
   const f = FB_FMTS.includes(o.fmt) ? o.fmt : "", e = f === "cint" || o.epreuve !== "e1" ? "e2" : "e1";
+  const niv = (COPIE_NIV[f] || {})[e] || "";
   return `Tu es membre du jury ${o.concours ? "du concours « " + o.concours + " »" : "des concours de recrutement des professeurs d'EPS (CAPEPS, agrégation)"} et tu corriges une copie de ${COPIE_EPR[f][e]}, rédigée en temps limité lors d'un concours blanc.
 Sujet : « ${o.subject} »
 ${o.contexte ? "\nContexte fourni avec le sujet :\n" + o.contexte + "\n" : ""}
@@ -233,7 +243,7 @@ ${o.pages ? `La copie du candidat est manuscrite : ses ${o.pages} page${o.pages 
 """
 ${o.notes}
 """
-`}${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${fbJury(o.jury, o.jsuj)}
+`}${o.facts && o.facts.length ? "\nFaits vérifiés du paquet de révision, utiles pour ce sujet :\n" + o.facts.map(f => "- " + f).join("\n") + "\n" : ""}${fbJury(o.jury, o.jsuj)}${niv ? "\n" + niv + "\n" : ""}
 Corrige cette copie comme un correcteur exigeant et bienveillant, en français, en 650 mots maximum, avec exactement ces titres, chacun sur une ligne qui commence par "## " :
 ## Appréciation d'ensemble
 ## Traitement du sujet et problématique
@@ -242,7 +252,7 @@ Corrige cette copie comme un correcteur exigeant et bienveillant, en français, 
 ## ${f === "cint" ? "Introduction, bilan prospectif et expression" : "Introduction, conclusion et expression"}
 ## Note indicative
 ## Trois priorités pour la prochaine copie
-Sous chaque titre, 1 à 4 puces qui commencent par "- ". Sous « Note indicative », donne une fourchette sur 20 (par exemple « 9 à 11 / 20 ») et une phrase qui la justifie, en rappelant qu'elle ne remplace pas la note d'un jury. Cite de courts passages de la copie quand c'est utile. Signale toute erreur factuelle ou date fausse. Si la copie est inachevée, dis-le et évalue ce qui est écrit. Ne réécris pas la copie.`;
+Sous chaque titre, 1 à 4 puces qui commencent par "- ". Sous « Note indicative », ${niv ? "situe d'abord la copie sur la grille du jury ci-dessus (niveau, puis haut ou bas du niveau), puis " : ""}donne une fourchette sur 20 (par exemple « 9 à 11 / 20 ») et une phrase qui la justifie, en rappelant qu'elle ne remplace pas la note d'un jury. Cite de courts passages de la copie quand c'est utile. Signale toute erreur factuelle ou date fausse. Si la copie est inachevée, dis-le et évalue ce qui est écrit. Ne réécris pas la copie.`;
 }
 // Suivi des compétences d'écriture : Claude termine son retour par une ligne « BILAN » que l'application lit
 // puis masque. Mêmes libellés que dans l'application ; seules ces clés sont acceptées.
