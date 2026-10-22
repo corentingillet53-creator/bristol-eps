@@ -7667,6 +7667,139 @@ function renderAnnales(){
 
 
 /* Méthode propre au concours choisi. */
+/* Les oraux du CAPEPS interne et de l'agrégation interne : format, étapes et questions d'entraînement.
+   CAPEPS interne : étapes tirées du rapport du jury 2026 ; agrégation interne : format officiel et rapport 2026, étapes proposées par Bristol EPS. */
+const ORAL = {
+ "capeps-int": {
+  "t": "L'oral : épreuve professionnelle sur dossier",
+  "lead": "Coefficient 2, contre 1 pour l'écrit : l'oral fait les deux tiers de ta note finale. Deux heures de préparation, puis un exposé de 20 minutes sans interruption et un entretien de 55 minutes avec deux membres du jury. Tu choisis entre deux sujets (deux établissements, deux APSA de deux champs d'apprentissage) : un dossier (contexte, projets, classe, programmes, séquence), une vidéo muette de 7 minutes et une question. En 2026 : « quelle situation d'enseignement proposeriez-vous lors de la prochaine leçon d'EPS pour les élèves de cette classe ? ». Moyenne des admis à l'oral en 2026 : 16,02.",
+  "src": [
+   "Rapport du jury 2026",
+   "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-interne-rapport-du-jury-de-la-session-2026-20715.pdf"
+  ],
+  "steps": [
+   {
+    "t": "Choisir son sujet vite, et s'y tenir",
+    "d": "Parcours les deux sujets en quelques minutes : l'APSA où tu sais le mieux faire apprendre, le contexte où tu vois tout de suite un besoin d'élèves.",
+    "p": "Le piège : changer de sujet en cours de préparation, ce que le jury juge très difficile à rattraper."
+   },
+   {
+    "t": "Lire la vidéo avec le dossier",
+    "d": "Relève ce que font les élèves (réussites, échecs, comportements) et rapproche-le de la classe décrite et de la séquence : c'est ce qui justifie ta situation.",
+    "p": "Le piège : décrire la vidéo sans en tirer un besoin d'apprentissage."
+   },
+   {
+    "t": "Prioriser un axe des projets et le faire vivre",
+    "d": "Retiens un axe des projets (établissement, EPS, classe) que la vidéo rend prioritaire, et montre-le à chaque étape de ta proposition.",
+    "p": "Le piège : un axe affiché puis oublié, ou trop général (la citoyenneté, finalité de toute l'École, n'apporte pas de plus-value selon le jury)."
+   },
+   {
+    "t": "Concevoir la situation de la prochaine leçon",
+    "d": "But, dispositif, consignes, contenus d'apprentissage, critères de réalisation et de réussite, variables pour les élèves en difficulté et pour les plus avancés, évaluation.",
+    "p": "Le piège : annoncer la prise en compte de la diversité puis ne plus la reprendre, ou un critère de réalisation sans conditions de réussite pour l'élève."
+   },
+   {
+    "t": "Rendre visibles tes interventions",
+    "d": "Dis ce que tu fais pendant la situation : guidage, régulations, interactions, et ce que tu changes si les élèves échouent ou réussissent trop vite.",
+    "p": "Le piège : des rôles sociaux (observateur, juge) sans contenus pour bien observer ou bien juger."
+   },
+   {
+    "t": "Structurer l'exposé de 20 minutes",
+    "d": "Une proposition de Bristol : ce que montrent la vidéo et le dossier (3 min), l'axe et le besoin retenus (3 min), la situation (8 min), tes interventions et régulations (4 min), l'évaluation et la suite de la séquence (2 min).",
+    "p": "Le piège : dépasser le temps sur le constat et bâcler la situation."
+   },
+   {
+    "t": "Entretien, partie 1 : concevoir et faire apprendre",
+    "d": "Réponds court, argumente, et accepte de faire évoluer ta proposition. Prépare la question éthique comme un dilemme professionnel : égalité ou équité, sécurité ou responsabilité de l'élève.",
+    "p": "Le piège : défendre sa proposition à tout prix au lieu de montrer une posture réflexive."
+   },
+   {
+    "t": "Entretien, partie 2 : enjeux de l'EPS et système éducatif",
+    "d": "Culture et engagement professionnels, travail en équipe, projection dans le métier, à partir de ton dossier : un CV de deux pages et un rapport d'activité de trois pages au plus, déposés sur Cyclades au moins quinze jours avant l'oral.",
+    "p": "Le piège : parler de la coopération au conditionnel (« je pourrais aller voir le coordonnateur ») au lieu de dire ce que tu fais."
+   },
+   {
+    "t": "Se préparer dans l'année",
+    "d": "Connais les textes officiels publiés avant la date limite d'inscription, observe des leçons dans des APSA variées, et entraîne-toi à l'exposé chronométré.",
+    "p": "L'éthique professionnelle est évaluée pendant toute l'épreuve, pas seulement à la question qui lui est consacrée."
+   }
+  ],
+  "qs": [
+   "Sur la vidéo, qu'est-ce qui vous fait dire que ces élèves ont besoin de cette situation ?",
+   "Quel critère de réussite donnez-vous à l'élève, et comment sait-il qu'il l'atteint ?",
+   "Votre observateur : qu'apprend-il, et comment l'aidez-vous à bien observer ?",
+   "Deux élèves réussissent tout dès la première minute : que faites-vous ?",
+   "Un élève refuse de passer devant la classe : que faites-vous, et pourquoi ?",
+   "Égalité ou équité : donneriez-vous les mêmes exigences aux filles et aux garçons dans cette APSA ?",
+   "Un élève se blesse pendant que vous êtes avec un autre groupe : quelles sont vos responsabilités ?",
+   "Dans votre rapport d'activité, quelle action d'équipe avez-vous conduite, et qu'a-t-elle changé pour les élèves ?",
+   "Comment le projet d'établissement de votre collège ou lycée se traduit-il dans vos leçons ?",
+   "Où vous voyez-vous dans cinq ans, et comment vous y préparez-vous ?"
+  ]
+ },
+ "agreg-int": {
+  "t": "Les oraux : la leçon, puis la prestation et l'entretien",
+  "lead": "Les oraux pèsent 6, contre 5 pour les écrits : la leçon (coefficient 4 : 5 heures de préparation à partir d'un dossier numérique avec données de l'établissement, de l'EPS et de la séquence, et vidéo des élèves dans la leçon précédente ; 30 minutes d'exposé, 60 minutes d'entretien) et la prestation physique avec entretien (coefficient 2 : 30 minutes de prestation, 45 minutes d'entretien). Depuis 2026, l'APSA de la prestation et celle de l'entretien peuvent être différentes, et la préparation physique et sportive s'ajoute aux APSA de la prestation. En 2026, un tiers des admis (33,3 %) ne figuraient pas parmi les 136 premiers admissibles : l'oral reclasse.",
+  "src": [
+   "Rapport du jury 2026",
+   "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-interne-section-ducation-physique-et-sportive-rapport-de-jury-de-la-session-2026-20517.pdf"
+  ],
+  "steps": [
+   {
+    "t": "Lire la vidéo de la leçon précédente",
+    "d": "Ce que les élèves font, réussissent et ratent, groupe par groupe : c'est ton point de départ, avant la séquence prévue dans le dossier.",
+    "p": "Le piège : plaquer une leçon préparée à l'avance sans partir de ce que montre la vidéo."
+   },
+   {
+    "t": "Situer la leçon dans la séquence et le dossier",
+    "d": "Où en est la séquence, quels attendus de fin de cycle sont visés, quelles données de l'établissement et de la classe pèsent sur tes choix.",
+    "p": "Le piège : une leçon isolée, sans passé ni suite."
+   },
+   {
+    "t": "Choisir un apprentissage prioritaire pour tous les élèves",
+    "d": "Un contenu précis, que tu peux justifier par des connaissances scientifiques et didactiques, et décliner pour chaque groupe de la classe.",
+    "p": "Le piège : viser trop de choses à la fois, ou un seul groupe d'élèves."
+   },
+   {
+    "t": "Concevoir la leçon",
+    "d": "Situations, consignes, critères de réalisation et de réussite, interventions et régulations, rôles des élèves, traces recueillies pour la leçon suivante.",
+    "p": "Le piège : décrire des dispositifs sans montrer ce que l'élève apprend, défaut que le jury relève aussi à l'écrit 2."
+   },
+   {
+    "t": "Structurer l'exposé de 30 minutes",
+    "d": "Une proposition de Bristol : ce que montre la vidéo (5 min), l'apprentissage prioritaire et sa justification (5 min), la leçon situation par situation (15 min), l'évaluation et la suite (5 min).",
+    "p": "Le piège : un exposé théorique qui laisse peu de temps à la leçon elle-même."
+   },
+   {
+    "t": "Préparer l'entretien de 60 minutes",
+    "d": "Le jury éprouve tes choix : alternatives, élèves en difficulté, sécurité, lien avec les textes et la recherche. Entraîne-toi à reformuler une situation en direct.",
+    "p": "Le piège : se défendre au lieu de raisonner à voix haute."
+   },
+   {
+    "t": "La prestation et son entretien",
+    "d": "Entraîne-toi régulièrement dans l'APSA de ta prestation. Pour l'entretien, prépare l'APSA retenue : sa logique, ses techniques, son enseignement et l'analyse de ta propre pratique.",
+    "p": "Le piège : négliger cette épreuve de coefficient 2, qui peut faire basculer un classement."
+   }
+  ],
+  "qs": [
+   "Sur la vidéo, quel groupe d'élèves avez-vous priorisé, et pourquoi ?",
+   "Quelles connaissances scientifiques justifient votre contenu prioritaire ?",
+   "Que faites-vous si la première situation échoue pour la moitié de la classe ?",
+   "Quelles traces recueillez-vous, et que changent-elles à la leçon suivante ?",
+   "Comment cette leçon prend-elle en compte l'élève en situation de handicap du dossier ?",
+   "Quelle autre APSA du même champ aurait permis le même apprentissage ?",
+   "Quelle est la logique interne de l'APSA de votre entretien, et comment l'enseignez-vous à des débutants ?",
+   "Qu'avez-vous appris de votre propre prestation pour enseigner cette APSA ?"
+  ]
+ }
+};
+function oralHTML(){
+  const o = ORAL[prefs.concours]; if (!o) return "";
+  return `<h2 class="sect-h">${esc(o.t)}</h2><p class="lead">${esc(o.lead)} <a href="${esc(o.src[1])}" target="_blank" rel="noopener">${esc(o.src[0])}</a></p>
+    <ol class="steps">${o.steps.map(st => `<li class="step"><b>${esc(st.t)}</b><p>${esc(st.d)}</p><p class="step-p">${esc(st.p)}</p></li>`).join("")}</ol>
+    <div class="sect"><h2>T'entraîner à l'entretien</h2><p class="lead">Des questions construites par Bristol EPS à partir des attendus du rapport du jury, pas des questions relevées au concours. Réponds en deux ou trois phrases, à voix haute puis par écrit.</p>
+    ${o.qs.map((q, i) => { const v = txGet("o:" + prefs.concours + ":" + i) || ""; return `<details class="sj-dos"${v.trim() ? " open" : ""}><summary>${esc(q)}</summary><label class="sr-only" for="or-${i}">Ta réponse</label><textarea id="or-${i}" data-oral="${i}" maxlength="1200" placeholder="Ta réponse, courte et argumentée…">${esc(v)}</textarea></details>`; }).join("")}</div>`;
+}
 function methFor(){ return isB3Conc() ? METHODE_B3 : prefs.concours === "agreg-ext" ? METHODE_AE : prefs.concours === "agreg-int" ? { e1: METHODE_AI1, e2: METHODE_AI2 } : prefs.concours === "capeps-int" ? { e2: METHODE_CI.e2 } : METHODE; }
 /* ---------- Méthode des écrits ----------
    Démarche construite à partir des attentes répétées dans les rapports de jury (2015-2026).
@@ -7820,11 +7953,12 @@ function renderMethode(){
   const el = $("#panel-methode"); if (!el) return;
   const fam = ANN_FAM_OF_CONC[prefs.concours];
   if (me.f === null) me.f = fam || "cext";
-  if (me.tab !== "jury" && !relHas(me.tab)) me.tab = relHas("e1") ? "e1" : "e2";
+  if (me.tab !== "jury" && !(me.tab === "oral" && ORAL[prefs.concours]) && !relHas(me.tab)) me.tab = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
-  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", b3 ? "Écrit 1 : réponse argumentée" : sjPools("e1").l], ["e2", b3 ? "Écrit 2 : étude d'épisodes" : sjPools("e2").l], ["jury", b3 ? "Le rapport du jury 2026" : "Ce que répètent les jurys"]].filter(([k]) => k === "jury" || relHas(k)).map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
+  const seg = `<div class="chips" role="group" aria-label="Partie de la méthode">${[["e1", b3 ? "Écrit 1 : réponse argumentée" : sjPools("e1").l], ["e2", b3 ? "Écrit 2 : étude d'épisodes" : sjPools("e2").l], ["jury", b3 ? "Le rapport du jury 2026" : "Ce que répètent les jurys"], ["oral", "L'oral"]].filter(([k]) => k === "jury" || (k === "oral" ? !!ORAL[prefs.concours] : relHas(k))).map(([k, l]) => `<button class="chip" data-metab="${k}" aria-pressed="${k === me.tab}">${esc(l)}</button>`).join("")}</div>`;
   let body;
-  if (me.tab === "jury" && b3) {
+  if (me.tab === "oral") body = oralHTML();
+  else if (me.tab === "jury" && b3) {
     const g = JURYS.find(x => x.f === "cext");
     body = `<p class="lead">Le rapport du jury de la première session du CAPEPS externe à bac+3, page par page. Session 2026 : 772 admissibles et 478 admis au CAPEPS.</p>
       ${["e1", "e2"].filter(k => relHas(k)).map(k => `<div class="sect"><h2>${k === "e1" ? "Écrit 1" : "Écrit 2"}</h2><ul class="jury-list">${B3_JURY[k].map(([t, pg]) => `<li><p>${esc(t)}</p><span>Rapport 2026, ${esc(pg)}</span></li>`).join("")}</ul></div>`).join("")}
@@ -8995,6 +9129,7 @@ document.addEventListener("input", e => {
   }
   if (e.target.dataset && e.target.dataset.dos) { noteSet("d:" + e.target.dataset.dos, e.target.value); return; }
   if (e.target.dataset && /^m:(classe|bilan)$/.test(e.target.dataset.mine || "")) { noteSet(e.target.dataset.mine, e.target.value); return; }
+  if (e.target.dataset && /^\d+$/.test(e.target.dataset.oral || "")) { noteSet("o:" + prefs.concours + ":" + e.target.dataset.oral, e.target.value); return; }
   if (e.target.id !== "sj-notes") return;
   const k = e.target.dataset.sid; noteSet(k, e.target.value);
   if (document.getElementById("outl-sj-notes")) outlineRefresh(e.target);
