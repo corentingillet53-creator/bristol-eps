@@ -7573,7 +7573,7 @@ function planWeeks(){
     const toExam = ex.daysLeft - d0, last = toExam <= 7, final = learn === 0;
     const items = [];
     if (news.length) items.push("Nouvelles cartes : " + news.map(x => `${x.s.toLowerCase()} · ${x.n}`).join(", "));
-    else if (!final) items.push("Toutes les cartes sont vues : consolide celles des boîtes 1 à 3.");
+    else if (!final) items.push("Toutes les cartes sont vues : les révisions continuent chaque jour (boîtes 1 à 3), le temps gagné va à l'écriture.");
     if (final && !last) items.push("Plus de nouvelles cartes : points faibles et cartes ratées (onglet Progrès).");
     if (T && !last) {
       /* Temps renseigné : l'écriture se cale sur ce qui reste une fois les cartes faites, et s'accumule d'une semaine à l'autre. */
@@ -7600,10 +7600,12 @@ function planWeeks(){
     ecr.forEach(e => {
       if (last) return;
       if (final || e === full) items.push(`${cap(e.s)} : un concours blanc, copie complète en temps réel${e.h ? ` (${e.h} h)` : ""}, puis la correction de Claude.`);
-      else items.push(`${cap(e.s)} : un sujet d'annale, problématique et plan détaillé en 1 h.`);
+      else items.push(`${cap(e.s)} : ${isB3Conc() ? "un sujet d'annale, problématique et plan détaillé en 1 h." : wTask(e, "plan")}`);
+      /* Plus de nouvelles cartes avant la révision finale : un second exercice d'écriture dans la semaine. */
+      if (!news.length && !final && e !== full) items.push(`${cap(e.s)} : ${wTask(e, "short")}`);
     });
     }
-    if (!last && !final && rel.includes("e2")) items.push("Références : en apprendre cinq et les placer dans un paragraphe.");
+    if (!last && !final && rel.includes("e2")) items.push(`Références : en apprendre cinq et les placer dans ${prefs.concours === "capeps-int" ? "une proposition" : "un paragraphe"}.`);
     if (w === 0 && !last) { const wk = skWeak(); if (wk) items.push(`Point à travailler : ${wk.l.toLowerCase()} (${skWhy(wk)}). ${skTrain(wk).l}.`); }
     if (last) items.push("Relis tes plans, tes références et ta frise ; pas de copie complète, repos la veille.");
     const a = new Date(t0); a.setDate(a.getDate() + d0);
