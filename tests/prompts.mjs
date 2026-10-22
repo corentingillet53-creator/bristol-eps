@@ -92,6 +92,28 @@ for (const [conc, e, kinds, who, word] of CASES) {
   ok(!errs.length, conc + " sans erreur " + errs.join(" | "));
   await ctx.close();
 }
+// Mémoire d'un retour à l'autre : les compétences jugées insuffisantes sur d'autres sujets sont rappelées à Claude
+for (const [conc, e] of [["capeps-int", "ei"], ["agreg-int", "e2"]]) {
+  const { ctx, p, errs } = await page(conc);
+  const r = await p.evaluate(([e, notes]) => {
+    const fam = { "capeps-int": "cint", "agreg-int": "aint" }[prefs.concours];
+    const L = ANNALES.filter(x => x.f === fam && x.e === e).sort((x, y) => y.y - x.y);
+    L.slice(1, 4).forEach((a, i) => { const s0 = annSubject(a); fbSave(fbKey(s0, "plan"), "## Ce qui fonctionne\n- ok\nBILAN: sujet=2; contexte=0; prop=1; temps=0"); });
+    const s = annSubject(L[0]); sj.cur = s; sj.epr = s.epr; sj.mode = "plan"; sj.shown = false;
+    noteSet(fbKey(s, "plan"), notes); window.__cap = []; setView("sujets");
+    return askFeedback("plan").then(() => {
+      const fb1 = window.__cap[0];
+      const now = Date.now(), m = { id: "bweak", k: e, s: "Écrit", co: concById(prefs.concours).t, f: fam, src: "ann", sid: L[0].id, dur: 4 * 3600, start: now - 3600e3, end: now, state: "done", paper: 0 };
+      blancPut(m); txSet("b:bweak", "Ma copie. ".repeat(60)); window.__cap = [];
+      return askCopie(m).then(() => ({ fb1, cp: window.__cap[0] }));
+    });
+  }, [e, NOTES]);
+  ok(r.fb1 && /tes retours ont jugé insuffisant : la prise en compte/.test(r.fb1.prompt) && !/insuffisant :[^\n]*l'analyse du sujet/.test(r.fb1.prompt) && /revient d'un texte à l'autre/.test(r.fb1.prompt), `${conc} mémoire : points faibles rappelés dans le retour`);
+  ok(r.cp && /tes retours ont jugé insuffisant/.test(r.cp.prompt) && /« Trois priorités pour la prochaine copie »/.test(r.cp.prompt), `${conc} mémoire : points faibles rappelés dans la correction de copie`);
+  for (const [t, c] of [["retour", r.fb1], ["copie", r.cp]]) { const sv = await serverPrompt(c.payload); ok(sv.status === 200 && sv.prompt === c.prompt, `${conc} mémoire ${t} : prompt identique page et serveur` + (sv.prompt === c.prompt ? "" : diff(c.prompt, sv.prompt || String(sv.status)))); }
+  ok(!errs.length, conc + " mémoire sans erreur " + errs.join(" | "));
+  await ctx.close();
+}
 // Test de positionnement du CAPEPS interne : textes officiels et intervention, aucun leurre hors programme
 {
   const { ctx, p, errs } = await page("capeps-int");
