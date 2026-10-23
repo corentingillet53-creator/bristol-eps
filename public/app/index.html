@@ -4874,7 +4874,7 @@ const CONCOURS = [
     src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20617/download"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/capeps-externe-bac-5-rapport-du-jury-de-la-session-2026-20853.pdf"], BO_2027] },
 
-  { id: "capeps-int", t: "CAPEPS interne", tag: "Agents publics en poste, professeurs des écoles compris",
+  { id: "capeps-int", t: "CAPEPS interne", tag: "Agents publics, professeurs des écoles, maîtres du privé (CAER)",
     note: "Pas de dossier RAEP au CAPEPS interne, contrairement au CAPES interne : l'admissibilité se joue sur un écrit.",
     qui: "Agents publics en activité justifiant de trois années de services publics et d'une licence. Vérifie ta situation dans la note de service : les conditions sont appréciées à la publication des résultats d'admissibilité.",
     prive: "CAER-CAPEPS pour les maîtres du privé sous contrat : mêmes épreuves, classement séparé.",
@@ -4893,7 +4893,7 @@ const CONCOURS = [
     src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20623/download"],
       ["Rapport du jury 2026", "https://www.devenirenseignant.gouv.fr/media/20715/download"], BO_2027] },
 
-  { id: "capeps-3", t: "Troisième concours du CAPEPS", tag: "Pour une reconversion depuis le privé",
+  { id: "capeps-3", t: "Troisième concours du CAPEPS", tag: "Cinq ans d'emploi sous contrat de droit privé",
     note: "Fermé en 2026, rouvert en 2027. Ses épreuves relèvent désormais de l'arrêté du 17 avril 2025 modifié, comme celles du CAPEPS externe à bac+3 : leur détail est sur la page officielle.",
     qui: "Au moins cinq ans d'activité professionnelle sous contrat de droit privé, sans condition de diplôme. C'est la règle générale des troisièmes concours : vérifie-la dans la note de service.",
     ecrits: "2 et 3 mars 2027", d: "2027-03-02",
@@ -4928,7 +4928,7 @@ const CONCOURS = [
     src: [["Programme officiel de la session 2027", "https://www.devenirenseignant.gouv.fr/media/20528/download"],
       ["Rapport du jury 2026 (copie du SNEP-FSU)", "https://lesite.snepfsu.fr/wp-content/uploads/2026/09/agr-gation-externe-section-ducation-physique-et-sportive-rapport-du-jury-de-la-session-2026-20760.pdf"], BO_2027] },
 
-  { id: "agreg-int", t: "Agrégation interne d'EPS", tag: "Pour les enseignants titulaires",
+  { id: "agreg-int", t: "Agrégation interne d'EPS", tag: "Enseignants titulaires, maîtres du privé (CAER-PA)",
     note: "Programme 2027 : mêmes thèmes qu'en 2026 pour les deux écrits ; l'écrit 1 est désormais une dissertation seulement, et l'Ultimate remplace le basket-ball à la leçon.",
     qui: "Fonctionnaires justifiant de cinq années de services publics, appréciées à la date des résultats d'admissibilité. Les candidats en disponibilité ne peuvent pas concourir.",
     prive: "CAER-PA pour les maîtres contractuels du privé : mêmes épreuves, même jury.",
@@ -8512,7 +8512,7 @@ function outlineBalance(items){
 }
 function outlineHTML(text, target){
   const o = outline(text), n = o.items.length;
-  const list = n ? `<ol class="outl">${o.items.map(it => `<li class="ol-${it.lvl}"><button class="outl-go" data-outpos="${it.pos}" data-outta="${target}" title="${esc(it.t)}"><span>${esc(it.t)}</span><span class="outl-w">${it.w} mots</span></button></li>`).join("")}</ol>`
+  const list = n ? `<ol class="outl">${o.items.map(it => `<li class="ol-${it.lvl}"><button class="outl-go" data-outpos="${it.pos}" data-outta="${target}" title="${esc(it.t)}"><span>${esc(it.t)}</span><span class="outl-w">${it.w ? it.w + " mots" : ""}</span></button></li>`).join("")}</ol>`
     : `<p class="outl-empty">Commence tes titres en début de ligne (« Introduction », « I. », « A. », « Conclusion ») : ton plan apparaît ici, avec le nombre de mots de chaque partie.</p>`;
   const bal = outlineBalance(o.items);
   return `<details class="outl-box" id="outl-${target}"${n ? " open" : ""}><summary>Plan de ta copie${n ? ` (${n} titre${n > 1 ? "s" : ""})` : ` <span class="outl-hint">Se remplit avec tes titres.</span>`}</summary>${list}${bal ? `<p class="outl-warn">${esc(bal)}</p>` : ""}</details>`;
@@ -9396,7 +9396,7 @@ const EV_KEY = "bristol-eps-ev", SRC_KEY = "bristol-eps-src";
 function srcGet(){ try { return sessionStorage.getItem(SRC_KEY) || ""; } catch (e) { return ""; } }
 function srcInit(){
   const clean = v => String(v || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30);
-  let v = ""; try { v = clean(new URL(location.href).searchParams.get("utm_source")); } catch (e) {}
+  let v = ""; try { const q = new URL(location.href).searchParams; v = clean(q.get("utm_source")) || (q.get("gclid") || q.get("gbraid") || q.get("wbraid") ? "google-ads" : ""); } catch (e) {}
   if (!v) try { const r = new URL(document.referrer); if (r.origin === location.origin) v = clean(r.searchParams.get("utm_source")); } catch (e) {}
   if (v) try { sessionStorage.setItem(SRC_KEY, v); } catch (e) {}
 }
@@ -9689,7 +9689,8 @@ function onbHTML(){
       <li><b>Tu as ou prépares un master</b> : CAPEPS externe transitoire (dernière session en 2027) ou agrégation externe.</li>
       <li><b>Agent public, trois ans de services et une licence</b> : CAPEPS interne.</li>
       <li><b>Fonctionnaire, cinq ans de services publics et un master (ou équivalent)</b> : agrégation interne.</li>
-      <li><b>Cinq ans d'activité dans le privé</b> : troisième concours.</li></ul>
+      <li><b>Maître dans un établissement privé sous contrat</b> : le CAER-CAPEPS a les épreuves du CAPEPS interne, le CAER-PA celles de l'agrégation interne : choisis l'un de ces deux concours.</li>
+      <li><b>Cinq ans d'emploi sous contrat de droit privé</b> (hors enseignement privé sous contrat) : troisième concours.</li></ul>
       <p class="w-note">Ce sont les règles générales : vérifie ta situation dans la note de service, citée sur la fiche de chaque concours.</p></details>
     ${STANDALONE && acct.status !== "in" ? `<p class="w-note">Déjà un compte ? <button class="linkbtn" data-act="account-open">Connecte-toi</button> pour retrouver ton concours et ta progression.</p>` : ""}</div>`;
 }

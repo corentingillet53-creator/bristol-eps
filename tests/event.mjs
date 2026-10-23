@@ -62,6 +62,9 @@ ok(/Visiteurs · 7 jours/.test(dash) && /<svg/.test(dash) && /Provenance/.test(d
 const vj = await (await get("?format=json&j=30", { "x-admin-token": "jeton-admin-assez-long" })).json();
 ok(vj.visits.visitors === 4 && vj.visits.pageviews === 5 && vj.visits.sources.Google === 1, "visites en JSON");
 
+// Clic d'annonce sans utm_source : gclid (marquage automatique de Google Ads) compte pour google-ads.
+await view("/capeps-interne/?gclid=Cj0KCQabc", { ip: "8.8.8.1", ua: PC, ref: "https://www.google.com/" });
+ok(vn("src", "google-ads") === 1, "gclid compté comme google-ads");
 // Provenance (utm_source gardé par la page) suivie le long du parcours, jusqu'au paiement.
 import { recordSource } from "../functions/api/event.js";
 await post("/api/event", { e: "paywall", c: "capeps-int", s: "Google-Ads" }, "4.4.4.1");
@@ -69,6 +72,7 @@ await post("/api/event", { e: "review1", c: "capeps-int", s: "google-ads" }, "4.
 await recordSource(env, "paid_pass", "google-ads"); await recordSource(env, "paid_pass", "");
 ok(vn("via:google-ads", "paywall") === 1 && vn("via:google-ads", "paid_pass") === 1 && vn("via:google-ads", "review1") === 0, "provenance : étapes clés comptées, nom nettoyé");
 const dv = await (await get("?t=jeton-admin-assez-long")).text();
+ok(/Achat par visiteur/.test(dv) && /<td>google-ads<\/td><td>1<\/td>/.test(dv) && /100,0 %/.test(dv), "tableau : visiteurs et taux d'achat par provenance");
 ok(/Parcours par provenance/.test(dv) && /<td>google-ads<\/td>/.test(dv) && !/Visiteurs[^<]*via:/.test(dv), "tableau : parcours par provenance");
 const jv = await (await get("?format=json", { "x-admin-token": "jeton-admin-assez-long" })).json();
 ok(jv.via["google-ads"].paid_pass === 1 && !("via:google-ads" in jv.visits.sources), "provenance en JSON, à part des visites");

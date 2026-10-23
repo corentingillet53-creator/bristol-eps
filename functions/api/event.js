@@ -45,7 +45,7 @@ export async function recordEvent(env, e, c = "") {
 // Provenance déclarée par la page (utm_source de l'annonce, gardé dans l'onglet) ou par le paiement
 // (metadata Stripe) : un compteur de plus, table views, dimension « via:<source> », valeur = l'étape.
 // On voit ainsi combien d'appareils venus d'une annonce ont ouvert l'appli, demandé un retour, payé.
-const VIA = ["open", "feedback1", "paywall", "checkout", "paid_pass", "paid_mensuel"];
+const VIA = ["open", "concours", "write1", "feedback1", "paywall", "checkout", "paid_pass", "paid_mensuel"];
 export function cleanSource(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30); }
 export async function recordSource(env, e, s) {
   const src = cleanSource(s);
@@ -83,6 +83,8 @@ export function viewPage(pathname) {
 function source(request, url) {
   const utm = (url.searchParams.get("utm_source") || url.searchParams.get("ref") || "").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 30);
   if (utm) return utm;
+  // Clic d'annonce Google sans utm_source : le marquage automatique ajoute gclid (ou gbraid/wbraid sur iOS).
+  if (url.searchParams.get("gclid") || url.searchParams.get("gbraid") || url.searchParams.get("wbraid")) return "google-ads";
   let h = "";
   try { h = new URL(request.headers.get("referer") || "").hostname.toLowerCase(); } catch (e) { return "Direct"; }
   if (h === url.hostname || h.endsWith("eps-bristol.fr") || h.endsWith(".workers.dev")) return "";
@@ -121,12 +123,15 @@ async function postEvent(request, env) {
 }
 
 // Parcours des visiteurs arrivés avec une provenance (?utm_source=…), sur la période choisie.
-function viaHTML(via, per) {
+// Visiteurs (pages servies par le Worker, un par appareil et par jour) en tête, puis le taux d'achat :
+// pour google-ads, c'est à peu près le ratio clic sur l'annonce → achat.
+function viaHTML(via, per, visits = {}) {
   const src = Object.keys(via).sort((a, b) => (via[b].open || 0) - (via[a].open || 0));
   const head = `<h2>Parcours par provenance</h2><p>Visiteurs arrivés par un lien marqué (?utm_source=…, par exemple google-ads), sur ${per}. Les achats sont comptés au paiement.</p>`;
   if (!src.length) return head + "<p class=\"mut\">Aucun pour l'instant.</p>";
-  const rows = src.map((s) => `<tr><td>${esc(s)}</td>${VIA.map((e) => `<td>${via[s][e] || 0}</td>`).join("")}</tr>`).join("");
-  return head + `<div class="card scroll"><table class="funnel"><thead><tr><th>Provenance</th>${VIA.map((e) => `<th>${esc(LABEL[e])}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  const rate = (s) => { const n = Math.max(visits[s] || 0, via[s].open || 0), k = (via[s].paid_pass || 0) + (via[s].paid_mensuel || 0); return n ? (100 * k / n).toFixed(1).replace(".", ",") + " %" : "–"; };
+  const rows = src.map((s) => `<tr><td>${esc(s)}</td><td>${visits[s] || 0}</td>${VIA.map((e) => `<td>${via[s][e] || 0}</td>`).join("")}<td>${rate(s)}</td></tr>`).join("");
+  return head + `<div class="card scroll"><table class="funnel"><thead><tr><th>Provenance</th><th>Visiteurs du site</th>${VIA.map((e) => `<th>${esc(LABEL[e])}</th>`).join("")}<th>Achat par visiteur</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function isAdmin(request, env) {
@@ -225,7 +230,7 @@ td:nth-child(n+2){font-variant-numeric:tabular-nums}.sh td:nth-child(n+2){text-a
 <div class="grid2">${share("Provenance", V.src)}${share("Pages vues", V.page, (p) => PAGES[p] || p)}${share("Appareils", V.dev)}${share("Pays", V.cc, country, 8)}</div>
 <h2>Parcours des candidats</h2><p>Chaque appareil compte une seule fois par étape (sauf les jours actifs). « % » : part des appareils qui ont ouvert l'appli.</p>
 <div class="card scroll"><table class="funnel"><thead><tr><th>Étape</th><th>7 jours</th><th>30 jours</th><th>Total</th><th>%</th><th>Par concours (total)</th></tr></thead><tbody>${rows}</tbody></table></div>
-${viaHTML(via, per)}
+${viaHTML(via, per, V.src)}
 ${await resultsHTML(env)}</main></body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex", "referrer-policy": "no-referrer" } });
 }
