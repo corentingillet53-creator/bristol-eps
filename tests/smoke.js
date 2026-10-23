@@ -32,4 +32,9 @@ const mk=async(conc,prem)=>{const ctx=await b.newContext({viewport:{width:1280,h
  ok(await p.evaluate(()=>{for(let i=0;i<30;i++)for(const q of ptBuild()){const c=concCards().find(x=>x.id===q.id);if(!c)continue;for(const t of PT_TWINS)if(t.includes(c.id)){const o=concCards().find(x=>x.id===t.find(y=>y!==c.id));if(o&&q.opts.includes(o.a))return false;}}return true;}),'test : pas de leurre jumeau (ZPD / socioconstructivisme)');
  await p.evaluate(()=>{me.tab='e2';setView('methode')});const t=await p.textContent('#panel-methode');ok(/étude de cas/.test(t)&&/bilan prospectif/.test(t)&&/association sportive/.test(t),'capeps-int méthode étude de cas');
  ok(!errs.length,'capeps-int sans erreur '+errs.join('|'));await ctx.close();}
+// Annonce Google sans utm_source : gclid suffit ; aide au choix pour les maîtres du privé sous contrat
+{const ctx=await b.newContext();const p=await ctx.newPage();await p.goto('http://localhost:8766/app/?gclid=Cj0KCQabc');await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>srcGet())==='google-ads','gclid : provenance google-ads');
+ const t=await p.evaluate(()=>document.body.textContent);ok(/CAER-CAPEPS a les épreuves du CAPEPS interne/.test(t)&&/maîtres du privé \(CAER\)/.test(t)&&!/reconversion depuis le privé/.test(t),'choix du concours : privé sous contrat orienté vers l\'interne');
+ await ctx.close();}
 console.log(fails.length?'FAILS: '+fails.join(' | '):'ALL OK');await b.close();})();

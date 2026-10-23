@@ -1,6 +1,6 @@
 # Fichier écrit par build.py : ne pas modifier à la main.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-37oI3HheCLw7ZvfETOecMg1/W16656JDZusNbZTvpVQ=' 'sha256-rjEhMOfk231Jfm4o/7N1BQMasc6OXcOYP00Jjesyksw=' 'sha256-rxGULr6dXwtJdRGOhN4xjTkbUsXOrBDSBUA7uIlISbg=' 'sha256-wvEfirFRSzA3bKAwUYZ/DIGYLmuPZ1ZxQoS5CTndkiY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-AWCU4bNEn7BxxFzu1MNBoK1YeHjwno7r2L/GXUNd+jo=' 'sha256-pnJnRqEZQUtHNetA0t5T77haVzoiVMdewACOr1MCn54=' 'sha256-rjEhMOfk231Jfm4o/7N1BQMasc6OXcOYP00Jjesyksw=' 'sha256-rxGULr6dXwtJdRGOhN4xjTkbUsXOrBDSBUA7uIlISbg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
