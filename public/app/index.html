@@ -2462,7 +2462,7 @@ const ACHS = [
   { id: "all", c: "mai", t: "Paquet complet", d: "Maîtriser toutes les cartes de ton concours.", v: () => { const L = relCards().filter(c => !c.custom); return [L.filter(c => progress[c.id] && progress[c.id].b === 5).length, L.length]; } },
   { id: "fr", c: "ent", on: () => relHas("e1"), t: "Chronologiste", d: "Placer 50 événements au bon endroit dans la frise.", v: () => [games.frise.g, 50] },
   { id: "qui", c: "ent", on: () => relHas("e1"), t: "Qui est qui", d: "Donner 50 bonnes réponses à « Qui ? ».", v: () => [games.qui.g, 50] },
-  { id: "w1", c: "red", t: "Première copie", d: "Rédiger un premier texte sur un sujet (plan, introduction ou paragraphe).", v: () => [Object.keys(ach.w).length, 1] },
+  { id: "w1", c: "red", t: "Premier texte", d: "Rédiger un premier texte sur un sujet (plan, introduction ou paragraphe).", v: () => [Object.keys(ach.w).length, 1] },
   { id: "wint", c: "red", on: () => relHas("e1") && !isB3Conc(), t: "Introduction complète", d: "Cocher les six éléments de la grille sur une introduction.", v: () => [Math.max(0, ...SUBJECTS.map(x => chkGet(x.id).length)), 6] },
   { id: "w10", c: "red", t: "Dix paragraphes", d: "Rédiger un paragraphe argumenté sur 10 sujets différents.", v: () => [writtenBy("p:").length, 10] },
   { id: "wax", c: "red", on: () => relHas("e1") && !isB3Conc(), t: "Sur tous les fronts", d: "Travailler au moins un sujet dans chacun des trois axes.", v: () => [new Set(Object.keys(ach.w).map(k => (subjOf(k) || {}).th).filter(Boolean)).size, 3] },
@@ -2654,7 +2654,7 @@ function heroHTML(){
   let lane;
   if (g.daysLeft < 0) lane = `<p class="hero-note">La date du concours est passée. Mets-la à jour si tu repasses l'épreuve.</p>`;
   else if (g.daysLeft === 0) lane = `<p class="hero-note">C'est le jour du concours. Bon courage !</p>`;
-  else if (!g.newPerDay) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
+  else if (!g.unseen) lane = `<p class="hero-note">Tu as vu toutes les cartes : concentre-toi sur les révisions et tes points faibles.</p>`;
   else lane = g.daysLeft <= 14 ? `<p class="hero-note">Phase finale : après ta séance, revois tes points faibles.</p>` : "";
   return `<section class="hero" id="goal" aria-label="Objectif concours">
     <div class="hero-top"><div>${myC ? `<p class="hero-c">${esc(myC.t)} <button class="linkbtn" data-act="conc-change">Changer</button></p>` : ""}<p class="hero-j">${big}</p><p class="hero-date"><span>${myC && prefs.examDate === myC.d ? (dateProv(myC) ? "Écrits vers le" : "Écrits le") : "Concours le"} ${esc(dateTxt)}${myC && prefs.examDate === myC.d && dateProv(myC) ? " (date provisoire)" : ""}</span><button class="linkbtn" data-act="goal-edit">Modifier la date</button>${myC ? "" : `<button class="linkbtn" data-sec="suivi" data-gotab="concours">Choisir mon concours</button>`}</p></div>${stats}</div>
@@ -3248,7 +3248,8 @@ async function paywall(why){
   if (pw.why === "recharge" && !bill.credits) await credLoad();
   renderPaywall();
   document.documentElement.classList.add("gs-on");
-  const b = $("#paywall [data-pwplan]:not([aria-disabled='true']):not([disabled])") || $("#pw-title"); if (b) b.focus();
+  const b = $("#paywall [data-pwplan]:not([aria-disabled='true']):not([disabled])") || $("#pw-title"); if (b) b.focus({ preventScroll: true });
+  const pe = $("#paywall"); if (pe) { pe.scrollTop = 0; Array.from(pe.children).forEach(x => { x.scrollTop = 0; }); }
 }
 function closePaywall(){
   pw.open = false; const el = $("#paywall"); if (el) { el.hidden = true; el.innerHTML = ""; }
@@ -3310,7 +3311,7 @@ function renderPaywall(){
 }
 /* Le pass rapporté aux semaines qui restent avant les écrits (au moins deux). */
 function pwWeek(on, c){
-  const d = Date.parse((prefs.examDate || "") + "T08:00:00"), n = Math.ceil((d - Date.now()) / (7 * DAY));
+  const d = Date.parse((prefs.examDate || "") + "T08:00:00"), n = (d - Date.now()) / (7 * DAY);
   const px = offreOn() && on ? OFFRE.prix : parseFloat(String(c.pass ? c.pass.label : "80").replace(",", "."));
   if (!(n >= 2) || !(px > 0)) return "";
   return ` Soit environ ${String(Math.round(px / n * 10) / 10).replace(".", ",")} € par semaine jusqu'à tes écrits.`;
@@ -3391,8 +3392,11 @@ function trialCard(up){
   const f = up && STANDALONE && !isPremium() ? eprOf(freeGrp()) : null;
   return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p>${f ? `<p class="tc-up"><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour. <button class="linkbtn" data-act="paywall" data-why="menu">Débloquer tout</button></p>` : ""}</div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
 }
+function sjEprFix(){ if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2"; }
 function essaiGo(){
   if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
+  /* L'écrit du concours d'abord : au rechargement, sj.epr vaut encore « e1 » même au CAPEPS interne. */
+  sjEprFix();
   /* Sujet d'entraînement d'abord : son dossier (situation fictive) est fourni, alors que l'annexe d'une annale est à relever soi-même. */
   const P = sjPools(sj.epr); if (P.own.length) { sj.src = "own"; sj.srcPicked = true; }
   /* Jamais le sujet « Ta classe » pour l'essai : il demande d'abord de décrire sa classe, sans dossier fourni. */
@@ -3413,7 +3417,7 @@ function sessNext(){
 }
 function saveCardHTML(n){
   if (!STANDALONE || acct.status === "in") return "";
-  return `<div class="save-card"><p class="save-h">Garde ${n ? "ces " + plural(n, "carte") : "ta progression"}</p><p>Crée ton compte en dix secondes : ta progression est sauvegardée et tu la retrouves sur ton téléphone.</p>
+  return `<div class="save-card"><p class="save-h">Garde ${n ? "ces " + plural(n, "carte") : "ta progression"}</p><p>Crée ton compte en dix secondes : ta progression est sauvegardée et tu la retrouves sur tous tes appareils.</p>
     <div class="row-btns">${acct.google ? `<a class="btn primary g-btn" href="/api/auth/google/start">Continuer avec Google</a>` : ""}<button class="btn${acct.google ? "" : " primary"}" data-act="save-progress">Avec mon e-mail</button></div></div>`;
 }
 
@@ -3511,7 +3515,7 @@ function renderRevise(){
     const goalMet = !newLimit() && cards.some(x => !progress[x.id]);
     const others = EPR.filter(e => e.id !== grp && relHas(e.id) && !grpLocked(e.id)).map(e => [e, grpGoal(e.id)]).filter(([, x]) => x.todo);
     const nx = done && !others.length ? sessNext() : "";
-    el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? "objectif du jour atteint." : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
+    el.innerHTML = `<div class="empty"><h2>${esc(eprOf(grp).s)} : ${goalMet ? (((log[dayKey()] || {})["n_" + grp] || 0) ? "objectif du jour atteint." : "nouvelles fiches du jour déjà faites sur l'autre écrit.") : done ? "séance terminée." : "rien à revoir pour l'instant."}</h2>
       ${done ? sessRecap(others.length) : ""}${nx}${lastGrade ? `<p><button class="linkbtn" data-act="undo">Annuler la dernière réponse (« ${GRADE_TXT[lastGrade.r]} »)</button></p>` : ""}
       ${others.length ? `<p>Il te reste du travail sur ${others.map(([e, x]) => `${esc(e.s.toLowerCase() === "textes officiels" ? "les textes officiels" : "l'" + e.s.toLowerCase())} (${plural(x.todo, "carte")})`).join(" et ")}.</p>
       <div class="row-btns" style="margin-bottom:16px">${others.map(([e, x], i) => `<button class="btn${i ? "" : " primary"}" data-grp="${e.id}">Continuer ${e.id === "tx" ? "avec les textes officiels" : "avec l'" + e.s.toLowerCase()} (${x.todo})</button>`).join("")}</div>` : ""}
@@ -4620,8 +4624,8 @@ function drawSubject(keep){
 }
 function renderSujets(){
   try { localStorage.setItem("bristol-eps-sj", JSON.stringify(sj.cur ? { id: sj.cur.id, mode: sj.mode } : null)); } catch (e) {}
+  sjEprFix();
   const e2 = sj.epr === "e2";
-  if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2";
   const b3 = isB3Conc();
   const P = sjPools(sj.epr);
   if (!sj.srcPicked && ANN_FIRST.has(prefs.concours) && P.ann.length && !(trialOn() && P.own.length)) sj.src = "ann";
@@ -4661,7 +4665,7 @@ function renderSujets(){
       ? `<p class="lead">Tire un sujet et rédige un seul paragraphe argumenté, la brique de base de la dissertation : une idée, un argument, un exemple précis et daté, une nuance, un lien au sujet. Compte une quinzaine de minutes.</p>`
       : sj.mode === "intro"
       ? `<p class="lead">Tire un sujet et rédige son introduction en temps limité (20 minutes par défaut). Vérifie ensuite les six éléments attendus avec la grille, et demande un retour si tu veux.</p>`
-      : `<p class="lead">${SUBJECTS.length} sujets d'entraînement rédigés sur les trois axes de l'écrit 1. Tire un sujet, cherche ta problématique et ton plan, puis affiche les cartes du paquet qui peuvent nourrir tes arguments.</p>`;
+      : `<p class="lead">${fbFmt() ? P.own.length + " sujets d'entraînement à l'écrit 1" : SUBJECTS.length + " sujets d'entraînement rédigés sur les trois axes de l'écrit 1"}. Tire un sujet, cherche ta problématique et ton plan, puis affiche les cartes du paquet qui peuvent nourrir tes arguments.</p>`;
     body += `<div class="row-btns actions"><button class="btn primary" data-act="sj-draw">Tirer un sujet</button></div>${juryBoxHTML(sj.epr)}`;
   } else {
     const s = sj.cur;
@@ -5166,7 +5170,7 @@ function renderSources(){
       <li><b>Les textes officiels font foi.</b> En cas de doute sur une date ou une épreuve, vérifie la source citée.</li>
     </ul></div>
     <div class="sect"><h2>Tes données</h2><ul class="trust-list">
-      <li>Ta progression reste sur ton appareil ; avec un compte, elle est aussi sauvegardée pour la retrouver sur ton téléphone.</li>
+      <li>Ta progression reste sur ton appareil ; avec un compte, elle est aussi sauvegardée pour la retrouver sur tous tes appareils.</li>
       <li>Tes textes ne sont envoyés à Claude que lorsque tu demandes un retour.</li>
       <li>Ni publicité, ni revente de données.</li>
     </ul></div>
@@ -9344,6 +9348,7 @@ document.addEventListener("keydown", e => {
     if (e.key === "ArrowDown" && e.target.id === "gs-input") { const b = $("#gs-results .gs-item"); if (b) { e.preventDefault(); b.focus(); } }
     return;
   }
+  if (acct.open && e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closeAccount(); return; }
   if (((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !e.target.closest("input, textarea, select"))) { if (!focusMode && !listen.on) { e.preventDefault(); e.stopImmediatePropagation(); gsOpen(); return; } }
   if (e.key === "Escape" && focusMode) { e.preventDefault(); e.stopImmediatePropagation(); setFocus(false); return; }
 }, true);
@@ -9530,7 +9535,7 @@ function renderAccount(){
       ${msg}<div class="row-btns"><button class="btn danger" type="submit"${busy}>${acct.busy ? "Suppression…" : "Supprimer définitivement"}</button><button class="btn" type="button" data-act="acct-view" data-v="profile">Annuler</button></div></form>`;
   } else if (acct.status === "in") {
     body = `<h2 id="account-title">Mon compte</h2>
-      <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>${acct.viaGoogle ? " (compte Google)" : ""}. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes. Tes notes de dissertation restent sur chaque appareil.</p>
+      <p class="w-lead">Connecté avec <strong>${esc(acct.email)}</strong>${acct.viaGoogle ? " (compte Google)" : ""}. Ta progression, tes cartes, tes références et tes scores se synchronisent sur tous les appareils où tu te connectes, comme tes textes et les retours de Claude.</p>
       ${planBlock()}
       ${msg}<div class="row-btns"><button class="btn" data-act="acct-logout"${busy}>Se déconnecter</button><button class="btn" data-act="acct-view" data-v="delete">Supprimer mon compte</button><button class="btn" data-act="acct-close">Fermer</button></div>`;
   } else if (acct.view === "recover") {
@@ -9720,7 +9725,7 @@ function renderWelcome(){
     <p class="w-sub">Ta première séance</p>
     <ol class="w-steps">
       <li>Lis la question et cherche la réponse dans ta tête.</li>
-      <li>Retourne la carte (bouton ou touche Espace).</li>
+      <li>Retourne la carte (${matchMedia("(hover: hover)").matches ? "bouton ou touche Espace" : "touche le bouton"}).</li>
       <li>Sois honnête : Raté, Hésité ou Su (touches 1, 2 ou 3).</li>
     </ol>
     <p class="w-note">${isPremium() ? "De nouvelles cartes chaque jour, au rythme calculé d'après la date de ton concours (dix par jour sans date)." : FREE_NEW + " nouvelles cartes par jour sur un écrit en version découverte ; l'accès complet ouvre tous les écrits, au rythme calculé d'après la date de ton concours."} Ta progression est enregistrée automatiquement${STANDALONE ? " dans ce navigateur ; crée un compte (bouton « Se connecter ») pour la retrouver sur tous tes appareils" : ""}.${STANDALONE ? " Le retour de Claude sur tes plans et tes introductions fait partie de l'accès complet." : ""}</p>
