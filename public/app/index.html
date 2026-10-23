@@ -3285,7 +3285,7 @@ function renderPaywall(){
   el.hidden = false;
   el.innerHTML = `<div class="pw-panel" role="dialog" aria-modal="true" aria-labelledby="pw-title">
     <button class="pw-x" data-act="pw-close" aria-label="Fermer">×</button>
-    <h2 id="pw-title" tabindex="-1">${one ? "Prépare ton écrit" : "Prépare tous tes écrits"}, sans\u00a0limite</h2>
+    <h2 id="pw-title" tabindex="-1">${one ? "Prépare ton écrit" : "Prépare tous tes écrits"} jusqu'au concours</h2>
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
       <li>${icon("check")} ${one ? "Toutes les fiches de ton écrit" : "Tous les écrits de ton concours"} : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
@@ -9092,7 +9092,10 @@ document.addEventListener("click", e => {
   if (d.act === "go-sources") { if (welcomeOpen) hideWelcome(); setView("sources"); return; }
   if (d.onb) {
     const fresh = !Object.keys(progress).length;
-    const c = chooseConcours(d.onb === "none" ? "" : d.onb); if (fresh) renderWelcome(); else hideWelcome();
+    const c = chooseConcours(d.onb === "none" ? "" : d.onb);
+    /* Venu du bouton « Prendre le pass » de l'accueil : l'offre s'ouvre dès que le concours est choisi. */
+    if (c && buyWanted) { buyWanted = false; hideWelcome(); paywall("menu"); return; }
+    if (fresh) renderWelcome(); else hideWelcome();
     try { window.scrollTo({ top: 0 }); const w = $("#welcome"); if (w) w.scrollTop = 0; } catch (e) {}
     if (!fresh) toast(c ? `C'est noté : ${c.t}${c.d ? (dateProv(c) ? ", écrits vers le " : ", écrits le ") + fmtDay(c.d) : ""}.` : "Tout le contenu reste affiché.");
     const b = $("#welcome:not([hidden]) [data-act=welcome-start]") || $(".ts-go") || $("#goal button"); if (b) b.focus({ preventScroll: true }); return;
@@ -9867,10 +9870,13 @@ try {
   }
 } catch (e) {}
 if (STANDALONE) srcInit();
+let buyWanted = false;
+try { const u = new URL(location.href); if (u.searchParams.get("achat")) { u.searchParams.delete("achat"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); buyWanted = STANDALONE && !isPremium(); } } catch (e) {}
 try { const u = new URL(location.href), q = u.searchParams.get("concours"); if (q) { u.searchParams.delete("concours"); history.replaceState(null, "", u.pathname + (u.search || "") + u.hash); if (concById(q) && prefs.concours !== q) chooseConcours(q); } } catch (e) {}
 buildQueue(); render(); blancCheck();
 { const v0 = routeFromHash(); if (v0 && v0 !== "home" && prefs.concours) { routeSilent = true; try { setView(v0); } finally { routeSilent = false; } } }
-if (!welcomeSeen() && !Object.keys(progress).length) showWelcome(false);
+if (buyWanted && prefs.concours) { buyWanted = false; paywall("menu"); }
+else if ((buyWanted || !welcomeSeen()) && !Object.keys(progress).length) showWelcome(false);
 connect().catch(() => { if (!store.ref) setStatus("local"); });
 initAccount().catch(() => {});
 track("open");
