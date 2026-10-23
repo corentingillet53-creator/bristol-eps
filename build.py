@@ -146,8 +146,8 @@ if _offre:
     # qui suivra plutôt qu'un « prix de référence » jamais pratiqué seul (article L112-1-1).
     _ref_txt = f"Le code s’applique tout seul au paiement. Après le {OFFRE['fin_txt']}, le pass est à {OFFRE['ref']} €."
     OFFRE_TXT = (f"Prix de lancement : le pass session 2027 à {OFFRE['prix']} € jusqu’au {OFFRE['fin_txt']} inclus, "
-                 f"avec le code {OFFRE['code']}, puis {OFFRE['ref']} €.")
-    vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
+                 f"avec le code {OFFRE['code']} (appliqué tout seul au paiement), puis {OFFRE['ref']} €.")
+    vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}</p>\n'
     # Prix du pass dans les tarifs : prix de lancement en gros, prix suivant barré ; la page retire la ligne après la fin.
     vals["PASS_PRIX"] = (f'<b data-offre="{_ms}">{OFFRE["prix"]} € <s>{OFFRE["ref"]} €</s><span class="sr-only"> au lieu de {OFFRE["ref"]} €</span></b>'
                          f'<b class="offre-apres" data-offre-apres="{_ms}" hidden>{OFFRE["ref"]} €</b>')
@@ -274,6 +274,7 @@ dd{margin:0}
 .offre{margin:0 0 24px;padding:8px 12px;border-left:4px solid var(--accent);background:var(--paper);font-size:.95rem}
 .promesse{font-size:1.15rem;margin:12px 0 0}
 .go .small{color:var(--muted)}
+.prive{margin:-8px 0 20px;font-weight:600}
 .ex{margin:32px 0}
 .ex h2{margin-bottom:4px}
 .exl{font-weight:600;margin:16px 0 6px;color:var(--muted);font-size:.95rem}
@@ -309,7 +310,7 @@ for c in _concs:
     meta += '\n<script type="application/ld+json">' + json.dumps(crumbs, ensure_ascii=False).replace("</", "<\\/") + "</script>"
     app = f"/app/?concours={c['id']}"
     # Premier écran (la page sert d'arrivée aux annonces) : la promesse et le bouton d'essai, puis le prix en une ligne.
-    _kick = {"capeps-int": "Contractuels et titulaires en poste"}.get(c["id"], c["tag"])
+    _kick = {"capeps-int": "Contractuels, titulaires et maîtres du privé (CAER)"}.get(c["id"], c["tag"])
     b = [f'<p class="kicker">Session 2027 · {_h(_typo(_kick))}</p>', f"<h1>{_h(t)} 2027 : épreuves, programme et annales</h1>"]
     _ecr = {"capeps-int": "ton étude de cas", "agreg-int": "tes dissertations et compositions", "agreg-ext": "tes dissertations"}.get(c["id"], "tes copies")
     _quoi = "ton plan d’étude de cas" if c["id"] == "capeps-int" else "ton plan, ton introduction ou une partie" if c["id"].startswith("agreg") else "ton plan, ton introduction ou un paragraphe"
@@ -317,6 +318,10 @@ for c in _concs:
              'Pas de formation cette année ? C’est d’abord pour toi. Déjà en formation ? Bristol complète tes cours, sans les remplacer.</p>' if ann else
              f'<p class="promesse">Claude relit {_quoi} selon la grille et les rapports du jury. Pas de formation cette année ? C’est d’abord pour toi. Déjà en formation ? Bristol complète tes cours, sans les remplacer.</p>')
     b.append(f'<div class="go"><a class="btn" href="{app}">Essayer : un retour offert sur ton plan</a><span class="small">Gratuit, sans carte bancaire. Conçu par Corentin, professeur d’EPS.</span></div>')
+    # Privé sous contrat : dit dès le premier écran (audit 16, textes validés par Corentin le 23 octobre 2026).
+    _prive = {"capeps-int": "Maître du privé sous contrat ? Le CAER-CAPEPS a les mêmes épreuves : tout ce qui suit te concerne.",
+              "agreg-int": "Professeur du privé sous contrat ? Le CAER-PA a les mêmes épreuves et le même jury : tout ce qui suit te concerne."}.get(c["id"])
+    if _prive: b.append(f'<p class="prive">{_h(_prive)}</p>')
     if _offre:
         b.append(f'<p class="offre" data-offre="{_ms}"><strong>Prix de lancement :</strong> le pass session 2027 à {OFFRE["prix"]} € jusqu’au {_h(OFFRE["fin_txt"])} inclus, puis {OFFRE["ref"]} € '
                  f'(code {_h(OFFRE["code"])}, appliqué tout seul au paiement).</p>{CONC_JS}')
