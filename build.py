@@ -148,9 +148,13 @@ if _offre:
     OFFRE_TXT = (f"Prix de lancement : le pass session 2027 à {OFFRE['prix']} € jusqu’au {OFFRE['fin_txt']} inclus, "
                  f"avec le code {OFFRE['code']}, puis {OFFRE['ref']} €.")
     vals["OFFRE_TOP"] = f'<p class="offre-band" data-offre="{_ms}">{_h(OFFRE_TXT)}<small>{_h(_ref_txt)}</small></p>\n'
+    # Prix du pass dans les tarifs : prix de lancement en gros, prix suivant barré ; la page retire la ligne après la fin.
+    vals["PASS_PRIX"] = (f'<b data-offre="{_ms}">{OFFRE["prix"]} € <s>{OFFRE["ref"]} €</s><span class="sr-only"> au lieu de {OFFRE["ref"]} €</span></b>'
+                         f'<b class="offre-apres" data-offre-apres="{_ms}" hidden>{OFFRE["ref"]} €</b>')
     vals["OFFRE_PRIX"] = f'<p class="offre-note" data-offre="{_ms}">Prix de lancement jusqu’au {_h(OFFRE["fin_txt"])} : {OFFRE["prix"]} € avec le code {_h(OFFRE["code"])}.<small>{_h(_ref_txt)}</small></p>'
 else:
     vals["OFFRE_TOP"] = vals["OFFRE_PRIX"] = ""
+    vals["PASS_PRIX"] = f'<b>{OFFRE["ref"] if OFFRE else 80} €</b>'
 land = self_host_fonts(land_src)
 if INDEXER:
     land, _n = re.subn(r'<!-- Retiré par build.py[^>]*-->\n<meta name="robots" content="noindex">\n', "", land)
@@ -389,7 +393,7 @@ if INDEXER: robots += f"\nSitemap: {SITE_URL}/sitemap.xml\n"
 """, encoding="utf-8")
 # llms.txt (https://llmstxt.org) : la présentation du site en Markdown, pour les assistants IA.
 # Tarifs repris de la page d'accueil, chiffres et dates des données de l'application.
-_grp = land_src[land_src.index("<h3>Bristol EPS</h3>"):land_src.index("<h3>Ailleurs</h3>")]
+_grp = land_src[land_src.index("<h3>Bristol EPS</h3>"):land_src.index("<h3>Ailleurs</h3>")].replace("{{PASS_PRIX}}", f'<b>{OFFRE["ref"] if OFFRE else 80} €</b>')
 _prix = [(_txt(n), _txt(p), _txt(d)) for n, p, d in re.findall(r'<p class="item-r">(.*?) <b>(.*?)</b></p><p>(.*?)</p>', _grp)]
 assert len(_prix) == 3, _prix
 llms = f"""# Bristol EPS

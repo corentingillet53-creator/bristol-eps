@@ -46,6 +46,14 @@ const { chromium } = require('playwright');
    await q.click('[data-pwplan=pass]');await q.waitForTimeout(500);
    ok(co&&co.plan==='pass'&&co.promo==='LANCEMENT20','paiement du pass : code promo envoyé');}
   else ok(true,'offre terminée : rien à vérifier');
+  // « Prendre le pass » (accueil) : l'offre s'ouvre dès le concours choisi ; titre sans « sans limite ».
+  {const c3=await b.newContext({viewport:{width:390,height:844}});const r=await c3.newPage();r.on('pageerror',e=>errs.push(e.message));await r.goto('http://localhost:8766/');await r.waitForTimeout(300);
+   const lt=await r.textContent('#tarifs');ok(!has||(/64\s€\s*80\s€/.test(lt)&&/au lieu de 80/.test(lt)),'tarifs : 64 € en gros, 80 € barré');
+   await r.click('#tarifs a:has-text("Prendre le pass")');await r.waitForTimeout(1000);
+   await r.evaluate(()=>{localStorage.removeItem('bristol-eps-v1')}).catch(()=>{});
+   const onb=r.locator('button:has-text("CAPEPS interne")');if(await onb.count()){await onb.first().click();await r.waitForTimeout(600);}
+   const t=await r.evaluate(()=>pw.open?document.querySelector('#paywall').textContent:'FERME');ok(/Prépare (tous tes écrits|ton écrit) jusqu'au concours/.test(t)&&!/sans\s+limite/.test(t),'« Prendre le pass » : offre ouverte après le choix du concours');
+   ok(!/achat=/.test(r.url()),'paramètre achat retiré de l\'adresse');await c3.close();}
   await c2.close();}
  ok(!errs.length,'sans erreur '+errs.join('|'));
  await b.close();console.log(fails.length?'FAILS '+fails.length:'ALL OK');process.exit(fails.length?1:0);})();

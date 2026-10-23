@@ -194,6 +194,8 @@ p{margin:0;text-wrap:pretty}
 .item p{margin-top:4px;font-size:var(--step-body);line-height:1.45;max-width:36ch}
 .grp+.grp .item-r{font-weight:500}
 .price-go{grid-column:5 / span 8;margin-top:64px;display:flex;flex-wrap:wrap;align-items:center;gap:20px 32px}
+.price-go .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px currentColor}
+.price-go s{font-weight:400;opacity:.7}
 .price-go p{font-size:var(--step-small);color:var(--muted);max-width:52ch}
 @media (max-width:860px){ .price-g{display:block} .price-l{grid-template-columns:1fr;gap:56px 0;margin-top:48px} .price-go{margin-top:48px} }
 
@@ -377,7 +379,7 @@ details[open] .chev{transform:rotate(180deg)}
         <div class="grp" data-reveal>
           <h3>Bristol EPS</h3>
           <div class="item"><p class="item-r">Découverte <b>gratuit</b></p><p>Cinq nouvelles fiches par jour sur l’écrit de ton choix, les annales et les rapports de jury, et un retour de Claude offert avec un compte gratuit. Sans inscription pour réviser.</p></div>
-          <div class="item"><p class="item-r">Pass session 2027 <b>80 €</b></p><p>En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, jusqu’à 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.</p><p class="offre-note" data-offre="1793573999000">Prix de lancement jusqu’au 1er novembre 2026 : 64 € avec le code LANCEMENT20.<small>Le code s’applique tout seul au paiement. Après le 1er novembre 2026, le pass est à 80 €.</small></p></div>
+          <div class="item"><p class="item-r">Pass session 2027 <b data-offre="1793573999000">64 € <s>80 €</s><span class="sr-only"> au lieu de 80 €</span></b><b class="offre-apres" data-offre-apres="1793573999000" hidden>80 €</b></p><p>En une fois, accès jusqu’au 31 juillet 2027 : tous les écrits de ton concours, jusqu’à 60 retours de Claude par mois, le concours blanc corrigé, même écrit sur papier.</p><p class="offre-note" data-offre="1793573999000">Prix de lancement jusqu’au 1er novembre 2026 : 64 € avec le code LANCEMENT20.<small>Le code s’applique tout seul au paiement. Après le 1er novembre 2026, le pass est à 80 €.</small></p></div>
           <div class="item"><p class="item-r">Mensuel <b>15 €</b></p><p>Par mois, sans engagement : le même accès complet.</p></div>
         </div>
         <div class="grp" data-reveal style="--i:1">
@@ -388,7 +390,8 @@ details[open] .chev{transform:rotate(180deg)}
         </div>
       </div>
       <div class="price-go">
-        <a class="btn" href="/app/">Commencer à réviser</a>
+        <a class="btn" href="/app/?achat=pass">Prendre le pass</a>
+        <a class="btn ghost" href="/app/">Commencer à réviser</a>
         <p>Paiement sécurisé par Stripe. Satisfait ou remboursé pendant 14 jours, sur simple e-mail. Prix TTC. Prix pratiqués ailleurs relevés sur les sites des offres en octobre 2026.</p>
       </div>
     </div>
@@ -525,6 +528,7 @@ $("mo-next").addEventListener("click", () => row.scrollBy({ left: step(), behavi
 })();
 /* Offre de lancement : retirée d'elle-même après sa date de fin, même sans nouvelle construction. */
 document.querySelectorAll("[data-offre]").forEach(e => { if (Date.now() > +e.dataset.offre) e.remove(); });
+document.querySelectorAll("[data-offre-apres]").forEach(e => { if (Date.now() > +e.dataset.offreApres) e.hidden = false; });
 </script>
 </body>
 </html>
