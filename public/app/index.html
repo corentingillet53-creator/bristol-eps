@@ -3290,7 +3290,7 @@ function renderPaywall(){
     ${PW_WHY[pw.why] ? `<p class="pw-why">${esc(PW_WHY[pw.why])}</p>` : ""}
     <ul class="pw-list">
       <li>${icon("check")} ${one ? "Toutes les fiches de ton écrit" : "Tous les écrits de ton concours"} : ${concCards().length} fiches, autant de nouvelles par jour que tu veux</li>
-      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"} : ${c.credits || 60} crédits par mois (un retour = 1 crédit, une copie corrigée = 3 ou 4), et des recharges si tu en veux plus</li>
+      <li>${icon("check")} Les retours de Claude sur tes plans, introductions et ${cint ? "propositions" : agr ? "parties" : "paragraphes"} : ${c.credits || 60} crédits par mois, soit ${c.credits || 60} retours ou 15 à 20 copies corrigées (un retour = 1 crédit, une copie = 3 ou 4), et des recharges si tu en veux plus</li>
       <li>${icon("check")} Le concours blanc chronométré, au clavier ou sur papier (photos de ta copie), corrigé avec une note indicative</li>
       <li>${icon("check")} Ton plan semaine par semaine jusqu'aux écrits, réglé sur ton temps</li>
       <li>${icon("check")} Le mode écoute, pour réviser sans écran</li>
@@ -3298,7 +3298,7 @@ function renderPaywall(){
     ${nAnn ? `<p class="pw-also">Et toujours, avec ou sans abonnement : les ${nAnn} annales de ton concours avec ce qu'en a relevé le jury, et la méthode ${cint ? "de l'étude de cas" : one ? "de ton écrit" : "de chaque écrit"}.</p>` : ""}
     <div class="pw-plans">
       <button class="pw-plan best" data-pwplan="pass"${dis}><span class="pw-name">Pass session 2027</span>${offreOn() && on ? `<span class="pw-price">${OFFRE.prix} €<small> jusqu'au ${esc(OFFRE.fin_txt)}</small></span><span class="pw-offre">Prix de lancement avec le code ${esc(OFFRE.code)}, appliqué sur la page de paiement ; ensuite ${OFFRE.ref} €.</span>` : `<span class="pw-price">${esc(c.pass ? c.pass.label : "80 €")}</span>`}<span class="pw-sub">En une fois, sans renouvellement à surveiller : accès jusqu'au ${esc(untilTxt(c.pass ? c.pass.until : "2027-07-31"))}.${pwWeek(on, c)}</span></button>
-      <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span></button>
+      <button class="pw-plan" data-pwplan="mensuel"${dis}><span class="pw-name">Mensuel</span><span class="pw-price">${esc(c.mensuel ? c.mensuel.label : "15 €")}<small> par mois</small></span><span class="pw-sub">Sans engagement, résiliable à tout moment.</span>${pwMonths(c)}</button>
     </div>
     ${!on ? `<p class="pw-note" id="pw-soon">Le paiement en ligne n'est pas encore ouvert : en attendant, la version découverte reste gratuite, avec un retour de Claude offert.</p>
       ${pw.wait === "ok" || waitDone() ? `<p class="pw-note" id="pw-wait-ok" tabindex="-1"><b>C'est noté.</b> Tu recevras un seul e-mail, à l'ouverture du paiement.</p>`
@@ -3308,6 +3308,14 @@ function renderPaywall(){
       : `<p><button class="linkbtn" data-act="pw-code">J'ai un code d'accès</button></p>`}
     ${pw.msg ? `<p class="pw-msg" role="alert">${esc(pw.msg)}</p>` : ""}
   </div>`;
+}
+/* Le mensuel jusqu'aux écrits, quand ils tombent dans moins de six mois. */
+function pwMonths(c){
+  const days = Math.ceil((Date.parse((prefs.examDate || "") + "T08:00:00") - Date.now()) / DAY);
+  const px = parseFloat(String(c.mensuel ? c.mensuel.label : "15").replace(",", "."));
+  if (!(days > 0) || days > 183 || !(px > 0)) return "";
+  const m = Math.max(1, Math.ceil(days / 30.44));
+  return `<span class="pw-sub">Tes écrits sont dans ${plural(days, "jour")} : en mensuel, cela fait environ ${Math.round(m * px)} € (${m} mois), résiliable en un clic dans Mon compte.</span>`;
 }
 /* Le pass rapporté aux semaines qui restent avant les écrits (au moins deux). */
 function pwWeek(on, c){
@@ -3390,7 +3398,7 @@ function claudeLockHTML(){ return `<div class="fb"><div class="row-btns"><button
 function trialCard(up){
   if (!trialOn() || !prefs.concours) return "";
   const f = up && STANDALONE && !isPremium() ? eprOf(freeGrp()) : null;
-  return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p>${f ? `<p class="tc-up"><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour. <button class="linkbtn" data-act="paywall" data-why="menu">Débloquer tout</button></p>` : ""}</div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
+  return `<section class="tw trial-card" aria-labelledby="tc-h"><span class="ts-ic">${icon("pen")}</span><div class="tw-tx"><h2 id="tc-h">Ton retour de Claude offert</h2><p>Écris un plan, une introduction ou un paragraphe sur un sujet de ton concours : Claude le relit selon la grille et les rapports du jury. Gratuit, avec un compte.</p>${f ? `<p class="tc-up"><b>Découverte</b> : ${f.id === "tx" ? "les textes officiels" : "l'" + esc(f.s.toLowerCase())}, ${FREE_NEW} nouvelles fiches par jour. <button class="linkbtn" data-act="paywall" data-why="menu">Débloquer tout</button></p>` : ""}</div><button class="btn primary" data-act="essai-go">Essayer</button></section>`;
 }
 function sjEprFix(){ if (!relHas(sj.epr) && !(sj.epr === "e2" && relHas("tx"))) sj.epr = relHas("e1") ? "e1" : "e2"; }
 function essaiGo(){
