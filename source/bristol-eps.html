@@ -3371,7 +3371,8 @@ function essaiGo(){
   if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
   /* Sujet d'entraînement d'abord : son dossier (situation fictive) est fourni, alors que l'annexe d'une annale est à relever soi-même. */
   const P = sjPools(sj.epr); if (P.own.length) { sj.src = "own"; sj.srcPicked = true; }
-  sj.cur = null; sj.axe = "Tous"; sj.shown = false; sj.mode = "plan"; drawSubject(); setView("sujets");
+  /* Jamais le sujet « Ta classe » pour l'essai : il demande d'abord de décrire sa classe, sans dossier fourni. */
+  sj.cur = null; sj.axe = "Tous"; sj.shown = false; sj.mode = "plan"; drawSubject(s => !s.mine); setView("sujets");
   const t = $("#sj-notes"); if (t) t.focus({ preventScroll: true });
 }
 function upgradeBanner(){
@@ -4580,14 +4581,15 @@ function tmPause(){ tick(); tmStop(); render(); }
 function tmReset(){ tmStop(); tm.left = tm.dur; tm.warned = false; }
 function chkGet(sid){ try { return JSON.parse(noteGet("c:" + sid) || "[]"); } catch (e) { return []; } }
 
-function drawSubject(){
+function drawSubject(keep){
   if (fb.ctl) { fb.ctl.abort(); fb.ctl = null; }
   const b3 = isB3Conc();
   tm.dur = b3 ? (sj.epr === "e2" ? 15 : 10) * 60 : Math.max(15 * 60, tm.dur); tmReset();
   const P = sjPools(sj.epr);
   if (sj.src === "ann" && !P.ann.length) sj.src = "own";
   if (sj.src !== "ann" && !P.own.length) sj.src = "ann";
-  const pool = sj.src === "ann" ? P.ann.map(annSubject) : P.own.filter(s => sjThIs(s, sj.axe));
+  const all = sj.src === "ann" ? P.ann.map(annSubject) : P.own.filter(s => sjThIs(s, sj.axe));
+  const pool = keep && all.some(keep) ? all.filter(keep) : all;
   const others = pool.filter(s => !sj.cur || s.id !== sj.cur.id);
   const list = others.length ? others : pool;
   sj.cur = list[Math.floor(Math.random() * list.length)] || null; sj.shown = false;
@@ -4939,6 +4941,8 @@ const PT_KEY = "bristol-eps-test", PT_N = 12;
 const pt = { on: false, qs: [], i: 0, pick: null, done: false, applied: 0 };
 function ptLast(){ try { return JSON.parse(localStorage.getItem(PT_KEY) || "null"); } catch (e) { return null; } }
 function ptSave(o){ try { localStorage.setItem(PT_KEY, JSON.stringify(o)); } catch (e) {} }
+/* Fiches dont les réponses se recouvrent par le sens (sans mots communs) : jamais leurre l'une de l'autre. */
+const PT_TWINS = [["in19", "in07"], ["in19", "in08"], ["in05", "in30"], ["in15", "in22"]];
 function ptBuild(){
   const ths = EPR.filter(e => relHas(e.id)).flatMap(e => e.th);
   const ok = c => c.a && c.a.length >= 3 && c.a.length <= (c.th === "PO" ? 230 : 150) && !c.custom;
@@ -4977,7 +4981,7 @@ function ptBuild(){
     const head = t => { const m = normTxt(t).match(/^(?:le|la|les|l'|l’|un|une|des|du)\s*([a-z-]+)/); return m ? m[1] : ""; };
     const qHead = q => { const m = normTxt(q).match(/^(?:a |de |pour |dans |sur )?(?:quel|quelle|quels|quelles)\s+(?:est |sont )?(?:la |le |les |l')?([a-z-]+)/); return m ? m[1] : ""; }, qh = qHead(c.q);
     const shape2 = t => NUMW.test(t) ? "n" : shape(t), cs = shape2(c.a), cc = qCat || (qh ? aCat(c.a) : ""), ch = head(c.a);
-    const valid = x => x.id !== c.id && ok(x) && x.a !== c.a && !close(x) && fits(x) && shape2(x.a) === cs;
+    const valid = x => x.id !== c.id && ok(x) && x.a !== c.a && !close(x) && fits(x) && shape2(x.a) === cs && !PT_TWINS.some(t => t.includes(c.id) && t.includes(x.id));
     const w0 = t => normTxt(t).split(/[\s,'’]+/)[0], cw = w0(c.a);
     const score = x => (cc && (aCat(x.a) === cc || qCatOf(x.q) === qCat && qCat) ? 8 : cc ? -6 : 0) + (qh && qHead(x.q) === qh ? 6 : 0) + (ch && head(x.a) === ch ? 4 : 0) + (x.th === c.th ? 5 : 0) + (qw(x.q) === cq ? 3 : 0) + (w0(x.a) === cw ? 3 : 0)
       + (x.a.length > c.a.length * 0.5 && x.a.length < c.a.length * 2 ? 2 : 0) + (x.p && x.p === c.p ? 1 : 0) + Math.random() * 1.5;
@@ -8460,8 +8464,10 @@ function outline(text){
     const l = raw.trim(), w = wordCount(l);
     const hit = OUT_RX.find(([, rx]) => rx.test(l));
     /* Un titre suivi de son texte sur la même ligne : le titre va jusqu'à la première ponctuation forte, le reste compte comme texte. */
-    const head = hit ? (l.length <= 160 ? l : (l.match(/^.*?[.:;!?](?=\s|$)/) || [l])[0].slice(0, 160)) : "";
-    if (hit) { cur = { lvl: hit[0], t: head.replace(/\s+/g, " ").slice(0, 90), pos, w: l.length <= 160 ? 0 : Math.max(0, w - wordCount(head)) }; out.push(cur); }
+    /* Ligne courte « I. Pour la classe : demi-fond… » : le titre s'arrête aux deux-points dès que six mots au moins suivent. */
+    const colon = hit && l.length <= 160 ? l.match(/^(.{2,80}?)\s*:\s+(.+)$/) : null, split = colon && wordCount(colon[2]) >= 6;
+    const head = hit ? (split ? colon[1] : l.length <= 160 ? l : (l.match(/^.*?[.:;!?](?=\s|$)/) || [l])[0].slice(0, 160)) : "";
+    if (hit) { cur = { lvl: hit[0], t: head.replace(/\s+/g, " ").slice(0, 90), pos, w: split ? wordCount(colon[2]) : l.length <= 160 ? 0 : Math.max(0, w - wordCount(head)) }; out.push(cur); }
     else if (cur) cur.w += w; else before += w;
     pos += raw.length + 1;
   }

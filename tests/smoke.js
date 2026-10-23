@@ -27,6 +27,9 @@ const mk=async(conc,prem)=>{const ctx=await b.newContext({viewport:{width:1280,h
  const o=await p.evaluate(()=>outline("I. Première partie\ntexte du un deux trois\nII. Deuxième partie\ntexte\nIII. Une troisième partie très longue qui continue. "+"mot ".repeat(60)));ok(o.items.length===3&&o.items[2].w>=55,'plan : titre long reconnu ('+o.items.length+' parties, '+(o.items[2]||{}).w+' mots)');
  ok(!errs.length,'capeps-3 sans erreur '+errs.join('|'));await ctx.close();}
 {const {ctx,p,errs}=await mk('capeps-int',true);
+ ok(await p.evaluate(()=>{for(let i=0;i<40;i++){essaiGo();if(!sj.cur||sj.cur.mine)return false;}return true;}),'capeps-int essai : jamais le sujet « Ta classe »');
+ {const o=await p.evaluate(()=>outline("I. Pour la classe : demi-fond avec projet d'allure choisi et carnet d'auto-évaluation\nII. Le corps : objet ou sujet ?"));ok(o.items[0].t==='I. Pour la classe'&&o.items[0].w===8&&o.items[1].w===0,'plan : « I. Titre : texte » sur une ligne ('+o.items.map(i=>i.t+'/'+i.w).join(', ')+')');}
+ ok(await p.evaluate(()=>{for(let i=0;i<30;i++)for(const q of ptBuild()){const c=concCards().find(x=>x.id===q.id);if(!c)continue;for(const t of PT_TWINS)if(t.includes(c.id)){const o=concCards().find(x=>x.id===t.find(y=>y!==c.id));if(o&&q.opts.includes(o.a))return false;}}return true;}),'test : pas de leurre jumeau (ZPD / socioconstructivisme)');
  await p.evaluate(()=>{me.tab='e2';setView('methode')});const t=await p.textContent('#panel-methode');ok(/étude de cas/.test(t)&&/bilan prospectif/.test(t)&&/association sportive/.test(t),'capeps-int méthode étude de cas');
  ok(!errs.length,'capeps-int sans erreur '+errs.join('|'));await ctx.close();}
 console.log(fails.length?'FAILS: '+fails.join(' | '):'ALL OK');await b.close();})();
