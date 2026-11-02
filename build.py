@@ -23,8 +23,8 @@ INDEXER = True
 # produit, une durée « une fois » et la même date d'expiration. Le pass étant vendu depuis le jour
 # de l'offre, les textes annoncent un prix de lancement puis le prix « ref », sans « prix de
 # référence » (article L112-1-1 du code de la consommation). OFFRE = None retire tout.
-OFFRE = {"code": "LANCEMENT20", "prix": 64, "ref": 80, "fin": "2026-11-01T23:59:59+01:00",
-         "fin_txt": "1er novembre 2026", "depuis_txt": "21 octobre 2026"}
+# Dernière offre : LANCEMENT20, 64 € au lieu de 80 € du 21 octobre au 1er novembre 2026.
+OFFRE = None
 
 head = """<!doctype html>
 <html lang="fr">

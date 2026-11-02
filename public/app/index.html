@@ -3159,7 +3159,7 @@ function gsGo(fn){ gsClose(false); fn(); try { window.scrollTo({ top: 0 }); } ca
 const PLAN_KEY = "bristol-eps-plan", INTENT_KEY = "bristol-eps-intent";
 const FREE_NEW = 5;
 /* Prix de lancement du pass, écrit par build.py depuis son réglage OFFRE (null dans l'artifact et après la date de fin). */
-const OFFRE = {"code": "LANCEMENT20", "prix": 64, "ref": 80, "fin": 1793573999000, "fin_txt": "1er novembre 2026"};
+const OFFRE = null;
 const offreOn = () => !!(OFFRE && Date.now() <= OFFRE.fin);
 const bill = { cfg: null, credits: null };
 /* Crédits de retours de Claude (abonnés ; functions/api/credits.js) : un retour = 1, une copie tapée = 3, en photos = 4.
@@ -5121,7 +5121,7 @@ function renderTest(){
 }
 
 /* ---------- D'où vient le contenu ---------- */
-const SITE_MAJ = "23 octobre 2026";
+const SITE_MAJ = "2 novembre 2026";
 let relSent = false;
 /* Niveau de chaque source : texte officiel ou institution, travail universitaire ou encyclopédie, site de recoupement. */
 const SRC_OFF = new Set(["AG48", "JUR26", "BNF87", "LEB90", "VIG93", "SOC15", "APA16", "PNNS", "SEN22", "REP", "PAR17", "BAIP69", "LF82", "CHMJS", "LIL23", "LEB01", "GUYEX", "BNF65", "SAV84", "SSS02", "MILN", "AFL", "SFM", "SQE", "ESR", "BO27", "A2011", "GUY23", "LP05", "BO10", "DEPP", "GUT", "SLP", "L75", "L89", "L84", "SEN", "B00", "CHM", "GUY", "BES", "BO19", "PAR"]), SRC_SCH = new Set(["LLO14", "LAR60", "MAC", "WEL91", "WEL78", "WEL75", "PAR81", "LAG88", "TIS97", "LEG82", "WUL12", "LAN", "CAF24", "TER98", "TRA20", "BON", "SNEP", "USEP39", "LOC20", "AG03", "PUG", "LOR", "OTT", "CLD", "DEL", "AT96", "PRO", "OPT", "MCK", "NLP", "RLD", "SCH", "ERR", "HIIT", "DON", "STO", "PEK", "FRE", "E32", "VAS", "TES", "CHA", "SIT", "YEA", "BLA", "DIA", "BIO", "MIR", "TGF", "SPE", "MBP", "ROS", "FBK", "CLT", "LAS", "TER", "UMA", "UGY", "UNI", "ARC", "NOB", "OAL", "HEB", "MER", "FOU"]);
